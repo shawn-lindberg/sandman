@@ -2,5 +2,13 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="source\main.cpp" />
+    <ClCompile Include="source\timer.cpp" />
+    <ClCompile Include="source\serial_connection.cpp" />
+    <ClCompile Include="source\control.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="source\timer.h" />
+    <ClInclude Include="source\serial_connection.h" />
+    <ClInclude Include="source\control.h" />
   </ItemGroup>
 </Project>

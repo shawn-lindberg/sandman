@@ -1,0 +1,4 @@
+TODO:
+
+- Cleaning up a bit.
+- Implement a stop command.
