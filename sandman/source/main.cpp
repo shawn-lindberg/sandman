@@ -44,7 +44,7 @@ static Control s_Controls[NUM_CONTROL_TYPES];
 
 int main()
 {
-	char const* const l_SerialPortName = "COM3";
+	char const* const l_SerialPortName = "COM4";
 
 	// Open the serial connection to the micro.
 	SerialConnection l_Serial;
@@ -97,34 +97,43 @@ int main()
 				{
 					if (l_CommandBuffer[1] == 'u')
 					{
-						s_Controls[CONTROL_HEAD_UP].MovingDesired();
+						s_Controls[CONTROL_HEAD_UP].SetMovingDesired(true);
 					}
 					else if (l_CommandBuffer[1] == 'd')
 					{
-						s_Controls[CONTROL_HEAD_DOWN].MovingDesired();
+						s_Controls[CONTROL_HEAD_DOWN].SetMovingDesired(true);
 					}
 				}
 				else if (l_CommandBuffer[0] == 'k')
 				{
 					if (l_CommandBuffer[1] == 'u')
 					{
-						s_Controls[CONTROL_KNEE_UP].MovingDesired();
+						s_Controls[CONTROL_KNEE_UP].SetMovingDesired(true);
 					}
 					else if (l_CommandBuffer[1] == 'd')
 					{
-						s_Controls[CONTROL_KNEE_DOWN].MovingDesired();
+						s_Controls[CONTROL_KNEE_DOWN].SetMovingDesired(true);
 					}
 				}
 				else if (l_CommandBuffer[0] == 'e')
 				{
 					if (l_CommandBuffer[1] == 'u')
 					{
-						s_Controls[CONTROL_ELEVATION_UP].MovingDesired();
+						s_Controls[CONTROL_ELEVATION_UP].SetMovingDesired(true);
 					}
 					else if (l_CommandBuffer[1] == 'd')
 					{
-						s_Controls[CONTROL_ELEVATION_DOWN].MovingDesired();
+						s_Controls[CONTROL_ELEVATION_DOWN].SetMovingDesired(true);
 					}
+				}
+				else if (l_CommandBuffer[0] == 's')
+				{
+					// Stop controls.
+					for (unsigned int l_ControlIndex = 0; l_ControlIndex < NUM_CONTROL_TYPES; l_ControlIndex++)
+					{
+						s_Controls[l_ControlIndex].SetMovingDesired(false);
+					}
+
 				}
 				else if (l_CommandBuffer[0] == 'q')
 				{

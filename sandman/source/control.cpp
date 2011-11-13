@@ -145,10 +145,12 @@ void Control::Process()
 
 // Set moving desired for the next tick.
 //
-void Control::MovingDesired()
+// p_MovingDesired:	Whether moving is desired.
+//
+void Control::SetMovingDesired(bool p_MovingDesired)
 {
-	m_MovingDesired = true;
+	m_MovingDesired = p_MovingDesired;
 
-	printf("Control @ 0x%x: Setting move desired to true\n", reinterpret_cast<unsigned int>(this));                      
+	printf("Control @ 0x%x: Setting move desired to %d\n", reinterpret_cast<unsigned int>(this), p_MovingDesired);                      
 }
 

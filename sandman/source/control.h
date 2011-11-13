@@ -32,7 +32,9 @@ class Control
 
 		// Set moving desired for the next tick.
 		//
-		void MovingDesired();
+		// p_MovingDesired:	Whether moving is desired.
+		//
+		void SetMovingDesired(bool p_MovingDesired);
 
 	private:
 

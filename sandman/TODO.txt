@@ -1,4 +1,5 @@
 TODO:
 
-- Cleaning up a bit.
-- Implement a stop command.
+- Voice command.
+- Discover where micro is connected.
+- Skype calls.
