@@ -39,11 +39,254 @@ static char const* const s_ControlCommandStrings[] =
 // The controls.
 static Control s_Controls[NUM_CONTROL_TYPES];
 
+// Audio input parameters.
+static unsigned int const s_NumChannels = 2;
+static unsigned int const s_BitsPerSample = 16;
+static unsigned int const s_SampleRate = 44100;
+static unsigned int const s_RecordLengthSec = 10;
+
+static unsigned int const s_AudioInputBufferCapacityBytes = s_NumChannels * (s_BitsPerSample / 8) * s_SampleRate * s_RecordLengthSec;
+static char s_AudioInputBuffer[s_AudioInputBufferCapacityBytes];
+
+// Set when the audio buffer fills.
+static bool s_AudioInputBufferFull = false;
+
 // Functions
 //
 
+// Callback to handle audio input events.
+//
+// p_AudioInputHandle:
+// p_Message:
+// p_CallbackData:
+// p_MessageParam1:
+// p_MessageParam2:
+//
+static void CALLBACK AudioInputCallback(HWAVEIN p_AudioInputHandle, unsigned int p_Message, unsigned int p_CallbackData,
+	unsigned int p_MessageParam1, unsigned int p_MessageParam2)
+{
+	// Unreferenced parameters.
+	p_CallbackData;
+	p_MessageParam1;
+	p_MessageParam2;
+
+	if (p_Message == WIM_DATA)
+	{
+		printf("Audio input message for 0x%x: %d\n", p_AudioInputHandle, p_Message);
+		s_AudioInputBufferFull = true;
+	}
+}
+
 int main()
 {
+	// List the audio input options.
+	unsigned int const l_NumAudioInputDevices = waveInGetNumDevs();
+
+	printf("%d audio input devices:\n", l_NumAudioInputDevices);
+	
+	for (unsigned int l_DeviceIndex = 0; l_DeviceIndex < l_NumAudioInputDevices; l_DeviceIndex++)
+	{
+		WAVEINCAPS l_AudioInputDeviceInfo;
+		if (waveInGetDevCaps(l_DeviceIndex, &l_AudioInputDeviceInfo, sizeof(l_AudioInputDeviceInfo)) != 0)
+		{
+			continue;
+		}
+
+		printf("\t%d - %s\n", l_DeviceIndex + 1, l_AudioInputDeviceInfo.szPname);
+	}
+
+	// Select an audio input device.
+	unsigned int l_SelectedAudioInputDevice = l_NumAudioInputDevices;
+
+	while (l_SelectedAudioInputDevice >= l_NumAudioInputDevices)
+	{
+		printf("\nEnter the number of the audio input device to use (1-%d): ", l_NumAudioInputDevices);
+
+		// Get a line of input.
+		unsigned int const l_InputBufferCapacity = 32;
+		char l_InputBuffer[l_InputBufferCapacity];
+
+		if (gets_s(l_InputBuffer, l_InputBufferCapacity) == NULL)
+		{
+			continue;
+		}
+
+		// See if the input was a number.
+		unsigned int l_NumParsed = sscanf_s(l_InputBuffer, "%d", &l_SelectedAudioInputDevice);
+
+		if (l_NumParsed != 1)
+		{
+			printf("Invalid selection.\n");
+			continue;
+		}
+
+		// Make it zero based.
+		l_SelectedAudioInputDevice--;
+
+		if (l_SelectedAudioInputDevice >= l_NumAudioInputDevices)
+		{
+			printf("Invalid selection.\n");
+			continue;
+		}
+
+		// Made a selection.
+		WAVEINCAPS l_AudioInputDeviceInfo;
+		if (waveInGetDevCaps(l_SelectedAudioInputDevice, &l_AudioInputDeviceInfo, sizeof(l_AudioInputDeviceInfo)) != 0)
+		{
+			printf("Error with selected device.\n");
+			continue;
+		}
+
+		printf("Selected %s.\n\n", l_AudioInputDeviceInfo.szPname);
+	}
+
+	// Test - record 10 sec of audio.
+
+	printf("Opening audio input device...\n");
+
+	// Define the format.
+	WAVEFORMATEX l_AudioFormat;
+	{
+		l_AudioFormat.wFormatTag = WAVE_FORMAT_PCM;
+		l_AudioFormat.nChannels = s_NumChannels;
+		l_AudioFormat.wBitsPerSample = s_BitsPerSample;
+		l_AudioFormat.nSamplesPerSec = s_SampleRate;
+		l_AudioFormat.nBlockAlign = l_AudioFormat.nChannels * (l_AudioFormat.wBitsPerSample / 8);
+		l_AudioFormat.nAvgBytesPerSec = l_AudioFormat.nBlockAlign *	l_AudioFormat.nSamplesPerSec;
+		l_AudioFormat.cbSize = 0;
+	}
+
+	// Open the device.
+	HWAVEIN l_AudioInputHandle;
+	MMRESULT l_AudioResult = waveInOpen(&l_AudioInputHandle, l_SelectedAudioInputDevice, &l_AudioFormat,
+		reinterpret_cast<unsigned int>(AudioInputCallback), 0, CALLBACK_FUNCTION);
+
+	if (l_AudioResult != MMSYSERR_NOERROR) {
+
+		printf("Error opening audio input device: %d\n", l_AudioResult);
+		return 0;
+	}
+
+	printf("\tsuccess\n");
+
+	// Prepare a buffer.
+	WAVEHDR l_AudioInputHeader;
+	{
+		memset(&l_AudioInputHeader, 0, sizeof(l_AudioInputHeader)); 
+		l_AudioInputHeader.lpData = s_AudioInputBuffer;
+		l_AudioInputHeader.dwBufferLength = s_AudioInputBufferCapacityBytes;
+	}
+
+	l_AudioResult = waveInPrepareHeader(l_AudioInputHandle, &l_AudioInputHeader, sizeof(l_AudioInputHeader));
+
+	if (l_AudioResult != MMSYSERR_NOERROR) {
+
+		printf("Error preparing audio input buffer: %d\n", l_AudioResult);
+		return 0;
+	}
+
+	// Add the buffer.
+	l_AudioResult = waveInAddBuffer(l_AudioInputHandle, &l_AudioInputHeader, sizeof(l_AudioInputHeader));
+
+	if (l_AudioResult != MMSYSERR_NOERROR) {
+
+		printf("Error preparing audio input buffer: %d\n", l_AudioResult);
+		return 0;
+	}
+
+	printf("\nRecording audio...\n");
+
+	// Start recording.
+	l_AudioResult = waveInStart(l_AudioInputHandle);
+
+	if (l_AudioResult != MMSYSERR_NOERROR) {
+
+		printf("Error starting audio input: %d\n", l_AudioResult);
+		return 0;
+	}
+
+	while (s_AudioInputBufferFull == false)
+	{
+		// Yay, busy loop!
+	}
+
+	printf("\tdone\n");
+
+	// Unprepare the buffer.
+	l_AudioResult = waveInUnprepareHeader(l_AudioInputHandle, &l_AudioInputHeader, sizeof(l_AudioInputHeader));
+
+	if (l_AudioResult != MMSYSERR_NOERROR) {
+
+		printf("Error unpreparing audio input buffer: %d\n", l_AudioResult);
+		return 0;
+	}
+	
+	// Reset and close the audio input device.  I'm not checking return values because if these fail, I don't think I can do
+	// anything about it.
+	waveInReset(l_AudioInputHandle);
+	waveInClose(l_AudioInputHandle);
+
+	// A pause.
+	printf("\nPress any key to continue...");
+	int dummy = _getch();
+	dummy++;
+	printf("\n\n");
+
+	// Test - play back the audio.
+
+	// Open the audio output device.
+	HWAVEOUT l_AudioOutputHandle;
+	l_AudioResult = waveOutOpen(&l_AudioOutputHandle, WAVE_MAPPER, &l_AudioFormat, 0, 0, WAVE_FORMAT_DIRECT);
+
+	if (l_AudioResult != MMSYSERR_NOERROR) {
+
+		printf("Error opening audio output device: %d\n", l_AudioResult);
+		return 0;
+	}
+
+	// Prepare a buffer.
+	WAVEHDR l_AudioOutputHeader;
+	{
+		memset(&l_AudioOutputHeader, 0, sizeof(l_AudioOutputHeader)); 
+		l_AudioOutputHeader.lpData = s_AudioInputBuffer;
+		l_AudioOutputHeader.dwBufferLength = s_AudioInputBufferCapacityBytes;
+	}
+
+	l_AudioResult = waveOutPrepareHeader(l_AudioOutputHandle, &l_AudioOutputHeader, sizeof(l_AudioOutputHeader));
+
+	if (l_AudioResult != MMSYSERR_NOERROR) {
+
+		printf("Error preparing audio output buffer: %d\n", l_AudioResult);
+		return 0;
+	}
+
+	printf("Playing audio...\n");
+
+	// Play the audio.
+	l_AudioResult = waveOutWrite(l_AudioOutputHandle, &l_AudioOutputHeader, sizeof(l_AudioOutputHeader));
+
+	if (l_AudioResult != MMSYSERR_NOERROR) {
+
+		printf("Error preparing audio output buffer: %d\n", l_AudioResult);
+		return 0;
+	}
+
+	// Wait for it to finish.
+	do
+	{
+		l_AudioResult = waveOutUnprepareHeader(l_AudioOutputHandle, &l_AudioOutputHeader, sizeof(l_AudioOutputHeader));
+	}
+	while (l_AudioResult == WAVERR_STILLPLAYING);
+
+	printf("\tdone\n");
+
+	// Reset and close the audio output device.  I'm not checking return values because if these fail, I don't think I can do
+	// anything about it.
+	waveOutReset(l_AudioOutputHandle);
+	waveOutClose(l_AudioOutputHandle);
+	
+	printf("\nOpening serial port...\n");
+
 	char const* const l_SerialPortName = "COM4";
 
 	// Open the serial connection to the micro.
@@ -52,6 +295,8 @@ int main()
 	{
 		return 0;
 	}
+
+	printf("\tsuccess\n");
 
 	// Initialize controls.
 	for (unsigned int l_ControlIndex = 0; l_ControlIndex < NUM_CONTROL_TYPES; l_ControlIndex++)
