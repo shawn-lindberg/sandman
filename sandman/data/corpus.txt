@@ -1,0 +1,7 @@
+sand man
+head
+knee
+elevation
+up
+down
+stop

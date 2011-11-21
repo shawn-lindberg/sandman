@@ -2,6 +2,10 @@
 #include <stdio.h>
 #include <Windows.h>
 
+#include <sphinxbase/ad.h>
+#include <sphinxbase/cont_ad.h>
+#include <pocketsphinx.h>
+
 #include "control.h"
 #include "serial_connection.h"
 #include "timer.h"
@@ -39,252 +43,125 @@ static char const* const s_ControlCommandStrings[] =
 // The controls.
 static Control s_Controls[NUM_CONTROL_TYPES];
 
-// Audio input parameters.
-static unsigned int const s_NumChannels = 2;
-static unsigned int const s_BitsPerSample = 16;
-static unsigned int const s_SampleRate = 44100;
-static unsigned int const s_RecordLengthSec = 10;
-
-static unsigned int const s_AudioInputBufferCapacityBytes = s_NumChannels * (s_BitsPerSample / 8) * s_SampleRate * s_RecordLengthSec;
-static char s_AudioInputBuffer[s_AudioInputBufferCapacityBytes];
-
-// Set when the audio buffer fills.
-static bool s_AudioInputBufferFull = false;
+// How long to wait with no new voice to end an utterance in seconds.
+static float const s_UtteranceTrailingSilenceThresholdSec = 1.0f;
 
 // Functions
 //
 
-// Callback to handle audio input events.
+// Uninitialize program components.
 //
-// p_AudioInputHandle:
-// p_Message:
-// p_CallbackData:
-// p_MessageParam1:
-// p_MessageParam2:
+// p_AudioRecorder:			(Input/Output) The audio input device.
+// p_VoiceActivityDetector:	(Input/Output) The voice activity detector.
+// p_SpeechDecoder:			(Input/Output) The speech decoder.
+// p_Serial:				(Input/Output) The serial connection.
 //
-static void CALLBACK AudioInputCallback(HWAVEIN p_AudioInputHandle, unsigned int p_Message, unsigned int p_CallbackData,
-	unsigned int p_MessageParam1, unsigned int p_MessageParam2)
+static void Uninitialize(ad_rec_t* p_AudioRecorder, cont_ad_t* p_VoiceActivityDetector, ps_decoder_t* p_SpeechDecoder,
+	SerialConnection* p_Serial)
 {
-	// Unreferenced parameters.
-	p_CallbackData;
-	p_MessageParam1;
-	p_MessageParam2;
-
-	if (p_Message == WIM_DATA)
+	// Uninitialize the serial connection.
+	if (p_Serial != NULL)
 	{
-		printf("Audio input message for 0x%x: %d\n", p_AudioInputHandle, p_Message);
-		s_AudioInputBufferFull = true;
+		p_Serial->Uninitialize();
+	}
+	
+	// Uninitialize the speech decoder.
+	if (p_SpeechDecoder != NULL)
+	{
+		ps_free(p_SpeechDecoder);
+	}
+
+	// Uninitialize the voice activity detector.
+	if (p_VoiceActivityDetector != NULL)
+	{
+		cont_ad_close(p_VoiceActivityDetector);
+	}
+
+	// Uninitialize the audio input device.
+	if (p_AudioRecorder != NULL)
+	{
+		ad_close(p_AudioRecorder);
 	}
 }
 
 int main()
 {
-	// List the audio input options.
-	unsigned int const l_NumAudioInputDevices = waveInGetNumDevs();
+	printf("\nInitializing default audio input device...\n");
 
-	printf("%d audio input devices:\n", l_NumAudioInputDevices);
+	// Open the default audio device for recording.
+	ad_rec_t* l_AudioRecorder = ad_open();
+
+	if (l_AudioRecorder == NULL)
+	{
+		printf("\tfailed\n");
+		return 0;
+	}
+
+	printf("\tsucceeded\n");
+
+	printf("\nInitializing voice activity detection...\n");
+
+	// Initialize the voice activity detector.
+	cont_ad_t* l_VoiceActivityDetector = cont_ad_init(l_AudioRecorder, ad_read);
+
+	if (l_VoiceActivityDetector == NULL)
+	{
+		Uninitialize(l_AudioRecorder, NULL, NULL, NULL);
+
+		printf("\tfailed\n");
+		return 0;
+	}
+
+	printf("\tsucceeded\n");
+
+	printf("\nCalibrating the voice activity detection...\n");
+
+	// Calibrate the voice activity detector.
+	if (ad_start_rec(l_AudioRecorder) < 0) 
+	{
+		Uninitialize(l_AudioRecorder, l_VoiceActivityDetector, NULL, NULL);
+
+		printf("\tfailed\n");
+		return 0;
+	}
+
+	if (cont_ad_calib(l_VoiceActivityDetector) < 0) 
+	{
+		Uninitialize(l_AudioRecorder, l_VoiceActivityDetector, NULL, NULL);
+
+		printf("\tfailed\n");
+		return 0;
+	}
+
+	printf("\tsucceeded\n");
+
+	printf("\nInitializing the speech decoder...\n");
+
+	// Initialize the speech decoder.
+	cmd_ln_t* l_SpeechDecoderConfig = cmd_ln_init(NULL, ps_args(), TRUE, 
+		"-hmm", "data/hmm/en_US/hub4wsj_sc_8k", "-lm", "data/lm/en_US/sandman.lm",
+		"-dict", "data/dict/en_US/sandman.dic", NULL);
+
+	if (l_SpeechDecoderConfig == NULL)
+	{
+		Uninitialize(l_AudioRecorder, l_VoiceActivityDetector, NULL, NULL);
+
+		printf("\tfailed\n");
+		return 0;
+	}
+
+	ps_decoder_t* l_SpeechDecoder = ps_init(l_SpeechDecoderConfig);
 	
-	for (unsigned int l_DeviceIndex = 0; l_DeviceIndex < l_NumAudioInputDevices; l_DeviceIndex++)
+	if (l_SpeechDecoder == NULL)
 	{
-		WAVEINCAPS l_AudioInputDeviceInfo;
-		if (waveInGetDevCaps(l_DeviceIndex, &l_AudioInputDeviceInfo, sizeof(l_AudioInputDeviceInfo)) != 0)
-		{
-			continue;
-		}
+		Uninitialize(l_AudioRecorder, l_VoiceActivityDetector, NULL, NULL);
 
-		printf("\t%d - %s\n", l_DeviceIndex + 1, l_AudioInputDeviceInfo.szPname);
-	}
-
-	// Select an audio input device.
-	unsigned int l_SelectedAudioInputDevice = l_NumAudioInputDevices;
-
-	while (l_SelectedAudioInputDevice >= l_NumAudioInputDevices)
-	{
-		printf("\nEnter the number of the audio input device to use (1-%d): ", l_NumAudioInputDevices);
-
-		// Get a line of input.
-		unsigned int const l_InputBufferCapacity = 32;
-		char l_InputBuffer[l_InputBufferCapacity];
-
-		if (gets_s(l_InputBuffer, l_InputBufferCapacity) == NULL)
-		{
-			continue;
-		}
-
-		// See if the input was a number.
-		unsigned int l_NumParsed = sscanf_s(l_InputBuffer, "%d", &l_SelectedAudioInputDevice);
-
-		if (l_NumParsed != 1)
-		{
-			printf("Invalid selection.\n");
-			continue;
-		}
-
-		// Make it zero based.
-		l_SelectedAudioInputDevice--;
-
-		if (l_SelectedAudioInputDevice >= l_NumAudioInputDevices)
-		{
-			printf("Invalid selection.\n");
-			continue;
-		}
-
-		// Made a selection.
-		WAVEINCAPS l_AudioInputDeviceInfo;
-		if (waveInGetDevCaps(l_SelectedAudioInputDevice, &l_AudioInputDeviceInfo, sizeof(l_AudioInputDeviceInfo)) != 0)
-		{
-			printf("Error with selected device.\n");
-			continue;
-		}
-
-		printf("Selected %s.\n\n", l_AudioInputDeviceInfo.szPname);
-	}
-
-	// Test - record 10 sec of audio.
-
-	printf("Opening audio input device...\n");
-
-	// Define the format.
-	WAVEFORMATEX l_AudioFormat;
-	{
-		l_AudioFormat.wFormatTag = WAVE_FORMAT_PCM;
-		l_AudioFormat.nChannels = s_NumChannels;
-		l_AudioFormat.wBitsPerSample = s_BitsPerSample;
-		l_AudioFormat.nSamplesPerSec = s_SampleRate;
-		l_AudioFormat.nBlockAlign = l_AudioFormat.nChannels * (l_AudioFormat.wBitsPerSample / 8);
-		l_AudioFormat.nAvgBytesPerSec = l_AudioFormat.nBlockAlign *	l_AudioFormat.nSamplesPerSec;
-		l_AudioFormat.cbSize = 0;
-	}
-
-	// Open the device.
-	HWAVEIN l_AudioInputHandle;
-	MMRESULT l_AudioResult = waveInOpen(&l_AudioInputHandle, l_SelectedAudioInputDevice, &l_AudioFormat,
-		reinterpret_cast<unsigned int>(AudioInputCallback), 0, CALLBACK_FUNCTION);
-
-	if (l_AudioResult != MMSYSERR_NOERROR) {
-
-		printf("Error opening audio input device: %d\n", l_AudioResult);
+		printf("\tfailed\n");
 		return 0;
 	}
 
-	printf("\tsuccess\n");
+	printf("\tsucceeded\n");
 
-	// Prepare a buffer.
-	WAVEHDR l_AudioInputHeader;
-	{
-		memset(&l_AudioInputHeader, 0, sizeof(l_AudioInputHeader)); 
-		l_AudioInputHeader.lpData = s_AudioInputBuffer;
-		l_AudioInputHeader.dwBufferLength = s_AudioInputBufferCapacityBytes;
-	}
-
-	l_AudioResult = waveInPrepareHeader(l_AudioInputHandle, &l_AudioInputHeader, sizeof(l_AudioInputHeader));
-
-	if (l_AudioResult != MMSYSERR_NOERROR) {
-
-		printf("Error preparing audio input buffer: %d\n", l_AudioResult);
-		return 0;
-	}
-
-	// Add the buffer.
-	l_AudioResult = waveInAddBuffer(l_AudioInputHandle, &l_AudioInputHeader, sizeof(l_AudioInputHeader));
-
-	if (l_AudioResult != MMSYSERR_NOERROR) {
-
-		printf("Error preparing audio input buffer: %d\n", l_AudioResult);
-		return 0;
-	}
-
-	printf("\nRecording audio...\n");
-
-	// Start recording.
-	l_AudioResult = waveInStart(l_AudioInputHandle);
-
-	if (l_AudioResult != MMSYSERR_NOERROR) {
-
-		printf("Error starting audio input: %d\n", l_AudioResult);
-		return 0;
-	}
-
-	while (s_AudioInputBufferFull == false)
-	{
-		// Yay, busy loop!
-	}
-
-	printf("\tdone\n");
-
-	// Unprepare the buffer.
-	l_AudioResult = waveInUnprepareHeader(l_AudioInputHandle, &l_AudioInputHeader, sizeof(l_AudioInputHeader));
-
-	if (l_AudioResult != MMSYSERR_NOERROR) {
-
-		printf("Error unpreparing audio input buffer: %d\n", l_AudioResult);
-		return 0;
-	}
-	
-	// Reset and close the audio input device.  I'm not checking return values because if these fail, I don't think I can do
-	// anything about it.
-	waveInReset(l_AudioInputHandle);
-	waveInClose(l_AudioInputHandle);
-
-	// A pause.
-	printf("\nPress any key to continue...");
-	int dummy = _getch();
-	dummy++;
-	printf("\n\n");
-
-	// Test - play back the audio.
-
-	// Open the audio output device.
-	HWAVEOUT l_AudioOutputHandle;
-	l_AudioResult = waveOutOpen(&l_AudioOutputHandle, WAVE_MAPPER, &l_AudioFormat, 0, 0, WAVE_FORMAT_DIRECT);
-
-	if (l_AudioResult != MMSYSERR_NOERROR) {
-
-		printf("Error opening audio output device: %d\n", l_AudioResult);
-		return 0;
-	}
-
-	// Prepare a buffer.
-	WAVEHDR l_AudioOutputHeader;
-	{
-		memset(&l_AudioOutputHeader, 0, sizeof(l_AudioOutputHeader)); 
-		l_AudioOutputHeader.lpData = s_AudioInputBuffer;
-		l_AudioOutputHeader.dwBufferLength = s_AudioInputBufferCapacityBytes;
-	}
-
-	l_AudioResult = waveOutPrepareHeader(l_AudioOutputHandle, &l_AudioOutputHeader, sizeof(l_AudioOutputHeader));
-
-	if (l_AudioResult != MMSYSERR_NOERROR) {
-
-		printf("Error preparing audio output buffer: %d\n", l_AudioResult);
-		return 0;
-	}
-
-	printf("Playing audio...\n");
-
-	// Play the audio.
-	l_AudioResult = waveOutWrite(l_AudioOutputHandle, &l_AudioOutputHeader, sizeof(l_AudioOutputHeader));
-
-	if (l_AudioResult != MMSYSERR_NOERROR) {
-
-		printf("Error preparing audio output buffer: %d\n", l_AudioResult);
-		return 0;
-	}
-
-	// Wait for it to finish.
-	do
-	{
-		l_AudioResult = waveOutUnprepareHeader(l_AudioOutputHandle, &l_AudioOutputHeader, sizeof(l_AudioOutputHeader));
-	}
-	while (l_AudioResult == WAVERR_STILLPLAYING);
-
-	printf("\tdone\n");
-
-	// Reset and close the audio output device.  I'm not checking return values because if these fail, I don't think I can do
-	// anything about it.
-	waveOutReset(l_AudioOutputHandle);
-	waveOutClose(l_AudioOutputHandle);
-	
 	printf("\nOpening serial port...\n");
 
 	char const* const l_SerialPortName = "COM4";
@@ -293,10 +170,17 @@ int main()
 	SerialConnection l_Serial;
 	if (l_Serial.Initialize(l_SerialPortName) == false)
 	{
+		Uninitialize(l_AudioRecorder, l_VoiceActivityDetector, l_SpeechDecoder, NULL);
+
+		printf("\tfailed\n");
 		return 0;
 	}
 
-	printf("\tsuccess\n");
+	printf("\tsucceeded\n\n");
+
+	// Track utterances.
+	bool l_InUtterance = false;
+	int l_LastVoiceSampleCount = 0;
 
 	// Initialize controls.
 	for (unsigned int l_ControlIndex = 0; l_ControlIndex < NUM_CONTROL_TYPES; l_ControlIndex++)
@@ -390,6 +274,80 @@ int main()
 			}
 		}
 
+		// Speech recognition.
+		{
+			// Read some more audio looking for voice.
+			unsigned int const l_VoiceDataBufferCapacity = 4096;
+			short int l_VoiceDataBuffer[l_VoiceDataBufferCapacity];
+
+			int l_NumSamplesRead = cont_ad_read(l_VoiceActivityDetector, l_VoiceDataBuffer, l_VoiceDataBufferCapacity);
+
+			if (l_NumSamplesRead < 0)
+			{
+				printf("Error reading audio for voice activity detection.\n");
+				l_Done = true;
+			}
+
+			if (l_NumSamplesRead > 0)
+			{
+				// An utterance has begun.
+				if (l_InUtterance == false)
+				{
+					printf("Beginning of utterance detected.\n");
+
+					// NULL here means automatically choose an utterance ID.
+					if (ps_start_utt(l_SpeechDecoder, NULL) < 0)
+					{
+						printf("Error starting utterance.\n");
+						l_Done = true;
+					}
+
+					l_InUtterance = true;
+				}
+
+				// Process the voice ddata.
+				if (ps_process_raw(l_SpeechDecoder, l_VoiceDataBuffer, l_NumSamplesRead, 0, 0) < 0)
+				{
+					printf("Error decoding speech data.\n");
+					l_Done = true;
+				}
+
+				// New voice samples, update count.
+				l_LastVoiceSampleCount = l_VoiceActivityDetector->read_ts;
+			}
+
+			if ((l_NumSamplesRead == 0) && (l_InUtterance == true))
+			{
+				// Get the time since last voice sample.
+				float l_TimeSinceVoiceSec = 
+					(l_VoiceActivityDetector->read_ts - l_LastVoiceSampleCount) / static_cast<float>(l_AudioRecorder->sps);
+
+				if (l_TimeSinceVoiceSec >= s_UtteranceTrailingSilenceThresholdSec)
+				{
+					// An utterance has ended.
+					printf("End of utterance detected.\n");
+
+					if (ps_end_utt(l_SpeechDecoder) < 0)
+					{
+						printf("Error ending utterance.\n");
+						l_Done = true;
+					}
+
+					// Reset accumulated data for the voice activity detector.
+					cont_ad_reset(l_VoiceActivityDetector);
+
+					l_InUtterance = false;
+
+					// Get the speech for the utterance.
+					int l_Score = 0;
+					char const* l_UtteranceID = NULL;
+					char const* l_RecognizedSpeech = ps_get_hyp(l_SpeechDecoder, &l_Score, &l_UtteranceID);
+
+					printf("Recognized: \"%s\", score %d, utterance ID \"%s\"\n", l_RecognizedSpeech, l_Score, l_UtteranceID);
+				}
+			}
+		}
+
 		// Process controls.
 		for (unsigned int l_ControlIndex = 0; l_ControlIndex < NUM_CONTROL_TYPES; l_ControlIndex++)
 		{
@@ -403,8 +361,7 @@ int main()
 
 		if (l_Serial.ReadString(l_NumBytesRead, &l_SerialStringBuffer[l_SerialStringBufferSize], l_NumBytesToRead) == false)
 		{
-			l_Serial.Uninitialize();
-			return 0;
+			l_Done = true;
 		}
 
 		// Did we read any?
@@ -452,6 +409,6 @@ int main()
 		}
 	}
 
-	// Close the serial port.
-	l_Serial.Uninitialize();
+	// Cleanup.
+	Uninitialize(l_AudioRecorder, l_VoiceActivityDetector, l_SpeechDecoder, &l_Serial);
 }

@@ -1,0 +1,52 @@
+Language model created by QuickLM on Sun Nov 20 18:52:00 EST 2011
+Copyright (c) 1996-2000
+Carnegie Mellon University and Alexander I. Rudnicky
+
+This model based on a corpus of 7 sentences and 10 words
+The (fixed) discount mass is 0.5
+
+\data\
+ngram 1=10
+ngram 2=15
+ngram 3=8
+
+\1-grams:
+-0.7984 </s> -0.3010
+-0.7984 <s> -0.2258
+-1.6435 DOWN -0.2258
+-1.6435 ELEVATION -0.2258
+-1.6435 HEAD -0.2258
+-1.6435 KNEE -0.2258
+-1.6435 MAN -0.2258
+-1.6435 SAND -0.2910
+-1.6435 STOP -0.2258
+-1.6435 UP -0.2258
+
+\2-grams:
+-1.1461 <s> DOWN 0.0000
+-1.1461 <s> ELEVATION 0.0000
+-1.1461 <s> HEAD 0.0000
+-1.1461 <s> KNEE 0.0000
+-1.1461 <s> SAND 0.0000
+-1.1461 <s> STOP 0.0000
+-1.1461 <s> UP 0.0000
+-0.3010 DOWN </s> -0.3010
+-0.3010 ELEVATION </s> -0.3010
+-0.3010 HEAD </s> -0.3010
+-0.3010 KNEE </s> -0.3010
+-0.3010 MAN </s> -0.3010
+-0.3010 SAND MAN 0.0000
+-0.3010 STOP </s> -0.3010
+-0.3010 UP </s> -0.3010
+
+\3-grams:
+-0.3010 <s> DOWN </s>
+-0.3010 <s> ELEVATION </s>
+-0.3010 <s> HEAD </s>
+-0.3010 <s> KNEE </s>
+-0.3010 <s> SAND MAN
+-0.3010 <s> STOP </s>
+-0.3010 <s> UP </s>
+-0.3010 SAND MAN </s>
+
+\end\
