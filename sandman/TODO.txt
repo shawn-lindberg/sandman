@@ -1,7 +1,7 @@
 TODO:
 
-- Voice command from speech input.
 - Clean up.
 - Speech confidence scores?
+- Remove busy loop?
 - Discover where micro is connected.
 - Skype calls.
