@@ -29,7 +29,7 @@ class SerialConnection
 		//
 		// returns:						True for success, false otherwise.
 		//
-		bool SerialConnection::ReadString(unsigned long int& p_NumBytesRead, char* p_StringBuffer, 
+		bool ReadString(unsigned long int& p_NumBytesRead, char* p_StringBuffer, 
 			unsigned long int const p_StringBufferCapacityBytes);
 
 		// Write a string to the serial connection.

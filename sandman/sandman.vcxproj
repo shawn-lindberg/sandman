@@ -82,11 +82,13 @@
     <ClCompile Include="source\control.cpp" />
     <ClCompile Include="source\main.cpp" />
     <ClCompile Include="source\serial_connection.cpp" />
+    <ClCompile Include="source\speech_recognizer.cpp" />
     <ClCompile Include="source\timer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\control.h" />
     <ClInclude Include="source\serial_connection.h" />
+    <ClInclude Include="source\speech_recognizer.h" />
     <ClInclude Include="source\timer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
