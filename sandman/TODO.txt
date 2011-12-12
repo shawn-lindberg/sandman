@@ -1,7 +1,9 @@
 TODO:
 
 - Clean up.
-- Speech confidence scores?
+- Max utterance length?
 - Remove busy loop?
+- Disable more debug spew? 
+- Logging?
 - Discover where micro is connected.
 - Skype calls.

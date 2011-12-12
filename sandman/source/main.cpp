@@ -13,6 +13,8 @@
 // Types of command tokens.
 enum CommandTokenTypes
 {
+	COMMAND_TOKEN_INVALID = -1,
+
 	COMMAND_TOKEN_SAND,
 	COMMAND_TOKEN_MAN,
 	COMMAND_TOKEN_HEAD,
@@ -133,6 +135,8 @@ static void TokenizeCommandString(unsigned int& p_CommandTokenBufferSize, Comman
 		_strlwr_s(l_TokenStringBuffer);
 
 		// Match the token string to a token if possible.
+		CommandTokenTypes l_Token = COMMAND_TOKEN_INVALID;
+
 		for (unsigned int l_TokenType = 0; l_TokenType < NUM_COMMAND_TOKEN_TYPES; l_TokenType++)
 		{
 			// Compare the token string to its name.
@@ -142,20 +146,21 @@ static void TokenizeCommandString(unsigned int& p_CommandTokenBufferSize, Comman
 			}
 
 			// Found a match.
-
-			// Add the token to the buffer.
-			if (p_CommandTokenBufferSize < p_CommandTokenBufferCapacity)
-			{
-				p_CommandTokenBuffer[p_CommandTokenBufferSize] = static_cast<CommandTokenTypes>(l_TokenType);
-				p_CommandTokenBufferSize++;
-			} 
-			else
-			{
-				printf("Voice command too long, tail will be ignored.\n");
-			}
-
+			l_Token = static_cast<CommandTokenTypes>(l_TokenType);
 			break;
 		}
+
+		// Add the token to the buffer.
+		if (p_CommandTokenBufferSize < p_CommandTokenBufferCapacity)
+		{
+			p_CommandTokenBuffer[p_CommandTokenBufferSize] = l_Token;
+			p_CommandTokenBufferSize++;
+		} 
+		else
+		{
+			printf("Voice command too long, tail will be ignored.\n");
+		}
+
 
 		// Get the next token string start (skip delimiter).
 		if (l_NextTokenStringEnd != NULL)
@@ -278,7 +283,8 @@ int main()
 {
 	// Initialize speech recognition.
 	SpeechRecognizer l_Recognizer;
-	if (l_Recognizer.Initialize("data/hmm/en_US/hub4wsj_sc_8k", "data/lm/en_US/sandman.lm", "data/dict/en_US/sandman.dic") == false)
+	if (l_Recognizer.Initialize("data/hmm/en_US/hub4wsj_sc_8k", "data/lm/en_US/sandman.lm", "data/dict/en_US/sandman.dic",
+		"recognizer.log") == false)
 	{
 		return 0;
 	}

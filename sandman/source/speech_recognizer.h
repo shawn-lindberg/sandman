@@ -18,10 +18,12 @@ class SpeechRecognizer
 		// p_HMMFileName:			File name of the HMM the recognizer will use.
 		// p_LanguageModelFileName:	File name of the language model the recognizer will use.
 		// p_DictionaryFileName:	File name of the dictionary the recognizer will use.
+		// p_LogFileName:			File name of the log for recognizer output.
 		//
 		// returns:		True for success, false otherwise.
 		//
-		bool Initialize(char const* p_HMMFileName, char const* p_LanguageModelFileName, char const* p_DictionaryFileName);
+		bool Initialize(char const* p_HMMFileName, char const* p_LanguageModelFileName, char const* p_DictionaryFileName, 
+			char const* p_LogFileName);
 
 		// Uninitialize the recognizer.
 		//

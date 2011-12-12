@@ -16,10 +16,12 @@ static float const s_UtteranceTrailingSilenceThresholdSec = 1.0f;
 // p_HMMFileName:			File name of the HMM the recognizer will use.
 // p_LanguageModelFileName:	File name of the language model the recognizer will use.
 // p_DictionaryFileName:	File name of the dictionary the recognizer will use.
-// 
+// p_LogFileName:			File name of the log for recognizer output.
+//
 // returns:		True for success, false otherwise.
 //
-bool SpeechRecognizer::Initialize(char const* p_HMMFileName, char const* p_LanguageModelFileName, char const* p_DictionaryFileName)
+bool SpeechRecognizer::Initialize(char const* p_HMMFileName, char const* p_LanguageModelFileName, char const* p_DictionaryFileName,
+	char const* p_LogFileName)
 {
 	m_AudioRecorder = NULL;
 	m_VoiceActivityDetector = NULL;
@@ -80,9 +82,8 @@ bool SpeechRecognizer::Initialize(char const* p_HMMFileName, char const* p_Langu
 	printf("\nInitializing the speech decoder...\n");
 
 	// Initialize the speech decoder.
-	cmd_ln_t* l_SpeechDecoderConfig = cmd_ln_init(NULL, ps_args(), TRUE, 
-		"-hmm", p_HMMFileName, "-lm", p_LanguageModelFileName,
-		"-dict", p_DictionaryFileName, NULL);
+	cmd_ln_t* l_SpeechDecoderConfig = cmd_ln_init(NULL, ps_args(), TRUE, "-hmm", p_HMMFileName, "-lm", p_LanguageModelFileName,
+		"-dict", p_DictionaryFileName, "-logfn", p_LogFileName, NULL);
 
 	if (l_SpeechDecoderConfig == NULL)
 	{
