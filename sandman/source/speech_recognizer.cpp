@@ -1,10 +1,15 @@
 #include "speech_recognizer.h"
 
+#include "timer.h"
+
 // Locals
 //
 
 // How long to wait with no new voice to end an utterance in seconds.
 static float const s_UtteranceTrailingSilenceThresholdSec = 1.0f;
+
+// Maximum length of an utterance in seconds.
+static float const s_UtteranceMaxLengthSec = 30.0f;
 
 // Functions
 //
@@ -164,7 +169,9 @@ bool SpeechRecognizer::Process(char const*& p_RecognizedSpeech)
 				return false;
 			}
 
+			// Record the utterance start.
 			m_InUtterance = true;
+			m_UtteranceStartTimeTicks = TimerGetTicks();
 		}
 
 		// Process the voice ddata.
@@ -178,16 +185,23 @@ bool SpeechRecognizer::Process(char const*& p_RecognizedSpeech)
 		m_LastVoiceSampleCount = m_VoiceActivityDetector->read_ts;
 	}
 
-	if ((l_NumSamplesRead == 0) && (m_InUtterance == true))
+	if (m_InUtterance == true)
 	{
 		// Get the time since last voice sample.
 		float l_TimeSinceVoiceSec = 
 			(m_VoiceActivityDetector->read_ts - m_LastVoiceSampleCount) / static_cast<float>(m_AudioRecorder->sps);
 
-		if (l_TimeSinceVoiceSec >= s_UtteranceTrailingSilenceThresholdSec)
+		// Get elapsed time since utterance start.
+		__int64 l_CurrentTimeTicks = TimerGetTicks();
+
+		float l_ElapsedTimeSec = TimerGetElapsedMilliseconds(m_UtteranceStartTimeTicks, l_CurrentTimeTicks) / 1000.0f;
+
+		// The utterance either ends if it experiences a long enough silence or gets too long.
+		if (((l_NumSamplesRead == 0) && (l_TimeSinceVoiceSec >= s_UtteranceTrailingSilenceThresholdSec)) ||
+			(l_ElapsedTimeSec > s_UtteranceMaxLengthSec))
 		{
 			// An utterance has ended.
-			printf("End of utterance detected.\n");
+			printf("End of utterance detected after %f seconds.\n", l_ElapsedTimeSec);
 
 			if (ps_end_utt(m_SpeechDecoder) < 0)
 			{

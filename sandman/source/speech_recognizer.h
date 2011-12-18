@@ -51,6 +51,9 @@ class SpeechRecognizer
 		// Track where an utterance is in progress.
 		bool m_InUtterance;
 
+		// A record of when the utterance began.
+		__int64 m_UtteranceStartTimeTicks;
+
 		// A counter tracking when we last saw voice activity.
 		int m_LastVoiceSampleCount;
 };
