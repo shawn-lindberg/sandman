@@ -3,6 +3,7 @@
 #include <Windows.h>
 
 #include "control.h"
+#include "logger.h"
 #include "serial_connection.h"
 #include "speech_recognizer.h"
 #include "timer.h"
@@ -91,6 +92,9 @@ static void Uninitialize(SpeechRecognizer* p_Recognizer, SerialConnection* p_Ser
 	{
 		p_Serial->Uninitialize();
 	}
+
+	// Uninitialize logging.
+	LoggerUninitialize();
 }
 
 // Take a command string and turn it into a list of tokens.
@@ -158,7 +162,7 @@ static void TokenizeCommandString(unsigned int& p_CommandTokenBufferSize, Comman
 		} 
 		else
 		{
-			printf("Voice command too long, tail will be ignored.\n");
+			LoggerAddMessage("Voice command too long, tail will be ignored.");
 		}
 
 
@@ -281,6 +285,12 @@ void ParseCommandTokens(unsigned int& p_CommandTokenBufferSize, CommandTokenType
 
 int main()
 {
+	// Initialize logging.
+	if (LoggerInitialize("sandman.log") == false)
+	{
+		return 0;
+	}
+
 	// Initialize speech recognition.
 	SpeechRecognizer l_Recognizer;
 	if (l_Recognizer.Initialize("data/hmm/en_US/hub4wsj_sc_8k", "data/lm/en_US/sandman.lm", "data/dict/en_US/sandman.dic",
@@ -289,7 +299,7 @@ int main()
 		return 0;
 	}
 
-	printf("\nOpening serial port...\n");
+	LoggerAddMessage("Opening serial port...");
 
 	char const* const l_SerialPortName = "COM4";
 
@@ -299,11 +309,12 @@ int main()
 	{
 		Uninitialize(&l_Recognizer, NULL);
 
-		printf("\tfailed\n");
+		LoggerAddMessage("\tfailed");
 		return 0;
 	}
 
-	printf("\tsucceeded\n\n");
+	LoggerAddMessage("\tsucceeded");
+	LoggerAddMessage("");
 
 	// Initialize controls.
 	for (unsigned int l_ControlIndex = 0; l_ControlIndex < NUM_CONTROL_TYPES; l_ControlIndex++)
@@ -342,7 +353,7 @@ int main()
 				l_KeyboardInputBuffer[l_KeyboardInputBufferSize] = '\0';
 
 				// Echo the command back.
-				printf("Keyboard command input: \"%s\"\n", l_KeyboardInputBuffer);
+				LoggerAddMessage("Keyboard command input: \"%s\"", l_KeyboardInputBuffer);
 
 				// Parse a command.
 
@@ -372,7 +383,7 @@ int main()
 		char const* l_RecognizedSpeech = NULL;
 		if (l_Recognizer.Process(l_RecognizedSpeech) == false)
 		{
-			printf("Error during speech recognition.\n");
+			LoggerAddMessage("Error during speech recognition.");
 			l_Done = true;
 		}
 
@@ -423,7 +434,7 @@ int main()
 				*l_LineEnd = '\0';
 
 				// Display it.
-				printf("%s: %s\n", l_SerialPortName, l_SerialStringBuffer);
+				LoggerAddMessage("%s: %s", l_SerialPortName, l_SerialStringBuffer);
 
 				// Gobble a trailing carraige return.
 				if (l_LineEnd[1] == '\r') 
@@ -445,7 +456,7 @@ int main()
 			if ((l_SerialStringBufferSize + 1) == l_SerialStringBufferSize)
 			{
 				// Display it.
-				printf("%s: %s\n", l_SerialPortName, l_SerialStringBuffer);
+				LoggerAddMessage("%s: %s", l_SerialPortName, l_SerialStringBuffer);
 				
 				// Clear it.
 				l_SerialStringBufferSize = 0;

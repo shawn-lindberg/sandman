@@ -29,7 +29,7 @@ class SpeechRecognizer
 		//
 		void Uninitialize();
 
-		// Process audio input in an attempt to recognize speech..
+		// Process audio input in an attempt to recognize speech.
 		//
 		// p_RecognizedSpeech:	(Output) The speech recognized if any, or NULL if not.
 		//

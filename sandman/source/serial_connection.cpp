@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <Windows.h>
 
+#include "logger.h"
+
 // Functions
 //
 
@@ -25,7 +27,7 @@ bool SerialConnection::Initialize(char const* const p_PortName)
 
 	if (m_Handle == INVALID_HANDLE_VALUE)
 	{
-		printf("Failed to open serial port %s: error code 0x%x\n", m_PortName, GetLastError());
+		LoggerAddMessage("Failed to open serial port %s: error code 0x%x", m_PortName, GetLastError());
 		return false;
 	}
 	
@@ -33,7 +35,7 @@ bool SerialConnection::Initialize(char const* const p_PortName)
 	DCB l_SerialParams;
 	if (GetCommState(m_Handle, &l_SerialParams) == false)
 	{
-		printf("Failed to get serial port %s params: error code 0x%x\n", m_PortName, GetLastError());
+		LoggerAddMessage("Failed to get serial port %s params: error code 0x%x", m_PortName, GetLastError());
 		CloseHandle(m_Handle);
 		return false;
 	}
@@ -43,7 +45,7 @@ bool SerialConnection::Initialize(char const* const p_PortName)
 
 	if (SetCommState(m_Handle, &l_SerialParams) == false)
 	{
-		printf("Failed to set serial port %s params: error code 0x%x\n", m_PortName, GetLastError());
+		LoggerAddMessage("Failed to set serial port %s params: error code 0x%x", m_PortName, GetLastError());
 		CloseHandle(m_Handle);
 		return false;
 	}
@@ -60,7 +62,7 @@ bool SerialConnection::Initialize(char const* const p_PortName)
 
 	if (SetCommTimeouts(m_Handle, &l_SerialTimeouts) == false)
 	{
-		printf("Failed to set serial port %s timeouts: error code 0x%x\n", m_PortName, GetLastError());
+		LoggerAddMessage("Failed to set serial port %s timeouts: error code 0x%x", m_PortName, GetLastError());
 		CloseHandle(m_Handle);
 		return false;
 	}
@@ -103,7 +105,7 @@ bool SerialConnection::ReadString(unsigned long int& p_NumBytesRead, char* p_Str
 	// Read serial port text, if there is any.
 	if (ReadFile(m_Handle, p_StringBuffer, p_StringBufferCapacityBytes - 1, &p_NumBytesRead, NULL) == false)
 	{
-		printf("Failed to read from serial port %s: error code 0x%x\n", m_PortName, GetLastError());
+		LoggerAddMessage("Failed to read from serial port %s: error code 0x%x", m_PortName, GetLastError());
 		return false;
 	}
 
@@ -135,14 +137,14 @@ bool SerialConnection::WriteString(unsigned long int& p_NumBytesWritten, char co
 
 	if (WriteFile(m_Handle, p_String, l_NumBytesToWrite, &p_NumBytesWritten, NULL) == false)
 	{
-		printf("Failed to write to serial port %s: error code 0x%x\n", m_PortName, GetLastError());
+		LoggerAddMessage("Failed to write to serial port %s: error code 0x%x", m_PortName, GetLastError());
 		return false;
 	}
 
 	// Did we write it all?
 	if (p_NumBytesWritten != l_NumBytesToWrite)
 	{
-		printf("Failed to write full data to serial port %s: error code 0x%x\n", m_PortName);
+		LoggerAddMessage("Failed to write full data to serial port %s: error code 0x%x", m_PortName);
 	}
 
 	return true;

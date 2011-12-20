@@ -6,11 +6,13 @@
     <ClCompile Include="source\serial_connection.cpp" />
     <ClCompile Include="source\control.cpp" />
     <ClCompile Include="source\speech_recognizer.cpp" />
+    <ClCompile Include="source\logger.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\timer.h" />
     <ClInclude Include="source\serial_connection.h" />
     <ClInclude Include="source\control.h" />
     <ClInclude Include="source\speech_recognizer.h" />
+    <ClInclude Include="source\logger.h" />
   </ItemGroup>
 </Project>

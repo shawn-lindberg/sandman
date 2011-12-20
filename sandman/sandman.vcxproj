@@ -80,6 +80,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="source\control.cpp" />
+    <ClCompile Include="source\logger.cpp" />
     <ClCompile Include="source\main.cpp" />
     <ClCompile Include="source\serial_connection.cpp" />
     <ClCompile Include="source\speech_recognizer.cpp" />
@@ -87,6 +88,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\control.h" />
+    <ClInclude Include="source\logger.h" />
     <ClInclude Include="source\serial_connection.h" />
     <ClInclude Include="source\speech_recognizer.h" />
     <ClInclude Include="source\timer.h" />

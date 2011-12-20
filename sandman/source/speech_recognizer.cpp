@@ -1,5 +1,6 @@
 #include "speech_recognizer.h"
 
+#include "logger.h"
 #include "timer.h"
 
 // Locals
@@ -35,20 +36,30 @@ bool SpeechRecognizer::Initialize(char const* p_HMMFileName, char const* p_Langu
 	m_InUtterance = false;
 	m_LastVoiceSampleCount = 0;
 
-	printf("\nInitializing default audio input device...\n");
+	// Delete the current recognizer log.
+	FILE* l_LogFile = NULL;
+	fopen_s(&l_LogFile, p_LogFileName, "w");
+
+	if (l_LogFile != NULL)
+	{
+		fclose(l_LogFile);
+	}
+
+	LoggerAddMessage("Initializing default audio input device...");
 
 	// Open the default audio device for recording.
 	m_AudioRecorder = ad_open();
 
 	if (m_AudioRecorder == NULL)
 	{
-		printf("\tfailed\n");
+		LoggerAddMessage("\tfailed");
 		return false;
 	}
 
-	printf("\tsucceeded\n");
+	LoggerAddMessage("\tsucceeded");
+	LoggerAddMessage("");
 
-	printf("\nInitializing voice activity detection...\n");
+	LoggerAddMessage("Initializing voice activity detection...");
 
 	// Initialize the voice activity detector.
 	m_VoiceActivityDetector = cont_ad_init(m_AudioRecorder, ad_read);
@@ -57,20 +68,21 @@ bool SpeechRecognizer::Initialize(char const* p_HMMFileName, char const* p_Langu
 	{
 		Uninitialize();
 
-		printf("\tfailed\n");
+		LoggerAddMessage("\tfailed");
 		return false;
 	}
 
-	printf("\tsucceeded\n");
+	LoggerAddMessage("\tsucceeded");
+	LoggerAddMessage("");
 
-	printf("\nCalibrating the voice activity detection...\n");
+	LoggerAddMessage("Calibrating the voice activity detection...");
 
 	// Calibrate the voice activity detector.
 	if (ad_start_rec(m_AudioRecorder) < 0) 
 	{
 		Uninitialize();
 
-		printf("\tfailed\n");
+		LoggerAddMessage("\tfailed");
 		return 0;
 	}
 
@@ -78,13 +90,14 @@ bool SpeechRecognizer::Initialize(char const* p_HMMFileName, char const* p_Langu
 	{
 		Uninitialize();
 
-		printf("\tfailed\n");
+		LoggerAddMessage("\tfailed");
 		return 0;
 	}
 
-	printf("\tsucceeded\n");
+	LoggerAddMessage("\tsucceeded");
+	LoggerAddMessage("");
 
-	printf("\nInitializing the speech decoder...\n");
+	LoggerAddMessage("Initializing the speech decoder...");
 
 	// Initialize the speech decoder.
 	cmd_ln_t* l_SpeechDecoderConfig = cmd_ln_init(NULL, ps_args(), TRUE, "-hmm", p_HMMFileName, "-lm", p_LanguageModelFileName,
@@ -94,7 +107,7 @@ bool SpeechRecognizer::Initialize(char const* p_HMMFileName, char const* p_Langu
 	{
 		Uninitialize();
 
-		printf("\tfailed\n");
+		LoggerAddMessage("\tfailed");
 		return false;
 	}
 
@@ -104,11 +117,13 @@ bool SpeechRecognizer::Initialize(char const* p_HMMFileName, char const* p_Langu
 	{
 		Uninitialize();
 
-		printf("\tfailed\n");
+		LoggerAddMessage("\tfailed");
 		return false;
 	}
 
-	printf("\tsucceeded\n");
+	LoggerAddMessage("\tsucceeded");
+	LoggerAddMessage("");
+
 	return true;
 }
 
@@ -135,7 +150,7 @@ void SpeechRecognizer::Uninitialize()
 	}
 }
 
-// Process audio input in an attempt to recognize speech..
+// Process audio input in an attempt to recognize speech.
 //
 // p_RecognizedSpeech:	(Output) The speech recognized if any, or NULL if not.
 //
@@ -151,7 +166,7 @@ bool SpeechRecognizer::Process(char const*& p_RecognizedSpeech)
 
 	if (l_NumSamplesRead < 0)
 	{
-		printf("Error reading audio for voice activity detection.\n");
+		LoggerAddMessage("Error reading audio for voice activity detection.");
 		return false;
 	}
 
@@ -160,12 +175,12 @@ bool SpeechRecognizer::Process(char const*& p_RecognizedSpeech)
 		// An utterance has begun.
 		if (m_InUtterance == false)
 		{
-			printf("Beginning of utterance detected.\n");
+			LoggerAddMessage("Beginning of utterance detected.");
 
 			// NULL here means automatically choose an utterance ID.
 			if (ps_start_utt(m_SpeechDecoder, NULL) < 0)
 			{
-				printf("Error starting utterance.\n");
+				LoggerAddMessage("Error starting utterance.");
 				return false;
 			}
 
@@ -177,7 +192,7 @@ bool SpeechRecognizer::Process(char const*& p_RecognizedSpeech)
 		// Process the voice ddata.
 		if (ps_process_raw(m_SpeechDecoder, l_VoiceDataBuffer, l_NumSamplesRead, 0, 0) < 0)
 		{
-			printf("Error decoding speech data.\n");
+			LoggerAddMessage("Error decoding speech data.");
 			return false;
 		}
 
@@ -201,11 +216,11 @@ bool SpeechRecognizer::Process(char const*& p_RecognizedSpeech)
 			(l_ElapsedTimeSec > s_UtteranceMaxLengthSec))
 		{
 			// An utterance has ended.
-			printf("End of utterance detected after %f seconds.\n", l_ElapsedTimeSec);
+			LoggerAddMessage("End of utterance detected after %f seconds.", l_ElapsedTimeSec);
 
 			if (ps_end_utt(m_SpeechDecoder) < 0)
 			{
-				printf("Error ending utterance.\n");
+				LoggerAddMessage("Error ending utterance.");
 				return false;
 			}
 
@@ -219,7 +234,7 @@ bool SpeechRecognizer::Process(char const*& p_RecognizedSpeech)
 			char const* l_UtteranceID = NULL;
 			p_RecognizedSpeech = ps_get_hyp(m_SpeechDecoder, &l_Score, &l_UtteranceID);
 
-			printf("Recognized: \"%s\", score %d, utterance ID \"%s\"\n", p_RecognizedSpeech, l_Score, l_UtteranceID);
+			LoggerAddMessage("Recognized: \"%s\", score %d, utterance ID \"%s\"", p_RecognizedSpeech, l_Score, l_UtteranceID);
 		}
 	}
 

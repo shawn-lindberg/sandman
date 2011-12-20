@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 
+#include "logger.h"
 #include "serial_connection.h"
 #include "timer.h"
 
@@ -57,7 +58,8 @@ void Control::Process()
 			// Record when the state transition timer began.
 			m_StateStartTimeTicks = TimerGetTicks();
 
-			printf("Control @ 0x%x: State transition from idle to moving triggered.\n",	reinterpret_cast<unsigned int>(this));           
+			LoggerAddMessage("Control @ 0x%x: State transition from idle to moving triggered.", 
+				reinterpret_cast<unsigned int>(this));           
 		}
 		break;
 
@@ -80,7 +82,7 @@ void Control::Process()
 			// Record when the state transition timer began.
 			m_StateStartTimeTicks = TimerGetTicks();
 
-			printf("Control @ 0x%x: State transition from moving to cool down triggered.\n",
+			LoggerAddMessage("Control @ 0x%x: State transition from moving to cool down triggered.",
 				reinterpret_cast<unsigned int>(this));                      
 		}
 		break;
@@ -104,14 +106,14 @@ void Control::Process()
 			// Transition to idle.
 			m_State = CONTROL_STATE_IDLE;
 
-			printf("Control @ 0x%x: State transition from cool down to idle triggered.\n",
+			LoggerAddMessage("Control @ 0x%x: State transition from cool down to idle triggered.",
 				reinterpret_cast<unsigned int>(this));                                 
 		}
 		break;
 
 		default:
 		{
-			printf("Control @ 0x%x: Unrecognized state %d in Process()\n", m_State, reinterpret_cast<unsigned int>(this));                      
+			LoggerAddMessage("Control @ 0x%x: Unrecognized state %d in Process()", m_State, reinterpret_cast<unsigned int>(this));                      
 		}
 		break;
 	}
@@ -151,6 +153,6 @@ void Control::SetMovingDesired(bool p_MovingDesired)
 {
 	m_MovingDesired = p_MovingDesired;
 
-	printf("Control @ 0x%x: Setting move desired to %d\n", reinterpret_cast<unsigned int>(this), p_MovingDesired);                      
+	LoggerAddMessage("Control @ 0x%x: Setting move desired to %d", reinterpret_cast<unsigned int>(this), p_MovingDesired);                      
 }
 
