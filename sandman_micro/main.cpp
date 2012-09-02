@@ -4,13 +4,13 @@
 //
 
 // Time between ticks.
-#define TICK_INTERVAL_US   (5 * 1000 * 1000) // 5 sec.
+#define TICK_INTERVAL_US   (500 * 1000) // 500 milliseconds.
 
 // Maximum duration of the moving state.
-#define MAX_MOVING_STATE_DURATION_US (100 * 1000 * 1000) // 100 sec.
+#define MAX_MOVING_STATE_DURATION_US (10 * 1000 * 1000) // 10 sec.
 
 // Maximum duration of the cool down state.
-#define MAX_COOL_DOWN_STATE_DURATION_US (50 * 1000 * 1000) // 50 sec.
+#define MAX_COOL_DOWN_STATE_DURATION_US (5 * 1000 * 1000) // 5 sec.
 
 // Types
 //
@@ -78,21 +78,21 @@ class Control
 Serial s_PCSerial(USBTX, USBRX); // tx, rx
 
 // Output pins.
-DigitalOut s_Pin19Out(p19);
-DigitalOut s_Pin20Out(p20);
-DigitalOut s_Pin21Out(LED1);
-DigitalOut s_Pin22Out(LED2);
-DigitalOut s_Pin23Out(LED3);
-DigitalOut s_Pin24Out(LED4);
+DigitalOut s_Pin25Out(p25);
+DigitalOut s_Pin26Out(p26);
+DigitalOut s_Pin27Out(p27);
+DigitalOut s_Pin28Out(p28);
+DigitalOut s_Pin29Out(p29);
+DigitalOut s_Pin30Out(p30);
 
 DigitalOut* s_PinOuts[] =
 {
-    &s_Pin19Out,    // CONTROL_HEAD_UP
-    &s_Pin20Out,    // CONTROL_HEAD_DOWN
-    &s_Pin21Out,    // CONTROL_KNEE_UP
-    &s_Pin22Out,    // CONTROL_KNEE_DOWN
-    &s_Pin23Out,    // CONTROL_ELEVATION_UP
-    &s_Pin24Out,    // CONTROL_ELEVATION_DOWN    
+    &s_Pin25Out,    // CONTROL_HEAD_UP
+    &s_Pin26Out,    // CONTROL_HEAD_DOWN
+    &s_Pin27Out,    // CONTROL_KNEE_UP
+    &s_Pin28Out,    // CONTROL_KNEE_DOWN
+    &s_Pin29Out,    // CONTROL_ELEVATION_UP
+    &s_Pin30Out,    // CONTROL_ELEVATION_DOWN    
 };
 
 // The controls.

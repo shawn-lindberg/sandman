@@ -66,7 +66,7 @@ void LoggerUninitialize()
 //
 bool LoggerAddMessage(char const* p_Format, ...)
 {
-	unsigned int const l_LogStringBufferCapacity = 256;
+	unsigned int const l_LogStringBufferCapacity = 2048;
 	char l_LogStringBuffer[l_LogStringBufferCapacity];
 
 	// Initialize buffer write parameters.
