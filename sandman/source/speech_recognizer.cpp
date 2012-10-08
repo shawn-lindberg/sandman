@@ -37,8 +37,7 @@ bool SpeechRecognizer::Initialize(char const* p_HMMFileName, char const* p_Langu
 	m_LastVoiceSampleCount = 0;
 
 	// Delete the current recognizer log.
-	FILE* l_LogFile = NULL;
-	fopen_s(&l_LogFile, p_LogFileName, "w");
+	FILE* l_LogFile = fopen(p_LogFileName, "w");
 
 	if (l_LogFile != NULL)
 	{
@@ -207,7 +206,7 @@ bool SpeechRecognizer::Process(char const*& p_RecognizedSpeech)
 			(m_VoiceActivityDetector->read_ts - m_LastVoiceSampleCount) / static_cast<float>(m_AudioRecorder->sps);
 
 		// Get elapsed time since utterance start.
-		__int64 l_CurrentTimeTicks = TimerGetTicks();
+		uint64_t l_CurrentTimeTicks = TimerGetTicks();
 
 		float l_ElapsedTimeSec = TimerGetElapsedMilliseconds(m_UtteranceStartTimeTicks, l_CurrentTimeTicks) / 1000.0f;
 

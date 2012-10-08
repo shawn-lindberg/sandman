@@ -1,6 +1,15 @@
-#include <conio.h>
+#if defined (_WIN32)
+	#include <conio.h>
+	#include <Windows.h>
+#elif defined (__linux__)
+	#include <ncurses.h>
+#endif // defined (_WIN32)
+#include <ctype.h>
 #include <stdio.h>
-#include <Windows.h>
+
+#if defined (_WIN32)
+	#define USE_SERIAL_CONNECTION
+#endif // defined (_WIN32)
 
 #include "control.h"
 #include "logger.h"
@@ -74,6 +83,35 @@ static Control s_Controls[NUM_CONTROL_TYPES];
 // Functions
 //
 
+template<class T>
+T const& Min(T const& p_A, T const& p_B)
+{
+	return (p_A < p_B) ? p_A : p_B;
+}
+
+// Converts a string to lowercase.
+//
+// p_String:	The string to convert.
+//
+static void ConvertStringToLowercase(char* p_String)
+{
+	// Sanity check.
+	if (p_String == NULL)
+	{
+		return;
+	}
+
+	char* l_CurrentLetter = p_String;
+	while (*l_CurrentLetter != '\0')
+	{
+		// Convert this letter.
+		*l_CurrentLetter = static_cast<char>(tolower(static_cast<unsigned int>(*l_CurrentLetter)));
+
+		// Next letter.
+		l_CurrentLetter++;
+	}
+}
+
 // Uninitialize program components.
 //
 // p_Recognizer:	(Input/Output) The speech recognizer.
@@ -87,14 +125,25 @@ static void Uninitialize(SpeechRecognizer* p_Recognizer, SerialConnection* p_Ser
 		p_Recognizer->Uninitialize();
 	}
 
-	// Uninitialize the serial connection.
-	if (p_Serial != NULL)
-	{
-		p_Serial->Uninitialize();
-	}
+	#if defined (USE_SERIAL_CONNECTION)
+
+		// Uninitialize the serial connection.
+		if (p_Serial != NULL)
+		{
+			p_Serial->Uninitialize();
+		}
+
+	#endif // defined (USE_SERIAL_CONNECTION)
 
 	// Uninitialize logging.
 	LoggerUninitialize();
+
+	#if defined (__linux__)
+
+		// Uninitialize ncurses.
+		endwin();
+
+	#endif // defined (__linux__)
 }
 
 // Take a command string and turn it into a list of tokens.
@@ -131,12 +180,12 @@ static void TokenizeCommandString(unsigned int& p_CommandTokenBufferSize, Comman
 		}
 
 		// Copy the token string.
-		unsigned int l_AmountToCopy = min(l_TokenStringBufferCapacity - 1, l_TokenStringLength);
-		strncpy_s(l_TokenStringBuffer, l_NextTokenStringStart, l_AmountToCopy);
+		unsigned int l_AmountToCopy = Min(l_TokenStringBufferCapacity - 1, l_TokenStringLength);
+		strncpy(l_TokenStringBuffer, l_NextTokenStringStart, l_AmountToCopy);
 		l_TokenStringBuffer[l_AmountToCopy] = '\0';
 
 		// Make sure the token string is lowercase.
-		_strlwr_s(l_TokenStringBuffer);
+		ConvertStringToLowercase(l_TokenStringBuffer);
 
 		// Match the token string to a token if possible.
 		CommandTokenTypes l_Token = COMMAND_TOKEN_INVALID;
@@ -285,9 +334,22 @@ void ParseCommandTokens(unsigned int& p_CommandTokenBufferSize, CommandTokenType
 
 int main()
 {
+	#if defined (__linux__)
+
+		// Initialize ncurses.
+		initscr();
+
+		// Don't wait for newlines, make getch non-blocking, and don't display input.
+		cbreak();
+		nodelay(stdscr, true);
+		noecho();
+
+	#endif // defined (__linux__)
+
 	// Initialize logging.
 	if (LoggerInitialize("sandman.log") == false)
 	{
+		Uninitialize(NULL, NULL);
 		return 0;
 	}
 
@@ -296,30 +358,43 @@ int main()
 	if (l_Recognizer.Initialize("data/hmm/en_US/hub4wsj_sc_8k", "data/lm/en_US/sandman.lm", "data/dict/en_US/sandman.dic",
 		"recognizer.log") == false)
 	{
+		Uninitialize(NULL, NULL);
 		return 0;
 	}
 
-	LoggerAddMessage("Opening serial port...");
+	#if defined (USE_SERIAL_CONNECTION)
 
-	char const* const l_SerialPortName = "COM4";
+		LoggerAddMessage("Opening serial port...");
 
-	// Open the serial connection to the micro.
-	SerialConnection l_Serial;
-	if (l_Serial.Initialize(l_SerialPortName) == false)
-	{
-		Uninitialize(&l_Recognizer, NULL);
+		char const* const l_SerialPortName = "COM4";
 
-		LoggerAddMessage("\tfailed");
-		return 0;
-	}
+		// Open the serial connection to the micro.
+		SerialConnection l_Serial;
+		if (l_Serial.Initialize(l_SerialPortName) == false)
+		{
+			Uninitialize(&l_Recognizer, NULL);
 
-	LoggerAddMessage("\tsucceeded");
-	LoggerAddMessage("");
+			LoggerAddMessage("\tfailed");
+			return 0;
+		}
+
+		LoggerAddMessage("\tsucceeded");
+		LoggerAddMessage("");
+
+	#endif // defined (USE_SERIAL_CONNECTION)
 
 	// Initialize controls.
 	for (unsigned int l_ControlIndex = 0; l_ControlIndex < NUM_CONTROL_TYPES; l_ControlIndex++)
 	{
-		s_Controls[l_ControlIndex].Initialize(&l_Serial, s_ControlCommandStrings[l_ControlIndex]);
+		#if defined (USE_SERIAL_CONNECTION)
+
+			s_Controls[l_ControlIndex].Initialize(&l_Serial, s_ControlCommandStrings[l_ControlIndex]);
+
+		#else
+
+			s_Controls[l_ControlIndex].Initialize(NULL, s_ControlCommandStrings[l_ControlIndex]);
+
+		#endif // defined (USE_SERIAL_CONNECTION)
 	}
 
 	// Store a keyboard input here.
@@ -336,10 +411,22 @@ int main()
 	while (l_Done == false)
 	{
 		// Try to get keyboard commands.
-		if (_kbhit() != 0)
-		{
-			// Get the character.
-			char l_NextChar = static_cast<char>(_getch());
+		#if defined (_WIN32)
+
+			if (_kbhit() != 0)
+			{
+				// Get the character.
+				char l_NextChar = static_cast<char>(_getch());
+
+		#elif defined (__linux__)
+
+			int l_InputKey = getch();
+			if ((l_InputKey != ERR) && (isascii(l_InputKey) == true))
+			{
+				// Get the character.
+				char l_NextChar = static_cast<char>(l_InputKey);
+
+		#endif // defined (_WIN32)
 
 			// Accumulate characters until we get a terminating character or we run out of space.
 			if ((l_NextChar != '\r') && (l_KeyboardInputBufferSize < (l_KeyboardInputBufferCapacity - 1)))
@@ -409,61 +496,74 @@ int main()
 			s_Controls[l_ControlIndex].Process();
 		}
 
-		// Read serial port text, if there is any.  Read onto the end of the current string, nuking the current terminating
-		// character.
-		unsigned long int const l_NumBytesToRead = l_SerialStringBufferCapacity - l_SerialStringBufferSize;
-		unsigned long int l_NumBytesRead = 0;
+		#if defined (USE_SERIAL_CONNECTION)
 
-		if (l_Serial.ReadString(l_NumBytesRead, &l_SerialStringBuffer[l_SerialStringBufferSize], l_NumBytesToRead) == false)
-		{
-			l_Done = true;
-		}
+			// Read serial port text, if there is any.  Read onto the end of the current string, nuking the current terminating
+			// character.
+			unsigned long int const l_NumBytesToRead = l_SerialStringBufferCapacity - l_SerialStringBufferSize;
+			unsigned long int l_NumBytesRead = 0;
 
-		// Did we read any?
-		if (l_NumBytesRead != 0)
-		{
-			// Record the new size.
-			l_SerialStringBufferSize += l_NumBytesRead;
-
-			// If a new line is present, we can output.
-			char* l_LineEnd = strchr(l_SerialStringBuffer, '\n');
-
-			while (l_LineEnd != NULL)
+			if (l_Serial.ReadString(l_NumBytesRead, &l_SerialStringBuffer[l_SerialStringBufferSize], l_NumBytesToRead) == false)
 			{
-				// Terminate the string at line's end.
-				*l_LineEnd = '\0';
+				l_Done = true;
+			}
 
-				// Display it.
-				LoggerAddMessage("%s: %s", l_SerialPortName, l_SerialStringBuffer);
+			// Did we read any?
+			if (l_NumBytesRead != 0)
+			{
+				// Record the new size.
+				l_SerialStringBufferSize += l_NumBytesRead;
 
-				// Gobble a trailing carraige return.
-				if (l_LineEnd[1] == '\r') 
+				// If a new line is present, we can output.
+				char* l_LineEnd = strchr(l_SerialStringBuffer, '\n');
+
+				while (l_LineEnd != NULL)
 				{
-					l_LineEnd++;
+					// Terminate the string at line's end.
+					*l_LineEnd = '\0';
+
+					// Display it.
+					LoggerAddMessage("%s: %s", l_SerialPortName, l_SerialStringBuffer);
+
+					// Gobble a trailing carraige return.
+					if (l_LineEnd[1] == '\r')
+					{
+						l_LineEnd++;
+					}
+
+					// Shift the buffer.
+					// NOTE: Reduce size by the line length plus the terminating character that replaced the new line.  Then move
+					// everything past that character plus a terminating character to the front.
+					l_SerialStringBufferSize -= (l_LineEnd - l_SerialStringBuffer + 1);
+					memmove(l_SerialStringBuffer, l_LineEnd + 1, l_SerialStringBufferSize + 1);
+
+					// Look for another new line.
+					l_LineEnd = strchr(l_SerialStringBuffer, '\n');
 				}
 
-				// Shift the buffer.
-				// NOTE: Reduce size by the line length plus the terminating character that replaced the new line.  Then move
-				// everything past that character plus a terminating character to the front.
-				l_SerialStringBufferSize -= (l_LineEnd - l_SerialStringBuffer + 1);
-				memmove(l_SerialStringBuffer, l_LineEnd + 1, l_SerialStringBufferSize + 1);
+				// Full?
+				if ((l_SerialStringBufferSize + 1) == l_SerialStringBufferSize)
+				{
+					// Display it.
+					LoggerAddMessage("%s: %s", l_SerialPortName, l_SerialStringBuffer);
 
-				// Look for another new line.
-				l_LineEnd = strchr(l_SerialStringBuffer, '\n');
+					// Clear it.
+					l_SerialStringBufferSize = 0;
+				}
 			}
 
-			// Full?
-			if ((l_SerialStringBufferSize + 1) == l_SerialStringBufferSize)
-			{
-				// Display it.
-				LoggerAddMessage("%s: %s", l_SerialPortName, l_SerialStringBuffer);
-				
-				// Clear it.
-				l_SerialStringBufferSize = 0;
-			}
-		}
+		#endif // defined (USE_SERIAL_CONNECTION)
+
 	}
 
 	// Cleanup.
-	Uninitialize(&l_Recognizer, &l_Serial);
+	#if defined (USE_SERIAL_CONNECTION)
+
+		Uninitialize(&l_Recognizer, &l_Serial);
+
+	#else
+
+		Uninitialize(&l_Recognizer, NULL);
+
+	#endif // defined (USE_SERIAL_CONNECTION)
 }

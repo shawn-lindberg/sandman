@@ -4,6 +4,8 @@
 #include <sphinxbase/cont_ad.h>
 #include <pocketsphinx.h>
 
+#include <stdint.h>
+
 // Types
 //
 
@@ -52,7 +54,7 @@ class SpeechRecognizer
 		bool m_InUtterance;
 
 		// A record of when the utterance began.
-		__int64 m_UtteranceStartTimeTicks;
+		uint64_t m_UtteranceStartTimeTicks;
 
 		// A counter tracking when we last saw voice activity.
 		int m_LastVoiceSampleCount;

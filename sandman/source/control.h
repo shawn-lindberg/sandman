@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdint.h>
+
 // Types
 //
 
@@ -42,17 +44,21 @@ class Control
 		ControlState m_State;
 
 		// A record of when the state transition timer began.
-		__int64 m_StateStartTimeTicks;
+		uint64_t m_StateStartTimeTicks;
 
 		// Whether movement is desired.
 		bool m_MovingDesired;
 
-		// Serial connection to micro.
-		SerialConnection* m_SerialConn;
+		#if defined (USE_SERIAL_CONNECTION)
+
+			// Serial connection to micro.
+			SerialConnection* m_SerialConn;
+
+		#endif // defined (USE_SERIAL_CONNECTION)
 
 		// The command string to send to the micro.
 		char const* m_CommandString;
 
 		// A record of when the last command was sent.
-		__int64 m_LastCommandTimeTicks;
+		uint64_t m_LastCommandTimeTicks;
 };

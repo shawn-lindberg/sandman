@@ -33,7 +33,13 @@ void Control::Initialize(SerialConnection* p_SerialConn, char const* p_CommandSt
 	m_State = CONTROL_STATE_IDLE;
 	m_StateStartTimeTicks = 0;
 	m_MovingDesired = false;
-	m_SerialConn = p_SerialConn;
+
+	#if defined (USE_SERIAL_CONNECTION)
+
+		m_SerialConn = p_SerialConn;
+
+	#endif // defined (USE_SERIAL_CONNECTION)
+
 	m_CommandString = p_CommandString;
 	m_LastCommandTimeTicks = TimerGetTicks();
 }
@@ -59,14 +65,14 @@ void Control::Process()
 			m_StateStartTimeTicks = TimerGetTicks();
 
 			LoggerAddMessage("Control @ 0x%x: State transition from idle to moving triggered.", 
-				reinterpret_cast<unsigned int>(this));           
+				reinterpret_cast<uintptr_t>(this));
 		}
 		break;
 
 		case CONTROL_STATE_MOVING:
 		{
 			// Get elapsed time since state start.
-			__int64 l_CurrentTimeTicks = TimerGetTicks();
+			uint64_t l_CurrentTimeTicks = TimerGetTicks();
 
 			float l_ElapsedTimeMS = TimerGetElapsedMilliseconds(m_StateStartTimeTicks, l_CurrentTimeTicks);
 
@@ -83,7 +89,7 @@ void Control::Process()
 			m_StateStartTimeTicks = TimerGetTicks();
 
 			LoggerAddMessage("Control @ 0x%x: State transition from moving to cool down triggered.",
-				reinterpret_cast<unsigned int>(this));                      
+				reinterpret_cast<uintptr_t>(this));
 		}
 		break;
 
@@ -93,7 +99,7 @@ void Control::Process()
 			m_MovingDesired = false;
 
 			// Get elapsed time since state start.
-			__int64 l_CurrentTimeTicks = TimerGetTicks();
+			uint64_t l_CurrentTimeTicks = TimerGetTicks();
 
 			float l_ElapsedTimeMS = TimerGetElapsedMilliseconds(m_StateStartTimeTicks, l_CurrentTimeTicks);
 
@@ -107,42 +113,46 @@ void Control::Process()
 			m_State = CONTROL_STATE_IDLE;
 
 			LoggerAddMessage("Control @ 0x%x: State transition from cool down to idle triggered.",
-				reinterpret_cast<unsigned int>(this));                                 
+				reinterpret_cast<uintptr_t>(this));
 		}
 		break;
 
 		default:
 		{
-			LoggerAddMessage("Control @ 0x%x: Unrecognized state %d in Process()", m_State, reinterpret_cast<unsigned int>(this));                      
+			LoggerAddMessage("Control @ 0x%x: Unrecognized state %d in Process()", m_State, reinterpret_cast<uintptr_t>(this));
 		}
 		break;
 	}
 
-	// Manipulate micro based on state.
-	if ((m_SerialConn == NULL) || (m_CommandString == NULL))
-	{
-		return;
-	}
+	#if defined (USE_SERIAL_CONNECTION)
 
-	if (m_State == CONTROL_STATE_MOVING)
-	{
-		// Get elapsed time since last command.
-		__int64 l_CurrentTimeTicks = TimerGetTicks();
-
-		float l_ElapsedTimeMS = TimerGetElapsedMilliseconds(m_LastCommandTimeTicks, l_CurrentTimeTicks);
-
-		// See if enough time has passed since last command.
-		if (l_ElapsedTimeMS < COMMAND_INTERVAL_MS)
+		// Manipulate micro based on state.
+		if ((m_SerialConn == NULL) || (m_CommandString == NULL))
 		{
 			return;
 		}
 
-		unsigned long int l_NumBytesWritten = 0;
-		m_SerialConn->WriteString(l_NumBytesWritten, m_CommandString);
+		if (m_State == CONTROL_STATE_MOVING)
+		{
+			// Get elapsed time since last command.
+			uint64_t l_CurrentTimeTicks = TimerGetTicks();
 
-		// Record when the last command was sent.
-		m_LastCommandTimeTicks = TimerGetTicks();
-	}
+			float l_ElapsedTimeMS = TimerGetElapsedMilliseconds(m_LastCommandTimeTicks, l_CurrentTimeTicks);
+
+			// See if enough time has passed since last command.
+			if (l_ElapsedTimeMS < COMMAND_INTERVAL_MS)
+			{
+				return;
+			}
+
+			unsigned long int l_NumBytesWritten = 0;
+			m_SerialConn->WriteString(l_NumBytesWritten, m_CommandString);
+
+			// Record when the last command was sent.
+			m_LastCommandTimeTicks = TimerGetTicks();
+		}
+
+	#endif // defined (USE_SERIAL_CONNECTION)
 }
 
 // Set moving desired for the next tick.
@@ -153,6 +163,6 @@ void Control::SetMovingDesired(bool p_MovingDesired)
 {
 	m_MovingDesired = p_MovingDesired;
 
-	LoggerAddMessage("Control @ 0x%x: Setting move desired to %d", reinterpret_cast<unsigned int>(this), p_MovingDesired);                      
+	LoggerAddMessage("Control @ 0x%x: Setting move desired to %d", reinterpret_cast<uintptr_t>(this), p_MovingDesired);
 }
 

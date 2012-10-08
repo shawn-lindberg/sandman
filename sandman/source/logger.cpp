@@ -1,5 +1,9 @@
 #include "logger.h"
 
+#if defined (__linux__)
+	#include <ncurses.h>
+#endif // defined (__linux__)
+
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
@@ -31,10 +35,7 @@ bool LoggerInitialize(char const* p_LogFileName)
 	}
 
 	// Try to open (and destroy old log).
-	if (fopen_s(&s_LogFile, p_LogFileName, "w") != 0)
-	{
-		return false;
-	}
+	s_LogFile = fopen(p_LogFileName, "w");
 
 	if (s_LogFile == NULL)
 	{
@@ -73,41 +74,18 @@ bool LoggerAddMessage(char const* p_Format, ...)
 	unsigned int l_RemainingCapacity = l_LogStringBufferCapacity;
 	char* l_RemainingBuffer = l_LogStringBuffer;
 
-	// Put the date in the buffer.
-	if (_strdate_s(l_RemainingBuffer, l_RemainingCapacity) != 0)
-	{
-		return false;
-	}
+	// Get the time.
+	time_t l_RawTime = time(NULL);
+	tm* l_LocalTime = localtime(&l_RawTime);
+
+	// Put the date and time in the buffer in 2012/09/23 17:44:05 CDT format.
+	strftime(l_RemainingBuffer, l_RemainingCapacity, "%Y/%m/%d %H:%M:%S %Z", l_LocalTime);
 	
 	// Force terminate.
 	l_RemainingBuffer[l_RemainingCapacity - 1] = '\0';
 
 	// Update buffer write parameters.
 	unsigned int l_CapacityUsed = strlen(l_RemainingBuffer);
-	l_RemainingBuffer += l_CapacityUsed;
-	l_RemainingCapacity -= l_CapacityUsed;
-
-	// Add a space.
-	if (l_RemainingCapacity < 1)
-	{
-		return false;
-	}
-
-	l_RemainingBuffer[0] = ' ';
-	l_RemainingBuffer++;
-	l_RemainingCapacity--;
-
-	// Put the time in the buffer.
-	if (_strtime_s(l_RemainingBuffer, l_RemainingCapacity) != 0)
-	{
-		return false;
-	}
-	
-	// Force terminate.
-	l_RemainingBuffer[l_RemainingCapacity - 1] = '\0';
-
-	// Update buffer write parameters.
-	l_CapacityUsed = strlen(l_RemainingBuffer);
 	l_RemainingBuffer += l_CapacityUsed;
 	l_RemainingCapacity -= l_CapacityUsed;
 
@@ -126,7 +104,7 @@ bool LoggerAddMessage(char const* p_Format, ...)
 	va_list l_Arguments;
 	va_start(l_Arguments, p_Format);
 
-	if (vsprintf_s(l_RemainingBuffer, l_RemainingCapacity, p_Format, l_Arguments) < 0)
+	if (vsnprintf(l_RemainingBuffer, l_RemainingCapacity, p_Format, l_Arguments) < 0)
 	{
 		return false;
 	}
@@ -137,7 +115,16 @@ bool LoggerAddMessage(char const* p_Format, ...)
 	l_RemainingBuffer[l_RemainingCapacity - 1] = '\0';
 
 	// Print to standard output (and add a newline).
-	puts(l_LogStringBuffer);
+	#if defined (_WIN32)
+
+		puts(l_LogStringBuffer);
+
+	#elif defined (__linux__)
+
+		addstr(l_LogStringBuffer);
+		refresh();
+
+	#endif // defined (_WIN32)
 
 	// Print to log file.
 	if (s_LogFile != NULL)
