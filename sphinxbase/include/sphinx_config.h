@@ -2,7 +2,7 @@
 /* sphinx_config.h: Externally visible configuration parameters */
 
 /* Use ALSA library for sound I/O */
-#define AD_BACKEND_ALSA /**/
+/* #undef AD_BACKEND_ALSA */
 
 /* Use IRIX interface for sound I/O */
 /* #undef AD_BACKEND_IRIX */
@@ -14,7 +14,7 @@
 /* #undef AD_BACKEND_OSF */
 
 /* Use OSS interface for sound I/O */
-/* #undef AD_BACKEND_OSS */
+#define AD_BACKEND_OSS /**/
 
 /* Use OSS interface for sound I/O */
 /* #undef AD_BACKEND_OSS_BSD */
