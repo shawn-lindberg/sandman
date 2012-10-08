@@ -15,7 +15,7 @@ pocketsphinx/python/setup.py
 pocketsphinx/src/programs/pocketsphinx_batch
 pocketsphinx/src/programs/pocketsphinx_continuous
 pocketsphinx/src/programs/pocketsphinx_mdef_convert
-pocketsphinx/test/
+pocketsphinx/test/testfuncs.sh
 sandman/.cproject
 sandman/.metadata/
 sandman/.project
@@ -38,4 +38,12 @@ sphinxbase/src/sphinx_fe/sphinx_fe
 sphinxbase/src/sphinx_jsgf2fsg/sphinx_jsgf2fsg
 sphinxbase/src/sphinx_lmtools/sphinx_lm_convert
 sphinxbase/src/sphinx_lmtools/sphinx_lm_eval
-sphinxbase/test/
+sphinxbase/test/regression/testfuncs.sh
+sphinxbase/test/unit/test_ad/test_ad_copy
+sphinxbase/test/unit/test_ad/test_ad_read
+sphinxbase/test/unit/test_alloc/test_ckd_alloc
+sphinxbase/test/unit/test_alloc/test_ckd_alloc_abort
+sphinxbase/test/unit/test_alloc/test_ckd_alloc_catch
+sphinxbase/test/unit/test_alloc/test_ckd_alloc_fail
+sphinxbase/test/unit/test_alloc/test_listelem_alloc
+sphinxbase/test/unit/testfuncs.sh
