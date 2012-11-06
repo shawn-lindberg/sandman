@@ -19,6 +19,8 @@ static float const s_UtteranceMaxLengthSec = 30.0f;
 
 // Initialize the recognizer.
 //
+// p_CaptureDeviceName:		The name of the audio capture device.
+// p_SampleRate:			The audio capture sample rate.
 // p_HMMFileName:			File name of the HMM the recognizer will use.
 // p_LanguageModelFileName:	File name of the language model the recognizer will use.
 // p_DictionaryFileName:	File name of the dictionary the recognizer will use.
@@ -26,8 +28,8 @@ static float const s_UtteranceMaxLengthSec = 30.0f;
 //
 // returns:		True for success, false otherwise.
 //
-bool SpeechRecognizer::Initialize(char const* p_HMMFileName, char const* p_LanguageModelFileName, char const* p_DictionaryFileName,
-	char const* p_LogFileName)
+bool SpeechRecognizer::Initialize(char const* p_CaptureDeviceName, unsigned int p_SampleRate, char const* p_HMMFileName,
+	char const* p_LanguageModelFileName, char const* p_DictionaryFileName, char const* p_LogFileName)
 {
 	m_AudioRecorder = NULL;
 	m_VoiceActivityDetector = NULL;
@@ -47,7 +49,7 @@ bool SpeechRecognizer::Initialize(char const* p_HMMFileName, char const* p_Langu
 	LoggerAddMessage("Initializing default audio input device...");
 
 	// Open the default audio device for recording.
-	m_AudioRecorder = ad_open();
+	m_AudioRecorder = ad_open_dev(p_CaptureDeviceName, p_SampleRate);
 
 	if (m_AudioRecorder == NULL)
 	{

@@ -5,7 +5,7 @@ AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 AC_CONFIG_MACRO_DIR([m4])
 
 AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_FILES([Makefile source/Makefile])
+AC_CONFIG_FILES([Makefile source/Makefile data/Makefile])
 
 # Use libtool, but only static linking.
 LT_INIT([disable-shared])

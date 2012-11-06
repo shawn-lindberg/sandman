@@ -17,6 +17,8 @@ class SpeechRecognizer
 
 		// Initialize the recognizer.
 		//
+		// p_CaptureDeviceName:		The name of the audio capture device.
+		// p_SampleRate:			The audio capture sample rate.
 		// p_HMMFileName:			File name of the HMM the recognizer will use.
 		// p_LanguageModelFileName:	File name of the language model the recognizer will use.
 		// p_DictionaryFileName:	File name of the dictionary the recognizer will use.
@@ -24,8 +26,8 @@ class SpeechRecognizer
 		//
 		// returns:		True for success, false otherwise.
 		//
-		bool Initialize(char const* p_HMMFileName, char const* p_LanguageModelFileName, char const* p_DictionaryFileName, 
-			char const* p_LogFileName);
+		bool Initialize(char const* p_CaptureDeviceName, unsigned int p_SampleRate, char const* p_HMMFileName,
+			char const* p_LanguageModelFileName, char const* p_DictionaryFileName, char const* p_LogFileName);
 
 		// Uninitialize the recognizer.
 		//

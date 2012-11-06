@@ -7,15 +7,21 @@
 #include <ctype.h>
 #include <stdio.h>
 
-#if defined (_WIN32)
-	#define USE_SERIAL_CONNECTION
-#endif // defined (_WIN32)
-
 #include "control.h"
 #include "logger.h"
 #include "serial_connection.h"
 #include "speech_recognizer.h"
 #include "timer.h"
+
+#if defined (_WIN32)
+	#define USE_SERIAL_CONNECTION
+#endif // defined (_WIN32)
+
+#if defined (_WIN32)
+	#define DATADIR	"data"
+#elif defined (__linux__)
+	#define DATADIR	AM_DATADIR
+#endif // defined (_WIN32)
 
 // Types
 //
@@ -343,7 +349,14 @@ int main()
 		cbreak();
 		nodelay(stdscr, true);
 		noecho();
+		
+		// Allow the window to scroll.
+		scrollok(stdscr, true);
+		idlok(stdscr, true);
 
+		// Allow new-lines in the input.
+		nonl();
+		
 	#endif // defined (__linux__)
 
 	// Initialize logging.
@@ -355,8 +368,8 @@ int main()
 
 	// Initialize speech recognition.
 	SpeechRecognizer l_Recognizer;
-	if (l_Recognizer.Initialize("data/hmm/en_US/hub4wsj_sc_8k", "data/lm/en_US/sandman.lm", "data/dict/en_US/sandman.dic",
-		"recognizer.log") == false)
+	if (l_Recognizer.Initialize("hw:1,0", 11025, DATADIR "/hmm/en_US/hub4wsj_sc_8k", 
+		DATADIR "/lm/en_US/sandman.lm", DATADIR "/dict/en_US/sandman.dic", "recognizer.log") == false)
 	{
 		Uninitialize(NULL, NULL);
 		return 0;

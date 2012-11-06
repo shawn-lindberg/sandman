@@ -122,6 +122,7 @@ bool LoggerAddMessage(char const* p_Format, ...)
 	#elif defined (__linux__)
 
 		addstr(l_LogStringBuffer);
+		addch('\n');
 		refresh();
 
 	#endif // defined (_WIN32)
