@@ -19,7 +19,6 @@ pocketsphinx/test/testfuncs.sh
 sandman/.cproject
 sandman/.metadata/
 sandman/.project
-sandman/config.guess
 sandman/config.h*
 sandman/configure.scan
 sandman/build/
