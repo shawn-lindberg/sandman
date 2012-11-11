@@ -19,7 +19,7 @@ pocketsphinx/test/testfuncs.sh
 sandman/.cproject
 sandman/.metadata/
 sandman/.project
-sandman/config.h*
+sandman/config.h
 sandman/configure.scan
 sandman/build/
 sphinxbase/doc/doxyfile
