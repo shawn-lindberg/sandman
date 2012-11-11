@@ -6,6 +6,8 @@
 
 #include <stdint.h>
 
+#include "timer.h"
+
 // Types
 //
 
@@ -56,7 +58,7 @@ class SpeechRecognizer
 		bool m_InUtterance;
 
 		// A record of when the utterance began.
-		uint64_t m_UtteranceStartTimeTicks;
+		Time m_UtteranceStartTime;
 
 		// A counter tracking when we last saw voice activity.
 		int m_LastVoiceSampleCount;

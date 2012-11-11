@@ -1,6 +1,6 @@
 #pragma once
 
-#include <stdint.h>
+#include "timer.h"
 
 // Types
 //
@@ -44,7 +44,7 @@ class Control
 		ControlState m_State;
 
 		// A record of when the state transition timer began.
-		uint64_t m_StateStartTimeTicks;
+		Time m_StateStartTime;
 
 		// Whether movement is desired.
 		bool m_MovingDesired;
@@ -60,5 +60,5 @@ class Control
 		char const* m_CommandString;
 
 		// A record of when the last command was sent.
-		uint64_t m_LastCommandTimeTicks;
+		Time m_LastCommandTime;
 };

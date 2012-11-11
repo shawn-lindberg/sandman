@@ -187,7 +187,7 @@ bool SpeechRecognizer::Process(char const*& p_RecognizedSpeech)
 
 			// Record the utterance start.
 			m_InUtterance = true;
-			m_UtteranceStartTimeTicks = TimerGetTicks();
+			TimerGetCurrent(m_UtteranceStartTime);
 		}
 
 		// Process the voice ddata.
@@ -208,9 +208,10 @@ bool SpeechRecognizer::Process(char const*& p_RecognizedSpeech)
 			(m_VoiceActivityDetector->read_ts - m_LastVoiceSampleCount) / static_cast<float>(m_AudioRecorder->sps);
 
 		// Get elapsed time since utterance start.
-		uint64_t l_CurrentTimeTicks = TimerGetTicks();
+		Time l_CurrentTime;
+		TimerGetCurrent(l_CurrentTime);
 
-		float l_ElapsedTimeSec = TimerGetElapsedMilliseconds(m_UtteranceStartTimeTicks, l_CurrentTimeTicks) / 1000.0f;
+		float l_ElapsedTimeSec = TimerGetElapsedMilliseconds(m_UtteranceStartTime, l_CurrentTime) / 1000.0f;
 
 		// The utterance either ends if it experiences a long enough silence or gets too long.
 		if (((l_NumSamplesRead == 0) && (l_TimeSinceVoiceSec >= s_UtteranceTrailingSilenceThresholdSec)) ||

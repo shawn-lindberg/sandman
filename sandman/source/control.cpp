@@ -31,7 +31,7 @@
 void Control::Initialize(SerialConnection* p_SerialConn, char const* p_CommandString)
 {
 	m_State = CONTROL_STATE_IDLE;
-	m_StateStartTimeTicks = 0;
+	TimerGetCurrent(m_StateStartTime);
 	m_MovingDesired = false;
 
 	#if defined (USE_SERIAL_CONNECTION)
@@ -41,7 +41,7 @@ void Control::Initialize(SerialConnection* p_SerialConn, char const* p_CommandSt
 	#endif // defined (USE_SERIAL_CONNECTION)
 
 	m_CommandString = p_CommandString;
-	m_LastCommandTimeTicks = TimerGetTicks();
+	TimerGetCurrent(m_LastCommandTime);
 }
 
 // Process a tick.
@@ -62,7 +62,7 @@ void Control::Process()
 			m_State = CONTROL_STATE_MOVING;
 
 			// Record when the state transition timer began.
-			m_StateStartTimeTicks = TimerGetTicks();
+			TimerGetCurrent(m_StateStartTime);
 
 			LoggerAddMessage("Control @ 0x%x: State transition from idle to moving triggered.", 
 				reinterpret_cast<uintptr_t>(this));
@@ -72,9 +72,10 @@ void Control::Process()
 		case CONTROL_STATE_MOVING:
 		{
 			// Get elapsed time since state start.
-			uint64_t l_CurrentTimeTicks = TimerGetTicks();
+			Time l_CurrentTime;
+			TimerGetCurrent(l_CurrentTime);
 
-			float l_ElapsedTimeMS = TimerGetElapsedMilliseconds(m_StateStartTimeTicks, l_CurrentTimeTicks);
+			float l_ElapsedTimeMS = TimerGetElapsedMilliseconds(m_StateStartTime, l_CurrentTime);
 
 			// Wait until moving isn't desired or the time limit has run out.
 			if ((m_MovingDesired == true) && (l_ElapsedTimeMS < MAX_MOVING_STATE_DURATION_MS))
@@ -86,7 +87,7 @@ void Control::Process()
 			m_State = CONTROL_STATE_COOL_DOWN;
 
 			// Record when the state transition timer began.
-			m_StateStartTimeTicks = TimerGetTicks();
+			TimerGetCurrent(m_StateStartTime);
 
 			LoggerAddMessage("Control @ 0x%x: State transition from moving to cool down triggered.",
 				reinterpret_cast<uintptr_t>(this));
@@ -99,9 +100,10 @@ void Control::Process()
 			m_MovingDesired = false;
 
 			// Get elapsed time since state start.
-			uint64_t l_CurrentTimeTicks = TimerGetTicks();
+			Time l_CurrentTime;
+			TimerGetCurrent(l_CurrentTime);
 
-			float l_ElapsedTimeMS = TimerGetElapsedMilliseconds(m_StateStartTimeTicks, l_CurrentTimeTicks);
+			float l_ElapsedTimeMS = TimerGetElapsedMilliseconds(m_StateStartTime, l_CurrentTime);
 
 			// Wait until the time limit has run out.
 			if (l_ElapsedTimeMS < MAX_COOL_DOWN_STATE_DURATION_MS)
@@ -135,9 +137,10 @@ void Control::Process()
 		if (m_State == CONTROL_STATE_MOVING)
 		{
 			// Get elapsed time since last command.
-			uint64_t l_CurrentTimeTicks = TimerGetTicks();
+			Time l_CurrentTime;
+			TimerGetCurrent(l_CurrentTime);
 
-			float l_ElapsedTimeMS = TimerGetElapsedMilliseconds(m_LastCommandTimeTicks, l_CurrentTimeTicks);
+			float l_ElapsedTimeMS = TimerGetElapsedMilliseconds(m_LastCommandTime, l_CurrentTime);
 
 			// See if enough time has passed since last command.
 			if (l_ElapsedTimeMS < COMMAND_INTERVAL_MS)
@@ -149,7 +152,7 @@ void Control::Process()
 			m_SerialConn->WriteString(l_NumBytesWritten, m_CommandString);
 
 			// Record when the last command was sent.
-			m_LastCommandTimeTicks = TimerGetTicks();
+			TimerGetCurrent(m_LastCommandTime);
 		}
 
 	#endif // defined (USE_SERIAL_CONNECTION)

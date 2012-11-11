@@ -5,16 +5,28 @@
 // Types
 //
 
+// Represents a point in time useful for elapsed time.
+struct Time
+{
+	// The portion of the time in seconds.
+	uint64_t m_Seconds;
+	
+	// The portion of the time in nanoseconds.
+	uint64_t m_Nanoseconds;	
+};
+
 // Functions
 //
 
-// Get the current time in ticks.
+// Get the current time.
 //
-uint64_t TimerGetTicks();
+// p_Time:	(Output) The current time.
+//
+void TimerGetCurrent(Time& p_Time);
 
 // Get the elapsed time in milliseconds between to times.
 //
-// p_StartTicks:	Start time in ticks.
-// p_EndTicks:		End time in ticks.
+// p_StartTime:	Start time.
+// p_EndTime:	End time.
 //
-float TimerGetElapsedMilliseconds(uint64_t const p_StartTicks, uint64_t const p_EndTicks);
+float TimerGetElapsedMilliseconds(Time const& p_StartTime, Time const& p_EndTime);
