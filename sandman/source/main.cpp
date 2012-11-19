@@ -423,6 +423,10 @@ int main()
 	bool l_Done = false;
 	while (l_Done == false)
 	{
+		// We're gonna track the framerate.
+		Time l_FrameStartTime;
+		TimerGetCurrent(l_FrameStartTime);
+		
 		// Try to get keyboard commands.
 		#if defined (_WIN32)
 
@@ -567,6 +571,30 @@ int main()
 
 		#endif // defined (USE_SERIAL_CONNECTION)
 
+		// Get the duration of the frame in nanoseconds.
+		Time l_FrameEndTime;
+		TimerGetCurrent(l_FrameEndTime);
+		
+		float const l_FrameDurationMS = TimerGetElapsedMilliseconds(l_FrameStartTime, l_FrameEndTime);
+		unsigned long const l_FrameDurationNS = static_cast<unsigned long>(l_FrameDurationMS * 1.0e6f);
+		
+		// If the frame is shorter than the duration corresponding to the desired framerate, sleep the
+		// difference off.
+		unsigned long const l_TargetFrameDurationNS = 1000000000 / 60;
+		
+		if (l_FrameDurationNS < l_TargetFrameDurationNS)
+		{
+			#if defined (__linux__)
+			
+				timespec l_SleepTime;
+				l_SleepTime.tv_sec = 0;
+				l_SleepTime.tv_nsec = l_TargetFrameDurationNS - l_FrameDurationNS;
+				
+				timespec l_RemainingTime;
+				nanosleep(&l_SleepTime, &l_RemainingTime);
+				
+			#endif //defined (__linux__)
+		}
 	}
 
 	// Cleanup.
