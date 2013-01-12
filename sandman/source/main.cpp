@@ -17,6 +17,10 @@
 	#define USE_SERIAL_CONNECTION
 #endif // defined (_WIN32)
 
+#if !defined (USE_SERIAL_CONNECTION)
+	#include "wiringPi.h"
+#endif // !defined (USE_SERIAL_CONNECTION)
+
 #if defined (_WIN32)
 	#define DATADIR	"data"
 #elif defined (__linux__)
@@ -368,7 +372,7 @@ int main()
 
 	// Initialize speech recognition.
 	SpeechRecognizer l_Recognizer;
-	if (l_Recognizer.Initialize("hw:1,0", 11025, DATADIR "/hmm/en_US/hub4wsj_sc_8k", 
+	if (l_Recognizer.Initialize("plughw:0,0", 16000, DATADIR "/hmm/en_US/hub4wsj_sc_8k", 
 		DATADIR "/lm/en_US/sandman.lm", DATADIR "/dict/en_US/sandman.dic", "recognizer.log") == false)
 	{
 		Uninitialize(NULL, NULL);
@@ -394,6 +398,21 @@ int main()
 		LoggerAddMessage("\tsucceeded");
 		LoggerAddMessage("");
 
+	#else 
+	
+		LoggerAddMessage("Initializing GPIO support...");
+		
+		if (wiringPiSetup() == -1)
+		{
+			LoggerAddMessage("\tfailed");
+
+			Uninitialize(&l_Recognizer, NULL);
+			return 0;
+		}
+
+		LoggerAddMessage("\tsucceeded");
+		LoggerAddMessage("");
+			
 	#endif // defined (USE_SERIAL_CONNECTION)
 
 	// Initialize controls.
@@ -405,7 +424,7 @@ int main()
 
 		#else
 
-			s_Controls[l_ControlIndex].Initialize(NULL, s_ControlCommandStrings[l_ControlIndex]);
+			s_Controls[l_ControlIndex].Initialize(l_ControlIndex);
 
 		#endif // defined (USE_SERIAL_CONNECTION)
 	}

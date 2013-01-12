@@ -12,6 +12,9 @@
 /* Define to 1 if you have the `rt' library (-lrt). */
 #undef HAVE_LIBRT
 
+/* Define to 1 if you have the `wiringPi' library (-lwiringPi). */
+#undef HAVE_LIBWIRINGPI
+
 /* Define to 1 if you have the `memmove' function. */
 #undef HAVE_MEMMOVE
 
@@ -47,6 +50,9 @@
 
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
+
+/* Define to 1 if you have the <wiringPi.h> header file. */
+#undef HAVE_WIRINGPI_H
 
 /* Define to 1 if the system has the type `_Bool'. */
 #undef HAVE__BOOL

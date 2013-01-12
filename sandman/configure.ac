@@ -17,9 +17,10 @@ AC_PROG_CC
 # Checks for libraries.
 AC_CHECK_LIB([rt], [clock_gettime])
 AC_CHECK_LIB([ncurses], [initscr])
+AC_CHECK_LIB([wiringPi], [wiringPiSetup])
 
 # Checks for header files.
-AC_CHECK_HEADERS([stdint.h string.h ncurses.h])
+AC_CHECK_HEADERS([stdint.h string.h ncurses.h wiringPi.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL

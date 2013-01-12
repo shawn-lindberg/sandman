@@ -21,12 +21,24 @@ class Control
 {
 	public:
 
-		// Handle initialization.
-		//
-		// p_SerialConn:	The serial connection to the micro.
-		// p_CommandString:	The command string to send to the micro.
-		//
-		void Initialize(SerialConnection* p_SerialConn, char const* p_CommandString);
+		#if defined (USE_SERIAL_CONNECTION)
+
+			// Handle initialization.
+			//
+			// p_SerialConn:	The serial connection to the micro.
+			// p_CommandString:	The command string to send to the micro.
+			//
+			void Initialize(SerialConnection* p_SerialConn, char const* p_CommandString);
+
+		#else
+		
+			// Handle initialization.
+			//
+			// p_GPIOPin:	The GPIO pin to use.
+			//
+			void Initialize(int p_GPIOPin);
+
+		#endif // defined (USE_SERIAL_CONNECTION)
 
 		// Process a tick.
 		//
@@ -54,11 +66,16 @@ class Control
 			// Serial connection to micro.
 			SerialConnection* m_SerialConn;
 
+			// The command string to send to the micro.
+			char const* m_CommandString;
+
+			// A record of when the last command was sent.
+			Time m_LastCommandTime;
+
+		#else
+		
+			// The GPIO pin to use.
+			int m_GPIOPin;
+		
 		#endif // defined (USE_SERIAL_CONNECTION)
-
-		// The command string to send to the micro.
-		char const* m_CommandString;
-
-		// A record of when the last command was sent.
-		Time m_LastCommandTime;
 };

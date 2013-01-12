@@ -3,8 +3,13 @@
 #include <stdio.h>
 
 #include "logger.h"
-#include "serial_connection.h"
 #include "timer.h"
+
+#if defined (USE_SERIAL_CONNECTION)
+	#include "serial_connection.h"
+#else
+	#include "wiringPi.h"
+#endif // defined (USE_SERIAL_CONNECTION)
 
 // Constants
 //
@@ -23,26 +28,44 @@
 
 // Control members
 
-// Handle initialization.
-//
-// p_SerialConn:	The serial connection to the micro.
-// p_CommandString:	The command string to send to the micro.
-//
-void Control::Initialize(SerialConnection* p_SerialConn, char const* p_CommandString)
-{
-	m_State = CONTROL_STATE_IDLE;
-	TimerGetCurrent(m_StateStartTime);
-	m_MovingDesired = false;
+#if defined (USE_SERIAL_CONNECTION)
 
-	#if defined (USE_SERIAL_CONNECTION)
+	// Handle initialization.
+	//
+	// p_SerialConn:	The serial connection to the micro.
+	// p_CommandString:	The command string to send to the micro.
+	//
+	void Control::Initialize(SerialConnection* p_SerialConn, char const* p_CommandString)
+	{
+		m_State = CONTROL_STATE_IDLE;
+		TimerGetCurrent(m_StateStartTime);
+		m_MovingDesired = false;
 
 		m_SerialConn = p_SerialConn;
+		m_CommandString = p_CommandString;
 
-	#endif // defined (USE_SERIAL_CONNECTION)
+		TimerGetCurrent(m_LastCommandTime);
+	}
 
-	m_CommandString = p_CommandString;
-	TimerGetCurrent(m_LastCommandTime);
-}
+#else
+
+	// Handle initialization.
+	//
+	// p_GPIOPin:	The GPIO pin to use.
+	//
+	void Control::Initialize(int p_GPIOPin)
+	{
+		m_State = CONTROL_STATE_IDLE;
+		TimerGetCurrent(m_StateStartTime);
+		m_MovingDesired = false;
+
+		// Setup the pin and set it low.
+		m_GPIOPin = p_GPIOPin;
+		pinMode(p_GPIOPin, OUTPUT);
+		digitalWrite(p_GPIOPin, LOW);
+	}
+
+#endif // defined (USE_SERIAL_CONNECTION)
 
 // Process a tick.
 //
@@ -60,6 +83,13 @@ void Control::Process()
 
 			// Transition to moving.
 			m_State = CONTROL_STATE_MOVING;
+
+			#if !defined (USE_SERIAL_CONNECTION)
+
+				// Set the pin high.
+				digitalWrite(m_GPIOPin, HIGH);
+				
+			#endif // !defined (USE_SERIAL_CONNECTION)
 
 			// Record when the state transition timer began.
 			TimerGetCurrent(m_StateStartTime);
@@ -85,6 +115,13 @@ void Control::Process()
 
 			// Transition to cool down.
 			m_State = CONTROL_STATE_COOL_DOWN;
+
+			#if !defined (USE_SERIAL_CONNECTION)
+
+				// Set the pin low.
+				digitalWrite(m_GPIOPin, LOW);
+				
+			#endif // !defined (USE_SERIAL_CONNECTION)
 
 			// Record when the state transition timer began.
 			TimerGetCurrent(m_StateStartTime);
@@ -113,6 +150,13 @@ void Control::Process()
 
 			// Transition to idle.
 			m_State = CONTROL_STATE_IDLE;
+
+			#if !defined (USE_SERIAL_CONNECTION)
+
+				// Set the pin low.
+				digitalWrite(m_GPIOPin, LOW);
+				
+			#endif // !defined (USE_SERIAL_CONNECTION)
 
 			LoggerAddMessage("Control @ 0x%x: State transition from cool down to idle triggered.",
 				reinterpret_cast<uintptr_t>(this));
@@ -154,7 +198,7 @@ void Control::Process()
 			// Record when the last command was sent.
 			TimerGetCurrent(m_LastCommandTime);
 		}
-
+	
 	#endif // defined (USE_SERIAL_CONNECTION)
 }
 
