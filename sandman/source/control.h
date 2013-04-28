@@ -40,6 +40,16 @@ class Control
 
 		#endif // defined (USE_SERIAL_CONNECTION)
 
+		// Handle uninitialization.
+		//
+		void Uninitialize();
+
+		// Enable or disable all controls.
+		//
+		// p_Enable:	Whether to enable or disable all controls.
+		//
+		static void Enable(bool p_Enable);
+		
 		// Process a tick.
 		//
 		void Process();

@@ -90,6 +90,9 @@ static char const* const s_ControlCommandStrings[] =
 // The controls.
 static Control s_Controls[NUM_CONTROL_TYPES];
 
+// Whether controls have been initialized.
+static bool s_ControlsInitialized = false;
+
 // Functions
 //
 
@@ -145,6 +148,18 @@ static void Uninitialize(SpeechRecognizer* p_Recognizer, SerialConnection* p_Ser
 
 	#endif // defined (USE_SERIAL_CONNECTION)
 
+	if (s_ControlsInitialized == true)
+	{
+		// Disable all controls.
+		Control::Enable(false);
+	
+		// Uninitialize controls.
+		for (unsigned int l_ControlIndex = 0; l_ControlIndex < NUM_CONTROL_TYPES; l_ControlIndex++)
+		{
+			s_Controls[l_ControlIndex].Uninitialize();
+		}
+	}
+	
 	// Uninitialize logging.
 	LoggerUninitialize();
 
@@ -429,6 +444,12 @@ int main()
 		#endif // defined (USE_SERIAL_CONNECTION)
 	}
 
+	// Enable all controls.
+	Control::Enable(true);
+	
+	// Controls have been initialized.
+	s_ControlsInitialized = true;
+	
 	// Store a keyboard input here.
 	unsigned int const l_KeyboardInputBufferCapacity = 128;
 	char l_KeyboardInputBuffer[l_KeyboardInputBufferCapacity];

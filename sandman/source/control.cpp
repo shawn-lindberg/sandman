@@ -23,6 +23,15 @@
 // Time between commands.
 #define COMMAND_INTERVAL_MS				(2 * 1000) // 2 sec.
 
+#if defined (USE_SERIAL_CONNECTION)
+
+#else
+
+	// The pin to use for enabling controls.
+	#define ENABLE_GPIO_PIN				(6)
+
+#endif // defined (USE_SERIAL_CONNECTION)
+
 // Function
 //
 
@@ -66,6 +75,49 @@
 	}
 
 #endif // defined (USE_SERIAL_CONNECTION)
+
+// Handle uninitialization.
+//
+void Control::Uninitialize()
+{
+	#if defined (USE_SERIAL_CONNECTION)
+
+	#else
+
+		// Revert to input.
+		pinMode(m_GPIOPin, INPUT);
+	
+	#endif // defined (USE_SERIAL_CONNECTION)
+}
+
+// Enable or disable all controls.
+//
+// p_Enable:	Whether to enable or disable all controls.
+//
+void Control::Enable(bool p_Enable)
+{
+	#if defined (USE_SERIAL_CONNECTION)
+
+	#else
+
+		if (p_Enable == false)
+		{
+			// Revert to input.
+			pinMode(ENABLE_GPIO_PIN, INPUT);
+
+			LoggerAddMessage("Controls disabled.");
+		}
+		else
+		{
+			// Setup the pin and set it low.
+			pinMode(ENABLE_GPIO_PIN, OUTPUT);
+			digitalWrite(ENABLE_GPIO_PIN, LOW);
+
+			LoggerAddMessage("Controls enabled.");
+		}
+		
+	#endif // defined (USE_SERIAL_CONNECTION)
+}
 
 // Process a tick.
 //
