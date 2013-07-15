@@ -67,8 +67,9 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
-am_sandman_OBJECTS = sandman-logger.$(OBJEXT) sandman-timer.$(OBJEXT) \
-	sandman-speech_recognizer.$(OBJEXT) sandman-control.$(OBJEXT) \
+am_sandman_OBJECTS = sandman-config.$(OBJEXT) \
+	sandman-control.$(OBJEXT) sandman-logger.$(OBJEXT) \
+	sandman-speech_recognizer.$(OBJEXT) sandman-timer.$(OBJEXT) \
 	sandman-main.$(OBJEXT)
 sandman_OBJECTS = $(am_sandman_OBJECTS)
 sandman_DEPENDENCIES =  \
@@ -215,8 +216,10 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-sandman_SOURCES = logger.cpp timer.cpp speech_recognizer.cpp control.cpp main.cpp
-sandman_CPPFLAGS = -I$(srcdir)/../../sphinxbase/include -I$(srcdir)/../../pocketsphinx/include -DAM_DATADIR='"$(datadir)/sandman"'
+sandman_SOURCES = config.cpp control.cpp logger.cpp speech_recognizer.cpp timer.cpp main.cpp
+sandman_CPPFLAGS = -I$(srcdir)/../../sphinxbase/include -I$(srcdir)/../../pocketsphinx/include -DAM_DATADIR='"$(datadir)/sandman/"' \
+	-DAM_CONFIGDIR='"$(sysconfdir)/sandman/"'
+
 sandman_LDADD = $(srcdir)/../../sphinxbase/src/libsphinxad/libsphinxad.la $(srcdir)/../../pocketsphinx/src/libpocketsphinx/libpocketsphinx.la
 all: all-am
 
@@ -308,6 +311,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sandman-config.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sandman-control.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sandman-logger.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sandman-main.Po@am__quote@
@@ -335,6 +339,34 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LTCXXCOMPILE) -c -o $@ $<
 
+sandman-config.o: config.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(sandman_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT sandman-config.o -MD -MP -MF $(DEPDIR)/sandman-config.Tpo -c -o sandman-config.o `test -f 'config.cpp' || echo '$(srcdir)/'`config.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/sandman-config.Tpo $(DEPDIR)/sandman-config.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='config.cpp' object='sandman-config.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(sandman_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o sandman-config.o `test -f 'config.cpp' || echo '$(srcdir)/'`config.cpp
+
+sandman-config.obj: config.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(sandman_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT sandman-config.obj -MD -MP -MF $(DEPDIR)/sandman-config.Tpo -c -o sandman-config.obj `if test -f 'config.cpp'; then $(CYGPATH_W) 'config.cpp'; else $(CYGPATH_W) '$(srcdir)/config.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/sandman-config.Tpo $(DEPDIR)/sandman-config.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='config.cpp' object='sandman-config.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(sandman_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o sandman-config.obj `if test -f 'config.cpp'; then $(CYGPATH_W) 'config.cpp'; else $(CYGPATH_W) '$(srcdir)/config.cpp'; fi`
+
+sandman-control.o: control.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(sandman_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT sandman-control.o -MD -MP -MF $(DEPDIR)/sandman-control.Tpo -c -o sandman-control.o `test -f 'control.cpp' || echo '$(srcdir)/'`control.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/sandman-control.Tpo $(DEPDIR)/sandman-control.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='control.cpp' object='sandman-control.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(sandman_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o sandman-control.o `test -f 'control.cpp' || echo '$(srcdir)/'`control.cpp
+
+sandman-control.obj: control.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(sandman_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT sandman-control.obj -MD -MP -MF $(DEPDIR)/sandman-control.Tpo -c -o sandman-control.obj `if test -f 'control.cpp'; then $(CYGPATH_W) 'control.cpp'; else $(CYGPATH_W) '$(srcdir)/control.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/sandman-control.Tpo $(DEPDIR)/sandman-control.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='control.cpp' object='sandman-control.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(sandman_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o sandman-control.obj `if test -f 'control.cpp'; then $(CYGPATH_W) 'control.cpp'; else $(CYGPATH_W) '$(srcdir)/control.cpp'; fi`
+
 sandman-logger.o: logger.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(sandman_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT sandman-logger.o -MD -MP -MF $(DEPDIR)/sandman-logger.Tpo -c -o sandman-logger.o `test -f 'logger.cpp' || echo '$(srcdir)/'`logger.cpp
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/sandman-logger.Tpo $(DEPDIR)/sandman-logger.Po
@@ -348,20 +380,6 @@ sandman-logger.obj: logger.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='logger.cpp' object='sandman-logger.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(sandman_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o sandman-logger.obj `if test -f 'logger.cpp'; then $(CYGPATH_W) 'logger.cpp'; else $(CYGPATH_W) '$(srcdir)/logger.cpp'; fi`
-
-sandman-timer.o: timer.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(sandman_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT sandman-timer.o -MD -MP -MF $(DEPDIR)/sandman-timer.Tpo -c -o sandman-timer.o `test -f 'timer.cpp' || echo '$(srcdir)/'`timer.cpp
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/sandman-timer.Tpo $(DEPDIR)/sandman-timer.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='timer.cpp' object='sandman-timer.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(sandman_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o sandman-timer.o `test -f 'timer.cpp' || echo '$(srcdir)/'`timer.cpp
-
-sandman-timer.obj: timer.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(sandman_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT sandman-timer.obj -MD -MP -MF $(DEPDIR)/sandman-timer.Tpo -c -o sandman-timer.obj `if test -f 'timer.cpp'; then $(CYGPATH_W) 'timer.cpp'; else $(CYGPATH_W) '$(srcdir)/timer.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/sandman-timer.Tpo $(DEPDIR)/sandman-timer.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='timer.cpp' object='sandman-timer.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(sandman_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o sandman-timer.obj `if test -f 'timer.cpp'; then $(CYGPATH_W) 'timer.cpp'; else $(CYGPATH_W) '$(srcdir)/timer.cpp'; fi`
 
 sandman-speech_recognizer.o: speech_recognizer.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(sandman_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT sandman-speech_recognizer.o -MD -MP -MF $(DEPDIR)/sandman-speech_recognizer.Tpo -c -o sandman-speech_recognizer.o `test -f 'speech_recognizer.cpp' || echo '$(srcdir)/'`speech_recognizer.cpp
@@ -377,19 +395,19 @@ sandman-speech_recognizer.obj: speech_recognizer.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(sandman_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o sandman-speech_recognizer.obj `if test -f 'speech_recognizer.cpp'; then $(CYGPATH_W) 'speech_recognizer.cpp'; else $(CYGPATH_W) '$(srcdir)/speech_recognizer.cpp'; fi`
 
-sandman-control.o: control.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(sandman_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT sandman-control.o -MD -MP -MF $(DEPDIR)/sandman-control.Tpo -c -o sandman-control.o `test -f 'control.cpp' || echo '$(srcdir)/'`control.cpp
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/sandman-control.Tpo $(DEPDIR)/sandman-control.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='control.cpp' object='sandman-control.o' libtool=no @AMDEPBACKSLASH@
+sandman-timer.o: timer.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(sandman_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT sandman-timer.o -MD -MP -MF $(DEPDIR)/sandman-timer.Tpo -c -o sandman-timer.o `test -f 'timer.cpp' || echo '$(srcdir)/'`timer.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/sandman-timer.Tpo $(DEPDIR)/sandman-timer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='timer.cpp' object='sandman-timer.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(sandman_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o sandman-control.o `test -f 'control.cpp' || echo '$(srcdir)/'`control.cpp
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(sandman_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o sandman-timer.o `test -f 'timer.cpp' || echo '$(srcdir)/'`timer.cpp
 
-sandman-control.obj: control.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(sandman_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT sandman-control.obj -MD -MP -MF $(DEPDIR)/sandman-control.Tpo -c -o sandman-control.obj `if test -f 'control.cpp'; then $(CYGPATH_W) 'control.cpp'; else $(CYGPATH_W) '$(srcdir)/control.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/sandman-control.Tpo $(DEPDIR)/sandman-control.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='control.cpp' object='sandman-control.obj' libtool=no @AMDEPBACKSLASH@
+sandman-timer.obj: timer.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(sandman_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT sandman-timer.obj -MD -MP -MF $(DEPDIR)/sandman-timer.Tpo -c -o sandman-timer.obj `if test -f 'timer.cpp'; then $(CYGPATH_W) 'timer.cpp'; else $(CYGPATH_W) '$(srcdir)/timer.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/sandman-timer.Tpo $(DEPDIR)/sandman-timer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='timer.cpp' object='sandman-timer.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(sandman_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o sandman-control.obj `if test -f 'control.cpp'; then $(CYGPATH_W) 'control.cpp'; else $(CYGPATH_W) '$(srcdir)/control.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(sandman_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o sandman-timer.obj `if test -f 'timer.cpp'; then $(CYGPATH_W) 'timer.cpp'; else $(CYGPATH_W) '$(srcdir)/timer.cpp'; fi`
 
 sandman-main.o: main.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(sandman_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT sandman-main.o -MD -MP -MF $(DEPDIR)/sandman-main.Tpo -c -o sandman-main.o `test -f 'main.cpp' || echo '$(srcdir)/'`main.cpp

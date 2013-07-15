@@ -7,6 +7,7 @@
 #include <ctype.h>
 #include <stdio.h>
 
+#include "config.h"
 #include "control.h"
 #include "logger.h"
 #include "serial_connection.h"
@@ -22,9 +23,15 @@
 #endif // !defined (USE_SERIAL_CONNECTION)
 
 #if defined (_WIN32)
-	#define DATADIR	"data"
+	#define DATADIR	"data/"
 #elif defined (__linux__)
 	#define DATADIR	AM_DATADIR
+#endif // defined (_WIN32)
+
+#if defined (_WIN32)
+	#define CONFIGDIR	""
+#elif defined (__linux__)
+	#define CONFIGDIR	AM_CONFIGDIR
 #endif // defined (_WIN32)
 
 // Types
@@ -359,6 +366,13 @@ void ParseCommandTokens(unsigned int& p_CommandTokenBufferSize, CommandTokenType
 
 int main()
 {
+	// Read the config.
+	Config l_Config;
+	if (l_Config.ReadFromFile(CONFIGDIR "sandman.conf") == false)
+	{
+		return 0;
+	}
+	
 	#if defined (__linux__)
 
 		// Initialize ncurses.
@@ -387,8 +401,8 @@ int main()
 
 	// Initialize speech recognition.
 	SpeechRecognizer l_Recognizer;
-	if (l_Recognizer.Initialize("plughw:0,0", 16000, DATADIR "/hmm/en_US/hub4wsj_sc_8k", 
-		DATADIR "/lm/en_US/sandman.lm", DATADIR "/dict/en_US/sandman.dic", "recognizer.log") == false)
+	if (l_Recognizer.Initialize(l_Config.GetInputDeviceName(), l_Config.GetSampleRate(), DATADIR "hmm/en_US/hub4wsj_sc_8k", 
+		DATADIR "lm/en_US/sandman.lm", DATADIR "dict/en_US/sandman.dic", "recognizer.log") == false)
 	{
 		Uninitialize(NULL, NULL);
 		return 0;

@@ -52,7 +52,8 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 subdir = data
-DIST_COMMON = $(nobase_dist_sandmandata_DATA) $(srcdir)/Makefile.am \
+DIST_COMMON = $(nobase_dist_sandmanconf_DATA) \
+	$(nobase_dist_sandmandata_DATA) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
@@ -99,8 +100,9 @@ am__uninstall_files_from_dir = { \
     || { echo " ( cd '$$dir' && rm -f" $$files ")"; \
          $(am__cd) "$$dir" && rm -f $$files; }; \
   }
-am__installdirs = "$(DESTDIR)$(sandmandatadir)"
-DATA = $(nobase_dist_sandmandata_DATA)
+am__installdirs = "$(DESTDIR)$(sandmanconfdir)" \
+	"$(DESTDIR)$(sandmandatadir)"
+DATA = $(nobase_dist_sandmanconf_DATA) $(nobase_dist_sandmandata_DATA)
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
@@ -226,6 +228,8 @@ nobase_dist_sandmandata_DATA = dict/en_US/sandman.dic hmm/en_US/hub4wsj_sc_8k/no
 	hmm/en_US/hub4wsj_sc_8k/feat.params hmm/en_US/hub4wsj_sc_8k/transition_matrices \
 	hmm/en_US/hub4wsj_sc_8k/sendump hmm/en_US/hub4wsj_sc_8k/variances lm/en_US/sandman.lm
 
+sandmanconfdir = $(sysconfdir)/sandman
+nobase_dist_sandmanconf_DATA = sandman.conf
 all: all-am
 
 .SUFFIXES:
@@ -265,6 +269,30 @@ mostlyclean-libtool:
 
 clean-libtool:
 	-rm -rf .libs _libs
+install-nobase_dist_sandmanconfDATA: $(nobase_dist_sandmanconf_DATA)
+	@$(NORMAL_INSTALL)
+	@list='$(nobase_dist_sandmanconf_DATA)'; test -n "$(sandmanconfdir)" || list=; \
+	if test -n "$$list"; then \
+	  echo " $(MKDIR_P) '$(DESTDIR)$(sandmanconfdir)'"; \
+	  $(MKDIR_P) "$(DESTDIR)$(sandmanconfdir)" || exit 1; \
+	fi; \
+	$(am__nobase_list) | while read dir files; do \
+	  xfiles=; for file in $$files; do \
+	    if test -f "$$file"; then xfiles="$$xfiles $$file"; \
+	    else xfiles="$$xfiles $(srcdir)/$$file"; fi; done; \
+	  test -z "$$xfiles" || { \
+	    test "x$$dir" = x. || { \
+	      echo " $(MKDIR_P) '$(DESTDIR)$(sandmanconfdir)/$$dir'"; \
+	      $(MKDIR_P) "$(DESTDIR)$(sandmanconfdir)/$$dir"; }; \
+	    echo " $(INSTALL_DATA) $$xfiles '$(DESTDIR)$(sandmanconfdir)/$$dir'"; \
+	    $(INSTALL_DATA) $$xfiles "$(DESTDIR)$(sandmanconfdir)/$$dir" || exit $$?; }; \
+	done
+
+uninstall-nobase_dist_sandmanconfDATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(nobase_dist_sandmanconf_DATA)'; test -n "$(sandmanconfdir)" || list=; \
+	$(am__nobase_strip_setup); files=`$(am__nobase_strip)`; \
+	dir='$(DESTDIR)$(sandmanconfdir)'; $(am__uninstall_files_from_dir)
 install-nobase_dist_sandmandataDATA: $(nobase_dist_sandmandata_DATA)
 	@$(NORMAL_INSTALL)
 	@list='$(nobase_dist_sandmandata_DATA)'; test -n "$(sandmandatadir)" || list=; \
@@ -330,7 +358,7 @@ check-am: all-am
 check: check-am
 all-am: Makefile $(DATA)
 installdirs:
-	for dir in "$(DESTDIR)$(sandmandatadir)"; do \
+	for dir in "$(DESTDIR)$(sandmanconfdir)" "$(DESTDIR)$(sandmandatadir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -383,7 +411,8 @@ info: info-am
 
 info-am:
 
-install-data-am: install-nobase_dist_sandmandataDATA
+install-data-am: install-nobase_dist_sandmanconfDATA \
+	install-nobase_dist_sandmandataDATA
 
 install-dvi: install-dvi-am
 
@@ -427,7 +456,8 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-nobase_dist_sandmandataDATA
+uninstall-am: uninstall-nobase_dist_sandmanconfDATA \
+	uninstall-nobase_dist_sandmandataDATA
 
 .MAKE: install-am install-strip
 
@@ -437,11 +467,13 @@ uninstall-am: uninstall-nobase_dist_sandmandataDATA
 	install-data install-data-am install-dvi install-dvi-am \
 	install-exec install-exec-am install-html install-html-am \
 	install-info install-info-am install-man \
+	install-nobase_dist_sandmanconfDATA \
 	install-nobase_dist_sandmandataDATA install-pdf install-pdf-am \
 	install-ps install-ps-am install-strip installcheck \
 	installcheck-am installdirs maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-generic \
 	mostlyclean-libtool pdf pdf-am ps ps-am uninstall uninstall-am \
+	uninstall-nobase_dist_sandmanconfDATA \
 	uninstall-nobase_dist_sandmandataDATA
 
 

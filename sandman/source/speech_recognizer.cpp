@@ -46,7 +46,7 @@ bool SpeechRecognizer::Initialize(char const* p_CaptureDeviceName, unsigned int 
 		fclose(l_LogFile);
 	}
 
-	LoggerAddMessage("Initializing default audio input device...");
+	LoggerAddMessage("Initializing audio input device \"%s\" at %i Hz...", p_CaptureDeviceName, p_SampleRate);
 
 	// Open the default audio device for recording.
 	m_AudioRecorder = ad_open_dev(p_CaptureDeviceName, p_SampleRate);
