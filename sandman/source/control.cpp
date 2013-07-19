@@ -28,7 +28,7 @@
 #else
 
 	// The pin to use for enabling controls.
-	#define ENABLE_GPIO_PIN				(6)
+	#define ENABLE_GPIO_PIN				(7)
 
 #endif // defined (USE_SERIAL_CONNECTION)
 
