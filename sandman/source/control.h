@@ -50,6 +50,13 @@ class Control
 		//
 		static void Enable(bool p_Enable);
 		
+		// Set the durations.
+		//
+		// p_MovingDurationMS:		Duration of the moving state (in milliseconds).
+		// p_CoolDownDurationMS:	Duration of the cool down state (in milliseconds).
+		//
+		static void SetDurations(unsigned int p_MovingDurationMS, unsigned int p_CoolDownDurationMS);
+		
 		// Process a tick.
 		//
 		void Process();
@@ -88,4 +95,10 @@ class Control
 			int m_GPIOPin;
 		
 		#endif // defined (USE_SERIAL_CONNECTION)
+
+		// Maximum duration of the moving state (in milliseconds).
+		static unsigned int ms_MovingDurationMS;
+		
+		// Maximum duration of the cool down state (in milliseconds).
+		static unsigned int ms_CoolDownDurationMS;	
 };

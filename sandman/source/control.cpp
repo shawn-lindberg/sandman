@@ -32,6 +32,14 @@
 
 #endif // defined (USE_SERIAL_CONNECTION)
 
+// Locals
+//
+
+// Control members
+
+unsigned int Control::ms_MovingDurationMS = MAX_MOVING_STATE_DURATION_MS;
+unsigned int Control::ms_CoolDownDurationMS = MAX_COOL_DOWN_STATE_DURATION_MS;
+
 // Function
 //
 
@@ -119,6 +127,19 @@ void Control::Enable(bool p_Enable)
 	#endif // defined (USE_SERIAL_CONNECTION)
 }
 
+// Set the durations.
+//
+// p_MovingDurationMS:		Duration of the moving state (in milliseconds).
+// p_CoolDownDurationMS:	Duration of the cool down state (in milliseconds).
+//
+void Control::SetDurations(unsigned int p_MovingDurationMS, unsigned int p_CoolDownDurationMS)
+{
+	ms_MovingDurationMS = p_MovingDurationMS;
+	ms_CoolDownDurationMS = p_CoolDownDurationMS;
+	
+	LoggerAddMessage("Control durations set to moving - %i ms, cool down - %i ms.", p_MovingDurationMS, p_CoolDownDurationMS);
+}
+
 // Process a tick.
 //
 void Control::Process()
@@ -160,7 +181,7 @@ void Control::Process()
 			float l_ElapsedTimeMS = TimerGetElapsedMilliseconds(m_StateStartTime, l_CurrentTime);
 
 			// Wait until moving isn't desired or the time limit has run out.
-			if ((m_MovingDesired == true) && (l_ElapsedTimeMS < MAX_MOVING_STATE_DURATION_MS))
+			if ((m_MovingDesired == true) && (l_ElapsedTimeMS < ms_MovingDurationMS))
 			{
 				break;
 			}
@@ -195,7 +216,7 @@ void Control::Process()
 			float l_ElapsedTimeMS = TimerGetElapsedMilliseconds(m_StateStartTime, l_CurrentTime);
 
 			// Wait until the time limit has run out.
-			if (l_ElapsedTimeMS < MAX_COOL_DOWN_STATE_DURATION_MS)
+			if (l_ElapsedTimeMS < ms_CoolDownDurationMS)
 			{
 				break;
 			}

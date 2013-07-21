@@ -22,7 +22,9 @@ T const& Min(T const& p_A, T const& p_B)
 Config::Config()
 {
 	m_InputDeviceName[0] = '\0';
-	m_SampleRate = 0;
+	m_InputSampleRate = 0;
+	m_ControlMovingDurationMS = 100000;
+	m_ControlCoolDownDurationMS = 50000;
 }
 
 // Read the configuration from a file.
@@ -85,7 +87,17 @@ bool Config::ReadFromFile(char const* p_ConfigFileName)
 		else if (strcmp(l_KeyString, "sample_rate") == 0)
 		{
 			// Convert to an integer.
-			m_SampleRate = atoi(l_ValueString);
+			m_InputSampleRate = atoi(l_ValueString);
+		}
+		else if (strcmp(l_KeyString, "moving_duration") == 0)
+		{
+			// Convert to an integer.
+			m_ControlMovingDurationMS = atoi(l_ValueString);
+		}
+		else if (strcmp(l_KeyString, "cooldown_duration") == 0)
+		{
+			// Convert to an integer.
+			m_ControlCoolDownDurationMS = atoi(l_ValueString);
 		}
 	}
 	

@@ -401,7 +401,7 @@ int main()
 
 	// Initialize speech recognition.
 	SpeechRecognizer l_Recognizer;
-	if (l_Recognizer.Initialize(l_Config.GetInputDeviceName(), l_Config.GetSampleRate(), DATADIR "hmm/en_US/hub4wsj_sc_8k", 
+	if (l_Recognizer.Initialize(l_Config.GetInputDeviceName(), l_Config.GetInputSampleRate(), DATADIR "hmm/en_US/hub4wsj_sc_8k", 
 		DATADIR "lm/en_US/sandman.lm", DATADIR "dict/en_US/sandman.dic", "recognizer.log") == false)
 	{
 		Uninitialize(NULL, NULL);
@@ -458,6 +458,9 @@ int main()
 		#endif // defined (USE_SERIAL_CONNECTION)
 	}
 
+	// Set control durations.
+	Control::SetDurations(l_Config.GetControlMovingDurationMS(), l_Config.GetControlCoolDownDurationMS());
+	
 	// Enable all controls.
 	Control::Enable(true);
 	
