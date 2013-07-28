@@ -25,18 +25,20 @@ class Control
 
 			// Handle initialization.
 			//
+			// p_Name:			The name.
 			// p_SerialConn:	The serial connection to the micro.
 			// p_CommandString:	The command string to send to the micro.
 			//
-			void Initialize(SerialConnection* p_SerialConn, char const* p_CommandString);
+			void Initialize(char const* p_Name, SerialConnection* p_SerialConn, char const* p_CommandString);
 
 		#else
 		
 			// Handle initialization.
 			//
+			// p_Name:		The name.
 			// p_GPIOPin:	The GPIO pin to use.
 			//
-			void Initialize(int p_GPIOPin);
+			void Initialize(char const* p_Name, int p_GPIOPin);
 
 		#endif // defined (USE_SERIAL_CONNECTION)
 
@@ -69,6 +71,15 @@ class Control
 
 	private:
 
+		// Constants.
+		enum
+		{
+			NAME_CAPACITY = 32,
+		};
+	
+		// The name of the control.
+		char m_Name[NAME_CAPACITY];
+		
 		// The control state.
 		ControlState m_State;
 

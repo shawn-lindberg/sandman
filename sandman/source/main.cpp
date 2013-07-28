@@ -84,6 +84,17 @@ static char const* const s_CommandTokenNames[] =
 	"stop",			// COMMAND_TOKEN_STOP
 };
 
+// The name for each control.
+static char const* const s_ControlNames[] =
+{
+	"head up",		// CONTROL_HEAD_UP
+	"head down",	// CONTROL_HEAD_DOWN
+	"knee up",		// CONTROL_KNEE_UP
+	"knee down",	// CONTROL_KNEE_DOWN
+	"elev up",		// CONTROL_ELEVATION_UP
+	"elev down",	// CONTROL_ELEVATION_DOWN
+};
+
 // The command string to send to the micro for each control.
 static char const* const s_ControlCommandStrings[] =
 {
@@ -460,11 +471,12 @@ int main()
 	{
 		#if defined (USE_SERIAL_CONNECTION)
 
-			s_Controls[l_ControlIndex].Initialize(&l_Serial, s_ControlCommandStrings[l_ControlIndex]);
+			s_Controls[l_ControlIndex].Initialize(s_ControlNames[l_ControlIndex], &l_Serial,
+				s_ControlCommandStrings[l_ControlIndex]);
 
 		#else
 
-			s_Controls[l_ControlIndex].Initialize(l_ControlIndex);
+			s_Controls[l_ControlIndex].Initialize(s_ControlNames[l_ControlIndex], l_ControlIndex);
 
 		#endif // defined (USE_SERIAL_CONNECTION)
 	}

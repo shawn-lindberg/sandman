@@ -1,6 +1,7 @@
 #include "control.h"
 
 #include <stdio.h>
+#include <string.h>
 
 #include "logger.h"
 #include "timer.h"
@@ -40,8 +41,15 @@
 unsigned int Control::ms_MovingDurationMS = MAX_MOVING_STATE_DURATION_MS;
 unsigned int Control::ms_CoolDownDurationMS = MAX_COOL_DOWN_STATE_DURATION_MS;
 
-// Function
+
+// Functions
 //
+
+template<class T>
+T const& Min(T const& p_A, T const& p_B)
+{
+	return (p_A < p_B) ? p_A : p_B;
+}
 
 // Control members
 
@@ -49,11 +57,18 @@ unsigned int Control::ms_CoolDownDurationMS = MAX_COOL_DOWN_STATE_DURATION_MS;
 
 	// Handle initialization.
 	//
+	// p_Name:			The name.
 	// p_SerialConn:	The serial connection to the micro.
 	// p_CommandString:	The command string to send to the micro.
 	//
-	void Control::Initialize(SerialConnection* p_SerialConn, char const* p_CommandString)
+	void Control::Initialize(char const* p_Name, SerialConnection* p_SerialConn, char const* p_CommandString)
 	{
+		// Copy the name.
+		unsigned int const l_AmountToCopy = 
+			Min(static_cast<unsigned int>(NAME_CAPACITY) - 1, strlen(p_Name));
+		strncpy(m_Name, p_Name, l_AmountToCopy);
+		m_Name[l_AmountToCopy] = '\0';
+
 		m_State = CONTROL_STATE_IDLE;
 		TimerGetCurrent(m_StateStartTime);
 		m_MovingDesired = false;
@@ -68,10 +83,17 @@ unsigned int Control::ms_CoolDownDurationMS = MAX_COOL_DOWN_STATE_DURATION_MS;
 
 	// Handle initialization.
 	//
+	// p_Name:		The name.
 	// p_GPIOPin:	The GPIO pin to use.
 	//
-	void Control::Initialize(int p_GPIOPin)
+	void Control::Initialize(char const* p_Name, int p_GPIOPin)
 	{
+		// Copy the name.
+		unsigned int const l_AmountToCopy = 
+			Min(static_cast<unsigned int>(NAME_CAPACITY) - 1, strlen(p_Name));
+		strncpy(m_Name, p_Name, l_AmountToCopy);
+		m_Name[l_AmountToCopy] = '\0';
+		
 		m_State = CONTROL_STATE_IDLE;
 		TimerGetCurrent(m_StateStartTime);
 		m_MovingDesired = false;
@@ -167,8 +189,8 @@ void Control::Process()
 			// Record when the state transition timer began.
 			TimerGetCurrent(m_StateStartTime);
 
-			LoggerAddMessage("Control @ 0x%x: State transition from idle to moving triggered.", 
-				reinterpret_cast<uintptr_t>(this));
+			LoggerAddMessage("Control \"%s\": State transition from idle to moving triggered.", 
+				m_Name);
 		}
 		break;
 
@@ -199,8 +221,8 @@ void Control::Process()
 			// Record when the state transition timer began.
 			TimerGetCurrent(m_StateStartTime);
 
-			LoggerAddMessage("Control @ 0x%x: State transition from moving to cool down triggered.",
-				reinterpret_cast<uintptr_t>(this));
+			LoggerAddMessage("Control \"%s\": State transition from moving to cool down triggered.",
+				m_Name);
 		}
 		break;
 
@@ -231,14 +253,14 @@ void Control::Process()
 				
 			#endif // !defined (USE_SERIAL_CONNECTION)
 
-			LoggerAddMessage("Control @ 0x%x: State transition from cool down to idle triggered.",
-				reinterpret_cast<uintptr_t>(this));
+			LoggerAddMessage("Control \"%s\": State transition from cool down to idle triggered.",
+				m_Name);
 		}
 		break;
 
 		default:
 		{
-			LoggerAddMessage("Control @ 0x%x: Unrecognized state %d in Process()", m_State, reinterpret_cast<uintptr_t>(this));
+			LoggerAddMessage("Control \"%s\": Unrecognized state %d in Process()", m_State, m_Name);
 		}
 		break;
 	}
@@ -283,6 +305,6 @@ void Control::SetMovingDesired(bool p_MovingDesired)
 {
 	m_MovingDesired = p_MovingDesired;
 
-	LoggerAddMessage("Control @ 0x%x: Setting move desired to %d", reinterpret_cast<uintptr_t>(this), p_MovingDesired);
+	LoggerAddMessage("Control \"%s\": Setting move desired to %d", m_Name, p_MovingDesired);
 }
 
