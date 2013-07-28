@@ -11,6 +11,7 @@
 #include "control.h"
 #include "logger.h"
 #include "serial_connection.h"
+#include "sound.h"
 #include "speech_recognizer.h"
 #include "timer.h"
 
@@ -155,6 +156,9 @@ static void Uninitialize(SpeechRecognizer* p_Recognizer, SerialConnection* p_Ser
 
 	#endif // defined (USE_SERIAL_CONNECTION)
 
+	// Uninitialize sound.
+	SoundUninitialize();
+	
 	if (s_ControlsInitialized == true)
 	{
 		// Disable all controls.
@@ -444,6 +448,13 @@ int main()
 			
 	#endif // defined (USE_SERIAL_CONNECTION)
 
+	// Initialize sound.
+	if (SoundInitialize() == false)
+	{
+		Uninitialize(&l_Recognizer, NULL);
+		return 0;
+	}
+
 	// Initialize controls.
 	for (unsigned int l_ControlIndex = 0; l_ControlIndex < NUM_CONTROL_TYPES; l_ControlIndex++)
 	{
@@ -466,6 +477,9 @@ int main()
 	
 	// Controls have been initialized.
 	s_ControlsInitialized = true;
+	
+	// Play initialization speech.
+	SoundAddToQueue(DATADIR "audio/initialized.wav");
 	
 	// Store a keyboard input here.
 	unsigned int const l_KeyboardInputBufferCapacity = 128;
@@ -628,6 +642,9 @@ int main()
 
 		#endif // defined (USE_SERIAL_CONNECTION)
 
+		// Process sound.
+		SoundProcess();
+		
 		// Get the duration of the frame in nanoseconds.
 		Time l_FrameEndTime;
 		TimerGetCurrent(l_FrameEndTime);

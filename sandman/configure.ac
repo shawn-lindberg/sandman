@@ -1,5 +1,5 @@
 # Autoconf uses this file to produce a configure script.
-AC_INIT([sandman], [0.4])
+AC_INIT([sandman], [0.5])
 
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 AC_CONFIG_MACRO_DIR([m4])
@@ -14,10 +14,16 @@ LT_INIT([disable-shared])
 AC_PROG_CXX
 AC_PROG_CC
 
+# Check for pkg-config.
+PKG_PROG_PKG_CONFIG
+
 # Checks for libraries.
 AC_CHECK_LIB([rt], [clock_gettime])
 AC_CHECK_LIB([ncurses], [initscr])
 AC_CHECK_LIB([wiringPi], [wiringPiSetup])
+
+# Check for SDL.
+PKG_CHECK_MODULES([SDL_MIXER], [SDL_mixer])
 
 # Checks for header files.
 AC_CHECK_HEADERS([stdint.h string.h ncurses.h wiringPi.h])

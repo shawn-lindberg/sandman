@@ -163,7 +163,12 @@ PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
+PKG_CONFIG = @PKG_CONFIG@
+PKG_CONFIG_LIBDIR = @PKG_CONFIG_LIBDIR@
+PKG_CONFIG_PATH = @PKG_CONFIG_PATH@
 RANLIB = @RANLIB@
+SDL_MIXER_CFLAGS = @SDL_MIXER_CFLAGS@
+SDL_MIXER_LIBS = @SDL_MIXER_LIBS@
 SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
@@ -223,7 +228,7 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 sandmandatadir = $(datadir)/sandman
-nobase_dist_sandmandata_DATA = dict/en_US/sandman.dic hmm/en_US/hub4wsj_sc_8k/noisedict \
+nobase_dist_sandmandata_DATA = audio/initialized.wav dict/en_US/sandman.dic hmm/en_US/hub4wsj_sc_8k/noisedict \
 	hmm/en_US/hub4wsj_sc_8k/means hmm/en_US/hub4wsj_sc_8k/mdef \
 	hmm/en_US/hub4wsj_sc_8k/feat.params hmm/en_US/hub4wsj_sc_8k/transition_matrices \
 	hmm/en_US/hub4wsj_sc_8k/sendump hmm/en_US/hub4wsj_sc_8k/variances lm/en_US/sandman.lm

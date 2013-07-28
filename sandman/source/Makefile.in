@@ -69,12 +69,14 @@ am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
 am_sandman_OBJECTS = sandman-config.$(OBJEXT) \
 	sandman-control.$(OBJEXT) sandman-logger.$(OBJEXT) \
-	sandman-speech_recognizer.$(OBJEXT) sandman-timer.$(OBJEXT) \
-	sandman-main.$(OBJEXT)
+	sandman-sound.$(OBJEXT) sandman-speech_recognizer.$(OBJEXT) \
+	sandman-timer.$(OBJEXT) sandman-main.$(OBJEXT)
 sandman_OBJECTS = $(am_sandman_OBJECTS)
+am__DEPENDENCIES_1 =
 sandman_DEPENDENCIES =  \
 	$(srcdir)/../../sphinxbase/src/libsphinxad/libsphinxad.la \
-	$(srcdir)/../../pocketsphinx/src/libpocketsphinx/libpocketsphinx.la
+	$(srcdir)/../../pocketsphinx/src/libpocketsphinx/libpocketsphinx.la \
+	$(am__DEPENDENCIES_1)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -157,7 +159,12 @@ PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
+PKG_CONFIG = @PKG_CONFIG@
+PKG_CONFIG_LIBDIR = @PKG_CONFIG_LIBDIR@
+PKG_CONFIG_PATH = @PKG_CONFIG_PATH@
 RANLIB = @RANLIB@
+SDL_MIXER_CFLAGS = @SDL_MIXER_CFLAGS@
+SDL_MIXER_LIBS = @SDL_MIXER_LIBS@
 SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
@@ -216,11 +223,13 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-sandman_SOURCES = config.cpp control.cpp logger.cpp speech_recognizer.cpp timer.cpp main.cpp
-sandman_CPPFLAGS = -I$(srcdir)/../../sphinxbase/include -I$(srcdir)/../../pocketsphinx/include -DAM_DATADIR='"$(datadir)/sandman/"' \
-	-DAM_CONFIGDIR='"$(sysconfdir)/sandman/"'
+sandman_SOURCES = config.cpp control.cpp logger.cpp sound.cpp speech_recognizer.cpp timer.cpp main.cpp
+sandman_CPPFLAGS = -I$(srcdir)/../../sphinxbase/include -I$(srcdir)/../../pocketsphinx/include $(SDL_MIXER_CFLAGS) \
+	-DAM_DATADIR='"$(datadir)/sandman/"' -DAM_CONFIGDIR='"$(sysconfdir)/sandman/"'
 
-sandman_LDADD = $(srcdir)/../../sphinxbase/src/libsphinxad/libsphinxad.la $(srcdir)/../../pocketsphinx/src/libpocketsphinx/libpocketsphinx.la
+sandman_LDADD = $(srcdir)/../../sphinxbase/src/libsphinxad/libsphinxad.la \
+	$(srcdir)/../../pocketsphinx/src/libpocketsphinx/libpocketsphinx.la $(SDL_MIXER_LIBS)
+
 all: all-am
 
 .SUFFIXES:
@@ -315,6 +324,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sandman-control.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sandman-logger.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sandman-main.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sandman-sound.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sandman-speech_recognizer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sandman-timer.Po@am__quote@
 
@@ -380,6 +390,20 @@ sandman-logger.obj: logger.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='logger.cpp' object='sandman-logger.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(sandman_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o sandman-logger.obj `if test -f 'logger.cpp'; then $(CYGPATH_W) 'logger.cpp'; else $(CYGPATH_W) '$(srcdir)/logger.cpp'; fi`
+
+sandman-sound.o: sound.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(sandman_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT sandman-sound.o -MD -MP -MF $(DEPDIR)/sandman-sound.Tpo -c -o sandman-sound.o `test -f 'sound.cpp' || echo '$(srcdir)/'`sound.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/sandman-sound.Tpo $(DEPDIR)/sandman-sound.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='sound.cpp' object='sandman-sound.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(sandman_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o sandman-sound.o `test -f 'sound.cpp' || echo '$(srcdir)/'`sound.cpp
+
+sandman-sound.obj: sound.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(sandman_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT sandman-sound.obj -MD -MP -MF $(DEPDIR)/sandman-sound.Tpo -c -o sandman-sound.obj `if test -f 'sound.cpp'; then $(CYGPATH_W) 'sound.cpp'; else $(CYGPATH_W) '$(srcdir)/sound.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/sandman-sound.Tpo $(DEPDIR)/sandman-sound.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='sound.cpp' object='sandman-sound.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(sandman_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o sandman-sound.obj `if test -f 'sound.cpp'; then $(CYGPATH_W) 'sound.cpp'; else $(CYGPATH_W) '$(srcdir)/sound.cpp'; fi`
 
 sandman-speech_recognizer.o: speech_recognizer.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(sandman_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT sandman-speech_recognizer.o -MD -MP -MF $(DEPDIR)/sandman-speech_recognizer.Tpo -c -o sandman-speech_recognizer.o `test -f 'speech_recognizer.cpp' || echo '$(srcdir)/'`speech_recognizer.cpp
