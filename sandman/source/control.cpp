@@ -36,11 +36,27 @@
 // Locals
 //
 
+// The names of the actions.
+char const* const s_ControlActionNames[] =
+{
+	"stopped",		// ACTION_STOPPED
+	"moving up",	// ACTION_MOVING_UP
+	"moving down",	// ACTION_MOVING_DOWN
+};
+
+// The names of the states.
+char const* const s_ControlStateNames[] =
+{
+	"idle",			// STATE_IDLE
+	"moving up",	// STATE_MOVING_UP
+	"moving down",	// STATE_MOVING_DOWN
+	"cool down",	// STATE_COOL_DOWN
+};
+
 // Control members
 
 unsigned int Control::ms_MovingDurationMS = MAX_MOVING_STATE_DURATION_MS;
 unsigned int Control::ms_CoolDownDurationMS = MAX_COOL_DOWN_STATE_DURATION_MS;
-
 
 // Functions
 //
@@ -69,9 +85,9 @@ T const& Min(T const& p_A, T const& p_B)
 		strncpy(m_Name, p_Name, l_AmountToCopy);
 		m_Name[l_AmountToCopy] = '\0';
 
-		m_State = CONTROL_STATE_IDLE;
+		m_State = STATE_IDLE;
 		TimerGetCurrent(m_StateStartTime);
-		m_MovingDesired = false;
+		m_DesiredAction = ACTION_STOPPED;
 
 		m_SerialConn = p_SerialConn;
 		m_CommandString = p_CommandString;
@@ -83,10 +99,11 @@ T const& Min(T const& p_A, T const& p_B)
 
 	// Handle initialization.
 	//
-	// p_Name:		The name.
-	// p_GPIOPin:	The GPIO pin to use.
+	// p_Name:			The name.
+	// p_UpGPIOPin:		The GPIO pin to use to move up.
+	// p_DownGPIOPin:	The GPIO pin to use to move down.
 	//
-	void Control::Initialize(char const* p_Name, int p_GPIOPin)
+	void Control::Initialize(char const* p_Name, int p_UpGPIOPin, int p_DownGPIOPin)
 	{
 		// Copy the name.
 		unsigned int const l_AmountToCopy = 
@@ -94,14 +111,18 @@ T const& Min(T const& p_A, T const& p_B)
 		strncpy(m_Name, p_Name, l_AmountToCopy);
 		m_Name[l_AmountToCopy] = '\0';
 		
-		m_State = CONTROL_STATE_IDLE;
+		m_State = STATE_IDLE;
 		TimerGetCurrent(m_StateStartTime);
-		m_MovingDesired = false;
+		m_DesiredAction = ACTION_STOPPED;
 
-		// Setup the pin and set it low.
-		m_GPIOPin = p_GPIOPin;
-		pinMode(p_GPIOPin, OUTPUT);
-		digitalWrite(p_GPIOPin, LOW);
+		// Setup the pins and set them low.
+		m_UpGPIOPin = p_UpGPIOPin;
+		pinMode(p_UpGPIOPin, OUTPUT);
+		digitalWrite(p_UpGPIOPin, LOW);
+		
+		m_DownGPIOPin = p_DownGPIOPin;
+		pinMode(p_DownGPIOPin, OUTPUT);
+		digitalWrite(p_DownGPIOPin, LOW);
 	}
 
 #endif // defined (USE_SERIAL_CONNECTION)
@@ -115,7 +136,8 @@ void Control::Uninitialize()
 	#else
 
 		// Revert to input.
-		pinMode(m_GPIOPin, INPUT);
+		pinMode(m_UpGPIOPin, INPUT);
+		pinMode(m_DownGPIOPin, INPUT);
 	
 	#endif // defined (USE_SERIAL_CONNECTION)
 }
@@ -169,32 +191,46 @@ void Control::Process()
 	// Handle state transitions.
 	switch (m_State) 
 	{
-		case CONTROL_STATE_IDLE:
+		case STATE_IDLE:
 		{
 			// Wait until moving is desired to transition.
-			if (m_MovingDesired != true) {
+			if (m_DesiredAction == ACTION_STOPPED) {
 				break;
 			}
 
 			// Transition to moving.
-			m_State = CONTROL_STATE_MOVING;
+			if (m_DesiredAction == ACTION_MOVING_UP)
+			{
+				m_State = STATE_MOVING_UP;
 
-			#if !defined (USE_SERIAL_CONNECTION)
+				#if !defined (USE_SERIAL_CONNECTION)
 
-				// Set the pin high.
-				digitalWrite(m_GPIOPin, HIGH);
+					// Set the pin high.
+					digitalWrite(m_UpGPIOPin, HIGH);
 				
-			#endif // !defined (USE_SERIAL_CONNECTION)
+				#endif // !defined (USE_SERIAL_CONNECTION)
+			}
+			else
+			{
+				m_State = STATE_MOVING_DOWN;
 
+				#if !defined (USE_SERIAL_CONNECTION)
+
+					// Set the pin high.
+					digitalWrite(m_DownGPIOPin, HIGH);
+				
+				#endif // !defined (USE_SERIAL_CONNECTION)
+			}
+			
 			// Record when the state transition timer began.
 			TimerGetCurrent(m_StateStartTime);
 
-			LoggerAddMessage("Control \"%s\": State transition from idle to moving triggered.", 
-				m_Name);
+			LoggerAddMessage("Control \"%s\": State transition from \"%s\" to \"%s\" triggered.", 
+				m_Name, s_ControlStateNames[STATE_IDLE], s_ControlStateNames[m_State]);
 		}
 		break;
 
-		case CONTROL_STATE_MOVING:
+		case STATE_MOVING_UP:
 		{
 			// Get elapsed time since state start.
 			Time l_CurrentTime;
@@ -202,34 +238,100 @@ void Control::Process()
 
 			float l_ElapsedTimeMS = TimerGetElapsedMilliseconds(m_StateStartTime, l_CurrentTime);
 
-			// Wait until moving isn't desired or the time limit has run out.
-			if ((m_MovingDesired == true) && (l_ElapsedTimeMS < ms_MovingDurationMS))
+			// Wait until moving up isn't desired or the time limit has run out.
+			if ((m_DesiredAction == ACTION_MOVING_UP) && (l_ElapsedTimeMS < ms_MovingDurationMS))
 			{
 				break;
 			}
 
-			// Transition to cool down.
-			m_State = CONTROL_STATE_COOL_DOWN;
+			if (m_DesiredAction == ACTION_MOVING_DOWN)
+			{
+				// Transition to moving down.
+				m_State = STATE_MOVING_DOWN;
 
-			#if !defined (USE_SERIAL_CONNECTION)
+				#if !defined (USE_SERIAL_CONNECTION)
 
-				// Set the pin low.
-				digitalWrite(m_GPIOPin, LOW);
-				
-			#endif // !defined (USE_SERIAL_CONNECTION)
+					// Flip the pins.
+					digitalWrite(m_UpGPIOPin, LOW);
+					digitalWrite(m_DownGPIOPin, HIGH);
+					
+				#endif // !defined (USE_SERIAL_CONNECTION)
+			}
+			else
+			{
+				// Transition to cool down.
+				m_State = STATE_COOL_DOWN;
 
+				#if !defined (USE_SERIAL_CONNECTION)
+
+					// Set the pins low.
+					digitalWrite(m_UpGPIOPin, LOW);
+					digitalWrite(m_DownGPIOPin, LOW);
+					
+				#endif // !defined (USE_SERIAL_CONNECTION)
+			}
+			
 			// Record when the state transition timer began.
 			TimerGetCurrent(m_StateStartTime);
 
-			LoggerAddMessage("Control \"%s\": State transition from moving to cool down triggered.",
-				m_Name);
+			LoggerAddMessage("Control \"%s\": State transition from \"%s\" to \"%s\" triggered.", 
+				m_Name, s_ControlStateNames[STATE_MOVING_UP], s_ControlStateNames[m_State]);
 		}
 		break;
 
-		case CONTROL_STATE_COOL_DOWN:
+		case STATE_MOVING_DOWN:
 		{
-			// Clear moving desired.
-			m_MovingDesired = false;
+			// Get elapsed time since state start.
+			Time l_CurrentTime;
+			TimerGetCurrent(l_CurrentTime);
+
+			float l_ElapsedTimeMS = TimerGetElapsedMilliseconds(m_StateStartTime, l_CurrentTime);
+
+			// Wait until moving down isn't desired or the time limit has run out.
+			if ((m_DesiredAction == ACTION_MOVING_DOWN) && (l_ElapsedTimeMS < ms_MovingDurationMS))
+			{
+				break;
+			}
+
+			if (m_DesiredAction == ACTION_MOVING_UP)
+			{
+				// Transition to moving up.
+				m_State = STATE_MOVING_UP;
+
+				#if !defined (USE_SERIAL_CONNECTION)
+
+					// Flip the pins.
+					digitalWrite(m_UpGPIOPin, HIGH);
+					digitalWrite(m_DownGPIOPin, LOW);
+					
+				#endif // !defined (USE_SERIAL_CONNECTION)
+			}
+			else
+			{
+				// Transition to cool down.
+				m_State = STATE_COOL_DOWN;
+
+				#if !defined (USE_SERIAL_CONNECTION)
+
+					// Set the pins low.
+					digitalWrite(m_UpGPIOPin, LOW);
+					digitalWrite(m_DownGPIOPin, LOW);
+					
+				#endif // !defined (USE_SERIAL_CONNECTION)
+			}
+			
+			// Record when the state transition timer began.
+			TimerGetCurrent(m_StateStartTime);
+
+			LoggerAddMessage("Control \"%s\": State transition from \"%s\" to \"%s\" triggered.", 
+				m_Name, s_ControlStateNames[STATE_MOVING_DOWN], s_ControlStateNames[m_State]);
+		}
+		break;
+
+		case STATE_COOL_DOWN:
+		{
+			// Clear the desired action.
+			m_DesiredAction = ACTION_STOPPED;
 
 			// Get elapsed time since state start.
 			Time l_CurrentTime;
@@ -244,17 +346,18 @@ void Control::Process()
 			}
 
 			// Transition to idle.
-			m_State = CONTROL_STATE_IDLE;
+			m_State = STATE_IDLE;
 
 			#if !defined (USE_SERIAL_CONNECTION)
 
-				// Set the pin low.
-				digitalWrite(m_GPIOPin, LOW);
+				// Set the pins low.
+				digitalWrite(m_UpGPIOPin, LOW);
+				digitalWrite(m_DownGPIOPin, LOW);
 				
 			#endif // !defined (USE_SERIAL_CONNECTION)
 
-			LoggerAddMessage("Control \"%s\": State transition from cool down to idle triggered.",
-				m_Name);
+			LoggerAddMessage("Control \"%s\": State transition from \"%s\" to \"%s\" triggered.", 
+				m_Name, s_ControlStateNames[STATE_COOL_DOWN], s_ControlStateNames[m_State]);
 		}
 		break;
 
@@ -297,14 +400,15 @@ void Control::Process()
 	#endif // defined (USE_SERIAL_CONNECTION)
 }
 
-// Set moving desired for the next tick.
+// Set the desired action.
 //
-// p_MovingDesired:	Whether moving is desired.
+// p_DesiredAction:	The desired action.
 //
-void Control::SetMovingDesired(bool p_MovingDesired)
+void Control::SetDesiredAction(Actions p_DesiredAction)
 {
-	m_MovingDesired = p_MovingDesired;
+	m_DesiredAction = p_DesiredAction;
 
-	LoggerAddMessage("Control \"%s\": Setting move desired to %d", m_Name, p_MovingDesired);
+	LoggerAddMessage("Control \"%s\": Setting desired action to \"%s\".", m_Name, 
+		s_ControlActionNames[p_DesiredAction]);
 }
 

@@ -8,18 +8,18 @@
 // Forward declaraction.
 class SerialConnection;
 
-// States a control may be in.
-enum ControlState
-{
-	CONTROL_STATE_IDLE = 0,
-	CONTROL_STATE_MOVING,
-	CONTROL_STATE_COOL_DOWN,    // A delay after moving before moving can occur again.
-};
-
 // An individual control.
 class Control
 {
 	public:
+
+		// Actions a control may be desired to perform.
+		enum Actions
+		{
+			ACTION_STOPPED = 0,
+			ACTION_MOVING_UP,
+			ACTION_MOVING_DOWN,
+		};
 
 		#if defined (USE_SERIAL_CONNECTION)
 
@@ -35,10 +35,11 @@ class Control
 		
 			// Handle initialization.
 			//
-			// p_Name:		The name.
-			// p_GPIOPin:	The GPIO pin to use.
+			// p_Name:			The name.
+			// p_UpGPIOPin:		The GPIO pin to use to move up.
+			// p_DownGPIOPin:	The GPIO pin to use to move down.
 			//
-			void Initialize(char const* p_Name, int p_GPIOPin);
+			void Initialize(char const* p_Name, int p_UpGPIOPin, int p_DownGPIOPin);
 
 		#endif // defined (USE_SERIAL_CONNECTION)
 
@@ -63,11 +64,11 @@ class Control
 		//
 		void Process();
 
-		// Set moving desired for the next tick.
+		// Set the desired action.
 		//
-		// p_MovingDesired:	Whether moving is desired.
+		// p_DesiredAction:	The desired action.
 		//
-		void SetMovingDesired(bool p_MovingDesired);
+		void SetDesiredAction(Actions p_DesiredAction);
 
 	private:
 
@@ -76,18 +77,27 @@ class Control
 		{
 			NAME_CAPACITY = 32,
 		};
+
+		// States a control may be in.
+		enum State
+		{
+			STATE_IDLE = 0,
+			STATE_MOVING_UP,
+			STATE_MOVING_DOWN,
+			STATE_COOL_DOWN,    // A delay after moving before moving can occur again.
+		};
 	
 		// The name of the control.
 		char m_Name[NAME_CAPACITY];
 		
 		// The control state.
-		ControlState m_State;
+		State m_State;
 
 		// A record of when the state transition timer began.
 		Time m_StateStartTime;
 
-		// Whether movement is desired.
-		bool m_MovingDesired;
+		// The desired action.
+		Actions m_DesiredAction;
 
 		#if defined (USE_SERIAL_CONNECTION)
 
@@ -102,8 +112,9 @@ class Control
 
 		#else
 		
-			// The GPIO pin to use.
-			int m_GPIOPin;
+			// The GPIO pins to use.
+			int m_UpGPIOPin;
+			int m_DownGPIOPin;
 		
 		#endif // defined (USE_SERIAL_CONNECTION)
 

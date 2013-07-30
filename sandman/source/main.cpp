@@ -58,12 +58,9 @@ enum CommandTokenTypes
 // Types of controls.
 enum ControlTypes
 {
-	CONTROL_HEAD_UP = 0,
-	CONTROL_HEAD_DOWN,
-	CONTROL_KNEE_UP,
-	CONTROL_KNEE_DOWN,
-	CONTROL_ELEVATION_UP,
-	CONTROL_ELEVATION_DOWN,
+	CONTROL_HEAD = 0,
+	CONTROL_KNEE,
+	CONTROL_ELEVATION,
 
 	NUM_CONTROL_TYPES,
 };
@@ -87,12 +84,9 @@ static char const* const s_CommandTokenNames[] =
 // The name for each control.
 static char const* const s_ControlNames[] =
 {
-	"head up",		// CONTROL_HEAD_UP
-	"head down",	// CONTROL_HEAD_DOWN
-	"knee up",		// CONTROL_KNEE_UP
-	"knee down",	// CONTROL_KNEE_DOWN
-	"elev up",		// CONTROL_ELEVATION_UP
-	"elev down",	// CONTROL_ELEVATION_DOWN
+	"head",		// CONTROL_HEAD
+	"knee",		// CONTROL_KNEE
+	"elev",		// CONTROL_ELEVATION
 };
 
 // The command string to send to the micro for each control.
@@ -322,11 +316,11 @@ void ParseCommandTokens(unsigned int& p_CommandTokenBufferSize, CommandTokenType
 
 			if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_UP)
 			{
-				s_Controls[CONTROL_HEAD_UP].SetMovingDesired(true);
+				s_Controls[CONTROL_HEAD].SetDesiredAction(Control::ACTION_MOVING_UP);
 			}
 			else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_DOWN)
 			{
-				s_Controls[CONTROL_HEAD_DOWN].SetMovingDesired(true);
+				s_Controls[CONTROL_HEAD].SetDesiredAction(Control::ACTION_MOVING_DOWN);
 			}
 		}
 		else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_KNEE)
@@ -340,11 +334,11 @@ void ParseCommandTokens(unsigned int& p_CommandTokenBufferSize, CommandTokenType
 
 			if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_UP)
 			{
-				s_Controls[CONTROL_KNEE_UP].SetMovingDesired(true);
+				s_Controls[CONTROL_KNEE].SetDesiredAction(Control::ACTION_MOVING_UP);
 			}
 			else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_DOWN)
 			{
-				s_Controls[CONTROL_KNEE_DOWN].SetMovingDesired(true);
+				s_Controls[CONTROL_KNEE].SetDesiredAction(Control::ACTION_MOVING_DOWN);
 			}
 		}
 		else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_ELEVATION)
@@ -358,11 +352,11 @@ void ParseCommandTokens(unsigned int& p_CommandTokenBufferSize, CommandTokenType
 
 			if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_UP)
 			{
-				s_Controls[CONTROL_ELEVATION_UP].SetMovingDesired(true);
+				s_Controls[CONTROL_ELEVATION].SetDesiredAction(Control::ACTION_MOVING_UP);
 			}
 			else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_DOWN)
 			{
-				s_Controls[CONTROL_ELEVATION_DOWN].SetMovingDesired(true);
+				s_Controls[CONTROL_ELEVATION].SetDesiredAction(Control::ACTION_MOVING_DOWN);
 			}
 		}
 		else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_STOP)
@@ -370,7 +364,7 @@ void ParseCommandTokens(unsigned int& p_CommandTokenBufferSize, CommandTokenType
 			// Stop controls.
 			for (unsigned int l_ControlIndex = 0; l_ControlIndex < NUM_CONTROL_TYPES; l_ControlIndex++)
 			{
-				s_Controls[l_ControlIndex].SetMovingDesired(false);
+				s_Controls[l_ControlIndex].SetDesiredAction(Control::ACTION_STOPPED);
 			}
 		}
 	}
@@ -476,7 +470,8 @@ int main()
 
 		#else
 
-			s_Controls[l_ControlIndex].Initialize(s_ControlNames[l_ControlIndex], l_ControlIndex);
+			s_Controls[l_ControlIndex].Initialize(s_ControlNames[l_ControlIndex], 2 * l_ControlIndex, 
+				2 * l_ControlIndex + 1);
 
 		#endif // defined (USE_SERIAL_CONNECTION)
 	}
