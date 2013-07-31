@@ -21,27 +21,13 @@ class Control
 			ACTION_MOVING_DOWN,
 		};
 
-		#if defined (USE_SERIAL_CONNECTION)
-
-			// Handle initialization.
-			//
-			// p_Name:			The name.
-			// p_SerialConn:	The serial connection to the micro.
-			// p_CommandString:	The command string to send to the micro.
-			//
-			void Initialize(char const* p_Name, SerialConnection* p_SerialConn, char const* p_CommandString);
-
-		#else
-		
-			// Handle initialization.
-			//
-			// p_Name:			The name.
-			// p_UpGPIOPin:		The GPIO pin to use to move up.
-			// p_DownGPIOPin:	The GPIO pin to use to move down.
-			//
-			void Initialize(char const* p_Name, int p_UpGPIOPin, int p_DownGPIOPin);
-
-		#endif // defined (USE_SERIAL_CONNECTION)
+		// Handle initialization.
+		//
+		// p_Name:			The name.
+		// p_UpGPIOPin:		The GPIO pin to use to move up.
+		// p_DownGPIOPin:	The GPIO pin to use to move down.
+		//
+		void Initialize(char const* p_Name, int p_UpGPIOPin, int p_DownGPIOPin);
 
 		// Handle uninitialization.
 		//
@@ -99,24 +85,9 @@ class Control
 		// The desired action.
 		Actions m_DesiredAction;
 
-		#if defined (USE_SERIAL_CONNECTION)
-
-			// Serial connection to micro.
-			SerialConnection* m_SerialConn;
-
-			// The command string to send to the micro.
-			char const* m_CommandString;
-
-			// A record of when the last command was sent.
-			Time m_LastCommandTime;
-
-		#else
-		
-			// The GPIO pins to use.
-			int m_UpGPIOPin;
-			int m_DownGPIOPin;
-		
-		#endif // defined (USE_SERIAL_CONNECTION)
+		// The GPIO pins to use.
+		int m_UpGPIOPin;
+		int m_DownGPIOPin;
 
 		// Maximum duration of the moving state (in milliseconds).
 		static unsigned int ms_MovingDurationMS;

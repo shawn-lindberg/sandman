@@ -6,11 +6,7 @@
 #include "logger.h"
 #include "timer.h"
 
-#if defined (USE_SERIAL_CONNECTION)
-	#include "serial_connection.h"
-#else
-	#include "wiringPi.h"
-#endif // defined (USE_SERIAL_CONNECTION)
+#include "wiringPi.h"
 
 // Constants
 //
@@ -24,14 +20,8 @@
 // Time between commands.
 #define COMMAND_INTERVAL_MS				(2 * 1000) // 2 sec.
 
-#if defined (USE_SERIAL_CONNECTION)
-
-#else
-
-	// The pin to use for enabling controls.
-	#define ENABLE_GPIO_PIN				(7)
-
-#endif // defined (USE_SERIAL_CONNECTION)
+// The pin to use for enabling controls.
+#define ENABLE_GPIO_PIN				(7)
 
 // Locals
 //
@@ -69,77 +59,41 @@ T const& Min(T const& p_A, T const& p_B)
 
 // Control members
 
-#if defined (USE_SERIAL_CONNECTION)
+// Handle initialization.
+//
+// p_Name:			The name.
+// p_UpGPIOPin:		The GPIO pin to use to move up.
+// p_DownGPIOPin:	The GPIO pin to use to move down.
+//
+void Control::Initialize(char const* p_Name, int p_UpGPIOPin, int p_DownGPIOPin)
+{
+	// Copy the name.
+	unsigned int const l_AmountToCopy = 
+		Min(static_cast<unsigned int>(NAME_CAPACITY) - 1, strlen(p_Name));
+	strncpy(m_Name, p_Name, l_AmountToCopy);
+	m_Name[l_AmountToCopy] = '\0';
+	
+	m_State = STATE_IDLE;
+	TimerGetCurrent(m_StateStartTime);
+	m_DesiredAction = ACTION_STOPPED;
 
-	// Handle initialization.
-	//
-	// p_Name:			The name.
-	// p_SerialConn:	The serial connection to the micro.
-	// p_CommandString:	The command string to send to the micro.
-	//
-	void Control::Initialize(char const* p_Name, SerialConnection* p_SerialConn, char const* p_CommandString)
-	{
-		// Copy the name.
-		unsigned int const l_AmountToCopy = 
-			Min(static_cast<unsigned int>(NAME_CAPACITY) - 1, strlen(p_Name));
-		strncpy(m_Name, p_Name, l_AmountToCopy);
-		m_Name[l_AmountToCopy] = '\0';
-
-		m_State = STATE_IDLE;
-		TimerGetCurrent(m_StateStartTime);
-		m_DesiredAction = ACTION_STOPPED;
-
-		m_SerialConn = p_SerialConn;
-		m_CommandString = p_CommandString;
-
-		TimerGetCurrent(m_LastCommandTime);
-	}
-
-#else
-
-	// Handle initialization.
-	//
-	// p_Name:			The name.
-	// p_UpGPIOPin:		The GPIO pin to use to move up.
-	// p_DownGPIOPin:	The GPIO pin to use to move down.
-	//
-	void Control::Initialize(char const* p_Name, int p_UpGPIOPin, int p_DownGPIOPin)
-	{
-		// Copy the name.
-		unsigned int const l_AmountToCopy = 
-			Min(static_cast<unsigned int>(NAME_CAPACITY) - 1, strlen(p_Name));
-		strncpy(m_Name, p_Name, l_AmountToCopy);
-		m_Name[l_AmountToCopy] = '\0';
-		
-		m_State = STATE_IDLE;
-		TimerGetCurrent(m_StateStartTime);
-		m_DesiredAction = ACTION_STOPPED;
-
-		// Setup the pins and set them low.
-		m_UpGPIOPin = p_UpGPIOPin;
-		pinMode(p_UpGPIOPin, OUTPUT);
-		digitalWrite(p_UpGPIOPin, LOW);
-		
-		m_DownGPIOPin = p_DownGPIOPin;
-		pinMode(p_DownGPIOPin, OUTPUT);
-		digitalWrite(p_DownGPIOPin, LOW);
-	}
-
-#endif // defined (USE_SERIAL_CONNECTION)
+	// Setup the pins and set them low.
+	m_UpGPIOPin = p_UpGPIOPin;
+	pinMode(p_UpGPIOPin, OUTPUT);
+	digitalWrite(p_UpGPIOPin, LOW);
+	
+	m_DownGPIOPin = p_DownGPIOPin;
+	pinMode(p_DownGPIOPin, OUTPUT);
+	digitalWrite(p_DownGPIOPin, LOW);
+}
 
 // Handle uninitialization.
 //
 void Control::Uninitialize()
 {
-	#if defined (USE_SERIAL_CONNECTION)
-
-	#else
-
-		// Revert to input.
-		pinMode(m_UpGPIOPin, INPUT);
-		pinMode(m_DownGPIOPin, INPUT);
-	
-	#endif // defined (USE_SERIAL_CONNECTION)
+	// Revert to input.
+	pinMode(m_UpGPIOPin, INPUT);
+	pinMode(m_DownGPIOPin, INPUT);
 }
 
 // Enable or disable all controls.
@@ -148,27 +102,21 @@ void Control::Uninitialize()
 //
 void Control::Enable(bool p_Enable)
 {
-	#if defined (USE_SERIAL_CONNECTION)
+	if (p_Enable == false)
+	{
+		// Revert to input.
+		pinMode(ENABLE_GPIO_PIN, INPUT);
 
-	#else
+		LoggerAddMessage("Controls disabled.");
+	}
+	else
+	{
+		// Setup the pin and set it low.
+		pinMode(ENABLE_GPIO_PIN, OUTPUT);
+		digitalWrite(ENABLE_GPIO_PIN, LOW);
 
-		if (p_Enable == false)
-		{
-			// Revert to input.
-			pinMode(ENABLE_GPIO_PIN, INPUT);
-
-			LoggerAddMessage("Controls disabled.");
-		}
-		else
-		{
-			// Setup the pin and set it low.
-			pinMode(ENABLE_GPIO_PIN, OUTPUT);
-			digitalWrite(ENABLE_GPIO_PIN, LOW);
-
-			LoggerAddMessage("Controls enabled.");
-		}
-		
-	#endif // defined (USE_SERIAL_CONNECTION)
+		LoggerAddMessage("Controls enabled.");
+	}
 }
 
 // Set the durations.
@@ -203,23 +151,15 @@ void Control::Process()
 			{
 				m_State = STATE_MOVING_UP;
 
-				#if !defined (USE_SERIAL_CONNECTION)
-
-					// Set the pin high.
-					digitalWrite(m_UpGPIOPin, HIGH);
-				
-				#endif // !defined (USE_SERIAL_CONNECTION)
+				// Set the pin high.
+				digitalWrite(m_UpGPIOPin, HIGH);
 			}
 			else
 			{
 				m_State = STATE_MOVING_DOWN;
 
-				#if !defined (USE_SERIAL_CONNECTION)
-
-					// Set the pin high.
-					digitalWrite(m_DownGPIOPin, HIGH);
-				
-				#endif // !defined (USE_SERIAL_CONNECTION)
+				// Set the pin high.
+				digitalWrite(m_DownGPIOPin, HIGH);
 			}
 			
 			// Record when the state transition timer began.
@@ -249,26 +189,18 @@ void Control::Process()
 				// Transition to moving down.
 				m_State = STATE_MOVING_DOWN;
 
-				#if !defined (USE_SERIAL_CONNECTION)
-
-					// Flip the pins.
-					digitalWrite(m_UpGPIOPin, LOW);
-					digitalWrite(m_DownGPIOPin, HIGH);
-					
-				#endif // !defined (USE_SERIAL_CONNECTION)
+				// Flip the pins.
+				digitalWrite(m_UpGPIOPin, LOW);
+				digitalWrite(m_DownGPIOPin, HIGH);
 			}
 			else
 			{
 				// Transition to cool down.
 				m_State = STATE_COOL_DOWN;
 
-				#if !defined (USE_SERIAL_CONNECTION)
-
-					// Set the pins low.
-					digitalWrite(m_UpGPIOPin, LOW);
-					digitalWrite(m_DownGPIOPin, LOW);
-					
-				#endif // !defined (USE_SERIAL_CONNECTION)
+				// Set the pins low.
+				digitalWrite(m_UpGPIOPin, LOW);
+				digitalWrite(m_DownGPIOPin, LOW);
 			}
 			
 			// Record when the state transition timer began.
@@ -298,26 +230,18 @@ void Control::Process()
 				// Transition to moving up.
 				m_State = STATE_MOVING_UP;
 
-				#if !defined (USE_SERIAL_CONNECTION)
-
-					// Flip the pins.
-					digitalWrite(m_UpGPIOPin, HIGH);
-					digitalWrite(m_DownGPIOPin, LOW);
-					
-				#endif // !defined (USE_SERIAL_CONNECTION)
+				// Flip the pins.
+				digitalWrite(m_UpGPIOPin, HIGH);
+				digitalWrite(m_DownGPIOPin, LOW);
 			}
 			else
 			{
 				// Transition to cool down.
 				m_State = STATE_COOL_DOWN;
 
-				#if !defined (USE_SERIAL_CONNECTION)
-
-					// Set the pins low.
-					digitalWrite(m_UpGPIOPin, LOW);
-					digitalWrite(m_DownGPIOPin, LOW);
-					
-				#endif // !defined (USE_SERIAL_CONNECTION)
+				// Set the pins low.
+				digitalWrite(m_UpGPIOPin, LOW);
+				digitalWrite(m_DownGPIOPin, LOW);
 			}
 			
 			// Record when the state transition timer began.
@@ -348,13 +272,9 @@ void Control::Process()
 			// Transition to idle.
 			m_State = STATE_IDLE;
 
-			#if !defined (USE_SERIAL_CONNECTION)
-
-				// Set the pins low.
-				digitalWrite(m_UpGPIOPin, LOW);
-				digitalWrite(m_DownGPIOPin, LOW);
-				
-			#endif // !defined (USE_SERIAL_CONNECTION)
+			// Set the pins low.
+			digitalWrite(m_UpGPIOPin, LOW);
+			digitalWrite(m_DownGPIOPin, LOW);
 
 			LoggerAddMessage("Control \"%s\": State transition from \"%s\" to \"%s\" triggered.", 
 				m_Name, s_ControlStateNames[STATE_COOL_DOWN], s_ControlStateNames[m_State]);
@@ -367,37 +287,6 @@ void Control::Process()
 		}
 		break;
 	}
-
-	#if defined (USE_SERIAL_CONNECTION)
-
-		// Manipulate micro based on state.
-		if ((m_SerialConn == NULL) || (m_CommandString == NULL))
-		{
-			return;
-		}
-
-		if (m_State == CONTROL_STATE_MOVING)
-		{
-			// Get elapsed time since last command.
-			Time l_CurrentTime;
-			TimerGetCurrent(l_CurrentTime);
-
-			float l_ElapsedTimeMS = TimerGetElapsedMilliseconds(m_LastCommandTime, l_CurrentTime);
-
-			// See if enough time has passed since last command.
-			if (l_ElapsedTimeMS < COMMAND_INTERVAL_MS)
-			{
-				return;
-			}
-
-			unsigned long int l_NumBytesWritten = 0;
-			m_SerialConn->WriteString(l_NumBytesWritten, m_CommandString);
-
-			// Record when the last command was sent.
-			TimerGetCurrent(m_LastCommandTime);
-		}
-	
-	#endif // defined (USE_SERIAL_CONNECTION)
 }
 
 // Set the desired action.
