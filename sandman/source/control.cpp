@@ -4,9 +4,12 @@
 #include <string.h>
 
 #include "logger.h"
+#include "sound.h"
 #include "timer.h"
 
 #include "wiringPi.h"
+
+#define DATADIR		AM_DATADIR
 
 // Constants
 //
@@ -21,7 +24,7 @@
 #define COMMAND_INTERVAL_MS				(2 * 1000) // 2 sec.
 
 // The pin to use for enabling controls.
-#define ENABLE_GPIO_PIN				(7)
+#define ENABLE_GPIO_PIN					(7)
 
 // Locals
 //
@@ -41,6 +44,15 @@ char const* const s_ControlStateNames[] =
 	"moving up",	// STATE_MOVING_UP
 	"moving down",	// STATE_MOVING_DOWN
 	"cool down",	// STATE_COOL_DOWN
+};
+
+// The file names of the states.
+char const* const s_ControlStateFileNames[] =
+{
+	"",				// STATE_IDLE
+	"moving_up",	// STATE_MOVING_UP
+	"moving_down",	// STATE_MOVING_DOWN
+	"stop",			// STATE_COOL_DOWN
 };
 
 // Control members
@@ -162,6 +174,9 @@ void Control::Process()
 				digitalWrite(m_DownGPIOPin, HIGH);
 			}
 			
+			// Queue the sound.
+			QueueSound();
+			
 			// Record when the state transition timer began.
 			TimerGetCurrent(m_StateStartTime);
 
@@ -203,6 +218,9 @@ void Control::Process()
 				digitalWrite(m_DownGPIOPin, LOW);
 			}
 			
+			// Queue the sound.
+			QueueSound();
+
 			// Record when the state transition timer began.
 			TimerGetCurrent(m_StateStartTime);
 
@@ -243,6 +261,9 @@ void Control::Process()
 				digitalWrite(m_UpGPIOPin, LOW);
 				digitalWrite(m_DownGPIOPin, LOW);
 			}
+						
+			// Queue the sound.
+			QueueSound();
 			
 			// Record when the state transition timer began.
 			TimerGetCurrent(m_StateStartTime);
@@ -301,3 +322,15 @@ void Control::SetDesiredAction(Actions p_DesiredAction)
 		s_ControlActionNames[p_DesiredAction]);
 }
 
+// Queue sound for the state.
+//
+void Control::QueueSound()
+{
+	// Build the file name.
+	unsigned int l_SoundFileNameCapacity = 128;
+	char l_SoundFileName[l_SoundFileNameCapacity];
+	snprintf(l_SoundFileName, l_SoundFileNameCapacity, DATADIR "audio/%s_%s.wav", m_Name,
+		s_ControlStateFileNames[m_State]);
+
+	SoundAddToQueue(l_SoundFileName);
+}
