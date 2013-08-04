@@ -31,6 +31,11 @@ class Config
 			return m_InputSampleRate;
 		}
 	
+		float GetPostSpeechDelaySec() const
+		{
+			return m_PostSpeechDelaySec;
+		}
+		
 		unsigned int GetControlMovingDurationMS() const
 		{
 			return m_ControlMovingDurationMS;
@@ -55,11 +60,13 @@ class Config
 		// The input sample rate.
 		unsigned int m_InputSampleRate;
 		
+		// How long to wait with no new voice to end an utterance in seconds.
+		float m_PostSpeechDelaySec;
+		
 		// The duration a control can move for (in milliseconds).
 		unsigned int m_ControlMovingDurationMS;
 				
 		// The duration a control will be on cooldown (in milliseconds).
 		unsigned int m_ControlCoolDownDurationMS;
-		
 };
 

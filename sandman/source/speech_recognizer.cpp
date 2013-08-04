@@ -7,7 +7,7 @@
 //
 
 // How long to wait with no new voice to end an utterance in seconds.
-static float const s_UtteranceTrailingSilenceThresholdSec = 1.0f;
+static float s_UtteranceTrailingSilenceThresholdSec = 1.0f;
 
 // Maximum length of an utterance in seconds.
 static float const s_UtteranceMaxLengthSec = 30.0f;
@@ -19,17 +19,19 @@ static float const s_UtteranceMaxLengthSec = 30.0f;
 
 // Initialize the recognizer.
 //
-// p_CaptureDeviceName:		The name of the audio capture device.
-// p_SampleRate:			The audio capture sample rate.
-// p_HMMFileName:			File name of the HMM the recognizer will use.
-// p_LanguageModelFileName:	File name of the language model the recognizer will use.
-// p_DictionaryFileName:	File name of the dictionary the recognizer will use.
-// p_LogFileName:			File name of the log for recognizer output.
+// p_CaptureDeviceName:						The name of the audio capture device.
+// p_SampleRate:							The audio capture sample rate.
+// p_HMMFileName:							File name of the HMM the recognizer will use.
+// p_LanguageModelFileName:					File name of the language model the recognizer will use.
+// p_DictionaryFileName:					File name of the dictionary the recognizer will use.
+// p_LogFileName:							File name of the log for recognizer output.
+// p_UtteranceTrailingSilenceThresholdSec:	How long to wait with no new voice to end an utterance in seconds.
 //
 // returns:		True for success, false otherwise.
 //
 bool SpeechRecognizer::Initialize(char const* p_CaptureDeviceName, unsigned int p_SampleRate, char const* p_HMMFileName,
-	char const* p_LanguageModelFileName, char const* p_DictionaryFileName, char const* p_LogFileName)
+	char const* p_LanguageModelFileName, char const* p_DictionaryFileName, char const* p_LogFileName,
+	float p_UtteranceTrailingSilenceThresholdSec)
 {
 	m_AudioRecorder = NULL;
 	m_VoiceActivityDetector = NULL;
@@ -125,6 +127,14 @@ bool SpeechRecognizer::Initialize(char const* p_CaptureDeviceName, unsigned int 
 	LoggerAddMessage("\tsucceeded");
 	LoggerAddMessage("");
 
+	// Post speech delay.
+	if (p_UtteranceTrailingSilenceThresholdSec > 0.0f)
+	{
+		s_UtteranceTrailingSilenceThresholdSec = p_UtteranceTrailingSilenceThresholdSec;
+
+		LoggerAddMessage("Speech recognizer post speech delay set to - %f sec.", p_UtteranceTrailingSilenceThresholdSec);
+	}
+		
 	return true;
 }
 
@@ -136,18 +146,21 @@ void SpeechRecognizer::Uninitialize()
 	if (m_SpeechDecoder != NULL)
 	{
 		ps_free(m_SpeechDecoder);
+		m_SpeechDecoder = NULL;
 	}
 
 	// Uninitialize the voice activity detector.
 	if (m_VoiceActivityDetector != NULL)
 	{
 		cont_ad_close(m_VoiceActivityDetector);
+		m_VoiceActivityDetector = NULL;
 	}
 
 	// Uninitialize the audio input device.
 	if (m_AudioRecorder != NULL)
 	{
 		ad_close(m_AudioRecorder);
+		m_AudioRecorder = NULL;
 	}
 }
 

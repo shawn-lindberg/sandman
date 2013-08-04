@@ -23,6 +23,7 @@ Config::Config()
 {
 	m_InputDeviceName[0] = '\0';
 	m_InputSampleRate = 0;
+	m_PostSpeechDelaySec = 1.0f;
 	m_ControlMovingDurationMS = 100000;
 	m_ControlCoolDownDurationMS = 50000;
 }
@@ -88,6 +89,11 @@ bool Config::ReadFromFile(char const* p_ConfigFileName)
 		{
 			// Convert to an integer.
 			m_InputSampleRate = atoi(l_ValueString);
+		}
+		else if (strcmp(l_KeyString, "post_speech_delay") == 0)
+		{
+			// Convert to float.
+			m_PostSpeechDelaySec = atof(l_ValueString);
 		}
 		else if (strcmp(l_KeyString, "moving_duration") == 0)
 		{

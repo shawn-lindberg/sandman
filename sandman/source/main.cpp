@@ -74,6 +74,9 @@ static Control s_Controls[NUM_CONTROL_TYPES];
 // Whether controls have been initialized.
 static bool s_ControlsInitialized = false;
 
+// The speech recognizer.
+static SpeechRecognizer s_Recognizer;
+
 // Functions
 //
 
@@ -106,17 +109,91 @@ static void ConvertStringToLowercase(char* p_String)
 	}
 }
 
+// Initialize program components.
+//
+static bool Initialize()
+{
+	// Read the config.
+	Config l_Config;
+	if (l_Config.ReadFromFile(CONFIGDIR "sandman.conf") == false)
+	{
+		return false;
+	}
+	
+	// Initialize ncurses.
+	initscr();
+
+	// Don't wait for newlines, make getch non-blocking, and don't display input.
+	cbreak();
+	nodelay(stdscr, true);
+	noecho();
+	
+	// Allow the window to scroll.
+	scrollok(stdscr, true);
+	idlok(stdscr, true);
+
+	// Allow new-lines in the input.
+	nonl();
+		
+	// Initialize logging.
+	if (LoggerInitialize("sandman.log") == false)
+	{
+		return false;
+	}
+
+	// Initialize speech recognition.
+	if (s_Recognizer.Initialize(l_Config.GetInputDeviceName(), l_Config.GetInputSampleRate(), 
+		DATADIR "hmm/en_US/hub4wsj_sc_8k", DATADIR "lm/en_US/sandman.lm", DATADIR "dict/en_US/sandman.dic", 
+		"recognizer.log", l_Config.GetPostSpeechDelaySec()) == false)
+	{
+		return false;
+	}
+
+	LoggerAddMessage("Initializing GPIO support...");
+	
+	if (wiringPiSetup() == -1)
+	{
+		LoggerAddMessage("\tfailed");
+		return false;
+	}
+
+	LoggerAddMessage("\tsucceeded");
+	LoggerAddMessage("");
+			
+	// Initialize sound.
+	if (SoundInitialize() == false)
+	{
+		return false;
+	}
+
+	// Initialize controls.
+	for (unsigned int l_ControlIndex = 0; l_ControlIndex < NUM_CONTROL_TYPES; l_ControlIndex++)
+	{
+		s_Controls[l_ControlIndex].Initialize(s_ControlNames[l_ControlIndex], 2 * l_ControlIndex, 
+			2 * l_ControlIndex + 1);
+	}
+
+	// Set control durations.
+	Control::SetDurations(l_Config.GetControlMovingDurationMS(), l_Config.GetControlCoolDownDurationMS());
+	
+	// Enable all controls.
+	Control::Enable(true);
+	
+	// Controls have been initialized.
+	s_ControlsInitialized = true;
+	
+	// Play initialization speech.
+	SoundAddToQueue(DATADIR "audio/initialized.wav");
+
+	return true;
+}
+
 // Uninitialize program components.
 //
-// p_Recognizer:	(Input/Output) The speech recognizer.
-//
-static void Uninitialize(SpeechRecognizer* p_Recognizer)
+static void Uninitialize()
 {
 	// Uninitialize the speech recognizer.
-	if (p_Recognizer != NULL)
-	{
-		p_Recognizer->Uninitialize();
-	}
+	s_Recognizer.Uninitialize();
 
 	// Uninitialize sound.
 	SoundUninitialize();
@@ -328,92 +405,17 @@ void ParseCommandTokens(unsigned int& p_CommandTokenBufferSize, CommandTokenType
 
 int main()
 {
-	// Read the config.
-	Config l_Config;
-	if (l_Config.ReadFromFile(CONFIGDIR "sandman.conf") == false)
+	// Initialization.
+	if (Initialize() == false)
 	{
-		return 0;
-	}
-	
-	// Initialize ncurses.
-	initscr();
-
-	// Don't wait for newlines, make getch non-blocking, and don't display input.
-	cbreak();
-	nodelay(stdscr, true);
-	noecho();
-	
-	// Allow the window to scroll.
-	scrollok(stdscr, true);
-	idlok(stdscr, true);
-
-	// Allow new-lines in the input.
-	nonl();
-		
-	// Initialize logging.
-	if (LoggerInitialize("sandman.log") == false)
-	{
-		Uninitialize(NULL);
+		Uninitialize();
 		return 0;
 	}
 
-	// Initialize speech recognition.
-	SpeechRecognizer l_Recognizer;
-	if (l_Recognizer.Initialize(l_Config.GetInputDeviceName(), l_Config.GetInputSampleRate(), DATADIR "hmm/en_US/hub4wsj_sc_8k", 
-		DATADIR "lm/en_US/sandman.lm", DATADIR "dict/en_US/sandman.dic", "recognizer.log") == false)
-	{
-		Uninitialize(NULL);
-		return 0;
-	}
-
-	LoggerAddMessage("Initializing GPIO support...");
-	
-	if (wiringPiSetup() == -1)
-	{
-		LoggerAddMessage("\tfailed");
-
-		Uninitialize(&l_Recognizer);
-		return 0;
-	}
-
-	LoggerAddMessage("\tsucceeded");
-	LoggerAddMessage("");
-			
-	// Initialize sound.
-	if (SoundInitialize() == false)
-	{
-		Uninitialize(&l_Recognizer);
-		return 0;
-	}
-
-	// Initialize controls.
-	for (unsigned int l_ControlIndex = 0; l_ControlIndex < NUM_CONTROL_TYPES; l_ControlIndex++)
-	{
-		s_Controls[l_ControlIndex].Initialize(s_ControlNames[l_ControlIndex], 2 * l_ControlIndex, 
-			2 * l_ControlIndex + 1);
-	}
-
-	// Set control durations.
-	Control::SetDurations(l_Config.GetControlMovingDurationMS(), l_Config.GetControlCoolDownDurationMS());
-	
-	// Enable all controls.
-	Control::Enable(true);
-	
-	// Controls have been initialized.
-	s_ControlsInitialized = true;
-	
-	// Play initialization speech.
-	SoundAddToQueue(DATADIR "audio/initialized.wav");
-	
 	// Store a keyboard input here.
 	unsigned int const l_KeyboardInputBufferCapacity = 128;
 	char l_KeyboardInputBuffer[l_KeyboardInputBufferCapacity];
 	unsigned int l_KeyboardInputBufferSize = 0;
-
-	// Store serial string data here.
-	unsigned int const l_SerialStringBufferCapacity = 512;
-	char l_SerialStringBuffer[l_SerialStringBufferCapacity];
-	unsigned int l_SerialStringBufferSize = 0;
 
 	bool l_Done = false;
 	while (l_Done == false)
@@ -469,7 +471,7 @@ int main()
 
 		// Process speech recognition.
 		char const* l_RecognizedSpeech = NULL;
-		if (l_Recognizer.Process(l_RecognizedSpeech) == false)
+		if (s_Recognizer.Process(l_RecognizedSpeech) == false)
 		{
 			LoggerAddMessage("Error during speech recognition.");
 			l_Done = true;
@@ -523,5 +525,6 @@ int main()
 	}
 
 	// Cleanup.
-	Uninitialize(&l_Recognizer);
+	Uninitialize();
+	return 0;
 }
