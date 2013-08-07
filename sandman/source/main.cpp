@@ -1,5 +1,6 @@
 #include <ctype.h>
 #include <stdio.h>
+#include <sys/stat.h>
 
 #include <ncurses.h>
 #include "wiringPi.h"
@@ -13,6 +14,7 @@
 
 #define DATADIR		AM_DATADIR
 #define CONFIGDIR	AM_CONFIGDIR
+#define TEMPDIR		AM_TEMPDIR
 
 // Types
 //
@@ -77,6 +79,9 @@ static bool s_ControlsInitialized = false;
 // The speech recognizer.
 static SpeechRecognizer s_Recognizer;
 
+// Whether to start as a daemon or terminal program.
+static bool s_DaemonMode = false;
+
 // Functions
 //
 
@@ -111,6 +116,8 @@ static void ConvertStringToLowercase(char* p_String)
 
 // Initialize program components.
 //
+// returns:		True for success, false otherwise.
+//
 static bool Initialize()
 {
 	// Read the config.
@@ -120,31 +127,89 @@ static bool Initialize()
 		return false;
 	}
 	
-	// Initialize ncurses.
-	initscr();
-
-	// Don't wait for newlines, make getch non-blocking, and don't display input.
-	cbreak();
-	nodelay(stdscr, true);
-	noecho();
-	
-	// Allow the window to scroll.
-	scrollok(stdscr, true);
-	idlok(stdscr, true);
-
-	// Allow new-lines in the input.
-	nonl();
-		
-	// Initialize logging.
-	if (LoggerInitialize("sandman.log") == false)
+	if (s_DaemonMode == true)
 	{
-		return false;
+		// Fork a child off of the parent process.
+		pid_t l_ProcessID = fork();
+		
+		// Legitimate failure.
+		if (l_ProcessID < 0)
+		{
+			return false;
+		}
+		
+		// The parent gets the ID of the child and exits.
+		if (l_ProcessID > 0)
+		{
+			return false;
+		}
+		
+		// The child gets 0 and continues.
+		
+		// Allow file access.
+		umask(0);
+		
+		// Initialize logging.
+		if (LoggerInitialize(TEMPDIR "sandman.log", (s_DaemonMode == false)) == false)
+		{
+			return false;
+		}
+
+		// Need a new session ID.
+		pid_t l_SessionID = setsid();
+		
+		if (l_SessionID < 0)
+		{
+			LoggerAddMessage("Failed to get new session ID for daemon.");
+			return false;
+		}
+		
+		// Change the current working directory.
+		if (chdir(TEMPDIR) < 0)
+		{
+			LoggerAddMessage("Failed to change working directory to \"%s\" ID for daemon.", TEMPDIR);
+			return false;
+		}
+		
+		// Close stdin, stdou, stderr.
+		close(STDIN_FILENO);
+		close(STDOUT_FILENO);
+		close(STDERR_FILENO);
+		
+		// Redirect stdin, stdout, stderr to /dev/null (this relies on them mapping to
+		// the lowest numbered file descriptors).
+		open("dev/null", O_RDWR);
+		open("dev/null", O_RDWR);
+		open("dev/null", O_RDWR);
+	}
+	else
+	{
+		// Initialize ncurses.
+		initscr();
+
+		// Don't wait for newlines, make getch non-blocking, and don't display input.
+		cbreak();
+		nodelay(stdscr, true);
+		noecho();
+		
+		// Allow the window to scroll.
+		scrollok(stdscr, true);
+		idlok(stdscr, true);
+
+		// Allow new-lines in the input.
+		nonl();
+			
+		// Initialize logging.
+		if (LoggerInitialize(TEMPDIR "sandman.log", (s_DaemonMode == false)) == false)
+		{
+			return false;
+		}
 	}
 
 	// Initialize speech recognition.
 	if (s_Recognizer.Initialize(l_Config.GetInputDeviceName(), l_Config.GetInputSampleRate(), 
 		DATADIR "hmm/en_US/hub4wsj_sc_8k", DATADIR "lm/en_US/sandman.lm", DATADIR "dict/en_US/sandman.dic", 
-		"recognizer.log", l_Config.GetPostSpeechDelaySec()) == false)
+		TEMPDIR "recognizer.log", l_Config.GetPostSpeechDelaySec()) == false)
 	{
 		return false;
 	}
@@ -213,8 +278,11 @@ static void Uninitialize()
 	// Uninitialize logging.
 	LoggerUninitialize();
 
-	// Uninitialize ncurses.
-	endwin();
+	if (s_DaemonMode == false)
+	{
+		// Uninitialize ncurses.
+		endwin();
+	}
 }
 
 // Take a command string and turn it into a list of tokens.
@@ -403,8 +471,78 @@ void ParseCommandTokens(unsigned int& p_CommandTokenBufferSize, CommandTokenType
 	p_CommandTokenBufferSize = 0;
 }
 
-int main()
+// Get keyboard input.
+//
+// p_KeyboardInputBuffer:			(input/output) The input buffer.
+// p_KeyboardInputBufferSize:		(input/output) How much of the input buffer is in use.
+// p_KeyboardInputBufferCapacity:	The capacity of the input buffer.
+//
+// returns:		True if the quit command was processed, false otherwise.
+//
+static bool ProcessKeyboardInput(char* p_KeyboardInputBuffer, unsigned int& p_KeyboardInputBufferSize, 
+	unsigned int const p_KeyboardInputBufferCapacity)
 {
+	// Try to get keyboard commands.
+	int l_InputKey = getch();
+	if ((l_InputKey == ERR) || (isascii(l_InputKey) == false))
+	{
+		return false;
+	}
+	
+	// Get the character.
+	char l_NextChar = static_cast<char>(l_InputKey);
+
+	// Accumulate characters until we get a terminating character or we run out of space.
+	if ((l_NextChar != '\r') && (p_KeyboardInputBufferSize < (p_KeyboardInputBufferCapacity - 1)))
+	{
+		p_KeyboardInputBuffer[p_KeyboardInputBufferSize] = l_NextChar;
+		p_KeyboardInputBufferSize++;
+		return false;
+	}
+
+	// Terminate the command.
+	p_KeyboardInputBuffer[p_KeyboardInputBufferSize] = '\0';
+
+	// Echo the command back.
+	LoggerAddMessage("Keyboard command input: \"%s\"", p_KeyboardInputBuffer);
+
+	// Parse a command.
+
+	// Store command tokens here.
+	unsigned int const l_CommandTokenBufferCapacity = 32;
+	CommandTokenTypes l_CommandTokenBuffer[l_CommandTokenBufferCapacity];
+	unsigned int l_CommandTokenBufferSize = 0;
+
+	// Tokenize the speech.
+	TokenizeCommandString(l_CommandTokenBufferSize, l_CommandTokenBuffer, l_CommandTokenBufferCapacity,
+		p_KeyboardInputBuffer);
+
+	// Parse command tokens.
+	ParseCommandTokens(l_CommandTokenBufferSize, l_CommandTokenBuffer);
+
+	// Prepare for a new command.
+	p_KeyboardInputBufferSize = 0;
+
+	if (strcmp(p_KeyboardInputBuffer, "quit") == 0)
+	{
+		 return true;
+	}
+	
+	return false;
+}
+
+int main(int argc, char** argv)
+{
+	// Deal with command line arguments.
+	for (unsigned int l_ArgumentIndex = 0; l_ArgumentIndex < argc; l_ArgumentIndex++)
+	{
+		// Start as a daemon?
+		if (strcmp(argv[l_ArgumentIndex], "--daemon") == 0)
+		{
+			s_DaemonMode = true;
+		}
+	}
+	
 	// Initialization.
 	if (Initialize() == false)
 	{
@@ -424,49 +562,11 @@ int main()
 		Time l_FrameStartTime;
 		TimerGetCurrent(l_FrameStartTime);
 		
-		// Try to get keyboard commands.
-		int l_InputKey = getch();
-		if ((l_InputKey != ERR) && (isascii(l_InputKey) == true))
+		if (s_DaemonMode == false)
 		{
-			// Get the character.
-			char l_NextChar = static_cast<char>(l_InputKey);
-
-			// Accumulate characters until we get a terminating character or we run out of space.
-			if ((l_NextChar != '\r') && (l_KeyboardInputBufferSize < (l_KeyboardInputBufferCapacity - 1)))
-			{
-				l_KeyboardInputBuffer[l_KeyboardInputBufferSize] = l_NextChar;
-				l_KeyboardInputBufferSize++;
-			}
-			else
-			{
-				// Terminate the command.
-				l_KeyboardInputBuffer[l_KeyboardInputBufferSize] = '\0';
-
-				// Echo the command back.
-				LoggerAddMessage("Keyboard command input: \"%s\"", l_KeyboardInputBuffer);
-
-				// Parse a command.
-
-				// Store command tokens here.
-				unsigned int const l_CommandTokenBufferCapacity = 32;
-				CommandTokenTypes l_CommandTokenBuffer[l_CommandTokenBufferCapacity];
-				unsigned int l_CommandTokenBufferSize = 0;
-
-				// Tokenize the speech.
-				TokenizeCommandString(l_CommandTokenBufferSize, l_CommandTokenBuffer, l_CommandTokenBufferCapacity,
-					l_KeyboardInputBuffer);
-
-				// Parse command tokens.
-				ParseCommandTokens(l_CommandTokenBufferSize, l_CommandTokenBuffer);
-
-				if (strcmp(l_KeyboardInputBuffer, "quit") == 0)
-				{
-					l_Done = true;
-				}
-
-				// Prepare for a new command.
-				l_KeyboardInputBufferSize = 0;
-			}
+			// Process keyboard input.
+			l_Done = ProcessKeyboardInput(l_KeyboardInputBuffer, l_KeyboardInputBufferSize, 
+				l_KeyboardInputBufferCapacity);
 		}
 
 		// Process speech recognition.
@@ -487,7 +587,8 @@ int main()
 			unsigned int l_CommandTokenBufferSize = 0;
 
 			// Tokenize the speech.
-			TokenizeCommandString(l_CommandTokenBufferSize, l_CommandTokenBuffer, l_CommandTokenBufferCapacity, l_RecognizedSpeech);
+			TokenizeCommandString(l_CommandTokenBufferSize, l_CommandTokenBuffer, l_CommandTokenBufferCapacity,
+				l_RecognizedSpeech);
 
 			// Parse command tokens.
 			ParseCommandTokens(l_CommandTokenBufferSize, l_CommandTokenBuffer);

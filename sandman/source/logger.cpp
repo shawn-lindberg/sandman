@@ -15,16 +15,20 @@
 // The file to log messages to.
 static FILE* s_LogFile = NULL;
 
+// Whether to echo messages to the screen.
+static bool s_LogToScreen = false;
+
 // Functions
 //
 
 // Initialize the logger.
 //
 // p_LogFileName:	File name of the log for output.
+// p_LogToScreen:	Whether to echo messages to the screen.
 //
 // returns:		True if successful, false otherwise.
 //
-bool LoggerInitialize(char const* p_LogFileName)
+bool LoggerInitialize(char const* p_LogFileName, bool p_LogToScreen)
 {
 	// Initialize the file.
 	s_LogFile = NULL;
@@ -41,6 +45,9 @@ bool LoggerInitialize(char const* p_LogFileName)
 	{
 		return false;
 	}
+
+	// Whether to echo messages to the screen.
+	s_LogToScreen = p_LogToScreen;
 
 	return true;
 }
@@ -115,17 +122,20 @@ bool LoggerAddMessage(char const* p_Format, ...)
 	l_RemainingBuffer[l_RemainingCapacity - 1] = '\0';
 
 	// Print to standard output (and add a newline).
-	#if defined (_WIN32)
+	if (s_LogToScreen == true)
+	{
+		#if defined (_WIN32)
 
-		puts(l_LogStringBuffer);
+			puts(l_LogStringBuffer);
 
-	#elif defined (__linux__)
+		#elif defined (__linux__)
 
-		addstr(l_LogStringBuffer);
-		addch('\n');
-		refresh();
+			addstr(l_LogStringBuffer);
+			addch('\n');
+			refresh();
 
-	#endif // defined (_WIN32)
+		#endif // defined (_WIN32)
+	}
 
 	// Print to log file.
 	if (s_LogFile != NULL)
@@ -134,6 +144,8 @@ bool LoggerAddMessage(char const* p_Format, ...)
 
 		// fputs doesn't add a newline, do it now.
 		fputs("\n", s_LogFile);
+		
+		fflush(s_LogFile);
 	}
 
 	return true;

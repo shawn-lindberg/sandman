@@ -9,10 +9,11 @@
 // Initialize the logger.
 //
 // p_LogFileName:	File name of the log for output.
+// p_LogToScreen:	Whether to echo messages to the screen.
 //
 // returns:		True if successful, false otherwise.
 //
-bool LoggerInitialize(char const* p_LogFileName);
+bool LoggerInitialize(char const* p_LogFileName, bool p_LogToScreen);
 
 // Uninitialize the logger.
 //

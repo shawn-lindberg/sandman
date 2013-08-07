@@ -8,3 +8,5 @@ nobase_dist_sandmandata_DATA = audio/elev_moving_down.wav audio/elev_stop.wav au
 	hmm/en_US/hub4wsj_sc_8k/sendump hmm/en_US/hub4wsj_sc_8k/variances lm/en_US/sandman.lm
 sandmanconfdir = $(sysconfdir)/sandman
 nobase_dist_sandmanconf_DATA = sandman.conf
+sandmantempdir = $(localstatedir)/sandman
+nobase_dist_sandmantemp_DATA = sandman.log

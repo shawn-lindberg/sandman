@@ -53,7 +53,8 @@ build_triplet = @build@
 host_triplet = @host@
 subdir = data
 DIST_COMMON = $(nobase_dist_sandmanconf_DATA) \
-	$(nobase_dist_sandmandata_DATA) $(srcdir)/Makefile.am \
+	$(nobase_dist_sandmandata_DATA) \
+	$(nobase_dist_sandmantemp_DATA) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
@@ -101,8 +102,9 @@ am__uninstall_files_from_dir = { \
          $(am__cd) "$$dir" && rm -f $$files; }; \
   }
 am__installdirs = "$(DESTDIR)$(sandmanconfdir)" \
-	"$(DESTDIR)$(sandmandatadir)"
-DATA = $(nobase_dist_sandmanconf_DATA) $(nobase_dist_sandmandata_DATA)
+	"$(DESTDIR)$(sandmandatadir)" "$(DESTDIR)$(sandmantempdir)"
+DATA = $(nobase_dist_sandmanconf_DATA) $(nobase_dist_sandmandata_DATA) \
+	$(nobase_dist_sandmantemp_DATA)
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
@@ -238,6 +240,8 @@ nobase_dist_sandmandata_DATA = audio/elev_moving_down.wav audio/elev_stop.wav au
 
 sandmanconfdir = $(sysconfdir)/sandman
 nobase_dist_sandmanconf_DATA = sandman.conf
+sandmantempdir = $(localstatedir)/sandman
+nobase_dist_sandmantemp_DATA = sandman.log
 all: all-am
 
 .SUFFIXES:
@@ -325,6 +329,30 @@ uninstall-nobase_dist_sandmandataDATA:
 	@list='$(nobase_dist_sandmandata_DATA)'; test -n "$(sandmandatadir)" || list=; \
 	$(am__nobase_strip_setup); files=`$(am__nobase_strip)`; \
 	dir='$(DESTDIR)$(sandmandatadir)'; $(am__uninstall_files_from_dir)
+install-nobase_dist_sandmantempDATA: $(nobase_dist_sandmantemp_DATA)
+	@$(NORMAL_INSTALL)
+	@list='$(nobase_dist_sandmantemp_DATA)'; test -n "$(sandmantempdir)" || list=; \
+	if test -n "$$list"; then \
+	  echo " $(MKDIR_P) '$(DESTDIR)$(sandmantempdir)'"; \
+	  $(MKDIR_P) "$(DESTDIR)$(sandmantempdir)" || exit 1; \
+	fi; \
+	$(am__nobase_list) | while read dir files; do \
+	  xfiles=; for file in $$files; do \
+	    if test -f "$$file"; then xfiles="$$xfiles $$file"; \
+	    else xfiles="$$xfiles $(srcdir)/$$file"; fi; done; \
+	  test -z "$$xfiles" || { \
+	    test "x$$dir" = x. || { \
+	      echo " $(MKDIR_P) '$(DESTDIR)$(sandmantempdir)/$$dir'"; \
+	      $(MKDIR_P) "$(DESTDIR)$(sandmantempdir)/$$dir"; }; \
+	    echo " $(INSTALL_DATA) $$xfiles '$(DESTDIR)$(sandmantempdir)/$$dir'"; \
+	    $(INSTALL_DATA) $$xfiles "$(DESTDIR)$(sandmantempdir)/$$dir" || exit $$?; }; \
+	done
+
+uninstall-nobase_dist_sandmantempDATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(nobase_dist_sandmantemp_DATA)'; test -n "$(sandmantempdir)" || list=; \
+	$(am__nobase_strip_setup); files=`$(am__nobase_strip)`; \
+	dir='$(DESTDIR)$(sandmantempdir)'; $(am__uninstall_files_from_dir)
 tags: TAGS
 TAGS:
 
@@ -366,7 +394,7 @@ check-am: all-am
 check: check-am
 all-am: Makefile $(DATA)
 installdirs:
-	for dir in "$(DESTDIR)$(sandmanconfdir)" "$(DESTDIR)$(sandmandatadir)"; do \
+	for dir in "$(DESTDIR)$(sandmanconfdir)" "$(DESTDIR)$(sandmandatadir)" "$(DESTDIR)$(sandmantempdir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -420,7 +448,8 @@ info: info-am
 info-am:
 
 install-data-am: install-nobase_dist_sandmanconfDATA \
-	install-nobase_dist_sandmandataDATA
+	install-nobase_dist_sandmandataDATA \
+	install-nobase_dist_sandmantempDATA
 
 install-dvi: install-dvi-am
 
@@ -465,7 +494,8 @@ ps: ps-am
 ps-am:
 
 uninstall-am: uninstall-nobase_dist_sandmanconfDATA \
-	uninstall-nobase_dist_sandmandataDATA
+	uninstall-nobase_dist_sandmandataDATA \
+	uninstall-nobase_dist_sandmantempDATA
 
 .MAKE: install-am install-strip
 
@@ -476,13 +506,15 @@ uninstall-am: uninstall-nobase_dist_sandmanconfDATA \
 	install-exec install-exec-am install-html install-html-am \
 	install-info install-info-am install-man \
 	install-nobase_dist_sandmanconfDATA \
-	install-nobase_dist_sandmandataDATA install-pdf install-pdf-am \
+	install-nobase_dist_sandmandataDATA \
+	install-nobase_dist_sandmantempDATA install-pdf install-pdf-am \
 	install-ps install-ps-am install-strip installcheck \
 	installcheck-am installdirs maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-generic \
 	mostlyclean-libtool pdf pdf-am ps ps-am uninstall uninstall-am \
 	uninstall-nobase_dist_sandmanconfDATA \
-	uninstall-nobase_dist_sandmandataDATA
+	uninstall-nobase_dist_sandmandataDATA \
+	uninstall-nobase_dist_sandmantempDATA
 
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
