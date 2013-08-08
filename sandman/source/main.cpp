@@ -1,6 +1,8 @@
 #include <ctype.h>
 #include <stdio.h>
+#include <sys/socket.h>
 #include <sys/stat.h>
+#include <sys/un.h>
 
 #include <ncurses.h>
 #include "wiringPi.h"
@@ -81,6 +83,9 @@ static SpeechRecognizer s_Recognizer;
 
 // Whether to start as a daemon or terminal program.
 static bool s_DaemonMode = false;
+
+// Used to listen for connections.
+static int s_ListeningSocket = -1;
 
 // Functions
 //
@@ -181,6 +186,50 @@ static bool Initialize()
 		open("dev/null", O_RDWR);
 		open("dev/null", O_RDWR);
 		open("dev/null", O_RDWR);
+		
+		// Now that we are a daemon, set up Unix domain sockets for communication.
+		
+		// Create a listening socket.
+		s_ListeningSocket = socket(AF_UNIX, SOCK_STREAM, 0);
+		
+		if (s_ListeningSocket < 0)
+		{
+			LoggerAddMessage("Failed to create listening socket.");
+			return false;
+		}
+		
+		// Set to non-blocking.
+		if (fcntl(s_ListeningSocket, F_SETFL, O_NONBLOCK) < 0)
+		{
+			LoggerAddMessage("Failed to make listening socket non-blocking.");
+			return false;
+		}
+		
+		sockaddr_un l_ListeningAddress;
+		{
+			l_ListeningAddress.sun_family = AF_UNIX;
+			strncpy(l_ListeningAddress.sun_path, TEMPDIR "sandman.sock", 
+				sizeof(l_ListeningAddress.sun_path) - 1);
+		}
+		
+		// Unlink the file if needed.
+		unlink(l_ListeningAddress.sun_path);
+		
+		// Bind the socket to the file.
+		if (bind(s_ListeningSocket, reinterpret_cast<sockaddr*>(&l_ListeningAddress), sizeof(sockaddr_un)) < 0)
+		{
+			LoggerAddMessage("Failed to bind listening socket.");
+			return false;
+		}
+		
+		// Mark the socket for listening.
+		if (listen(s_ListeningSocket, 5) < 0)
+		{
+			LoggerAddMessage("Failed to mark listening socket to listen.");
+			return false;
+		}
+		
+		// Sockets setup!
 	}
 	else
 	{
@@ -257,6 +306,12 @@ static bool Initialize()
 //
 static void Uninitialize()
 {
+	// Close the listening socket, if there was one.
+	if (s_ListeningSocket >= 0)
+	{
+		close(s_ListeningSocket);
+	}
+	
 	// Uninitialize the speech recognizer.
 	s_Recognizer.Uninitialize();
 
@@ -531,6 +586,103 @@ static bool ProcessKeyboardInput(char* p_KeyboardInputBuffer, unsigned int& p_Ke
 	return false;
 }
 
+// Process socket communication.
+//
+// returns:		True if the quit command was received, false otherwise.
+//
+static bool ProcessSocketCommunication()
+{
+	// Attempt to accept an incoming connection.
+	int l_ConnectionSocket = accept(s_ListeningSocket, NULL, NULL);
+	
+	if (l_ConnectionSocket < 0)
+	{
+		return false;
+	}
+	
+	// Got a connection.
+	LoggerAddMessage("Got a new connection.");
+	
+	// Try to read data.
+	unsigned int const l_MessageBufferCapacity = 100;
+	char l_MessageBuffer[l_MessageBufferCapacity];
+	
+	int l_NumReceivedBytes = recv(l_ConnectionSocket, l_MessageBuffer, l_MessageBufferCapacity - 1, 0);
+	
+	if (l_NumReceivedBytes <= 0)
+	{
+		LoggerAddMessage("Connection closed, error receiving.");
+	
+		// Close the connection.
+		close(l_ConnectionSocket);
+		return false;
+	}
+	
+	// Terminate.
+	l_MessageBuffer[l_NumReceivedBytes] = '\0';
+	
+	LoggerAddMessage("Received \"%s\".", l_MessageBuffer);
+	
+	// Handle the message, if necessary.
+	bool l_Done = false;
+	
+	if (strcmp(l_MessageBuffer, "shutdown") == 0)
+	{
+		l_Done = true;
+	}
+	
+	LoggerAddMessage("Connection closed.");
+	
+	// Close the connection.
+	close(l_ConnectionSocket);
+	
+	return l_Done;
+}
+
+// Send a message to the daemon process.
+//
+// p_Message:	The message to send.
+//
+static void SendMessageToDaemon(char const* p_Message)
+{
+	// Create a sending socket.
+	int l_SendingSocket = socket(AF_UNIX, SOCK_STREAM, 0);
+	
+	if (l_SendingSocket < 0)
+	{
+		printf("Failed to create sending socket.\n");
+		return;
+	}
+	
+	sockaddr_un l_SendingAddress;
+	{
+		l_SendingAddress.sun_family = AF_UNIX;
+		strncpy(l_SendingAddress.sun_path, TEMPDIR "sandman.sock", 
+			sizeof(l_SendingAddress.sun_path) - 1);
+	}
+		
+	// Attempt to connect to the daemon.
+	if (connect(l_SendingSocket, reinterpret_cast<sockaddr*>(&l_SendingAddress), sizeof(sockaddr_un)) < 0)
+	{
+		printf("Failed to connect to the daemon.\n");
+		close(l_SendingSocket);
+		return;
+	}
+
+	// Send the message.
+	if (send(l_SendingSocket, p_Message, strlen(p_Message), 0) < 0)
+	{
+		printf("Failed to send \"%s\" message to the daemon.\n", p_Message);
+		close(l_SendingSocket);
+		return;	
+	}
+	
+	printf("Sent \"%s\" message to the daemon.\n", p_Message);
+	
+	// Close the connection.
+	close(l_SendingSocket);
+}
+
 int main(int argc, char** argv)
 {
 	// Deal with command line arguments.
@@ -540,6 +692,11 @@ int main(int argc, char** argv)
 		if (strcmp(argv[l_ArgumentIndex], "--daemon") == 0)
 		{
 			s_DaemonMode = true;
+		}
+		else if (strcmp(argv[l_ArgumentIndex], "--shutdown") == 0)
+		{
+			SendMessageToDaemon("shutdown");
+			return 0;
 		}
 	}
 	
@@ -603,6 +760,12 @@ int main(int argc, char** argv)
 		// Process sound.
 		SoundProcess();
 		
+		if (s_DaemonMode == true)
+		{
+			// Process socket communication.
+			l_Done = ProcessSocketCommunication();
+		}
+
 		// Get the duration of the frame in nanoseconds.
 		Time l_FrameEndTime;
 		TimerGetCurrent(l_FrameEndTime);
@@ -625,6 +788,8 @@ int main(int argc, char** argv)
 		}
 	}
 
+	LoggerAddMessage("Uninitializing.");
+	
 	// Cleanup.
 	Uninitialize();
 	return 0;
