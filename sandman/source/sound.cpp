@@ -1,13 +1,22 @@
+#include "sound.h"
+
+#include <limits.h>
+
 #include <SDL.h>
 #include <SDL_mixer.h>
 
 #include "logger.h"
+
+#define DATADIR	AM_DATADIR
 
 // Constants
 //
 
 // The most sounds that can be queued at once.
 static unsigned int const s_MaxQueuedSounds = 8;
+
+// How much the volume change by each time.
+static int const s_VolumeChange = 0.2f * MIX_MAX_VOLUME;
 
 // Locals
 //
@@ -22,8 +31,29 @@ static unsigned int s_NumQueuedSounds = 0;
 // Right now there should be only one channel, but this should be a bit more future proof.
 static int s_PlayingChannel = -1;
 
+// Whether we're muted.
+static bool s_Muted = false;
+
+// The desired volume (when unmuted).
+static int s_DesiredVolume = MIX_MAX_VOLUME;
+
+// The number of sounds to play before muting.
+static unsigned int s_NumSoundsToPlayBeforeMute = UINT_MAX;
+
 // Functions
 //
+
+template<class T>
+T const& Min(T const& p_A, T const& p_B)
+{
+	return (p_A < p_B) ? p_A : p_B;
+}
+
+template<class T>
+T const& Max(T const& p_A, T const& p_B)
+{
+	return (p_A > p_B) ? p_A : p_B;
+}
 
 // Remove a sound from the front of the play queue.
 //
@@ -107,7 +137,10 @@ bool SoundInitialize()
 	
 	s_NumQueuedSounds = 0;
 	s_PlayingChannel = -1;
-	
+	s_Muted = false;
+	s_DesiredVolume = MIX_MAX_VOLUME;
+	s_NumSoundsToPlayBeforeMute = UINT_MAX;
+
 	s_SoundInitialized = true;
 	
 	return true;
@@ -145,6 +178,123 @@ void SoundUninitialize()
 	SDL_Quit();
 	
 	s_SoundInitialized = false;
+}
+
+// Decrease the volume.  Note: Cannot reduce volume to 0.
+//
+void SoundDecreaseVolume()
+{
+	if (s_SoundInitialized == false)
+	{
+		return;
+	}
+
+	if (s_Muted == true)
+	{
+		return;
+	}
+
+	// Calculate the new volume.
+	int l_NewVolume = Max(s_DesiredVolume - s_VolumeChange, s_VolumeChange);
+	
+	if (l_NewVolume == s_DesiredVolume)
+	{
+		// Queue the sound.
+		SoundAddToQueue(DATADIR "audio/vol_min.wav");
+		return;
+	}
+	
+	// Set the volume.
+	s_DesiredVolume = l_NewVolume;
+	Mix_Volume(-1, s_DesiredVolume);
+	
+	// Queue the sound.
+	if (s_DesiredVolume > s_VolumeChange)
+	{
+		SoundAddToQueue(DATADIR "audio/vol_down.wav");
+	}
+	else
+	{	
+		SoundAddToQueue(DATADIR "audio/vol_min.wav");
+	}
+}
+
+// Increase the volume.
+//
+void SoundIncreaseVolume()
+{
+	if (s_SoundInitialized == false)
+	{
+		return;
+	}
+
+	if (s_Muted == true)
+	{
+		return;
+	}
+
+	// Calculate the new volume.
+	int l_NewVolume = Min(s_DesiredVolume + s_VolumeChange, MIX_MAX_VOLUME);
+	
+	if (l_NewVolume == s_DesiredVolume)
+	{
+		// Queue the sound.
+		SoundAddToQueue(DATADIR "audio/vol_max.wav");
+		return;
+	}
+	
+	// Set the volume.
+	s_DesiredVolume = l_NewVolume;
+	Mix_Volume(-1, s_DesiredVolume);
+	
+	// Queue the sound.
+	if (s_DesiredVolume < MIX_MAX_VOLUME)
+	{
+		SoundAddToQueue(DATADIR "audio/vol_up.wav");
+	}
+	else
+	{	
+		SoundAddToQueue(DATADIR "audio/vol_max.wav");
+	}
+}
+
+// Mute/unmute sound.
+//
+// p_Mute:	True for mute, false for unmute.
+//
+void SoundMute(bool p_Mute)
+{
+	if (s_SoundInitialized == false)
+	{
+		return;
+	}
+	
+	if (s_Muted == p_Mute)
+	{
+		return;
+	}
+	
+	// Update the flag.
+	s_Muted = p_Mute;
+	
+	if (p_Mute == true)
+	{
+		// Queue the sound.
+		SoundAddToQueue(DATADIR "audio/vol_mute.wav");
+
+		// Wait to mute.
+		s_NumSoundsToPlayBeforeMute = s_NumQueuedSounds;
+		return;
+	}
+	
+	// Queue the sound.
+	SoundAddToQueue(DATADIR "audio/vol_unmute.wav");
+
+	// Don't wait to mute anymore.
+	s_NumSoundsToPlayBeforeMute = UINT_MAX;
+	
+	// Set the volume.
+	Mix_Volume(-1, s_DesiredVolume);
 }
 
 // Add a sound to the back of the play queue.
@@ -203,6 +353,22 @@ void SoundProcess()
 
 		// Remove the sound.
 		SoundRemoveFromQueue();
+		
+		// Waiting to mute?
+		if (s_NumSoundsToPlayBeforeMute != UINT_MAX)
+		{
+			// We just played one, adjust the count.
+			s_NumSoundsToPlayBeforeMute--;
+			
+			if (s_NumSoundsToPlayBeforeMute == 0)
+			{
+				// Set the volume.
+				Mix_Volume(-1, 0);
+				
+				// Reset the counter.
+				s_NumSoundsToPlayBeforeMute = UINT_MAX;
+			}
+		}
 	}
 
 	// No queued sounds?

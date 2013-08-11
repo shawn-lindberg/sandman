@@ -34,7 +34,10 @@ enum CommandTokenTypes
 	COMMAND_TOKEN_UP,
 	COMMAND_TOKEN_DOWN,
 	COMMAND_TOKEN_STOP,
-
+	COMMAND_TOKEN_VOLUME,
+	COMMAND_TOKEN_MUTE,
+	COMMAND_TOKEN_UNMUTE,
+	
 	NUM_COMMAND_TOKEN_TYPES,
 };
 
@@ -62,6 +65,9 @@ static char const* const s_CommandTokenNames[] =
 	"up",			// COMMAND_TOKEN_UP
 	"down",			// COMMAND_TOKEN_DOWN
 	"stop",			// COMMAND_TOKEN_STOP
+	"volume",		// COMMAND_TOKEN_VOLUME
+	"mute",			// COMMAND_TOKEN_MUTE
+	"unmute",		// COMMAND_TOKEN_UNMUTE
 };
 
 // The name for each control.
@@ -408,7 +414,6 @@ static void TokenizeCommandString(unsigned int& p_CommandTokenBufferSize, Comman
 			LoggerAddMessage("Voice command too long, tail will be ignored.");
 		}
 
-
 		// Get the next token string start (skip delimiter).
 		if (l_NextTokenStringEnd != NULL)
 		{
@@ -519,6 +524,32 @@ void ParseCommandTokens(unsigned int& p_CommandTokenBufferSize, CommandTokenType
 			{
 				s_Controls[l_ControlIndex].SetDesiredAction(Control::ACTION_STOPPED);
 			}
+		}
+		else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_VOLUME)
+		{
+			// Next token.
+			l_TokenIndex++;
+			if (l_TokenIndex >= p_CommandTokenBufferSize)
+			{
+				break;
+			}
+
+			if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_UP)
+			{
+				SoundIncreaseVolume();
+			}
+			else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_DOWN)
+			{
+				SoundDecreaseVolume();
+			}
+		}
+		else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_MUTE)
+		{
+			SoundMute(true);
+		}
+		else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_UNMUTE)
+		{
+			SoundMute(false);
 		}
 	}
 
