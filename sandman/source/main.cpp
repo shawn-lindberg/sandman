@@ -10,6 +10,7 @@
 #include "config.h"
 #include "control.h"
 #include "logger.h"
+#include "schedule.h"
 #include "sound.h"
 #include "speech_recognizer.h"
 #include "timer.h"
@@ -37,6 +38,8 @@ enum CommandTokenTypes
 	COMMAND_TOKEN_VOLUME,
 	COMMAND_TOKEN_MUTE,
 	COMMAND_TOKEN_UNMUTE,
+	COMMAND_TOKEN_SCHEDULE,
+	COMMAND_TOKEN_START,
 	
 	NUM_COMMAND_TOKEN_TYPES,
 };
@@ -68,6 +71,8 @@ static char const* const s_CommandTokenNames[] =
 	"volume",		// COMMAND_TOKEN_VOLUME
 	"mute",			// COMMAND_TOKEN_MUTE
 	"unmute",		// COMMAND_TOKEN_UNMUTE
+	"schedule",		// COMMAND_TOKEN_SCHEDULE
+	"start",		// COMMAND_TOKEN_START
 };
 
 // The name for each control.
@@ -302,6 +307,9 @@ static bool Initialize()
 	// Controls have been initialized.
 	s_ControlsInitialized = true;
 	
+	// Initialize the schedule.
+	ScheduleInitialize(s_Controls, NUM_CONTROL_TYPES);
+	
 	// Play initialization speech.
 	SoundAddToQueue(DATADIR "audio/initialized.wav");
 
@@ -524,6 +532,24 @@ void ParseCommandTokens(unsigned int& p_CommandTokenBufferSize, CommandTokenType
 			{
 				s_Controls[l_ControlIndex].SetDesiredAction(Control::ACTION_STOPPED);
 			}
+		}
+		else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_SCHEDULE)
+		{
+			// Next token.
+			l_TokenIndex++;
+			if (l_TokenIndex >= p_CommandTokenBufferSize)
+			{
+				break;
+			}
+		
+			if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_START)
+			{
+				ScheduleStart();
+			}
+			else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_STOP)
+			{
+				ScheduleStop();
+			}			
 		}
 		else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_VOLUME)
 		{
@@ -788,6 +814,9 @@ int main(int argc, char** argv)
 			s_Controls[l_ControlIndex].Process();
 		}
 
+		// Process the schedule.
+		ScheduleProcess();
+		
 		// Process sound.
 		SoundProcess();
 		

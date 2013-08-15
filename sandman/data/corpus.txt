@@ -8,6 +8,8 @@ stop
 volume
 mute
 unmute
+schedule
+start
 
 call
 one

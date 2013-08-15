@@ -5,9 +5,6 @@
 // Types
 //
 
-// Forward declaraction.
-class SerialConnection;
-
 // An individual control.
 class Control
 {
@@ -19,6 +16,8 @@ class Control
 			ACTION_STOPPED = 0,
 			ACTION_MOVING_UP,
 			ACTION_MOVING_DOWN,
+			
+			NUM_ACTIONS,
 		};
 
 		// Handle initialization.
@@ -56,6 +55,13 @@ class Control
 		//
 		void SetDesiredAction(Actions p_DesiredAction);
 
+		// Get the name.
+		//
+		char const* GetName() const
+		{
+			return m_Name;
+		}
+		
 	private:
 
 		// Constants.
