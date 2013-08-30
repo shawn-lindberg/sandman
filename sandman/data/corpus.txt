@@ -2,8 +2,8 @@ sand man
 head
 knee
 elevation
-up
-down
+raise
+lower
 stop
 volume
 mute

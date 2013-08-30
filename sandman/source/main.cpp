@@ -32,8 +32,8 @@ enum CommandTokenTypes
 	COMMAND_TOKEN_HEAD,
 	COMMAND_TOKEN_KNEE,
 	COMMAND_TOKEN_ELEVATION,
-	COMMAND_TOKEN_UP,
-	COMMAND_TOKEN_DOWN,
+	COMMAND_TOKEN_RAISE,
+	COMMAND_TOKEN_LOWER,
 	COMMAND_TOKEN_STOP,
 	COMMAND_TOKEN_VOLUME,
 	COMMAND_TOKEN_MUTE,
@@ -65,8 +65,8 @@ static char const* const s_CommandTokenNames[] =
 	"head",			// COMMAND_TOKEN_HEAD
 	"knee",			// COMMAND_TOKEN_KNEE
 	"elevation",	// COMMAND_TOKEN_ELEVATION
-	"up",			// COMMAND_TOKEN_UP
-	"down",			// COMMAND_TOKEN_DOWN
+	"raise",		// COMMAND_TOKEN_RAISE
+	"lower",		// COMMAND_TOKEN_LOWER
 	"stop",			// COMMAND_TOKEN_STOP
 	"volume",		// COMMAND_TOKEN_VOLUME
 	"mute",			// COMMAND_TOKEN_MUTE
@@ -480,11 +480,11 @@ void ParseCommandTokens(unsigned int& p_CommandTokenBufferSize, CommandTokenType
 				break;
 			}
 
-			if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_UP)
+			if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_RAISE)
 			{
 				s_Controls[CONTROL_HEAD].SetDesiredAction(Control::ACTION_MOVING_UP);
 			}
-			else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_DOWN)
+			else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_LOWER)
 			{
 				s_Controls[CONTROL_HEAD].SetDesiredAction(Control::ACTION_MOVING_DOWN);
 			}
@@ -498,11 +498,11 @@ void ParseCommandTokens(unsigned int& p_CommandTokenBufferSize, CommandTokenType
 				break;
 			}
 
-			if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_UP)
+			if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_RAISE)
 			{
 				s_Controls[CONTROL_KNEE].SetDesiredAction(Control::ACTION_MOVING_UP);
 			}
-			else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_DOWN)
+			else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_LOWER)
 			{
 				s_Controls[CONTROL_KNEE].SetDesiredAction(Control::ACTION_MOVING_DOWN);
 			}
@@ -516,11 +516,11 @@ void ParseCommandTokens(unsigned int& p_CommandTokenBufferSize, CommandTokenType
 				break;
 			}
 
-			if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_UP)
+			if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_RAISE)
 			{
 				s_Controls[CONTROL_ELEVATION].SetDesiredAction(Control::ACTION_MOVING_UP);
 			}
-			else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_DOWN)
+			else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_LOWER)
 			{
 				s_Controls[CONTROL_ELEVATION].SetDesiredAction(Control::ACTION_MOVING_DOWN);
 			}
@@ -560,11 +560,11 @@ void ParseCommandTokens(unsigned int& p_CommandTokenBufferSize, CommandTokenType
 				break;
 			}
 
-			if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_UP)
+			if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_RAISE)
 			{
 				SoundIncreaseVolume();
 			}
-			else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_DOWN)
+			else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_LOWER)
 			{
 				SoundDecreaseVolume();
 			}

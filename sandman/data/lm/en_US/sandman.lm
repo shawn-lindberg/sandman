@@ -1,4 +1,4 @@
-Language model created by QuickLM on Mon Aug 12 22:57:03 EDT 2013
+Language model created by QuickLM on Wed Aug 28 22:52:58 EDT 2013
 Copyright (c) 1996-2010 Carnegie Mellon University and Alexander I. Rudnicky
 
 The model is in standard ARPA format, designed by Doug Paul while he was at MITRE.
@@ -19,7 +19,6 @@ ngram 3=38
 -0.7820 <s> -0.2226
 -2.3502 BEGIN -0.2226
 -2.3502 CALL -0.2226
--2.3502 DOWN -0.2226
 -2.3502 EIGHT -0.2226
 -2.3502 EIGHTEEN -0.2226
 -2.3502 ELEVATION -0.2226
@@ -33,11 +32,13 @@ ngram 3=38
 -2.3502 HEAD -0.2226
 -2.3502 KNEE -0.2226
 -2.3502 LEFT -0.2226
+-2.3502 LOWER -0.2226
 -2.3502 MAN -0.2226
 -2.3502 MUTE -0.2226
 -2.3502 NINE -0.2226
 -2.3502 NINETEEN -0.2226
 -2.3502 ONE -0.2226
+-2.3502 RAISE -0.2226
 -2.3502 RIGHT -0.2226
 -2.3502 SAND -0.2991
 -2.3502 SCHEDULE -0.2226
@@ -53,13 +54,11 @@ ngram 3=38
 -2.3502 TWELVE -0.2226
 -2.3502 TWO -0.2226
 -2.3502 UNMUTE -0.2226
--2.3502 UP -0.2226
 -2.3502 VOLUME -0.2226
 
 \2-grams:
 -1.8692 <s> BEGIN 0.0000
 -1.8692 <s> CALL 0.0000
--1.8692 <s> DOWN 0.0000
 -1.8692 <s> EIGHT 0.0000
 -1.8692 <s> EIGHTEEN 0.0000
 -1.8692 <s> ELEVATION 0.0000
@@ -73,10 +72,12 @@ ngram 3=38
 -1.8692 <s> HEAD 0.0000
 -1.8692 <s> KNEE 0.0000
 -1.8692 <s> LEFT 0.0000
+-1.8692 <s> LOWER 0.0000
 -1.8692 <s> MUTE 0.0000
 -1.8692 <s> NINE 0.0000
 -1.8692 <s> NINETEEN 0.0000
 -1.8692 <s> ONE 0.0000
+-1.8692 <s> RAISE 0.0000
 -1.8692 <s> RIGHT 0.0000
 -1.8692 <s> SAND 0.0000
 -1.8692 <s> SCHEDULE 0.0000
@@ -92,11 +93,9 @@ ngram 3=38
 -1.8692 <s> TWELVE 0.0000
 -1.8692 <s> TWO 0.0000
 -1.8692 <s> UNMUTE 0.0000
--1.8692 <s> UP 0.0000
 -1.8692 <s> VOLUME 0.0000
 -0.3010 BEGIN </s> -0.3010
 -0.3010 CALL </s> -0.3010
--0.3010 DOWN </s> -0.3010
 -0.3010 EIGHT </s> -0.3010
 -0.3010 EIGHTEEN </s> -0.3010
 -0.3010 ELEVATION </s> -0.3010
@@ -110,11 +109,13 @@ ngram 3=38
 -0.3010 HEAD </s> -0.3010
 -0.3010 KNEE </s> -0.3010
 -0.3010 LEFT </s> -0.3010
+-0.3010 LOWER </s> -0.3010
 -0.3010 MAN </s> -0.3010
 -0.3010 MUTE </s> -0.3010
 -0.3010 NINE </s> -0.3010
 -0.3010 NINETEEN </s> -0.3010
 -0.3010 ONE </s> -0.3010
+-0.3010 RAISE </s> -0.3010
 -0.3010 RIGHT </s> -0.3010
 -0.3010 SAND MAN 0.0000
 -0.3010 SCHEDULE </s> -0.3010
@@ -130,13 +131,11 @@ ngram 3=38
 -0.3010 TWELVE </s> -0.3010
 -0.3010 TWO </s> -0.3010
 -0.3010 UNMUTE </s> -0.3010
--0.3010 UP </s> -0.3010
 -0.3010 VOLUME </s> -0.3010
 
 \3-grams:
 -0.3010 <s> BEGIN </s>
 -0.3010 <s> CALL </s>
--0.3010 <s> DOWN </s>
 -0.3010 <s> EIGHT </s>
 -0.3010 <s> EIGHTEEN </s>
 -0.3010 <s> ELEVATION </s>
@@ -150,10 +149,12 @@ ngram 3=38
 -0.3010 <s> HEAD </s>
 -0.3010 <s> KNEE </s>
 -0.3010 <s> LEFT </s>
+-0.3010 <s> LOWER </s>
 -0.3010 <s> MUTE </s>
 -0.3010 <s> NINE </s>
 -0.3010 <s> NINETEEN </s>
 -0.3010 <s> ONE </s>
+-0.3010 <s> RAISE </s>
 -0.3010 <s> RIGHT </s>
 -0.3010 <s> SAND MAN
 -0.3010 <s> SCHEDULE </s>
@@ -169,7 +170,6 @@ ngram 3=38
 -0.3010 <s> TWELVE </s>
 -0.3010 <s> TWO </s>
 -0.3010 <s> UNMUTE </s>
--0.3010 <s> UP </s>
 -0.3010 <s> VOLUME </s>
 -0.3010 SAND MAN </s>
 
