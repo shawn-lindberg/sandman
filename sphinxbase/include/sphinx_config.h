@@ -2,7 +2,7 @@
 /* sphinx_config.h: Externally visible configuration parameters */
 
 /* Use ALSA library for sound I/O */
-/* #undef AD_BACKEND_ALSA */
+#define AD_BACKEND_ALSA /**/
 
 /* Use IRIX interface for sound I/O */
 /* #undef AD_BACKEND_IRIX */
@@ -14,7 +14,7 @@
 /* #undef AD_BACKEND_OSF */
 
 /* Use OSS interface for sound I/O */
-#define AD_BACKEND_OSS /**/
+/* #undef AD_BACKEND_OSS */
 
 /* Use OSS interface for sound I/O */
 /* #undef AD_BACKEND_OSS_BSD */
@@ -32,10 +32,10 @@
 /* #undef FIXED16 */
 
 /* Use fixed-point computation */
-/* #undef FIXED_POINT */
+#define FIXED_POINT 1
 
 /* The size of `long', as computed by sizeof. */
-#define SIZEOF_LONG 8
+#define SIZEOF_LONG 4
 
 /* Define to 1 if the system has the type `long long'. */
 #define HAVE_LONG_LONG 1
