@@ -24,6 +24,10 @@ void ScheduleStart();
 //
 void ScheduleStop();
 
+// Determine whether the schedule is running.
+//
+bool ScheduleIsRunning();
+
 // Process the schedule.
 //
 void ScheduleProcess();

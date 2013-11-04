@@ -29,17 +29,18 @@ enum CommandTokenTypes
 
 	COMMAND_TOKEN_SAND,
 	COMMAND_TOKEN_MAN,
-	COMMAND_TOKEN_HEAD,
-	COMMAND_TOKEN_KNEE,
+	COMMAND_TOKEN_BACK,
+	COMMAND_TOKEN_LEGS,
 	COMMAND_TOKEN_ELEVATION,
 	COMMAND_TOKEN_RAISE,
 	COMMAND_TOKEN_LOWER,
 	COMMAND_TOKEN_STOP,
 	COMMAND_TOKEN_VOLUME,
-	COMMAND_TOKEN_MUTE,
-	COMMAND_TOKEN_UNMUTE,
+	// COMMAND_TOKEN_MUTE,
+	// COMMAND_TOKEN_UNMUTE,
 	COMMAND_TOKEN_SCHEDULE,
 	COMMAND_TOKEN_START,
+	COMMAND_TOKEN_STATUS,
 	
 	NUM_COMMAND_TOKEN_TYPES,
 };
@@ -47,8 +48,8 @@ enum CommandTokenTypes
 // Types of controls.
 enum ControlTypes
 {
-	CONTROL_HEAD = 0,
-	CONTROL_KNEE,
+	CONTROL_BACK = 0,
+	CONTROL_LEGS,
 	CONTROL_ELEVATION,
 
 	NUM_CONTROL_TYPES,
@@ -62,24 +63,25 @@ static char const* const s_CommandTokenNames[] =
 {
 	"sand",			// COMMAND_TOKEN_SAND
 	"man",			// COMMAND_TOKEN_MAN
-	"head",			// COMMAND_TOKEN_HEAD
-	"knee",			// COMMAND_TOKEN_KNEE
+	"back",			// COMMAND_TOKEN_BACK
+	"legs",			// COMMAND_TOKEN_LEGS
 	"elevation",	// COMMAND_TOKEN_ELEVATION
 	"raise",		// COMMAND_TOKEN_RAISE
 	"lower",		// COMMAND_TOKEN_LOWER
 	"stop",			// COMMAND_TOKEN_STOP
 	"volume",		// COMMAND_TOKEN_VOLUME
-	"mute",			// COMMAND_TOKEN_MUTE
-	"unmute",		// COMMAND_TOKEN_UNMUTE
+	// "mute",			// COMMAND_TOKEN_MUTE
+	// "unmute",		// COMMAND_TOKEN_UNMUTE
 	"schedule",		// COMMAND_TOKEN_SCHEDULE
 	"start",		// COMMAND_TOKEN_START
+	"status",		// COMMAND_TOKEN_STATUS
 };
 
 // The name for each control.
 static char const* const s_ControlNames[] =
 {
-	"head",		// CONTROL_HEAD
-	"knee",		// CONTROL_KNEE
+	"back",		// CONTROL_BACK
+	"legs",		// CONTROL_LEGS
 	"elev",		// CONTROL_ELEVATION
 };
 
@@ -471,7 +473,7 @@ void ParseCommandTokens(unsigned int& p_CommandTokenBufferSize, CommandTokenType
 		}
 
 		// Parse commands.
-		if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_HEAD)
+		if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_BACK)
 		{
 			// Next token.
 			l_TokenIndex++;
@@ -482,14 +484,14 @@ void ParseCommandTokens(unsigned int& p_CommandTokenBufferSize, CommandTokenType
 
 			if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_RAISE)
 			{
-				s_Controls[CONTROL_HEAD].SetDesiredAction(Control::ACTION_MOVING_UP);
+				s_Controls[CONTROL_BACK].SetDesiredAction(Control::ACTION_MOVING_UP);
 			}
 			else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_LOWER)
 			{
-				s_Controls[CONTROL_HEAD].SetDesiredAction(Control::ACTION_MOVING_DOWN);
+				s_Controls[CONTROL_BACK].SetDesiredAction(Control::ACTION_MOVING_DOWN);
 			}
 		}
-		else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_KNEE)
+		else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_LEGS)
 		{
 			// Next token.
 			l_TokenIndex++;
@@ -500,11 +502,11 @@ void ParseCommandTokens(unsigned int& p_CommandTokenBufferSize, CommandTokenType
 
 			if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_RAISE)
 			{
-				s_Controls[CONTROL_KNEE].SetDesiredAction(Control::ACTION_MOVING_UP);
+				s_Controls[CONTROL_LEGS].SetDesiredAction(Control::ACTION_MOVING_UP);
 			}
 			else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_LOWER)
 			{
-				s_Controls[CONTROL_KNEE].SetDesiredAction(Control::ACTION_MOVING_DOWN);
+				s_Controls[CONTROL_LEGS].SetDesiredAction(Control::ACTION_MOVING_DOWN);
 			}
 		}
 		else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_ELEVATION)
@@ -569,13 +571,23 @@ void ParseCommandTokens(unsigned int& p_CommandTokenBufferSize, CommandTokenType
 				SoundDecreaseVolume();
 			}
 		}
-		else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_MUTE)
+		// else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_MUTE)
+		// {
+		// 	SoundMute(true);
+		// }
+		// else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_UNMUTE)
+		// {
+		// 	SoundMute(false);
+		// }
+		else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_STATUS)
 		{
-			SoundMute(true);
-		}
-		else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_UNMUTE)
-		{
-			SoundMute(false);
+			// Play status speech.
+			SoundAddToQueue(DATADIR "audio/running.wav");	
+			
+			if (ScheduleIsRunning() == true)
+			{
+				SoundAddToQueue(DATADIR "audio/sched_running.wav");	
+			}
 		}
 	}
 

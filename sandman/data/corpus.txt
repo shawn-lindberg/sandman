@@ -1,17 +1,17 @@
 sand man
-head
-knee
+back
+legs
 elevation
 raise
 lower
 stop
 volume
-mute
-unmute
 schedule
 start
+status
 
 call
+zero
 one
 two
 three
@@ -21,18 +21,3 @@ six
 seven
 eight
 nine
-ten
-eleven
-twelve
-thirteen
-fourteen
-fifteen
-sixteen
-seventeen
-eighteen
-nineteen
-begin
-end
-left
-right
-go

@@ -36,10 +36,10 @@ struct ScheduleEvent
 // Hardcoded schedule for now.
 static ScheduleEvent s_Schedule[] =
 {
-	{ 30,	"knee",	Control::ACTION_MOVING_DOWN	},
-	{ 0,	"head",	Control::ACTION_MOVING_UP	},
-	{ 45,	"head",	Control::ACTION_MOVING_DOWN	},
-	{ 0,	"knee",	Control::ACTION_MOVING_UP	},
+	{ 30,	"legs",	Control::ACTION_MOVING_DOWN	},
+	{ 0,	"back",	Control::ACTION_MOVING_UP	},
+	{ 45,	"back",	Control::ACTION_MOVING_DOWN	},
+	{ 0,	"legs",	Control::ACTION_MOVING_UP	},
 };
 static unsigned int s_ScheduleNumEvents = sizeof(s_Schedule) / sizeof(ScheduleEvent);
 
@@ -76,7 +76,7 @@ void ScheduleInitialize(Control* p_Controls, unsigned int p_NumControls)
 void ScheduleStart()
 {
 	// Make sure it's not running.
-	if (s_ScheduleIndex != UINT_MAX)
+	if (ScheduleIsRunning() == true)
 	{
 		return;
 	}
@@ -95,7 +95,7 @@ void ScheduleStart()
 void ScheduleStop()
 {
 	// Make sure it's running.
-	if (s_ScheduleIndex == UINT_MAX)
+	if (ScheduleIsRunning() == false)
 	{
 		return;
 	}
@@ -108,12 +108,19 @@ void ScheduleStop()
 	LoggerAddMessage("Schedule stopped.");
 }
 
+// Determine whether the schedule is running.
+//
+bool ScheduleIsRunning()
+{
+	return (s_ScheduleIndex != UINT_MAX);
+}
+
 // Process the schedule.
 //
 void ScheduleProcess()
 {
 	// Running?
-	if (s_ScheduleIndex == UINT_MAX)
+	if (ScheduleIsRunning() == false)
 	{
 		return;
 	}
