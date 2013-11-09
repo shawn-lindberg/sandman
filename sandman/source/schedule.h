@@ -16,6 +16,10 @@ class Control;
 //
 void ScheduleInitialize(Control* p_Controls, unsigned int p_NumControls);
 
+// Uninitialize the schedule.
+// 
+void ScheduleUninitialize();
+
 // Start the schedule.
 //
 void ScheduleStart();

@@ -328,6 +328,9 @@ static void Uninitialize()
 		close(s_ListeningSocket);
 	}
 	
+	// Uninitialize the schedule.
+	ScheduleUninitialize();
+	
 	// Uninitialize the speech recognizer.
 	s_Recognizer.Uninitialize();
 

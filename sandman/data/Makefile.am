@@ -9,6 +9,6 @@ nobase_dist_sandmandata_DATA = audio/back_moving_down.wav audio/back_stop.wav au
 	hmm/en_US/hub4wsj_sc_8k/feat.params hmm/en_US/hub4wsj_sc_8k/transition_matrices \
 	hmm/en_US/hub4wsj_sc_8k/sendump hmm/en_US/hub4wsj_sc_8k/variances lm/en_US/sandman.lm
 sandmanconfdir = $(sysconfdir)/sandman
-nobase_dist_sandmanconf_DATA = sandman.conf
+nobase_dist_sandmanconf_DATA = sandman.conf sandman.sched
 sandmantempdir = $(localstatedir)/sandman
 nobase_dist_sandmantemp_DATA = sandman.log

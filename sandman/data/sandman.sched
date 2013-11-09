@@ -1,0 +1,23 @@
+# Sandman schedule file.
+
+# Each command is listed in order using the following format:
+# 
+# time, control_type, direction
+# 
+# time is specified in seconds, control_type may be one of the following:
+# 
+# back, elev, legs
+# 
+# and direction may be one of the following:
+# 
+# up, down
+#
+# Commands will be parsed beginning with a line containing only the word
+# start and ending with a line containing only the word end.
+
+start
+	1800,	legs,	down
+	2,		back,	up
+	2700,	back,	down
+	2,		legs,	up
+end
