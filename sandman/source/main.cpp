@@ -147,6 +147,8 @@ static bool Initialize()
 	
 	if (s_DaemonMode == true)
 	{
+		printf("Initializing as a daemon.\n");
+		
 		// Fork a child off of the parent process.
 		pid_t l_ProcessID = fork();
 		
@@ -702,6 +704,22 @@ static bool ProcessSocketCommunication()
 	{
 		l_Done = true;
 	}
+	else
+	{
+		// Parse a command.
+
+		// Store command tokens here.
+		unsigned int const l_CommandTokenBufferCapacity = 32;
+		CommandTokenTypes l_CommandTokenBuffer[l_CommandTokenBufferCapacity];
+		unsigned int l_CommandTokenBufferSize = 0;
+
+		// Tokenize the message.
+		TokenizeCommandString(l_CommandTokenBufferSize, l_CommandTokenBuffer, l_CommandTokenBufferCapacity,
+			l_MessageBuffer);
+
+		// Parse command tokens.
+		ParseCommandTokens(l_CommandTokenBufferSize, l_CommandTokenBuffer);
+	}
 	
 	LoggerAddMessage("Connection closed.");
 	
@@ -756,19 +774,62 @@ static void SendMessageToDaemon(char const* p_Message)
 }
 
 int main(int argc, char** argv)
-{
+{		
 	// Deal with command line arguments.
 	for (unsigned int l_ArgumentIndex = 0; l_ArgumentIndex < argc; l_ArgumentIndex++)
 	{
+		char const* l_Argument = argv[l_ArgumentIndex];
+		
 		// Start as a daemon?
-		if (strcmp(argv[l_ArgumentIndex], "--daemon") == 0)
+		if (strcmp(l_Argument, "--daemon") == 0)
 		{
 			s_DaemonMode = true;
+			break;
 		}
-		else if (strcmp(argv[l_ArgumentIndex], "--shutdown") == 0)
+		else if (strcmp(l_Argument, "--shutdown") == 0)
 		{
 			SendMessageToDaemon("shutdown");
 			return 0;
+		}
+		else 
+		{
+			// We are going to see if there is a command to send to the daemon.
+			static char const* s_CommandPrefix = "--command=";	
+			
+			char const* l_CommandStringStart = strstr(l_Argument, s_CommandPrefix);
+			
+			if (l_CommandStringStart != NULL)
+			{
+				// Skip the command prefix.
+				l_CommandStringStart += strlen(s_CommandPrefix);
+				
+				unsigned int const l_CommandBufferCapacity = 100;
+				char l_CommandBuffer[l_CommandBufferCapacity];
+
+				unsigned int const l_CommandStringLength = strlen(l_CommandStringStart);
+				
+				// Copy only the actual command.
+				snprintf(l_CommandBuffer, l_CommandBufferCapacity, "sand man %.*s", 
+					l_CommandStringLength, l_CommandStringStart);
+				l_CommandBuffer[l_CommandBufferCapacity - 1] = '\0';
+				
+				// Replace '_' with ' '.
+				char* l_CurrentCharacter = l_CommandBuffer;
+				
+				while (*l_CurrentCharacter != '\0')
+				{
+					if (*l_CurrentCharacter == '_')
+					{
+						*l_CurrentCharacter = ' ';
+					}
+					
+					l_CurrentCharacter++;
+				}
+				
+				// Send the command to the daemon.
+				SendMessageToDaemon(l_CommandBuffer);
+				return 0;
+			}
 		}
 	}
 	
