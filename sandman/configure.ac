@@ -35,5 +35,12 @@ AC_TYPE_UINT64_T
 # Checks for library functions.
 AC_CHECK_FUNCS([memmove strchr])
 
+# Add an argument that can conditionally enable Sphinx speech 
+# recognition.
+AC_ARG_WITH([sphinx], 
+	[AS_HELP_STRING([--with-sphinx], [Enable Sphinx speech recognition])],
+	[], [with_sphinx=no])
+AM_CONDITIONAL([SPHINX_SPEECH_RECOGNITION], [test "x$with_sphinx" != xno])
+
 # Actually output files.
 AC_OUTPUT

@@ -1,7 +1,11 @@
 #include <ctype.h>
+#include <fcntl.h>
 #include <stdio.h>
+#include <time.h>
+#include <unistd.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 #include <sys/un.h>
 
 #include <ncurses.h>
@@ -12,7 +16,11 @@
 #include "logger.h"
 #include "schedule.h"
 #include "sound.h"
-#include "speech_recognizer.h"
+
+#if defined (USE_INTERNAL_SPEECH_RECOGNITION)
+	#include "speech_recognizer.h"
+#endif // defined (USE_INTERNAL_SPEECH_RECOGNITION)
+	
 #include "timer.h"
 
 #define DATADIR		AM_DATADIR
@@ -91,8 +99,12 @@ static Control s_Controls[NUM_CONTROL_TYPES];
 // Whether controls have been initialized.
 static bool s_ControlsInitialized = false;
 
-// The speech recognizer.
-static SpeechRecognizer s_Recognizer;
+#if defined (USE_INTERNAL_SPEECH_RECOGNITION)
+
+	// The speech recognizer.
+	static SpeechRecognizer s_Recognizer;
+	
+#endif // defined (USE_INTERNAL_SPEECH_RECOGNITION)
 
 // Whether to start as a daemon or terminal program.
 static bool s_DaemonMode = false;
@@ -270,13 +282,18 @@ static bool Initialize()
 		}
 	}
 
-	// Initialize speech recognition.
-	if (s_Recognizer.Initialize(l_Config.GetInputDeviceName(), l_Config.GetInputSampleRate(), 
-		DATADIR "hmm/en_US/hub4wsj_sc_8k", DATADIR "lm/en_US/sandman.lm", DATADIR "dict/en_US/sandman.dic", 
-		TEMPDIR "recognizer.log", l_Config.GetPostSpeechDelaySec()) == false)
-	{
-		return false;
-	}
+	#if defined (USE_INTERNAL_SPEECH_RECOGNITION)
+
+		// Initialize speech recognition.
+		if (s_Recognizer.Initialize(l_Config.GetInputDeviceName(), l_Config.GetInputSampleRate(), 
+			DATADIR "hmm/en_US/hub4wsj_sc_8k", DATADIR "lm/en_US/sandman.lm", 
+			DATADIR "dict/en_US/sandman.dic", TEMPDIR "recognizer.log", 
+			l_Config.GetPostSpeechDelaySec()) == false)
+		{
+			return false;
+		}
+		
+	#endif // defined (USE_INTERNAL_SPEECH_RECOGNITION)	
 
 	LoggerAddMessage("Initializing GPIO support...");
 	
@@ -333,8 +350,12 @@ static void Uninitialize()
 	// Uninitialize the schedule.
 	ScheduleUninitialize();
 	
-	// Uninitialize the speech recognizer.
-	s_Recognizer.Uninitialize();
+	#if defined (USE_INTERNAL_SPEECH_RECOGNITION)
+	
+		// Uninitialize the speech recognizer.
+		s_Recognizer.Uninitialize();
+
+	#endif // defined (USE_INTERNAL_SPEECH_RECOGNITION)
 
 	// Uninitialize sound.
 	SoundUninitialize();
@@ -859,30 +880,34 @@ int main(int argc, char** argv)
 				l_KeyboardInputBufferCapacity);
 		}
 
-		// Process speech recognition.
-		char const* l_RecognizedSpeech = NULL;
-		if (s_Recognizer.Process(l_RecognizedSpeech) == false)
-		{
-			LoggerAddMessage("Error during speech recognition.");
-			l_Done = true;
-		}
+		#if defined (USE_INTERNAL_SPEECH_RECOGNITION)
+		
+			// Process speech recognition.
+			char const* l_RecognizedSpeech = NULL;
+			if (s_Recognizer.Process(l_RecognizedSpeech) == false)
+			{
+				LoggerAddMessage("Error during speech recognition.");
+				l_Done = true;
+			}
 
-		if (l_RecognizedSpeech != NULL)
-		{
-			// Parse a command.
+			if (l_RecognizedSpeech != NULL)
+			{
+				// Parse a command.
 
-			// Store command tokens here.
-			unsigned int const l_CommandTokenBufferCapacity = 32;
-			CommandTokenTypes l_CommandTokenBuffer[l_CommandTokenBufferCapacity];
-			unsigned int l_CommandTokenBufferSize = 0;
+				// Store command tokens here.
+				unsigned int const l_CommandTokenBufferCapacity = 32;
+				CommandTokenTypes l_CommandTokenBuffer[l_CommandTokenBufferCapacity];
+				unsigned int l_CommandTokenBufferSize = 0;
 
-			// Tokenize the speech.
-			TokenizeCommandString(l_CommandTokenBufferSize, l_CommandTokenBuffer, l_CommandTokenBufferCapacity,
-				l_RecognizedSpeech);
+				// Tokenize the speech.
+				TokenizeCommandString(l_CommandTokenBufferSize, l_CommandTokenBuffer, l_CommandTokenBufferCapacity,
+					l_RecognizedSpeech);
 
-			// Parse command tokens.
-			ParseCommandTokens(l_CommandTokenBufferSize, l_CommandTokenBuffer);
-		}
+				// Parse command tokens.
+				ParseCommandTokens(l_CommandTokenBufferSize, l_CommandTokenBuffer);
+			}
+			
+		#endif // defined (USE_INTERNAL_SPEECH_RECOGNITION)
 
 		// Process controls.
 		for (unsigned int l_ControlIndex = 0; l_ControlIndex < NUM_CONTROL_TYPES; l_ControlIndex++)
