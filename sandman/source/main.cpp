@@ -93,6 +93,14 @@ static char const* const s_ControlNames[] =
 	"elev",		// CONTROL_ELEVATION
 };
 
+// The up and down GPIO pins for each control.
+static int s_ControlGPIOPins[][2] = 
+{
+	{ 0, 1 }, 	// CONTROL_BACK
+	{ 2, 3 }, 	// CONTROL_LEGS
+	{ 4, 5 },	// CONTROL_ELEVATION
+};
+
 // The controls.
 static Control s_Controls[NUM_CONTROL_TYPES];
 
@@ -315,12 +323,15 @@ static bool Initialize()
 	// Initialize controls.
 	for (unsigned int l_ControlIndex = 0; l_ControlIndex < NUM_CONTROL_TYPES; l_ControlIndex++)
 	{
-		s_Controls[l_ControlIndex].Initialize(s_ControlNames[l_ControlIndex], 2 * l_ControlIndex, 
-			2 * l_ControlIndex + 1);
+		const auto* l_GPIOPins = s_ControlGPIOPins[l_ControlIndex];
+		
+		s_Controls[l_ControlIndex].Initialize(s_ControlNames[l_ControlIndex], 
+			l_GPIOPins[0], l_GPIOPins[1]);
 	}
 
 	// Set control durations.
-	Control::SetDurations(l_Config.GetControlMovingDurationMS(), l_Config.GetControlCoolDownDurationMS());
+	Control::SetDurations(l_Config.GetControlMovingDurationMS(), 
+		l_Config.GetControlCoolDownDurationMS());
 	
 	// Enable all controls.
 	Control::Enable(true);

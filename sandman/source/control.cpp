@@ -26,6 +26,10 @@
 // The pin to use for enabling controls.
 #define ENABLE_GPIO_PIN					(7)
 
+// GPIO values for on and off respectively.
+#define CONTROL_ON_GPIO_VALUE			(LOW)
+#define CONTROL_OFF_GPIO_VALUE			(HIGH)
+
 // Locals
 //
 
@@ -69,6 +73,24 @@ T const& Min(T const& p_A, T const& p_B)
 	return (p_A < p_B) ? p_A : p_B;
 }
 
+// Set the given GPIO pin to the "on" value.
+//
+// p_Pin:	The GPIO pin to set the value of.
+//
+void SetGPIOPinOn(int p_Pin)
+{
+	digitalWrite(p_Pin, CONTROL_ON_GPIO_VALUE);
+}
+
+// Set the given GPIO pin to the "off" value.
+//
+// p_Pin:	The GPIO pin to set the value of.
+//
+void SetGPIOPinOff(int p_Pin)
+{
+	digitalWrite(p_Pin, CONTROL_OFF_GPIO_VALUE);
+}
+
 // Control members
 
 // Handle initialization.
@@ -89,14 +111,17 @@ void Control::Initialize(char const* p_Name, int p_UpGPIOPin, int p_DownGPIOPin)
 	TimerGetCurrent(m_StateStartTime);
 	m_DesiredAction = ACTION_STOPPED;
 
-	// Setup the pins and set them low.
+	// Setup the pins and set them to off.
 	m_UpGPIOPin = p_UpGPIOPin;
 	pinMode(p_UpGPIOPin, OUTPUT);
-	digitalWrite(p_UpGPIOPin, LOW);
+	SetGPIOPinOff(p_UpGPIOPin);
 	
 	m_DownGPIOPin = p_DownGPIOPin;
 	pinMode(p_DownGPIOPin, OUTPUT);
-	digitalWrite(p_DownGPIOPin, LOW);
+	SetGPIOPinOff(p_DownGPIOPin);
+	
+	LoggerAddMessage("Initialized control \'%s\' with GPIO pins (up %i, "
+		"down %i)", m_Name, m_UpGPIOPin, m_DownGPIOPin);
 }
 
 // Handle uninitialization.
@@ -123,9 +148,9 @@ void Control::Enable(bool p_Enable)
 	}
 	else
 	{
-		// Setup the pin and set it low.
+		// Setup the pin and set it to off.
 		pinMode(ENABLE_GPIO_PIN, OUTPUT);
-		digitalWrite(ENABLE_GPIO_PIN, LOW);
+		SetGPIOPinOff(ENABLE_GPIO_PIN);
 
 		LoggerAddMessage("Controls enabled.");
 	}
@@ -163,15 +188,15 @@ void Control::Process()
 			{
 				m_State = STATE_MOVING_UP;
 
-				// Set the pin high.
-				digitalWrite(m_UpGPIOPin, HIGH);
+				// Set the pin to on.
+				SetGPIOPinOn(m_UpGPIOPin);
 			}
 			else
 			{
 				m_State = STATE_MOVING_DOWN;
 
-				// Set the pin high.
-				digitalWrite(m_DownGPIOPin, HIGH);
+				// Set the pin to on.
+				SetGPIOPinOn(m_DownGPIOPin);
 			}
 			
 			// Queue the sound.
@@ -205,17 +230,17 @@ void Control::Process()
 				m_State = STATE_MOVING_DOWN;
 
 				// Flip the pins.
-				digitalWrite(m_UpGPIOPin, LOW);
-				digitalWrite(m_DownGPIOPin, HIGH);
+				SetGPIOPinOff(m_UpGPIOPin);
+				SetGPIOPinOn(m_DownGPIOPin);
 			}
 			else
 			{
 				// Transition to cool down.
 				m_State = STATE_COOL_DOWN;
 
-				// Set the pins low.
-				digitalWrite(m_UpGPIOPin, LOW);
-				digitalWrite(m_DownGPIOPin, LOW);
+				// Set the pins to off.
+				SetGPIOPinOff(m_UpGPIOPin);
+				SetGPIOPinOff(m_DownGPIOPin);
 			}
 			
 			// Queue the sound.
@@ -249,17 +274,17 @@ void Control::Process()
 				m_State = STATE_MOVING_UP;
 
 				// Flip the pins.
-				digitalWrite(m_UpGPIOPin, HIGH);
-				digitalWrite(m_DownGPIOPin, LOW);
+				SetGPIOPinOn(m_UpGPIOPin);
+				SetGPIOPinOff(m_DownGPIOPin);
 			}
 			else
 			{
 				// Transition to cool down.
 				m_State = STATE_COOL_DOWN;
 
-				// Set the pins low.
-				digitalWrite(m_UpGPIOPin, LOW);
-				digitalWrite(m_DownGPIOPin, LOW);
+				// Set the pins to off.
+				SetGPIOPinOff(m_UpGPIOPin);
+				SetGPIOPinOff(m_DownGPIOPin);
 			}
 						
 			// Queue the sound.
@@ -293,9 +318,9 @@ void Control::Process()
 			// Transition to idle.
 			m_State = STATE_IDLE;
 
-			// Set the pins low.
-			digitalWrite(m_UpGPIOPin, LOW);
-			digitalWrite(m_DownGPIOPin, LOW);
+			// Set the pins to off.
+			SetGPIOPinOff(m_UpGPIOPin);
+			SetGPIOPinOff(m_DownGPIOPin);
 
 			LoggerAddMessage("Control \"%s\": State transition from \"%s\" to \"%s\" triggered.", 
 				m_Name, s_ControlStateNames[STATE_COOL_DOWN], s_ControlStateNames[m_State]);
