@@ -21,7 +21,7 @@
 #define MAX_COOL_DOWN_STATE_DURATION_MS	(50 * 1000) // 50 sec.
 
 // Time between commands.
-#define COMMAND_INTERVAL_MS				(2 * 1000) // 2 sec.
+//#define COMMAND_INTERVAL_MS				(2 * 1000) // 2 sec.
 
 // The pin to use for enabling controls.
 #define ENABLE_GPIO_PIN					(7)
@@ -39,6 +39,13 @@ char const* const s_ControlActionNames[] =
 	"stopped",		// ACTION_STOPPED
 	"moving up",	// ACTION_MOVING_UP
 	"moving down",	// ACTION_MOVING_DOWN
+};
+
+// The names of the modes.
+char const* const s_ControlModeNames[] =
+{
+	"manual",		// MODE_MANUAL
+	"timed",		// MODE_TIMED
 };
 
 // The names of the states.
@@ -95,16 +102,14 @@ void SetGPIOPinOff(int p_Pin)
 
 // Handle initialization.
 //
-// p_Name:			The name.
-// p_UpGPIOPin:		The GPIO pin to use to move up.
-// p_DownGPIOPin:	The GPIO pin to use to move down.
+// p_Config:	Configuration parameters for the control.
 //
-void Control::Initialize(char const* p_Name, int p_UpGPIOPin, int p_DownGPIOPin)
+void Control::Initialize(const ControlConfig& p_Config)
 {
 	// Copy the name.
 	unsigned int const l_AmountToCopy = 
-		Min(static_cast<unsigned int>(NAME_CAPACITY) - 1, strlen(p_Name));
-	strncpy(m_Name, p_Name, l_AmountToCopy);
+		Min(static_cast<unsigned int>(NAME_CAPACITY) - 1, strlen(p_Config.m_Name));
+	strncpy(m_Name, p_Config.m_Name, l_AmountToCopy);
 	m_Name[l_AmountToCopy] = '\0';
 	
 	m_State = STATE_IDLE;
@@ -112,16 +117,19 @@ void Control::Initialize(char const* p_Name, int p_UpGPIOPin, int p_DownGPIOPin)
 	m_DesiredAction = ACTION_STOPPED;
 
 	// Setup the pins and set them to off.
-	m_UpGPIOPin = p_UpGPIOPin;
-	pinMode(p_UpGPIOPin, OUTPUT);
-	SetGPIOPinOff(p_UpGPIOPin);
+	m_UpGPIOPin = p_Config.m_UpGPIOPin;
+	pinMode(m_UpGPIOPin, OUTPUT);
+	SetGPIOPinOff(m_UpGPIOPin);
 	
-	m_DownGPIOPin = p_DownGPIOPin;
-	pinMode(p_DownGPIOPin, OUTPUT);
-	SetGPIOPinOff(p_DownGPIOPin);
+	m_DownGPIOPin = p_Config.m_DownGPIOPin;
+	pinMode(m_DownGPIOPin, OUTPUT);
+	SetGPIOPinOff(m_DownGPIOPin);
+	
+	// Set the individual control moving duration.
+	m_MovingDurationMS = p_Config.m_MovingDurationMS;
 	
 	LoggerAddMessage("Initialized control \'%s\' with GPIO pins (up %i, "
-		"down %i)", m_Name, m_UpGPIOPin, m_DownGPIOPin);
+		"down %i) and duration %i ms.", m_Name, m_UpGPIOPin, m_DownGPIOPin, m_MovingDurationMS);
 }
 
 // Handle uninitialization.
@@ -210,28 +218,45 @@ void Control::Process()
 		}
 		break;
 
-		case STATE_MOVING_UP:
+		case STATE_MOVING_UP:	// Fall through...
+		case STATE_MOVING_DOWN:
 		{
 			// Get elapsed time since state start.
 			Time l_CurrentTime;
 			TimerGetCurrent(l_CurrentTime);
 
-			float l_ElapsedTimeMS = TimerGetElapsedMilliseconds(m_StateStartTime, l_CurrentTime);
+			const auto l_ElapsedTimeMS = TimerGetElapsedMilliseconds(m_StateStartTime, l_CurrentTime);
 
-			// Wait until moving up isn't desired or the time limit has run out.
-			if ((m_DesiredAction == ACTION_MOVING_UP) && (l_ElapsedTimeMS < ms_MovingDurationMS))
+			// Get the action corresponding to this state, as well as the one for the opposite state.
+			const auto l_MatchingAction = (m_State == STATE_MOVING_UP) ? ACTION_MOVING_UP : 
+				ACTION_MOVING_DOWN;
+			const auto l_OppositeAction = (m_State == STATE_MOVING_UP) ? ACTION_MOVING_DOWN : 
+				ACTION_MOVING_UP;
+
+			// Get the duration based on the mode.
+			const auto l_MovingDurationMS = (m_Mode == MODE_TIMED) ? m_MovingDurationMS : 
+				ms_MovingDurationMS;
+			
+			// Wait until the desired action no longer matches or the time limit has run out.
+			if ((m_DesiredAction == l_MatchingAction) && (l_ElapsedTimeMS < l_MovingDurationMS))
 			{
 				break;
 			}
 
-			if (m_DesiredAction == ACTION_MOVING_DOWN)
+			if (m_DesiredAction == l_OppositeAction)
 			{
-				// Transition to moving down.
-				m_State = STATE_MOVING_DOWN;
+				// Transition to the opposite state.
+				const auto l_OppositeState = (m_State == STATE_MOVING_UP) ? STATE_MOVING_DOWN :
+					STATE_MOVING_UP;
+				m_State = l_OppositeState;
 
 				// Flip the pins.
-				SetGPIOPinOff(m_UpGPIOPin);
-				SetGPIOPinOn(m_DownGPIOPin);
+				const auto l_OldStatePin = (m_State == STATE_MOVING_DOWN) ? m_UpGPIOPin : 
+					m_DownGPIOPin;
+				const auto l_NewStatePin = (m_State == STATE_MOVING_DOWN) ? m_DownGPIOPin : 
+					m_UpGPIOPin;
+				SetGPIOPinOff(l_OldStatePin);
+				SetGPIOPinOn(l_NewStatePin);
 			}
 			else
 			{
@@ -251,50 +276,6 @@ void Control::Process()
 
 			LoggerAddMessage("Control \"%s\": State transition from \"%s\" to \"%s\" triggered.", 
 				m_Name, s_ControlStateNames[STATE_MOVING_UP], s_ControlStateNames[m_State]);
-		}
-		break;
-
-		case STATE_MOVING_DOWN:
-		{
-			// Get elapsed time since state start.
-			Time l_CurrentTime;
-			TimerGetCurrent(l_CurrentTime);
-
-			float l_ElapsedTimeMS = TimerGetElapsedMilliseconds(m_StateStartTime, l_CurrentTime);
-
-			// Wait until moving down isn't desired or the time limit has run out.
-			if ((m_DesiredAction == ACTION_MOVING_DOWN) && (l_ElapsedTimeMS < ms_MovingDurationMS))
-			{
-				break;
-			}
-
-			if (m_DesiredAction == ACTION_MOVING_UP)
-			{
-				// Transition to moving up.
-				m_State = STATE_MOVING_UP;
-
-				// Flip the pins.
-				SetGPIOPinOn(m_UpGPIOPin);
-				SetGPIOPinOff(m_DownGPIOPin);
-			}
-			else
-			{
-				// Transition to cool down.
-				m_State = STATE_COOL_DOWN;
-
-				// Set the pins to off.
-				SetGPIOPinOff(m_UpGPIOPin);
-				SetGPIOPinOff(m_DownGPIOPin);
-			}
-						
-			// Queue the sound.
-			QueueSound();
-			
-			// Record when the state transition timer began.
-			TimerGetCurrent(m_StateStartTime);
-
-			LoggerAddMessage("Control \"%s\": State transition from \"%s\" to \"%s\" triggered.", 
-				m_Name, s_ControlStateNames[STATE_MOVING_DOWN], s_ControlStateNames[m_State]);
 		}
 		break;
 
@@ -338,13 +319,15 @@ void Control::Process()
 // Set the desired action.
 //
 // p_DesiredAction:	The desired action.
+// p_Mode:			The mode of the action.
 //
-void Control::SetDesiredAction(Actions p_DesiredAction)
+void Control::SetDesiredAction(Actions p_DesiredAction, Modes p_Mode)
 {
 	m_DesiredAction = p_DesiredAction;
+	m_Mode = p_Mode;
 
-	LoggerAddMessage("Control \"%s\": Setting desired action to \"%s\".", m_Name, 
-		s_ControlActionNames[p_DesiredAction]);
+	LoggerAddMessage("Control \"%s\": Setting desired action to \"%s\" with mode \"%s\".", m_Name, 
+		s_ControlActionNames[p_DesiredAction], s_ControlModeNames[p_Mode]);
 }
 
 // Queue sound for the state.

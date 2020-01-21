@@ -85,20 +85,12 @@ static char const* const s_CommandTokenNames[] =
 	"status",		// COMMAND_TOKEN_STATUS
 };
 
-// The name for each control.
-static char const* const s_ControlNames[] =
+// The configuration parameters for each control.
+static ControlConfig s_ControlConfigs[] = 
 {
-	"back",		// CONTROL_BACK
-	"legs",		// CONTROL_LEGS
-	"elev",		// CONTROL_ELEVATION
-};
-
-// The up and down GPIO pins for each control.
-static int s_ControlGPIOPins[][2] = 
-{
-	{ 0, 1 }, 	// CONTROL_BACK
-	{ 2, 3 }, 	// CONTROL_LEGS
-	{ 4, 5 },	// CONTROL_ELEVATION
+	{ "back", 0, 1, 13000 }, 	// CONTROL_BACK
+	{ "legs", 2, 3, 13000 }, 	// CONTROL_LEGS
+	{ "elev", 4, 5, 13000 },	// CONTROL_ELEVATION
 };
 
 // The controls.
@@ -322,11 +314,8 @@ static bool Initialize()
 
 	// Initialize controls.
 	for (unsigned int l_ControlIndex = 0; l_ControlIndex < NUM_CONTROL_TYPES; l_ControlIndex++)
-	{
-		const auto* l_GPIOPins = s_ControlGPIOPins[l_ControlIndex];
-		
-		s_Controls[l_ControlIndex].Initialize(s_ControlNames[l_ControlIndex], 
-			l_GPIOPins[0], l_GPIOPins[1]);
+	{		
+		s_Controls[l_ControlIndex].Initialize(s_ControlConfigs[l_ControlIndex]);
 	}
 
 	// Set control durations.
@@ -521,11 +510,13 @@ void ParseCommandTokens(unsigned int& p_CommandTokenBufferSize, CommandTokenType
 
 			if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_RAISE)
 			{
-				s_Controls[CONTROL_BACK].SetDesiredAction(Control::ACTION_MOVING_UP);
+				s_Controls[CONTROL_BACK].SetDesiredAction(Control::ACTION_MOVING_UP,
+					Control::MODE_TIMED);
 			}
 			else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_LOWER)
 			{
-				s_Controls[CONTROL_BACK].SetDesiredAction(Control::ACTION_MOVING_DOWN);
+				s_Controls[CONTROL_BACK].SetDesiredAction(Control::ACTION_MOVING_DOWN, 
+					Control::MODE_TIMED);
 			}
 		}
 		else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_LEGS)
@@ -539,11 +530,12 @@ void ParseCommandTokens(unsigned int& p_CommandTokenBufferSize, CommandTokenType
 
 			if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_RAISE)
 			{
-				s_Controls[CONTROL_LEGS].SetDesiredAction(Control::ACTION_MOVING_UP);
+				s_Controls[CONTROL_LEGS].SetDesiredAction(Control::ACTION_MOVING_UP, Control::MODE_TIMED);
 			}
 			else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_LOWER)
 			{
-				s_Controls[CONTROL_LEGS].SetDesiredAction(Control::ACTION_MOVING_DOWN);
+				s_Controls[CONTROL_LEGS].SetDesiredAction(Control::ACTION_MOVING_DOWN, 
+					Control::MODE_TIMED);
 			}
 		}
 		else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_ELEVATION)
@@ -557,11 +549,13 @@ void ParseCommandTokens(unsigned int& p_CommandTokenBufferSize, CommandTokenType
 
 			if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_RAISE)
 			{
-				s_Controls[CONTROL_ELEVATION].SetDesiredAction(Control::ACTION_MOVING_UP);
+				s_Controls[CONTROL_ELEVATION].SetDesiredAction(Control::ACTION_MOVING_UP, 
+					Control::MODE_TIMED);
 			}
 			else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_LOWER)
 			{
-				s_Controls[CONTROL_ELEVATION].SetDesiredAction(Control::ACTION_MOVING_DOWN);
+				s_Controls[CONTROL_ELEVATION].SetDesiredAction(Control::ACTION_MOVING_DOWN, 
+					Control::MODE_TIMED);
 			}
 		}
 		else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_STOP)
@@ -569,7 +563,8 @@ void ParseCommandTokens(unsigned int& p_CommandTokenBufferSize, CommandTokenType
 			// Stop controls.
 			for (unsigned int l_ControlIndex = 0; l_ControlIndex < NUM_CONTROL_TYPES; l_ControlIndex++)
 			{
-				s_Controls[l_ControlIndex].SetDesiredAction(Control::ACTION_STOPPED);
+				s_Controls[l_ControlIndex].SetDesiredAction(Control::ACTION_STOPPED, 
+					Control::MODE_MANUAL);
 			}
 		}
 		else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_SCHEDULE)

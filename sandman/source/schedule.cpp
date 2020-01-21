@@ -459,7 +459,7 @@ void ScheduleProcess()
 		}
 		
 		// Perform the action.
-		l_Control.SetDesiredAction(l_Event.m_Action);
+		l_Control.SetDesiredAction(l_Event.m_Action, Control::MODE_TIMED);
 		break;
 	}
 	

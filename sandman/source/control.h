@@ -5,6 +5,20 @@
 // Types
 //
 
+// Configuration parameters to initialize a control.
+struct ControlConfig
+{
+	// The name of the control.
+	char const* m_Name;
+		
+	// The GPIO pins to use.
+	int m_UpGPIOPin;
+	int m_DownGPIOPin;
+	
+	// The duration of the moving state (in milliseconds) for this control.
+	unsigned int m_MovingDurationMS;
+};
+
 // An individual control.
 class Control
 {
@@ -20,13 +34,18 @@ class Control
 			NUM_ACTIONS,
 		};
 
+		// Movement modes, either manual or timed for now.
+		enum Modes
+		{
+			MODE_MANUAL = 0, 
+			MODE_TIMED,
+		};
+		
 		// Handle initialization.
 		//
-		// p_Name:			The name.
-		// p_UpGPIOPin:		The GPIO pin to use to move up.
-		// p_DownGPIOPin:	The GPIO pin to use to move down.
+		// p_Config:	Configuration parameters for the control.
 		//
-		void Initialize(char const* p_Name, int p_UpGPIOPin, int p_DownGPIOPin);
+		void Initialize(const ControlConfig& p_Config);
 
 		// Handle uninitialization.
 		//
@@ -52,8 +71,9 @@ class Control
 		// Set the desired action.
 		//
 		// p_DesiredAction:	The desired action.
+		// p_Mode:			The mode of the action.
 		//
-		void SetDesiredAction(Actions p_DesiredAction);
+		void SetDesiredAction(Actions p_DesiredAction, Modes p_Mode);
 
 		// Get the name.
 		//
@@ -95,9 +115,15 @@ class Control
 		// The desired action.
 		Actions m_DesiredAction;
 
+		// The control movement mode.
+		Modes m_Mode;
+		
 		// The GPIO pins to use.
 		int m_UpGPIOPin;
 		int m_DownGPIOPin;
+		
+		// The duration of the moving state (in milliseconds) for this control.
+		unsigned int m_MovingDurationMS;
 
 		// Maximum duration of the moving state (in milliseconds).
 		static unsigned int ms_MovingDurationMS;
