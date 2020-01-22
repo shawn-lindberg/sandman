@@ -319,7 +319,7 @@ static bool Initialize()
 	}
 
 	// Set control durations.
-	Control::SetDurations(l_Config.GetControlMovingDurationMS(), 
+	Control::SetDurations(l_Config.GetControlMaxMovingDurationMS(), 
 		l_Config.GetControlCoolDownDurationMS());
 	
 	// Enable all controls.

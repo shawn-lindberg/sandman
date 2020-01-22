@@ -15,7 +15,7 @@ class Config
 		// 
 		// p_ConfigFileName:	The name of the config file.
 		//
-		// returns:				True if successful, false otherwise.
+		// Returns:				True if successful, false otherwise.
 		//
 		bool ReadFromFile(char const* p_FileName);
 		
@@ -36,9 +36,9 @@ class Config
 			return m_PostSpeechDelaySec;
 		}
 		
-		unsigned int GetControlMovingDurationMS() const
+		unsigned int GetControlMaxMovingDurationMS() const
 		{
-			return m_ControlMovingDurationMS;
+			return m_ControlMaxMovingDurationMS;
 		}
 	
 		unsigned int GetControlCoolDownDurationMS() const
@@ -63,8 +63,8 @@ class Config
 		// How long to wait with no new voice to end an utterance in seconds.
 		float m_PostSpeechDelaySec;
 		
-		// The duration a control can move for (in milliseconds).
-		unsigned int m_ControlMovingDurationMS;
+		// The maximum duration a control can move for (in milliseconds).
+		unsigned int m_ControlMaxMovingDurationMS;
 				
 		// The duration a control will be on cooldown (in milliseconds).
 		unsigned int m_ControlCoolDownDurationMS;

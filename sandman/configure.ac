@@ -25,6 +25,9 @@ AC_CHECK_LIB([wiringPi], [wiringPiSetup])
 # Check for SDL.
 PKG_CHECK_MODULES([SDL_MIXER], [SDL_mixer])
 
+# Check for libxml.
+PKG_CHECK_MODULES([XML], [libxml-2.0 >= 2.4])
+
 # Checks for header files.
 AC_CHECK_HEADERS([stdint.h string.h ncurses.h wiringPi.h])
 

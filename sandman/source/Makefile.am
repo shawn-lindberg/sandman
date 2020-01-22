@@ -3,11 +3,11 @@ sandman_SOURCES = config.cpp control.cpp logger.cpp schedule.cpp sound.cpp timer
 if SPHINX_SPEECH_RECOGNITION
 sandman_SOURCES += speech_recognizer.cpp 
 endif
-sandman_CPPFLAGS = $(SDL_MIXER_CFLAGS) -DAM_DATADIR='"$(datadir)/sandman/"' -DAM_CONFIGDIR='"$(sysconfdir)/sandman/"' -DAM_TEMPDIR='"$(localstatedir)/sandman/"'
+sandman_CPPFLAGS = $(XML_CFLAGS) $(SDL_MIXER_CFLAGS) -DAM_DATADIR='"$(datadir)/sandman/"' -DAM_CONFIGDIR='"$(sysconfdir)/sandman/"' -DAM_TEMPDIR='"$(localstatedir)/sandman/"'
 if SPHINX_SPEECH_RECOGNITION
 sandman_CPPFLAGS += -DUSE_INTERNAL_SPEECH_RECOGNITION -I$(srcdir)/../../sphinxbase/include -I$(srcdir)/../../pocketsphinx/include
 endif
-sandman_LDADD = $(SDL_MIXER_LIBS)
+sandman_LDADD = $(XML_LIBS) $(SDL_MIXER_LIBS)
 if SPHINX_SPEECH_RECOGNITION
 sandman_LDADD += $(srcdir)/../../sphinxbase/src/libsphinxad/libsphinxad.la \
 	$(srcdir)/../../pocketsphinx/src/libpocketsphinx/libpocketsphinx.la

@@ -120,7 +120,8 @@ am_sandman_OBJECTS = sandman-config.$(OBJEXT) \
 	$(am__objects_1)
 sandman_OBJECTS = $(am_sandman_OBJECTS)
 am__DEPENDENCIES_1 =
-sandman_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__append_3)
+sandman_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
+	$(am__append_3)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
@@ -258,6 +259,8 @@ SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 STRIP = @STRIP@
 VERSION = @VERSION@
+XML_CFLAGS = @XML_CFLAGS@
+XML_LIBS = @XML_LIBS@
 abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
 abs_top_builddir = @abs_top_builddir@
@@ -314,11 +317,11 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 sandman_SOURCES = config.cpp control.cpp logger.cpp schedule.cpp \
 	sound.cpp timer.cpp main.cpp $(am__append_1)
-sandman_CPPFLAGS = $(SDL_MIXER_CFLAGS) \
+sandman_CPPFLAGS = $(XML_CFLAGS) $(SDL_MIXER_CFLAGS) \
 	-DAM_DATADIR='"$(datadir)/sandman/"' \
 	-DAM_CONFIGDIR='"$(sysconfdir)/sandman/"' \
 	-DAM_TEMPDIR='"$(localstatedir)/sandman/"' $(am__append_2)
-sandman_LDADD = $(SDL_MIXER_LIBS) $(am__append_3)
+sandman_LDADD = $(XML_LIBS) $(SDL_MIXER_LIBS) $(am__append_3)
 all: all-am
 
 .SUFFIXES:
