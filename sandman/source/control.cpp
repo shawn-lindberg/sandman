@@ -104,7 +104,7 @@ void SetGPIOPinOff(int p_Pin)
 //
 // p_Config:	Configuration parameters for the control.
 //
-void Control::Initialize(const ControlConfig& p_Config)
+void Control::Initialize(ControlConfig const& p_Config)
 {
 	// Copy the name.
 	unsigned int const l_AmountToCopy = 

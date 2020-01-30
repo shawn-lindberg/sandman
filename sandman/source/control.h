@@ -45,7 +45,7 @@ class Control
 		//
 		// p_Config:	Configuration parameters for the control.
 		//
-		void Initialize(const ControlConfig& p_Config);
+		void Initialize(ControlConfig const& p_Config);
 
 		// Handle uninitialization.
 		//
