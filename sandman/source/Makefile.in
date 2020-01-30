@@ -109,15 +109,15 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
-am__sandman_SOURCES_DIST = config.cpp control.cpp logger.cpp \
+am__sandman_SOURCES_DIST = config.cpp control.cpp input.cpp logger.cpp \
 	schedule.cpp sound.cpp timer.cpp main.cpp \
 	speech_recognizer.cpp
 @SPHINX_SPEECH_RECOGNITION_TRUE@am__objects_1 = sandman-speech_recognizer.$(OBJEXT)
 am_sandman_OBJECTS = sandman-config.$(OBJEXT) \
-	sandman-control.$(OBJEXT) sandman-logger.$(OBJEXT) \
-	sandman-schedule.$(OBJEXT) sandman-sound.$(OBJEXT) \
-	sandman-timer.$(OBJEXT) sandman-main.$(OBJEXT) \
-	$(am__objects_1)
+	sandman-control.$(OBJEXT) sandman-input.$(OBJEXT) \
+	sandman-logger.$(OBJEXT) sandman-schedule.$(OBJEXT) \
+	sandman-sound.$(OBJEXT) sandman-timer.$(OBJEXT) \
+	sandman-main.$(OBJEXT) $(am__objects_1)
 sandman_OBJECTS = $(am_sandman_OBJECTS)
 am__DEPENDENCIES_1 =
 sandman_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
@@ -315,8 +315,8 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-sandman_SOURCES = config.cpp control.cpp logger.cpp schedule.cpp \
-	sound.cpp timer.cpp main.cpp $(am__append_1)
+sandman_SOURCES = config.cpp control.cpp input.cpp logger.cpp \
+	schedule.cpp sound.cpp timer.cpp main.cpp $(am__append_1)
 sandman_CPPFLAGS = $(XML_CFLAGS) $(SDL_MIXER_CFLAGS) \
 	-DAM_DATADIR='"$(datadir)/sandman/"' \
 	-DAM_CONFIGDIR='"$(sysconfdir)/sandman/"' \
@@ -417,6 +417,7 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sandman-config.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sandman-control.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sandman-input.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sandman-logger.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sandman-main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sandman-schedule.Po@am__quote@
@@ -472,6 +473,20 @@ sandman-control.obj: control.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='control.cpp' object='sandman-control.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(sandman_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o sandman-control.obj `if test -f 'control.cpp'; then $(CYGPATH_W) 'control.cpp'; else $(CYGPATH_W) '$(srcdir)/control.cpp'; fi`
+
+sandman-input.o: input.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(sandman_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT sandman-input.o -MD -MP -MF $(DEPDIR)/sandman-input.Tpo -c -o sandman-input.o `test -f 'input.cpp' || echo '$(srcdir)/'`input.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sandman-input.Tpo $(DEPDIR)/sandman-input.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='input.cpp' object='sandman-input.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(sandman_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o sandman-input.o `test -f 'input.cpp' || echo '$(srcdir)/'`input.cpp
+
+sandman-input.obj: input.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(sandman_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT sandman-input.obj -MD -MP -MF $(DEPDIR)/sandman-input.Tpo -c -o sandman-input.obj `if test -f 'input.cpp'; then $(CYGPATH_W) 'input.cpp'; else $(CYGPATH_W) '$(srcdir)/input.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sandman-input.Tpo $(DEPDIR)/sandman-input.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='input.cpp' object='sandman-input.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(sandman_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o sandman-input.obj `if test -f 'input.cpp'; then $(CYGPATH_W) 'input.cpp'; else $(CYGPATH_W) '$(srcdir)/input.cpp'; fi`
 
 sandman-logger.o: logger.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(sandman_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT sandman-logger.o -MD -MP -MF $(DEPDIR)/sandman-logger.Tpo -c -o sandman-logger.o `test -f 'logger.cpp' || echo '$(srcdir)/'`logger.cpp

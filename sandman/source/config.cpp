@@ -29,9 +29,9 @@ T const& Min(T const& p_A, T const& p_B)
 //
 // Returns:	True if the names match, false otherwise.
 //
-static bool XMLIsNodeNamed(const xmlNodePtr p_Node, const char* p_Name)
+static bool XMLIsNodeNamed(const xmlNodePtr p_Node, char const* p_Name)
 {
-	const auto l_XMLName = reinterpret_cast<const xmlChar*>(p_Name);
+	auto const* l_XMLName = reinterpret_cast<xmlChar const*>(p_Name);
 	if (xmlStrcmp(p_Node->name, l_XMLName) == 0)
 	{
 		return true;
@@ -48,19 +48,51 @@ static bool XMLIsNodeNamed(const xmlNodePtr p_Node, const char* p_Name)
 static int XMLGetNodeTextAsInteger(xmlDocPtr p_Document, xmlNodePtr p_Node)
 {
 	// Get the string representation of the note text.
-	const auto l_NodeText = xmlNodeListGetString(p_Document, p_Node->xmlChildrenNode, 1);
+	auto* l_NodeText = xmlNodeListGetString(p_Document, p_Node->xmlChildrenNode, 1);
 	
 	if (l_NodeText == nullptr) {
 		return -1;
 	}
 	
 	// Convert the string to an integer.
-	const auto l_Value = atoi(reinterpret_cast<const char*>(l_NodeText));
+	auto const l_Value = atoi(reinterpret_cast<char const*>(l_NodeText));
 	
 	// Free the memory that was allocated and return the value.
 	xmlFree(l_NodeText);
 	
 	return l_Value;
+}
+
+// Copy the text of an XML node into a buffer.
+// 
+// p_Buffer:			(output) A buffer that the text can be copied into.
+// p_BufferCapacity:	The number of characters that can be stored in the buffer.
+// p_Document:			The XML document that the node belongs to.
+// p_Node:				The XML node to get the the integer from.
+//
+// Returns:		The number of characters copied into the buffer.
+//
+static int XMLCopyNodeText(char* p_Buffer, unsigned int p_BufferCapacity, xmlDocPtr p_Document, 
+	xmlNodePtr p_Node)
+{
+	// Get the string representation of the note text.
+	auto* l_NodeText = xmlNodeListGetString(p_Document, p_Node->xmlChildrenNode, 1);
+	
+	if (l_NodeText == nullptr) {
+		return -1;
+	}
+	
+	// Copy no more than the amount of text the buffer can hold.
+	auto const* l_NodeTextString = reinterpret_cast<char const*>(l_NodeText);
+	unsigned int const l_AmountToCopy = 
+		Min(static_cast<unsigned int>(p_BufferCapacity) - 1, strlen(l_NodeTextString));
+	strncpy(p_Buffer, l_NodeTextString, l_AmountToCopy);
+	p_Buffer[l_AmountToCopy] = '\0';
+	
+	// Free the memory that was allocated and return the amount copied.
+	xmlFree(l_NodeText);
+	
+	return l_AmountToCopy;
 }
 
 // Searches a list of XML nodes starting from a given node and returns the next node with a matching 
@@ -72,7 +104,7 @@ static int XMLGetNodeTextAsInteger(xmlDocPtr p_Document, xmlNodePtr p_Node)
 //
 // Returns: 		The next node, or null if none was found.
 //
-static xmlNodePtr XMLFindNextNodeByName(const xmlNodePtr p_StartNode, const char* p_SearchName)
+static xmlNodePtr XMLFindNextNodeByName(const xmlNodePtr p_StartNode, char const* p_SearchName)
 {
 	// Search through all of the nodes at this level.
 	for (auto l_Node = p_StartNode; l_Node != nullptr; l_Node = l_Node->next)
@@ -94,9 +126,10 @@ static xmlNodePtr XMLFindNextNodeByName(const xmlNodePtr p_StartNode, const char
 
 Config::Config()
 {
-	m_InputDeviceName[0] = '\0';
+	m_SpeechInputDeviceName[0] = '\0';
 	m_InputSampleRate = 0;
 	m_PostSpeechDelaySec = 1.0f;
+	m_InputDeviceName[0] = '\0';
 	m_ControlMaxMovingDurationMS = 100000;
 	m_ControlCoolDownDurationMS = 50000;
 }
@@ -115,7 +148,7 @@ bool Config::ReadFromFile(char const* p_ConfigFileName)
 	}
 	
 	// Open the config file.
-	auto l_ConfigDocument = xmlParseFile(p_ConfigFileName);
+	auto* l_ConfigDocument = xmlParseFile(p_ConfigFileName);
 	
 	if (l_ConfigDocument == nullptr) {		
 		
@@ -124,7 +157,7 @@ bool Config::ReadFromFile(char const* p_ConfigFileName)
 	}
 	
 	// Get the root element of the tree.
-	const auto l_RootNode = xmlDocGetRootElement(l_ConfigDocument);
+	auto const* l_RootNode = xmlDocGetRootElement(l_ConfigDocument);
 	
 	if (l_RootNode == nullptr) {
 		
@@ -133,9 +166,33 @@ bool Config::ReadFromFile(char const* p_ConfigFileName)
 		return false;
 	}
 	
+	// Try to find the input settings node.
+	static auto const* s_InputSettingsNodeName = "InputSettings";
+	auto const* l_InputSettingsNode = XMLFindNextNodeByName(l_RootNode->xmlChildrenNode, 
+		s_InputSettingsNodeName);
+		
+	if (l_InputSettingsNode != nullptr)
+	{
+		// Let's go through the input settings and look for ones we recognize.
+		auto l_SettingNode = l_InputSettingsNode->xmlChildrenNode;
+		for (; l_SettingNode != nullptr; l_SettingNode = l_SettingNode->next)
+		{
+			// See if this is the input device name.
+			static auto const* s_InputDeviceNodeName = "InputDevice";
+			if (XMLIsNodeNamed(l_SettingNode, s_InputDeviceNodeName) == true)
+			{
+				// Load the text from the node.
+				XMLCopyNodeText(m_InputDeviceName, INPUT_DEVICE_NAME_CAPACITY, l_ConfigDocument, 
+					l_SettingNode);
+				
+				continue;
+			}
+		}
+	}
+	
 	// Try to find the control settings node.
-	static const auto s_ControlSettingsNodeName = "ControlSettings";
-	const auto l_ControlSettingsNode = XMLFindNextNodeByName(l_RootNode->xmlChildrenNode, 
+	static auto const* s_ControlSettingsNodeName = "ControlSettings";
+	auto const* l_ControlSettingsNode = XMLFindNextNodeByName(l_RootNode->xmlChildrenNode, 
 		s_ControlSettingsNodeName);
 	
 	if (l_ControlSettingsNode != nullptr) {
@@ -145,22 +202,22 @@ bool Config::ReadFromFile(char const* p_ConfigFileName)
 		for (; l_SettingNode != nullptr; l_SettingNode = l_SettingNode->next)
 		{
 			// See if this is the maximum moving duration.
-			static const auto s_MaxMovingDurationNodeName = "MaxMovingDurationMS";
+			static auto const* s_MaxMovingDurationNodeName = "MaxMovingDurationMS";
 			if (XMLIsNodeNamed(l_SettingNode, s_MaxMovingDurationNodeName) == true)
 			{
 				// Load the value from the node.
-				const auto l_MovingDuration = XMLGetNodeTextAsInteger(l_ConfigDocument, l_SettingNode);
+				auto const l_MovingDuration = XMLGetNodeTextAsInteger(l_ConfigDocument, l_SettingNode);
 				m_ControlMaxMovingDurationMS = l_MovingDuration;
 				
 				continue;
 			}
 			
 			// See if this is the cooldown duration.
-			static const auto s_CoolDownDurationNodeName = "CoolDownDurationMS";
+			static auto const* s_CoolDownDurationNodeName = "CoolDownDurationMS";
 			if (XMLIsNodeNamed(l_SettingNode, s_CoolDownDurationNodeName) == true)
 			{
 				// Load the value from the node.
-				const auto l_CoolDownDuration = XMLGetNodeTextAsInteger(l_ConfigDocument, l_SettingNode);
+				auto const l_CoolDownDuration = XMLGetNodeTextAsInteger(l_ConfigDocument, l_SettingNode);
 				m_ControlCoolDownDurationMS = l_CoolDownDuration;
 				
 				continue;

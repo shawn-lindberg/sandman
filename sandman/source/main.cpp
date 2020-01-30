@@ -13,6 +13,7 @@
 
 #include "config.h"
 #include "control.h"
+#include "input.h"
 #include "logger.h"
 #include "schedule.h"
 #include "sound.h"
@@ -98,6 +99,9 @@ static Control s_Controls[NUM_CONTROL_TYPES];
 
 // Whether controls have been initialized.
 static bool s_ControlsInitialized = false;
+
+// The input device.
+static Input s_Input;
 
 #if defined (USE_INTERNAL_SPEECH_RECOGNITION)
 
@@ -285,7 +289,7 @@ static bool Initialize()
 	#if defined (USE_INTERNAL_SPEECH_RECOGNITION)
 
 		// Initialize speech recognition.
-		if (s_Recognizer.Initialize(l_Config.GetInputDeviceName(), l_Config.GetInputSampleRate(), 
+		if (s_Recognizer.Initialize(l_Config.GetSpeechInputDeviceName(), l_Config.GetInputSampleRate(), 
 			DATADIR "hmm/en_US/hub4wsj_sc_8k", DATADIR "lm/en_US/sandman.lm", 
 			DATADIR "dict/en_US/sandman.dic", TEMPDIR "recognizer.log", 
 			l_Config.GetPostSpeechDelaySec()) == false)
@@ -327,6 +331,9 @@ static bool Initialize()
 	
 	// Controls have been initialized.
 	s_ControlsInitialized = true;
+	
+	// Initialize the input device.
+	s_Input.Initialize(l_Config.GetInputDeviceName());
 	
 	// Initialize the schedule.
 	ScheduleInitialize(s_Controls, NUM_CONTROL_TYPES);
@@ -371,7 +378,10 @@ static void Uninitialize()
 			s_Controls[l_ControlIndex].Uninitialize();
 		}
 	}
-	
+		
+	// Uninitialize the input.
+	s_Input.Uninitialize();
+		
 	// Uninitialize logging.
 	LoggerUninitialize();
 
@@ -921,6 +931,9 @@ int main(int argc, char** argv)
 			s_Controls[l_ControlIndex].Process();
 		}
 
+		// Process the input.
+		s_Input.Process();
+		
 		// Process the schedule.
 		ScheduleProcess();
 		

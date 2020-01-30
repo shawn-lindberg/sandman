@@ -21,9 +21,9 @@ class Config
 		
 		// Accessors.
 		
-		char const* GetInputDeviceName() const
+		char const* GetSpeechInputDeviceName() const
 		{
-			return m_InputDeviceName;
+			return m_SpeechInputDeviceName;
 		}
 		
 		unsigned int GetInputSampleRate() const
@@ -34,6 +34,11 @@ class Config
 		float GetPostSpeechDelaySec() const
 		{
 			return m_PostSpeechDelaySec;
+		}
+		
+		char const* GetInputDeviceName() const
+		{
+			return m_InputDeviceName;
 		}
 		
 		unsigned int GetControlMaxMovingDurationMS() const
@@ -54,14 +59,17 @@ class Config
 			INPUT_DEVICE_NAME_CAPACITY = 64,
 		};
 		
-		// The name of the input device.
-		char m_InputDeviceName[INPUT_DEVICE_NAME_CAPACITY];
+		// The name of the speech input device.
+		char m_SpeechInputDeviceName[INPUT_DEVICE_NAME_CAPACITY];
 
 		// The input sample rate.
 		unsigned int m_InputSampleRate;
 		
 		// How long to wait with no new voice to end an utterance in seconds.
 		float m_PostSpeechDelaySec;
+		
+		// The name of the input device.
+		char m_InputDeviceName[INPUT_DEVICE_NAME_CAPACITY];
 		
 		// The maximum duration a control can move for (in milliseconds).
 		unsigned int m_ControlMaxMovingDurationMS;
