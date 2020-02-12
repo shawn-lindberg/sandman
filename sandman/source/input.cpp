@@ -1,8 +1,10 @@
 #include "input.h"
 
+#include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
 
+#include <errno.h>
 #include <fcntl.h>
 #include <linux/input.h>
 #include <sys/ioctl.h>
@@ -54,11 +56,7 @@ void Input::Initialize(char const* p_DeviceName)
 void Input::Uninitialize()
 {
 	// Make sure the device file is closed.
-	if (m_DeviceFileHandle != INVALID_FILE_HANDLE)
-	{
-		close(m_DeviceFileHandle);
-		m_DeviceFileHandle = INVALID_FILE_HANDLE;
-	}
+	CloseDevice(false, nullptr);
 }
 
 // Process a tick.
@@ -68,25 +66,43 @@ void Input::Process()
 	// See if we need to open the device.
 	if (m_DeviceFileHandle == INVALID_FILE_HANDLE) {
 		
-		m_DeviceFileHandle = open(m_DeviceName, O_RDONLY);
+		// If we have failed before, see whether we have waited long enough before trying to open 
+		// again.
+		if (m_DeviceOpenHasFailed == true)
+		{		
+			// Get elapsed time since the last failure.
+			Time l_CurrentTime;
+			TimerGetCurrent(l_CurrentTime);
+
+			auto const l_ElapsedTimeMS = TimerGetElapsedMilliseconds(m_LastDeviceOpenFailTime, 
+				l_CurrentTime);
+			
+			if (l_ElapsedTimeMS < ms_DeviceOpenRetryDelayMS)
+			{
+				return;
+			}
+		}
+
+		// We open in nonblocking mode so that we don't hang waiting for input.
+		m_DeviceFileHandle = open(m_DeviceName, O_RDONLY | O_NONBLOCK);
 		
 		if (m_DeviceFileHandle < 0) 
 		{
-			close(m_DeviceFileHandle);
-			m_DeviceFileHandle = INVALID_FILE_HANDLE;
+			// Record the time of the last open failure.
+			TimerGetCurrent(m_LastDeviceOpenFailTime);
 			
-			LoggerAddMessage("Failed to open input device \'%s\'", m_DeviceName);
+			CloseDevice(true, "Failed to open input device \'%s\'", m_DeviceName);						
 			return;
 		}
 		
 		// Try to get the name.
 		char l_Name[256];
 		if (ioctl(m_DeviceFileHandle, EVIOCGNAME(sizeof(l_Name)), l_Name) < 0)
-		{
-			close(m_DeviceFileHandle);
-			m_DeviceFileHandle = INVALID_FILE_HANDLE;
-			
-			LoggerAddMessage("Failed to get name for input device \'%s\'", m_DeviceName);
+		{	
+			// Record the time of the last open failure.
+			TimerGetCurrent(m_LastDeviceOpenFailTime);
+					
+			CloseDevice(true, "Failed to get name for input device \'%s\'", m_DeviceName);
 		}
 		
 		LoggerAddMessage("Input device \'%s\' is a \'%s\'", m_DeviceName, l_Name);
@@ -97,6 +113,8 @@ void Input::Process()
 		
 		LoggerAddMessage("Input device bus 0x%x, vendor 0x%x, product 0x%x, version 0x%x.", 
 			l_DeviceID[ID_BUS], l_DeviceID[ID_VENDOR], l_DeviceID[ID_PRODUCT], l_DeviceID[ID_VERSION]);
+			
+		m_DeviceOpenHasFailed = false;
 	}
 	
 	// Read up to 64 input events at a time.
@@ -106,14 +124,18 @@ void Input::Process()
 	static auto const s_EventBufferSize = s_EventsToReadCount * s_EventSize;
 	
 	auto const l_ReadCount = read(m_DeviceFileHandle, l_Events, s_EventBufferSize);
-
+	
 	// I think maybe this would happen if the device got disconnected?
-	if ((l_ReadCount < 0) || ((l_ReadCount % s_EventSize) != 0))
+	if (l_ReadCount < 0)
 	{		
-		close(m_DeviceFileHandle);
-		m_DeviceFileHandle = INVALID_FILE_HANDLE;
+		// When we are in nonblocking mode, this "error" means that there was no data and 
+		// we need to check the device again.
+		if (errno == EAGAIN)
+		{
+			return;
+		}
 		
-		LoggerAddMessage("Failed to read from input device \'%s\'", m_DeviceName);
+		CloseDevice(true, "Failed to read from input device \'%s\'", m_DeviceName);
 		return;
 	}
 	
@@ -132,4 +154,41 @@ void Input::Process()
 		LoggerAddMessage("Input event type %i, code %i, value %i", l_Event.type, l_Event.code, 
 			l_Event.value);
 	}	
+}
+
+// Close the input device.
+// 
+// p_WasFailure:	Whether the device is being closed due to a failure or not.
+// p_Format:		Standard printf format string.
+// ...:				Standard printf arguments.
+//
+void Input::CloseDevice(bool p_WasFailure, char const* p_Format, ...)
+{
+	// Close the device.
+	if (m_DeviceFileHandle != INVALID_FILE_HANDLE)
+	{
+		close(m_DeviceFileHandle);
+		m_DeviceFileHandle = INVALID_FILE_HANDLE;
+	}
+			
+	// Only log a message on failure.
+	if (p_WasFailure == false) {
+		return;
+	}
+	
+	// And only if it was the first failure.
+	if (m_DeviceOpenHasFailed == true)
+	{
+		return;
+	}
+	
+	m_DeviceOpenHasFailed = true;	
+	
+	// Log the message.
+	va_list l_Arguments;
+	va_start(l_Arguments, p_Format);
+
+	LoggerAddMessage(p_Format, l_Arguments);	
+	
+	va_end(l_Arguments);
 }

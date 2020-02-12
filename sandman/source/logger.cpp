@@ -4,7 +4,6 @@
 	#include <ncurses.h>
 #endif // defined (__linux__)
 
-#include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
@@ -31,9 +30,9 @@ static bool s_LogToScreen = false;
 bool LoggerInitialize(char const* p_LogFileName, bool p_LogToScreen)
 {
 	// Initialize the file.
-	s_LogFile = NULL;
+	s_LogFile = nullptr;
 
-	if (p_LogFileName == NULL)
+	if (p_LogFileName == nullptr)
 	{
 		return false;
 	}
@@ -41,7 +40,7 @@ bool LoggerInitialize(char const* p_LogFileName, bool p_LogToScreen)
 	// Try to open (and destroy old log).
 	s_LogFile = fopen(p_LogFileName, "w");
 
-	if (s_LogFile == NULL)
+	if (s_LogFile == nullptr)
 	{
 		return false;
 	}
@@ -62,7 +61,7 @@ void LoggerUninitialize()
 		fclose(s_LogFile);
 	}
 
-	s_LogFile = NULL;
+	s_LogFile = nullptr;
 }
 
 // Add a message to the log.
@@ -73,17 +72,36 @@ void LoggerUninitialize()
 // returns:		True if successful, false otherwise.
 //
 bool LoggerAddMessage(char const* p_Format, ...)
+{	
+	va_list l_Arguments;
+	va_start(l_Arguments, p_Format);
+
+	auto const l_Result = LoggerAddMessage(p_Format, l_Arguments);
+
+	va_end(l_Arguments);
+	
+	return l_Result;
+}
+
+// Add a message to the log (va_list version).
+//
+// p_Format:		Standard printf format string.
+// p_Arguments:	Standard printf arguments.
+//
+// returns:		True if successful, false otherwise.
+//
+bool LoggerAddMessage(char const* p_Format, va_list& p_Arguments)
 {
-	unsigned int const l_LogStringBufferCapacity = 2048;
+	static unsigned int const l_LogStringBufferCapacity = 2048;
 	char l_LogStringBuffer[l_LogStringBufferCapacity];
 
 	// Initialize buffer write parameters.
-	unsigned int l_RemainingCapacity = l_LogStringBufferCapacity;
-	char* l_RemainingBuffer = l_LogStringBuffer;
+	auto l_RemainingCapacity = l_LogStringBufferCapacity;
+	auto* l_RemainingBuffer = l_LogStringBuffer;
 
 	// Get the time.
-	time_t l_RawTime = time(NULL);
-	tm* l_LocalTime = localtime(&l_RawTime);
+	auto const l_RawTime = time(nullptr);
+	auto* l_LocalTime = localtime(&l_RawTime);
 
 	// Put the date and time in the buffer in 2012/09/23 17:44:05 CDT format.
 	strftime(l_RemainingBuffer, l_RemainingCapacity, "%Y/%m/%d %H:%M:%S %Z", l_LocalTime);
@@ -108,15 +126,10 @@ bool LoggerAddMessage(char const* p_Format, ...)
 	l_RemainingCapacity -= 2;
 
 	// Add the log message.
-	va_list l_Arguments;
-	va_start(l_Arguments, p_Format);
-
-	if (vsnprintf(l_RemainingBuffer, l_RemainingCapacity, p_Format, l_Arguments) < 0)
+	if (vsnprintf(l_RemainingBuffer, l_RemainingCapacity, p_Format, p_Arguments) < 0)
 	{
 		return false;
 	}
-
-	va_end(l_Arguments);
 
 	// Force terminate.
 	l_RemainingBuffer[l_RemainingCapacity - 1] = '\0';
@@ -138,7 +151,7 @@ bool LoggerAddMessage(char const* p_Format, ...)
 	}
 
 	// Print to log file.
-	if (s_LogFile != NULL)
+	if (s_LogFile != nullptr)
 	{
 		fputs(l_LogStringBuffer, s_LogFile);
 
@@ -150,4 +163,5 @@ bool LoggerAddMessage(char const* p_Format, ...)
 
 	return true;
 }
+
 

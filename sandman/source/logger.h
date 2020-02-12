@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdarg.h>
+
 // Types
 //
 
@@ -27,3 +29,13 @@ void LoggerUninitialize();
 // returns:		True if successful, false otherwise.
 //
 bool LoggerAddMessage(char const* p_Format, ...);
+
+// Add a message to the log (va_list version).
+//
+// p_Format:		Standard printf format string.
+// p_Arguments:	Standard printf arguments.
+//
+// returns:		True if successful, false otherwise.
+//
+bool LoggerAddMessage(char const* p_Format, va_list& p_Arguments);
+
