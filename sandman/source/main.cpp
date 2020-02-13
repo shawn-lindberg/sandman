@@ -94,9 +94,6 @@ static ControlConfig s_ControlConfigs[] =
 	{ "elev",	5,		6, 	13000 },	// CONTROL_ELEVATION
 };
 
-// The controls.
-static Control s_Controls[NUM_CONTROL_TYPES];
-
 // Whether controls have been initialized.
 static bool s_ControlsInitialized = false;
 
@@ -319,7 +316,7 @@ static bool Initialize()
 	// Initialize controls.
 	for (unsigned int l_ControlIndex = 0; l_ControlIndex < NUM_CONTROL_TYPES; l_ControlIndex++)
 	{		
-		s_Controls[l_ControlIndex].Initialize(s_ControlConfigs[l_ControlIndex]);
+		ControlsCreateControl(s_ControlConfigs[l_ControlIndex]);
 	}
 
 	// Set control durations.
@@ -336,7 +333,7 @@ static bool Initialize()
 	s_Input.Initialize(l_Config.GetInputDeviceName());
 	
 	// Initialize the schedule.
-	ScheduleInitialize(s_Controls, NUM_CONTROL_TYPES);
+	ScheduleInitialize();
 	
 	// Play initialization speech.
 	SoundAddToQueue(DATADIR "audio/initialized.wav");
@@ -373,10 +370,7 @@ static void Uninitialize()
 		Control::Enable(false);
 	
 		// Uninitialize controls.
-		for (unsigned int l_ControlIndex = 0; l_ControlIndex < NUM_CONTROL_TYPES; l_ControlIndex++)
-		{
-			s_Controls[l_ControlIndex].Uninitialize();
-		}
+		ControlsUninitialize();
 	}
 		
 	// Uninitialize the input.
@@ -517,16 +511,22 @@ void ParseCommandTokens(unsigned int& p_CommandTokenBufferSize, CommandTokenType
 			{
 				break;
 			}
-
+			
+			// Try to find the control.
+			auto* l_Control = ControlsFindControl("back");
+			
+			if (l_Control == nullptr)
+			{
+				break;
+			}
+			
 			if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_RAISE)
 			{
-				s_Controls[CONTROL_BACK].SetDesiredAction(Control::ACTION_MOVING_UP,
-					Control::MODE_TIMED);
+				l_Control->SetDesiredAction(Control::ACTION_MOVING_UP, Control::MODE_TIMED);
 			}
 			else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_LOWER)
 			{
-				s_Controls[CONTROL_BACK].SetDesiredAction(Control::ACTION_MOVING_DOWN, 
-					Control::MODE_TIMED);
+				l_Control->SetDesiredAction(Control::ACTION_MOVING_DOWN, Control::MODE_TIMED);
 			}
 		}
 		else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_LEGS)
@@ -537,15 +537,22 @@ void ParseCommandTokens(unsigned int& p_CommandTokenBufferSize, CommandTokenType
 			{
 				break;
 			}
-
+			
+			// Try to find the control.
+			auto* l_Control = ControlsFindControl("legs");
+			
+			if (l_Control == nullptr)
+			{
+				break;
+			}
+			
 			if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_RAISE)
 			{
-				s_Controls[CONTROL_LEGS].SetDesiredAction(Control::ACTION_MOVING_UP, Control::MODE_TIMED);
+				l_Control->SetDesiredAction(Control::ACTION_MOVING_UP, Control::MODE_TIMED);
 			}
 			else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_LOWER)
 			{
-				s_Controls[CONTROL_LEGS].SetDesiredAction(Control::ACTION_MOVING_DOWN, 
-					Control::MODE_TIMED);
+				l_Control->SetDesiredAction(Control::ACTION_MOVING_DOWN, Control::MODE_TIMED);
 			}
 		}
 		else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_ELEVATION)
@@ -556,26 +563,28 @@ void ParseCommandTokens(unsigned int& p_CommandTokenBufferSize, CommandTokenType
 			{
 				break;
 			}
+			
+			// Try to find the control.
+			auto* l_Control = ControlsFindControl("elev");
+			
+			if (l_Control == nullptr)
+			{
+				break;
+			}
 
 			if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_RAISE)
 			{
-				s_Controls[CONTROL_ELEVATION].SetDesiredAction(Control::ACTION_MOVING_UP, 
-					Control::MODE_TIMED);
+				l_Control->SetDesiredAction(Control::ACTION_MOVING_UP, Control::MODE_TIMED);
 			}
 			else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_LOWER)
 			{
-				s_Controls[CONTROL_ELEVATION].SetDesiredAction(Control::ACTION_MOVING_DOWN, 
-					Control::MODE_TIMED);
+				l_Control->SetDesiredAction(Control::ACTION_MOVING_DOWN, Control::MODE_TIMED);
 			}
 		}
 		else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_STOP)
 		{
 			// Stop controls.
-			for (unsigned int l_ControlIndex = 0; l_ControlIndex < NUM_CONTROL_TYPES; l_ControlIndex++)
-			{
-				s_Controls[l_ControlIndex].SetDesiredAction(Control::ACTION_STOPPED, 
-					Control::MODE_MANUAL);
-			}
+			ControlsStopAll();			
 		}
 		else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_SCHEDULE)
 		{
@@ -926,10 +935,7 @@ int main(int argc, char** argv)
 		#endif // defined (USE_INTERNAL_SPEECH_RECOGNITION)
 
 		// Process controls.
-		for (unsigned int l_ControlIndex = 0; l_ControlIndex < NUM_CONTROL_TYPES; l_ControlIndex++)
-		{
-			s_Controls[l_ControlIndex].Process();
-		}
+		ControlsProcess();
 		
 		// Process the input.
 		s_Input.Process();

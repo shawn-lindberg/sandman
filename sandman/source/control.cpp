@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <vector>
 
 #include "logger.h"
 #include "sound.h"
@@ -34,7 +35,7 @@
 //
 
 // The names of the actions.
-char const* const s_ControlActionNames[] =
+static char const* const s_ControlActionNames[] =
 {
 	"stopped",		// ACTION_STOPPED
 	"moving up",	// ACTION_MOVING_UP
@@ -42,14 +43,14 @@ char const* const s_ControlActionNames[] =
 };
 
 // The names of the modes.
-char const* const s_ControlModeNames[] =
+static char const* const s_ControlModeNames[] =
 {
 	"manual",		// MODE_MANUAL
 	"timed",		// MODE_TIMED
 };
 
 // The names of the states.
-char const* const s_ControlStateNames[] =
+static char const* const s_ControlStateNames[] =
 {
 	"idle",			// STATE_IDLE
 	"moving up",	// STATE_MOVING_UP
@@ -58,13 +59,16 @@ char const* const s_ControlStateNames[] =
 };
 
 // The file names of the states.
-char const* const s_ControlStateFileNames[] =
+static char const* const s_ControlStateFileNames[] =
 {
 	"",				// STATE_IDLE
 	"moving_up",	// STATE_MOVING_UP
 	"moving_down",	// STATE_MOVING_DOWN
 	"stop",			// STATE_COOL_DOWN
 };
+
+// A list of registered controls.
+static std::vector<Control> s_Controls;
 
 // Control members
 
@@ -150,15 +154,15 @@ void Control::Enable(bool p_Enable)
 	if (p_Enable == false)
 	{
 		// Revert to input.
-		pinMode(ENABLE_GPIO_PIN, INPUT);
+		//pinMode(ENABLE_GPIO_PIN, INPUT);
 
 		LoggerAddMessage("Controls disabled.");
 	}
 	else
 	{
 		// Setup the pin and set it to off.
-		pinMode(ENABLE_GPIO_PIN, OUTPUT);
-		SetGPIOPinOff(ENABLE_GPIO_PIN);
+		//pinMode(ENABLE_GPIO_PIN, OUTPUT);
+		//SetGPIOPinOff(ENABLE_GPIO_PIN);
 
 		LoggerAddMessage("Controls enabled.");
 	}
@@ -341,4 +345,90 @@ void Control::QueueSound()
 		s_ControlStateFileNames[m_State]);
 
 	SoundAddToQueue(l_SoundFileName);
+}
+
+
+// Functions
+//
+
+// Uninitialize all of the controls.
+//
+void ControlsUninitialize()
+{
+	for (auto& l_Control : s_Controls)
+	{
+		l_Control.Uninitialize();
+	}
+	
+	// Get rid of all of the controls.
+	s_Controls.clear();
+}
+
+// Process all of the controls.
+//
+void ControlsProcess()
+{
+	for (auto& l_Control : s_Controls)
+	{
+		l_Control.Process();
+	}	
+}
+
+// Create a new control with the provided config. Control names must be unique.
+//
+// p_Config:	Configuration parameters for the control.
+//
+// Returns:		True if the control was successfully created, false otherwise.
+//
+bool ControlsCreateControl(ControlConfig const& p_Config)
+{
+	// Check to see whether a control with this name already exists.
+	if (ControlsFindControl(p_Config.m_Name) != nullptr)
+	{
+		
+		LoggerAddMessage("Control with name \"%s\" already exists.", p_Config.m_Name);
+		return false;
+	}
+	
+	// Add a new control.
+	s_Controls.emplace_back(Control());
+	
+	// Then, initialize it.
+	auto& l_Control = s_Controls.back();
+	l_Control.Initialize(p_Config);
+	
+	return true;
+}
+
+// Try to find the control with the given name.
+//
+// p_Name:	The name of the control being searched for.
+//
+// Returns:	A pointer to the control, or null if it was not found.
+//
+Control* ControlsFindControl(char const* p_Name)
+{
+	for (auto& l_Control : s_Controls)
+	{
+		// Look for a control with the matching name.
+		if (strcmp(l_Control.GetName(), p_Name) != 0)
+		{
+			continue;
+		}
+		
+		// Found it.
+		return &l_Control;
+	}
+	
+	return nullptr;
+}
+
+// Stop all of the controls.
+//
+void ControlsStopAll()
+{
+	for (auto& l_Control : s_Controls)
+	{
+		l_Control.SetDesiredAction(Control::ACTION_STOPPED, Control::MODE_MANUAL);
+	}
 }

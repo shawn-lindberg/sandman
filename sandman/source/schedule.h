@@ -3,18 +3,13 @@
 // Types
 //
 
-// Forward declaration.
-class Control;
 
 // Functions
 //
 
 // Initialize the schedule.
 //
-// p_Controls:		The array of controls.
-// p_NumControls:	The number of controls.
-//
-void ScheduleInitialize(Control* p_Controls, unsigned int p_NumControls);
+void ScheduleInitialize();
 
 // Uninitialize the schedule.
 // 

@@ -131,3 +131,35 @@ class Control
 		// Maximum duration of the cool down state (in milliseconds).
 		static unsigned int ms_CoolDownDurationMS;	
 };
+
+
+// Functions
+//
+
+// Uninitialize all of the controls.
+//
+void ControlsUninitialize();
+
+// Process all of the controls.
+//
+void ControlsProcess();
+
+// Create a new control with the provided config. Control names must be unique.
+//
+// p_Config:	Configuration parameters for the control.
+//
+// Returns:		True if the control was successfully created, false otherwise.
+//
+bool ControlsCreateControl(ControlConfig const& p_Config);
+
+// Try to find the control with the given name.
+//
+// p_Name:	The name of the control being searched for.
+//
+// Returns:	A pointer to the control, or null if it was not found.
+//
+Control* ControlsFindControl(char const* p_Name);
+
+// Stop all of the controls.
+//
+void ControlsStopAll();

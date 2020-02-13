@@ -45,15 +45,9 @@ struct ScheduleEvent
 //
 
 // This will contain the schedule once it has been parsed in.
-static ScheduleEvent* s_ScheduleEvents = NULL;
+static ScheduleEvent* s_ScheduleEvents = nullptr;
 static unsigned int s_ScheduleMaxEvents = 0;
 static unsigned int s_ScheduleNumEvents = 0;
-
-// The array of controls.
-static Control* s_Controls = NULL;
-
-// The number of controls.
-static unsigned int s_NumControls = 0;
 
 // The current spot in the schedule.
 static unsigned int s_ScheduleIndex = UINT_MAX;
@@ -95,7 +89,7 @@ static bool ScheduleLoad()
 	// Open the schedule file.
 	FILE* l_ScheduleFile = fopen(CONFIGDIR "sandman.sched", "r");
 	
-	if (l_ScheduleFile == NULL)
+	if (l_ScheduleFile == nullptr)
 	{
 		return false;
 	}
@@ -110,7 +104,7 @@ static bool ScheduleLoad()
 	
 	fpos_t l_FirstActionFilePosition;
 	
-	while (fgets(l_LineBuffer, l_LineBufferCapacity, l_ScheduleFile) != NULL)
+	while (fgets(l_LineBuffer, l_LineBufferCapacity, l_ScheduleFile) != nullptr)
 	{
 		// Skip comments.
 		if (l_LineBuffer[0] == '#')
@@ -151,7 +145,7 @@ static bool ScheduleLoad()
 	size_t l_AllocationSize = s_ScheduleMaxEvents * sizeof(ScheduleEvent);
 	s_ScheduleEvents = reinterpret_cast<ScheduleEvent*>(malloc(l_AllocationSize));
 	
-	if (s_ScheduleEvents == NULL)
+	if (s_ScheduleEvents == nullptr)
 	{
 		// Close the file.
 		fclose(l_ScheduleFile);
@@ -169,7 +163,7 @@ static bool ScheduleLoad()
 		return false;
 	}
 	
-	while (fgets(l_LineBuffer, l_LineBufferCapacity, l_ScheduleFile) != NULL)
+	while (fgets(l_LineBuffer, l_LineBufferCapacity, l_ScheduleFile) != nullptr)
 	{
 		// Skip comments.
 		if (l_LineBuffer[0] == '#')
@@ -190,7 +184,7 @@ static bool ScheduleLoad()
 		// The delay is followed by a comma.
 		char* l_Separator = strchr(l_LineText, ',');
 		
-		if (l_Separator == NULL)
+		if (l_Separator == nullptr)
 		{
 			continue;
 		}
@@ -206,7 +200,7 @@ static bool ScheduleLoad()
 		// The control name is also followed by a comma.
 		l_Separator = strchr(l_LineText, ',');
 		
-		if (l_Separator == NULL)
+		if (l_Separator == nullptr)
 		{
 			continue;
 		}
@@ -271,7 +265,7 @@ static bool ScheduleLoad()
 //
 static void ScheduleLogLoaded()
 {
-	if (s_ScheduleEvents == NULL)
+	if (s_ScheduleEvents == nullptr)
 	{
 		return;
 	}
@@ -308,17 +302,11 @@ static void ScheduleLogLoaded()
 
 // Initialize the schedule.
 //
-// p_Controls:		The array of controls.
-// p_NumControls:	The number of controls.
-//
-void ScheduleInitialize(Control* p_Controls, unsigned int p_NumControls)
-{
-	s_Controls = p_Controls;
-	s_NumControls = p_NumControls;
-	
+void ScheduleInitialize()
+{	
 	s_ScheduleIndex = UINT_MAX;
 	
-	s_ScheduleEvents = NULL;
+	s_ScheduleEvents = nullptr;
 	s_ScheduleMaxEvents = 0;
 	s_ScheduleNumEvents = 0;
 	
@@ -342,10 +330,10 @@ void ScheduleInitialize(Control* p_Controls, unsigned int p_NumControls)
 // 
 void ScheduleUninitialize()
 {
-	if (s_ScheduleEvents != NULL)
+	if (s_ScheduleEvents != nullptr)
 	{
 		free(s_ScheduleEvents);
-		s_ScheduleEvents = NULL;
+		s_ScheduleEvents = nullptr;
 	}
 }
 
@@ -354,7 +342,7 @@ void ScheduleUninitialize()
 void ScheduleStart()
 {
 	// Make sure it's initialized.
-	if (s_ScheduleEvents == NULL)
+	if (s_ScheduleEvents == nullptr)
 	{
 		return;
 	}
@@ -379,7 +367,7 @@ void ScheduleStart()
 void ScheduleStop()
 {
 	// Make sure it's initialized.
-	if (s_ScheduleEvents == NULL)
+	if (s_ScheduleEvents == nullptr)
 	{
 		return;
 	}
@@ -410,7 +398,7 @@ bool ScheduleIsRunning()
 void ScheduleProcess()
 {
 	// Make sure it's initialized.
-	if (s_ScheduleEvents == NULL)
+	if (s_ScheduleEvents == nullptr)
 	{
 		return;
 	}
@@ -449,19 +437,17 @@ void ScheduleProcess()
 	}
 
 	// Try to find the control to perform the action.
-	for (unsigned int l_ControlIndex = 0; l_ControlIndex < s_NumControls; l_ControlIndex++)
-	{
-		Control& l_Control = s_Controls[l_ControlIndex];
+	auto* l_Control = ControlsFindControl(l_Event.m_ControlName); 
+	
+	if (l_Control == nullptr) {
 		
-		if (strcmp(l_Control.GetName(), l_Event.m_ControlName) != 0)
-		{
-			continue;
-		}
-		
-		// Perform the action.
-		l_Control.SetDesiredAction(l_Event.m_Action, Control::MODE_TIMED);
-		break;
+		LoggerAddMessage("Schedule couldn't find control \"%s\". Moving to event %i.", 
+			l_Event.m_ControlName, s_ScheduleIndex);
+		return;
 	}
+		
+	// Perform the action.
+	l_Control->SetDesiredAction(l_Event.m_Action, Control::MODE_TIMED);
 	
 	LoggerAddMessage("Schedule moving to event %i.", s_ScheduleIndex);
 }
