@@ -229,16 +229,16 @@ void Control::Process()
 			Time l_CurrentTime;
 			TimerGetCurrent(l_CurrentTime);
 
-			const auto l_ElapsedTimeMS = TimerGetElapsedMilliseconds(m_StateStartTime, l_CurrentTime);
+			auto const l_ElapsedTimeMS = TimerGetElapsedMilliseconds(m_StateStartTime, l_CurrentTime);
 
 			// Get the action corresponding to this state, as well as the one for the opposite state.
-			const auto l_MatchingAction = (m_State == STATE_MOVING_UP) ? ACTION_MOVING_UP : 
+			auto const l_MatchingAction = (m_State == STATE_MOVING_UP) ? ACTION_MOVING_UP : 
 				ACTION_MOVING_DOWN;
-			const auto l_OppositeAction = (m_State == STATE_MOVING_UP) ? ACTION_MOVING_DOWN : 
+			auto const l_OppositeAction = (m_State == STATE_MOVING_UP) ? ACTION_MOVING_DOWN : 
 				ACTION_MOVING_UP;
 
 			// Get the duration based on the mode.
-			const auto l_MovingDurationMS = (m_Mode == MODE_TIMED) ? m_MovingDurationMS : 
+			auto const l_MovingDurationMS = (m_Mode == MODE_TIMED) ? m_MovingDurationMS : 
 				ms_MovingDurationMS;
 			
 			// Wait until the desired action no longer matches or the time limit has run out.
@@ -247,17 +247,20 @@ void Control::Process()
 				break;
 			}
 
+			// We are about to change the state, so keep track of the old one.
+			auto const l_OldState = m_State;
+			
 			if (m_DesiredAction == l_OppositeAction)
 			{
 				// Transition to the opposite state.
-				const auto l_OppositeState = (m_State == STATE_MOVING_UP) ? STATE_MOVING_DOWN :
+				auto const l_OppositeState = (m_State == STATE_MOVING_UP) ? STATE_MOVING_DOWN :
 					STATE_MOVING_UP;
 				m_State = l_OppositeState;
 
 				// Flip the pins.
-				const auto l_OldStatePin = (m_State == STATE_MOVING_DOWN) ? m_UpGPIOPin : 
+				auto const l_OldStatePin = (m_State == STATE_MOVING_DOWN) ? m_UpGPIOPin : 
 					m_DownGPIOPin;
-				const auto l_NewStatePin = (m_State == STATE_MOVING_DOWN) ? m_DownGPIOPin : 
+				auto const l_NewStatePin = (m_State == STATE_MOVING_DOWN) ? m_DownGPIOPin : 
 					m_UpGPIOPin;
 				SetGPIOPinOff(l_OldStatePin);
 				SetGPIOPinOn(l_NewStatePin);
@@ -279,7 +282,7 @@ void Control::Process()
 			TimerGetCurrent(m_StateStartTime);
 
 			LoggerAddMessage("Control \"%s\": State transition from \"%s\" to \"%s\" triggered.", 
-				m_Name, s_ControlStateNames[STATE_MOVING_UP], s_ControlStateNames[m_State]);
+				m_Name, s_ControlStateNames[l_OldState], s_ControlStateNames[m_State]);
 		}
 		break;
 
@@ -292,7 +295,7 @@ void Control::Process()
 			Time l_CurrentTime;
 			TimerGetCurrent(l_CurrentTime);
 
-			float l_ElapsedTimeMS = TimerGetElapsedMilliseconds(m_StateStartTime, l_CurrentTime);
+			auto const l_ElapsedTimeMS = TimerGetElapsedMilliseconds(m_StateStartTime, l_CurrentTime);
 
 			// Wait until the time limit has run out.
 			if (l_ElapsedTimeMS < ms_CoolDownDurationMS)
