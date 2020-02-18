@@ -21,6 +21,10 @@
 //
 
 
+// Types
+//
+
+
 // Locals
 //
 
@@ -34,6 +38,21 @@ T const& Min(T const& p_A, T const& p_B)
 	return (p_A < p_B) ? p_A : p_B;
 }
 
+// ControlAction members
+
+
+// A constructor for emplacing.
+// 
+ControlAction::ControlAction(char const* p_ControlName, Control::Actions p_Action)
+	: m_Action(p_Action)
+{
+	// Copy the control name.
+	unsigned int const l_AmountToCopy = 
+		Min(static_cast<unsigned int>(ms_ControlNameCapacity) - 1, strlen(p_ControlName));
+	strncpy(m_ControlName, p_ControlName, l_AmountToCopy);
+	m_ControlName[l_AmountToCopy] = '\0';
+}
+
 // Input members
 
 // Handle initialization.
@@ -44,11 +63,39 @@ void Input::Initialize(char const* p_DeviceName)
 {
 	// Copy the device name.
 	unsigned int const l_AmountToCopy = 
-		Min(static_cast<unsigned int>(DEVICE_NAME_CAPACITY) - 1, strlen(p_DeviceName));
+		Min(static_cast<unsigned int>(ms_DeviceNameCapacity) - 1, strlen(p_DeviceName));
 	strncpy(m_DeviceName, p_DeviceName, l_AmountToCopy);
 	m_DeviceName[l_AmountToCopy] = '\0';
 	
-	LoggerAddMessage("Initialized input device \'%s\'.", m_DeviceName);
+	// Populate the input bindings.
+	m_Bindings.push_back({ 311, { "back", Control::Actions::ACTION_MOVING_UP } });
+	m_Bindings.push_back({ 310, { "back", Control::Actions::ACTION_MOVING_DOWN } });
+	m_Bindings.push_back({ 305, { "legs", Control::Actions::ACTION_MOVING_UP } });	
+	m_Bindings.push_back({ 308, { "legs", Control::Actions::ACTION_MOVING_DOWN } });	
+	m_Bindings.push_back({ 304, { "elev", Control::Actions::ACTION_MOVING_UP } });	
+	m_Bindings.push_back({ 307, { "elev", Control::Actions::ACTION_MOVING_DOWN } });	
+	
+	// Use the bindings to populate the input to action mapping.
+	for (const auto& l_Binding : m_Bindings) 
+	{
+		// Blindly insert. If the same key is bound more than once, the mapping will get overwritten 
+		// with the last occurrence.
+		m_InputToActionMap[l_Binding.m_KeyCode] = l_Binding.m_ControlAction;
+	}
+	
+	// Display what we initialized.
+	LoggerAddMessage("Initialized input device \'%s\' with input bindings:", m_DeviceName);
+	
+	for (const auto& l_Binding : m_Bindings) 
+	{
+		auto* const l_ActionText = 
+			(l_Binding.m_ControlAction.m_Action == Control::Actions::ACTION_MOVING_UP) ? "up" : "down";
+		
+		LoggerAddMessage("\tCode %i -> %s, %s", l_Binding.m_KeyCode, 
+			l_Binding.m_ControlAction.m_ControlName, l_ActionText);
+	}
+	
+	LoggerAddMessage("");
 }
 
 // Handle uninitialization.
@@ -64,7 +111,7 @@ void Input::Uninitialize()
 void Input::Process()
 {
 	// See if we need to open the device.
-	if (m_DeviceFileHandle == INVALID_FILE_HANDLE) {
+	if (m_DeviceFileHandle == ms_InvalidFileHandle) {
 		
 		// If we have failed before, see whether we have waited long enough before trying to open 
 		// again.
@@ -151,8 +198,36 @@ void Input::Process()
 			continue;
 		}
 		
-		LoggerAddMessage("Input event type %i, code %i, value %i", l_Event.type, l_Event.code, 
-			l_Event.value);
+		//LoggerAddMessage("Input event type %i, code %i, value %i", l_Event.type, l_Event.code, 
+		//	l_Event.value);
+			
+		// Try to find a control action corresponding to this input.
+		auto const l_Result = m_InputToActionMap.find(l_Event.code);
+		
+		if (l_Result == m_InputToActionMap.end())
+		{
+			continue;
+		}
+		
+		// The action is the second member of the pair.
+		auto const& l_ControlAction = l_Result->second;
+		
+		// Try to find the corresponding control.
+		auto* l_Control = ControlsFindControl(l_ControlAction.m_ControlName);
+		
+		if (l_Control == nullptr) {
+			
+			LoggerAddMessage("Couldn't find control \'%s\' mapped to key code %i.", 
+				l_ControlAction.m_ControlName, l_Event.code);
+			continue;
+		}
+		
+		// Translate whether the key was pressed or not into the appropriate action.
+		auto const l_Action = (l_Event.value == 1) ? l_ControlAction.m_Action : 
+			Control::Actions::ACTION_STOPPED;
+			
+		// Manipulate the control.
+		l_Control->SetDesiredAction(l_Action, Control::Modes::MODE_TIMED);
 	}	
 }
 
@@ -165,10 +240,10 @@ void Input::Process()
 void Input::CloseDevice(bool p_WasFailure, char const* p_Format, ...)
 {
 	// Close the device.
-	if (m_DeviceFileHandle != INVALID_FILE_HANDLE)
+	if (m_DeviceFileHandle != ms_InvalidFileHandle)
 	{
 		close(m_DeviceFileHandle);
-		m_DeviceFileHandle = INVALID_FILE_HANDLE;
+		m_DeviceFileHandle = ms_InvalidFileHandle;
 	}
 			
 	// Only log a message on failure.
