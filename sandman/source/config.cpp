@@ -7,6 +7,8 @@
 #include <libxml/xmlmemory.h>
 #include <libxml/parser.h>
 
+#include "xml.h"
+
 // Constants
 //
 
@@ -20,107 +22,6 @@ T const& Min(T const& p_A, T const& p_B)
 	return (p_A < p_B) ? p_A : p_B;
 }
 
-// Determines whether the name of a node matches a string. I don't like this, but for some reason 
-// the developers of the XML library decided to make this other type for the strings, but the "official" 
-// examples do blind casts anyway. So I'm hiding this detail in this function.
-//
-// p_Node:	The node whose name we are going to check.
-// p_Name:	The name we are checking for.
-//
-// Returns:	True if the names match, false otherwise.
-//
-static bool XMLIsNodeNamed(const xmlNodePtr p_Node, char const* p_Name)
-{
-	auto const* l_XMLName = reinterpret_cast<xmlChar const*>(p_Name);
-	if (xmlStrcmp(p_Node->name, l_XMLName) == 0)
-	{
-		return true;
-	}
-	
-	return false;
-}
-
-// Gets an integer from the text of an XML node.
-// 
-// p_Document:	The XML document that the node belongs to.
-// p_Node:		The XML node to get the the integer from.
-//
-static int XMLGetNodeTextAsInteger(xmlDocPtr p_Document, xmlNodePtr p_Node)
-{
-	// Get the string representation of the note text.
-	auto* l_NodeText = xmlNodeListGetString(p_Document, p_Node->xmlChildrenNode, 1);
-	
-	if (l_NodeText == nullptr) {
-		return -1;
-	}
-	
-	// Convert the string to an integer.
-	auto const l_Value = atoi(reinterpret_cast<char const*>(l_NodeText));
-	
-	// Free the memory that was allocated and return the value.
-	xmlFree(l_NodeText);
-	
-	return l_Value;
-}
-
-// Copy the text of an XML node into a buffer.
-// 
-// p_Buffer:			(output) A buffer that the text can be copied into.
-// p_BufferCapacity:	The number of characters that can be stored in the buffer.
-// p_Document:			The XML document that the node belongs to.
-// p_Node:				The XML node to get the the integer from.
-//
-// Returns:		The number of characters copied into the buffer.
-//
-static int XMLCopyNodeText(char* p_Buffer, unsigned int p_BufferCapacity, xmlDocPtr p_Document, 
-	xmlNodePtr p_Node)
-{
-	// Get the string representation of the note text.
-	auto* l_NodeText = xmlNodeListGetString(p_Document, p_Node->xmlChildrenNode, 1);
-	
-	if (l_NodeText == nullptr) {
-		return -1;
-	}
-	
-	// Copy no more than the amount of text the buffer can hold.
-	auto const* l_NodeTextString = reinterpret_cast<char const*>(l_NodeText);
-	unsigned int const l_AmountToCopy = 
-		Min(static_cast<unsigned int>(p_BufferCapacity) - 1, strlen(l_NodeTextString));
-	strncpy(p_Buffer, l_NodeTextString, l_AmountToCopy);
-	p_Buffer[l_AmountToCopy] = '\0';
-	
-	// Free the memory that was allocated and return the amount copied.
-	xmlFree(l_NodeText);
-	
-	return l_AmountToCopy;
-}
-
-// Searches a list of XML nodes starting from a given node and returns the next node with a matching 
-// name.
-//
-// p_StartNode:	Does node to start with. This can any node among the same list. Pass in the 
-// 					previously found node to get the next one.
-// p_SearchName:	The name of the node to search for.
-//
-// Returns: 		The next node, or null if none was found.
-//
-static xmlNodePtr XMLFindNextNodeByName(const xmlNodePtr p_StartNode, char const* p_SearchName)
-{
-	// Search through all of the nodes at this level.
-	for (auto l_Node = p_StartNode; l_Node != nullptr; l_Node = l_Node->next)
-	{
-		// If the name doesn't match, go to the next node.
-		if (XMLIsNodeNamed(l_Node, p_SearchName) == false)
-		{
-			continue;
-		}
-		
-		// Found it, return it.
-		return l_Node;
-	}
-	
-	return nullptr;
-}
 
 // Config members
 
@@ -177,15 +78,59 @@ bool Config::ReadFromFile(char const* p_ConfigFileName)
 		auto l_SettingNode = l_InputSettingsNode->xmlChildrenNode;
 		for (; l_SettingNode != nullptr; l_SettingNode = l_SettingNode->next)
 		{
-			// See if this is the input device name.
+			// See if this is an input device.
 			static auto const* s_InputDeviceNodeName = "InputDevice";
-			if (XMLIsNodeNamed(l_SettingNode, s_InputDeviceNodeName) == true)
-			{
-				// Load the text from the node.
-				XMLCopyNodeText(m_InputDeviceName, INPUT_DEVICE_NAME_CAPACITY, l_ConfigDocument, 
-					l_SettingNode);
-				
+			if (XMLIsNodeNamed(l_SettingNode, s_InputDeviceNodeName) == false)
+			{				
 				continue;
+			}
+			
+			// Let's go through the input device settings and try to load those in.
+			auto l_InputDeviceNode = l_SettingNode->xmlChildrenNode;
+			for (; l_InputDeviceNode != nullptr; l_InputDeviceNode = l_InputDeviceNode->next)
+			{
+				// See if this is the device name.
+				static auto const* s_DeviceNameNodeName = "DeviceName";
+				if (XMLIsNodeNamed(l_InputDeviceNode, s_DeviceNameNodeName) == true)
+				{			
+					// Load the text from the node.
+					XMLCopyNodeText(m_InputDeviceName, ms_InputDeviceNameCapacity, l_ConfigDocument, 
+						l_InputDeviceNode);
+					continue;
+				}
+				
+				// See if this is a set of input bindings.
+				static auto const* s_BindingsNodeName = "Bindings";
+				if (XMLIsNodeNamed(l_InputDeviceNode, s_BindingsNodeName) == true)
+				{
+					// Clear the list so that if there are multiple sets of bindings, we always take the 
+					// last ones.
+					m_InputBindings.clear();
+		
+					// Let's go through the bindings and try to load those in.
+					auto l_BindingNode = l_InputDeviceNode->xmlChildrenNode;
+					for (; l_BindingNode != nullptr; l_BindingNode = l_BindingNode->next)
+					{
+						// See if this is a binding.
+						static auto const* s_BindingNodeName = "Binding";
+						if (XMLIsNodeNamed(l_BindingNode, s_BindingNodeName) == false)
+						{
+							continue;
+						}
+						
+						// Try to read the binding.
+						InputBinding l_Binding;
+						if (l_Binding.ReadFromXML(l_ConfigDocument, l_BindingNode) == false)
+						{
+							continue;
+						}
+						
+						// If we successfully read a binding, add it to the list.
+						m_InputBindings.push_back(l_Binding);
+					}				
+	
+					continue;
+				}
 			}
 		}
 	}

@@ -14,6 +14,7 @@
 
 #include "logger.h"
 #include "timer.h"
+#include "xml.h"
 
 #define DATADIR		AM_DATADIR
 
@@ -40,7 +41,6 @@ T const& Min(T const& p_A, T const& p_B)
 
 // ControlAction members
 
-
 // A constructor for emplacing.
 // 
 ControlAction::ControlAction(char const* p_ControlName, Control::Actions p_Action)
@@ -53,13 +53,134 @@ ControlAction::ControlAction(char const* p_ControlName, Control::Actions p_Actio
 	m_ControlName[l_AmountToCopy] = '\0';
 }
 
+// Read a control action from XML. 
+//
+// p_Document:	The XML document that the node belongs to.
+// p_Node:		The XML node to read the control action from.
+//	
+// Returns:		True if the action was read successfully, false otherwise.
+//
+bool ControlAction::ReadFromXML(xmlDocPtr p_Document, xmlNodePtr p_Node)
+{
+	// We must have a control name.
+	static auto const* s_ControlNameNodeName = "ControlName";
+	auto* l_ControlNameNode = XMLFindNextNodeByName(p_Node->xmlChildrenNode, s_ControlNameNodeName);
+	
+	if (l_ControlNameNode == nullptr) 
+	{
+		return false;
+	}
+	
+	// Copy the control name.
+	if (XMLCopyNodeText(m_ControlName, ms_ControlNameCapacity, p_Document, l_ControlNameNode) < 0)
+	{
+		return false;
+	}
+	
+	// We must also have an action.
+	static auto const* s_ActionNodeName = "Action";
+	auto* l_ActionNode = XMLFindNextNodeByName(p_Node->xmlChildrenNode, s_ActionNodeName);
+	
+	if (l_ActionNode == nullptr) 
+	{
+		return false;
+	}	
+	
+	// Make a copy of the node text so that we can parse it.
+	static constexpr unsigned int s_ActionTextCapacity = 32;
+	char l_ActionText[s_ActionTextCapacity];
+	
+	if (XMLCopyNodeText(l_ActionText, s_ActionTextCapacity, p_Document, l_ActionNode) < 0)
+	{
+		return false;
+	}
+	
+	// The names of the actions.
+	static char const* const s_ActionNames[] =
+	{
+		"stop",	// ACTION_STOPPED
+		"up",		// ACTION_MOVING_UP
+		"down",	// ACTION_MOVING_DOWN
+	};
+	
+	// Try to find a control action that matches this text.
+	auto l_GetActionFromString = [&](Control::Actions& p_Action, char const* p_InputText)
+	{
+		auto const l_ActionCount = Control::Actions::NUM_ACTIONS;
+		for (unsigned int l_ActionIndex = 0; l_ActionIndex < l_ActionCount; l_ActionIndex++)
+		{
+			// Compare the text to the action name.
+			auto const* l_ActionName = s_ActionNames[l_ActionIndex];
+			
+			if (strncmp(p_InputText, l_ActionName, strlen(l_ActionName)) != 0)			
+			{
+				continue;
+			}
+			
+			// We found the action, so return it.
+			p_Action = static_cast<Control::Actions>(l_ActionIndex);
+			return true;
+		}
+		
+		return false;
+	};
+	
+	if (l_GetActionFromString(m_Action, l_ActionText) == false) {
+		return false;
+	}
+	
+	return true;
+}
+
+// InputBinding members
+
+// Read an input binding from XML. 
+//
+// p_Document:	The XML document that the node belongs to.
+// p_Node:		The XML node to read the input binding from.
+//	
+// Returns:		True if the binding was read successfully, false otherwise.
+//
+bool InputBinding::ReadFromXML(xmlDocPtr p_Document, xmlNodePtr p_Node)
+{
+	// We must have a key code.
+	static auto const* s_KeyCodeNodeName = "KeyCode";
+	auto* l_KeyCodeNode = XMLFindNextNodeByName(p_Node->xmlChildrenNode, s_KeyCodeNodeName);
+	
+	if (l_KeyCodeNode == nullptr) 
+	{
+		return false;
+	}
+	
+	// Read the key code from the node.
+	m_KeyCode = XMLGetNodeTextAsInteger(p_Document, l_KeyCodeNode);
+	
+	// We must also have a control action.
+	static auto const* s_ControlActionNodeName = "ControlAction";
+	auto* l_ControlActionNode = XMLFindNextNodeByName(p_Node->xmlChildrenNode, s_ControlActionNodeName);
+	
+	if (l_ControlActionNode == nullptr)
+	{
+		return false;
+	}
+	
+	// Read the control action from the node.
+	if (m_ControlAction.ReadFromXML(p_Document, l_ControlActionNode) == false) 
+	{
+		return false;
+	}
+	
+	return true;
+}
+	
 // Input members
 
 // Handle initialization.
 //
 // p_DeviceName:	The name of the input device that this will manage.
+// p_Bindings:		A list of input bindings.
 //
-void Input::Initialize(char const* p_DeviceName)
+void Input::Initialize(char const* p_DeviceName, std::vector<InputBinding> const& p_Bindings)
 {
 	// Copy the device name.
 	unsigned int const l_AmountToCopy = 
@@ -68,12 +189,7 @@ void Input::Initialize(char const* p_DeviceName)
 	m_DeviceName[l_AmountToCopy] = '\0';
 	
 	// Populate the input bindings.
-	m_Bindings.push_back({ 311, { "back", Control::Actions::ACTION_MOVING_UP } });
-	m_Bindings.push_back({ 310, { "back", Control::Actions::ACTION_MOVING_DOWN } });
-	m_Bindings.push_back({ 305, { "legs", Control::Actions::ACTION_MOVING_UP } });	
-	m_Bindings.push_back({ 308, { "legs", Control::Actions::ACTION_MOVING_DOWN } });	
-	m_Bindings.push_back({ 304, { "elev", Control::Actions::ACTION_MOVING_UP } });	
-	m_Bindings.push_back({ 307, { "elev", Control::Actions::ACTION_MOVING_DOWN } });	
+	m_Bindings = p_Bindings;
 	
 	// Use the bindings to populate the input to action mapping.
 	for (const auto& l_Binding : m_Bindings) 
@@ -86,7 +202,7 @@ void Input::Initialize(char const* p_DeviceName)
 	// Display what we initialized.
 	LoggerAddMessage("Initialized input device \'%s\' with input bindings:", m_DeviceName);
 	
-	for (const auto& l_Binding : m_Bindings) 
+	for (auto const& l_Binding : m_Bindings) 
 	{
 		auto* const l_ActionText = 
 			(l_Binding.m_ControlAction.m_Action == Control::Actions::ACTION_MOVING_UP) ? "up" : "down";

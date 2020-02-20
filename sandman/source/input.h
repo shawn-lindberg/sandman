@@ -3,6 +3,8 @@
 #include <map>
 #include <vector>
 
+#include <libxml/parser.h>
+
 #include "control.h"
 #include "timer.h"
 
@@ -17,7 +19,16 @@ struct ControlAction
 	// A constructor for emplacing.
 	// 
 	ControlAction(char const* p_ControlName, Control::Actions p_Action);
-		
+
+	// Read a control action from XML. 
+	//
+	// p_Document:	The XML document that the node belongs to.
+	// p_Node:		The XML node to read the control action from.
+	//	
+	// Returns:		True if the action was read successfully, false otherwise.
+	//
+	bool ReadFromXML(xmlDocPtr p_Document, xmlNodePtr p_Node);
+	
 	// Constants.
 	static constexpr unsigned int ms_ControlNameCapacity = 32;
 	
@@ -31,6 +42,8 @@ struct ControlAction
 // The description of an input binding and its associated action.
 struct InputBinding
 {	
+	InputBinding() = default;
+	
 	// A constructor for emplacing.
 	//
 	InputBinding(unsigned short p_KeyCode, ControlAction&& p_ControlAction)
@@ -39,6 +52,15 @@ struct InputBinding
 	{
 	}
 		
+	// Read an input binding from XML. 
+	//
+	// p_Document:	The XML document that the node belongs to.
+	// p_Node:		The XML node to read the input binding from.
+	//	
+	// Returns:		True if the binding was read successfully, false otherwise.
+	//
+	bool ReadFromXML(xmlDocPtr p_Document, xmlNodePtr p_Node);
+	
 	// The numeric code of the key that should trigger action.
 	unsigned short		m_KeyCode;
 	
@@ -55,8 +77,9 @@ class Input
 		// Handle initialization.
 		//
 		// p_DeviceName:	The name of the input device that this will manage.
+		// p_Bindings:		A list of input bindings.
 		//
-		void Initialize(char const* p_DeviceName);
+		void Initialize(char const* p_DeviceName, std::vector<InputBinding> const& p_Bindings);
 
 		// Handle uninitialization.
 		//

@@ -330,7 +330,7 @@ static bool Initialize()
 	s_ControlsInitialized = true;
 	
 	// Initialize the input device.
-	s_Input.Initialize(l_Config.GetInputDeviceName());
+	s_Input.Initialize(l_Config.GetInputDeviceName(), l_Config.GetInputBindings());
 	
 	// Initialize the schedule.
 	ScheduleInitialize();

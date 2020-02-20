@@ -1,5 +1,7 @@
 #pragma once
 
+#include "input.h"
+
 // Types
 //
 
@@ -41,6 +43,11 @@ class Config
 			return m_InputDeviceName;
 		}
 		
+		std::vector<InputBinding> const& GetInputBindings() const
+		{
+			return m_InputBindings;
+		}
+		
 		unsigned int GetControlMaxMovingDurationMS() const
 		{
 			return m_ControlMaxMovingDurationMS;
@@ -54,13 +61,10 @@ class Config
 	private:
 	
 		// Constants.
-		enum {
-			
-			INPUT_DEVICE_NAME_CAPACITY = 64,
-		};
+		static constexpr unsigned int ms_InputDeviceNameCapacity = 64;
 		
 		// The name of the speech input device.
-		char m_SpeechInputDeviceName[INPUT_DEVICE_NAME_CAPACITY];
+		char m_SpeechInputDeviceName[ms_InputDeviceNameCapacity];
 
 		// The input sample rate.
 		unsigned int m_InputSampleRate;
@@ -69,7 +73,10 @@ class Config
 		float m_PostSpeechDelaySec;
 		
 		// The name of the input device.
-		char m_InputDeviceName[INPUT_DEVICE_NAME_CAPACITY];
+		char m_InputDeviceName[ms_InputDeviceNameCapacity];
+							
+		// The list of input bindings.
+		std::vector<InputBinding> m_InputBindings;
 		
 		// The maximum duration a control can move for (in milliseconds).
 		unsigned int m_ControlMaxMovingDurationMS;

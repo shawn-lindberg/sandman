@@ -110,14 +110,14 @@ CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
 am__sandman_SOURCES_DIST = config.cpp control.cpp input.cpp logger.cpp \
-	schedule.cpp sound.cpp timer.cpp main.cpp \
+	schedule.cpp sound.cpp timer.cpp xml.cpp main.cpp \
 	speech_recognizer.cpp
 @SPHINX_SPEECH_RECOGNITION_TRUE@am__objects_1 = sandman-speech_recognizer.$(OBJEXT)
 am_sandman_OBJECTS = sandman-config.$(OBJEXT) \
 	sandman-control.$(OBJEXT) sandman-input.$(OBJEXT) \
 	sandman-logger.$(OBJEXT) sandman-schedule.$(OBJEXT) \
 	sandman-sound.$(OBJEXT) sandman-timer.$(OBJEXT) \
-	sandman-main.$(OBJEXT) $(am__objects_1)
+	sandman-xml.$(OBJEXT) sandman-main.$(OBJEXT) $(am__objects_1)
 sandman_OBJECTS = $(am_sandman_OBJECTS)
 am__DEPENDENCIES_1 =
 sandman_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
@@ -316,7 +316,8 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 sandman_SOURCES = config.cpp control.cpp input.cpp logger.cpp \
-	schedule.cpp sound.cpp timer.cpp main.cpp $(am__append_1)
+	schedule.cpp sound.cpp timer.cpp xml.cpp main.cpp \
+	$(am__append_1)
 sandman_CPPFLAGS = $(XML_CFLAGS) $(SDL_MIXER_CFLAGS) \
 	-DAM_DATADIR='"$(datadir)/sandman/"' \
 	-DAM_CONFIGDIR='"$(sysconfdir)/sandman/"' \
@@ -424,6 +425,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sandman-sound.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sandman-speech_recognizer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sandman-timer.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sandman-xml.Po@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -543,6 +545,20 @@ sandman-timer.obj: timer.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='timer.cpp' object='sandman-timer.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(sandman_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o sandman-timer.obj `if test -f 'timer.cpp'; then $(CYGPATH_W) 'timer.cpp'; else $(CYGPATH_W) '$(srcdir)/timer.cpp'; fi`
+
+sandman-xml.o: xml.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(sandman_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT sandman-xml.o -MD -MP -MF $(DEPDIR)/sandman-xml.Tpo -c -o sandman-xml.o `test -f 'xml.cpp' || echo '$(srcdir)/'`xml.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sandman-xml.Tpo $(DEPDIR)/sandman-xml.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='xml.cpp' object='sandman-xml.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(sandman_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o sandman-xml.o `test -f 'xml.cpp' || echo '$(srcdir)/'`xml.cpp
+
+sandman-xml.obj: xml.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(sandman_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT sandman-xml.obj -MD -MP -MF $(DEPDIR)/sandman-xml.Tpo -c -o sandman-xml.obj `if test -f 'xml.cpp'; then $(CYGPATH_W) 'xml.cpp'; else $(CYGPATH_W) '$(srcdir)/xml.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sandman-xml.Tpo $(DEPDIR)/sandman-xml.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='xml.cpp' object='sandman-xml.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(sandman_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o sandman-xml.obj `if test -f 'xml.cpp'; then $(CYGPATH_W) 'xml.cpp'; else $(CYGPATH_W) '$(srcdir)/xml.cpp'; fi`
 
 sandman-main.o: main.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(sandman_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT sandman-main.o -MD -MP -MF $(DEPDIR)/sandman-main.Tpo -c -o sandman-main.o `test -f 'main.cpp' || echo '$(srcdir)/'`main.cpp
