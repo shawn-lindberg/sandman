@@ -89,9 +89,9 @@ static char const* const s_CommandTokenNames[] =
 // The configuration parameters for each control.
 static ControlConfig s_ControlConfigs[] = 
 {
-	{ "back",	24,	21,	13000 }, // CONTROL_BACK
-	{ "legs",	22,	23,	13000 }, // CONTROL_LEGS
-	{ "elev",	5,		6, 	13000 },	// CONTROL_ELEVATION
+	{ "back",	24,	21,	7000 }, // CONTROL_BACK
+	{ "legs",	22,	23,	7000 },	// CONTROL_LEGS
+	{ "elev",	5,		6, 	4000 },	// CONTROL_ELEVATION
 };
 
 // Whether controls have been initialized.

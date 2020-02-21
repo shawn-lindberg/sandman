@@ -343,7 +343,7 @@ void Input::Process()
 			Control::Actions::ACTION_STOPPED;
 			
 		// Manipulate the control.
-		l_Control->SetDesiredAction(l_Action, Control::Modes::MODE_TIMED);
+		l_Control->SetDesiredAction(l_Action, Control::Modes::MODE_MANUAL);
 	}	
 }
 
