@@ -341,6 +341,12 @@ void Control::SetDesiredAction(Actions p_DesiredAction, Modes p_Mode)
 //
 void Control::QueueSound()
 {
+	// Do not make a sound if the mode is manual.
+	if (m_Mode == MODE_MANUAL)
+	{
+		return;
+	}
+	
 	// Build the file name.
 	unsigned int l_SoundFileNameCapacity = 128;
 	char l_SoundFileName[l_SoundFileNameCapacity];
