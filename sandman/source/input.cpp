@@ -13,6 +13,7 @@
 #include <unistd.h>
 
 #include "logger.h"
+#include "sound.h"
 #include "timer.h"
 #include "xml.h"
 
@@ -277,6 +278,9 @@ void Input::Process()
 		LoggerAddMessage("Input device bus 0x%x, vendor 0x%x, product 0x%x, version 0x%x.", 
 			l_DeviceID[ID_BUS], l_DeviceID[ID_VENDOR], l_DeviceID[ID_PRODUCT], l_DeviceID[ID_VERSION]);
 			
+		// Play sound indicating the controller connected.
+		SoundAddToQueue(DATADIR "audio/control_connect.wav");
+			
 		m_DeviceOpenHasFailed = false;
 	}
 	
@@ -347,6 +351,13 @@ void Input::Process()
 	}	
 }
 
+// Determine whether the input device is connected.
+//
+bool Input::IsConnected() const
+{
+	return (m_DeviceFileHandle != ms_InvalidFileHandle);
+}
+		
 // Close the input device.
 // 
 // p_WasFailure:	Whether the device is being closed due to a failure or not.
@@ -362,7 +373,7 @@ void Input::CloseDevice(bool p_WasFailure, char const* p_Format, ...)
 		m_DeviceFileHandle = ms_InvalidFileHandle;
 	}
 			
-	// Only log a message on failure.
+	// Only log a message/play sound on failure.
 	if (p_WasFailure == false) {
 		return;
 	}
@@ -382,4 +393,7 @@ void Input::CloseDevice(bool p_WasFailure, char const* p_Format, ...)
 	LoggerAddMessage(p_Format, l_Arguments);	
 	
 	va_end(l_Arguments);
+		
+	// Play sound indicating the controller disconnected.
+	SoundAddToQueue(DATADIR "audio/control_disconnect.wav");
 }

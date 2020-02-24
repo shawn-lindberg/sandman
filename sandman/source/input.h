@@ -89,6 +89,10 @@ class Input
 		//
 		void Process();
 		
+		// Determine whether the input device is connected.
+		//
+		bool IsConnected() const;
+		
 	private:
 
 		// Constants.

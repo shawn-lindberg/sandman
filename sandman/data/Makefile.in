@@ -285,6 +285,7 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 sandmandatadir = $(datadir)/sandman
 nobase_dist_sandmandata_DATA = audio/back_moving_down.wav audio/back_stop.wav audio/back_moving_up.wav \
+	audio/control_connect.wav audio/control_connected.wav audio/control_disconnect.wav \
 	audio/elev_moving_down.wav audio/elev_stop.wav audio/elev_moving_up.wav \
 	audio/initialized.wav audio/legs_moving_down.wav audio/legs_stop.wav audio/legs_moving_up.wav \
 	audio/running.wav audio/sched_running.wav audio/sched_start.wav audio/sched_stop.wav \

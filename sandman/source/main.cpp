@@ -639,6 +639,11 @@ void ParseCommandTokens(unsigned int& p_CommandTokenBufferSize, CommandTokenType
 			{
 				SoundAddToQueue(DATADIR "audio/sched_running.wav");	
 			}
+			
+			if (s_Input.IsConnected() == true)
+			{
+				SoundAddToQueue(DATADIR "audio/control_connected.wav");
+			}
 		}
 	}
 
