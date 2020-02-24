@@ -58,6 +58,11 @@ class Config
 			return m_ControlCoolDownDurationMS;
 		}
 		
+		std::vector<ControlConfig> const& GetControlConfigs() const
+		{
+			return m_ControlConfigs;
+		}
+		
 	private:
 	
 		// Constants.
@@ -83,5 +88,8 @@ class Config
 				
 		// The duration a control will be on cooldown (in milliseconds).
 		unsigned int m_ControlCoolDownDurationMS;
+		
+		// The list of control configs.
+		std::vector<ControlConfig> m_ControlConfigs;
 };
 

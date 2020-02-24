@@ -23,11 +23,10 @@ static bool s_LogToScreen = false;
 // Initialize the logger.
 //
 // p_LogFileName:	File name of the log for output.
-// p_LogToScreen:	Whether to echo messages to the screen.
 //
 // returns:		True if successful, false otherwise.
 //
-bool LoggerInitialize(char const* p_LogFileName, bool p_LogToScreen)
+bool LoggerInitialize(char const* p_LogFileName)
 {
 	// Initialize the file.
 	s_LogFile = nullptr;
@@ -45,9 +44,6 @@ bool LoggerInitialize(char const* p_LogFileName, bool p_LogToScreen)
 		return false;
 	}
 
-	// Whether to echo messages to the screen.
-	s_LogToScreen = p_LogToScreen;
-
 	return true;
 }
 
@@ -62,6 +58,15 @@ void LoggerUninitialize()
 	}
 
 	s_LogFile = nullptr;
+}
+
+// Set whether to echo messages to the screen as well.
+//
+// p_LogToScreen:	Whether to echo messages to the screen.
+//
+void LoggerEchoToScreen(bool p_LogToScreen)
+{
+	s_LogToScreen = p_LogToScreen;
 }
 
 // Add a message to the log.

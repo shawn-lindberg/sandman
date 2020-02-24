@@ -7,6 +7,7 @@
 #include "logger.h"
 #include "sound.h"
 #include "timer.h"
+#include "xml.h"
 
 #include "wiringPi.h"
 
@@ -102,6 +103,71 @@ void SetGPIOPinOff(int p_Pin)
 	digitalWrite(p_Pin, CONTROL_OFF_GPIO_VALUE);
 }
 
+// ControlConfig members
+
+// Read a control config from XML. 
+//
+// p_Document:	The XML document that the node belongs to.
+// p_Node:		The XML node to read the control config from.
+//	
+// Returns:		True if the config was read successfully, false otherwise.
+//
+bool ControlConfig::ReadFromXML(xmlDocPtr p_Document, xmlNodePtr p_Node)
+{
+	// We must have a control name.
+	static auto const* s_ControlNameNodeName = "ControlName";
+	auto* l_ControlNameNode = XMLFindNextNodeByName(p_Node->xmlChildrenNode, s_ControlNameNodeName);
+	
+	if (l_ControlNameNode == nullptr) 
+	{
+		return false;
+	}
+	
+	// Copy the control name.
+	if (XMLCopyNodeText(m_Name, ms_ControlNameCapacity, p_Document, l_ControlNameNode) < 0)
+	{
+		return false;
+	}
+	
+	// We must have an up pin.
+	static auto const* s_UpPinNodeName = "UpPin";
+	auto* l_UpPinNode = XMLFindNextNodeByName(p_Node->xmlChildrenNode, s_UpPinNodeName);
+	
+	if (l_UpPinNode == nullptr) 
+	{
+		return false;
+	}
+	
+	// Read the up pin from the node.
+	m_UpGPIOPin = XMLGetNodeTextAsInteger(p_Document, l_UpPinNode);
+			
+	// We must have a down pin.
+	static auto const* s_DownPinNodeName = "DownPin";
+	auto* l_DownPinNode = XMLFindNextNodeByName(p_Node->xmlChildrenNode, s_DownPinNodeName);
+	
+	if (l_DownPinNode == nullptr) 
+	{
+		return false;
+	}
+	
+	// Read the down pin from the node.
+	m_DownGPIOPin = XMLGetNodeTextAsInteger(p_Document, l_DownPinNode);
+		
+	// We must have a moving duration.
+	static auto const* s_MovingDurationNodeName = "MovingDurationMS";
+	auto* l_MovingDurationNode = XMLFindNextNodeByName(p_Node->xmlChildrenNode, s_MovingDurationNodeName);
+	
+	if (l_MovingDurationNode == nullptr) 
+	{
+		return false;
+	}
+	
+	// Read the moving duration from the node.
+	m_MovingDurationMS = XMLGetNodeTextAsInteger(p_Document, l_MovingDurationNode);
+		
+	return true;
+}
+	
 // Control members
 
 // Handle initialization.

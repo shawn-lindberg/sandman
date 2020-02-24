@@ -1,5 +1,7 @@
 #pragma once
 
+#include <libxml/parser.h>
+
 #include "timer.h"
 
 // Types
@@ -8,8 +10,20 @@
 // Configuration parameters to initialize a control.
 struct ControlConfig
 {
+	// Read a control config from XML. 
+	//
+	// p_Document:	The XML document that the node belongs to.
+	// p_Node:		The XML node to read the control config from.
+	//	
+	// Returns:		True if the config was read successfully, false otherwise.
+	//
+	bool ReadFromXML(xmlDocPtr p_Document, xmlNodePtr p_Node);
+	
+	// Constants.
+	static constexpr unsigned int ms_ControlNameCapacity = 32;
+	
 	// The name of the control.
-	char const* m_Name;
+	char m_Name[ms_ControlNameCapacity];
 		
 	// The GPIO pins to use.
 	int m_UpGPIOPin;

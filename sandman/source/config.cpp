@@ -7,6 +7,7 @@
 #include <libxml/xmlmemory.h>
 #include <libxml/parser.h>
 
+#include "logger.h"
 #include "xml.h"
 
 // Constants
@@ -165,6 +166,38 @@ bool Config::ReadFromFile(char const* p_ConfigFileName)
 				auto const l_CoolDownDuration = XMLGetNodeTextAsInteger(l_ConfigDocument, l_SettingNode);
 				m_ControlCoolDownDurationMS = l_CoolDownDuration;
 				
+				continue;
+			}
+			
+			// See if this is a set of control configs.
+			static auto const* s_ControlConfigsNodeName = "ControlConfigs";
+			if (XMLIsNodeNamed(l_SettingNode, s_ControlConfigsNodeName) == true)
+			{
+				// Clear the list so that if there are multiple sets, we always take the last ones.
+				m_ControlConfigs.clear();
+		
+				// Let's go through the bindings and try to load those in.
+				auto l_ControlConfigNode = l_SettingNode->xmlChildrenNode;
+				for (; l_ControlConfigNode != nullptr; l_ControlConfigNode = l_ControlConfigNode->next)
+				{
+					// See if this is a control config.
+					static auto const* s_ControlConfigNodeName = "ControlConfig";
+					if (XMLIsNodeNamed(l_ControlConfigNode, s_ControlConfigNodeName) == false)
+					{
+						continue;
+					}
+						
+					// Try to read the control config.
+					ControlConfig l_ControlConfig;
+					if (l_ControlConfig.ReadFromXML(l_ConfigDocument, l_ControlConfigNode) == false)
+					{
+						continue;
+					}
+					
+					// If we successfully read a control config, add it to the list.
+					m_ControlConfigs.push_back(l_ControlConfig);
+				}				
+
 				continue;
 			}
 		}

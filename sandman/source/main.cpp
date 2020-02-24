@@ -54,16 +54,6 @@ enum CommandTokenTypes
 	NUM_COMMAND_TOKEN_TYPES,
 };
 
-// Types of controls.
-enum ControlTypes
-{
-	CONTROL_BACK = 0,
-	CONTROL_LEGS,
-	CONTROL_ELEVATION,
-
-	NUM_CONTROL_TYPES,
-};
-
 // Locals
 //
 
@@ -84,14 +74,6 @@ static char const* const s_CommandTokenNames[] =
 	"schedule",		// COMMAND_TOKEN_SCHEDULE
 	"start",		// COMMAND_TOKEN_START
 	"status",		// COMMAND_TOKEN_STATUS
-};
-
-// The configuration parameters for each control.
-static ControlConfig s_ControlConfigs[] = 
-{
-	{ "back",	24,	21,	7000 }, // CONTROL_BACK
-	{ "legs",	22,	23,	7000 },	// CONTROL_LEGS
-	{ "elev",	5,		6, 	4000 },	// CONTROL_ELEVATION
 };
 
 // Whether controls have been initialized.
@@ -150,14 +132,7 @@ static void ConvertStringToLowercase(char* p_String)
 // returns:		True for success, false otherwise.
 //
 static bool Initialize()
-{
-	// Read the config.
-	Config l_Config;
-	if (l_Config.ReadFromFile(CONFIGDIR "sandman.conf") == false)
-	{
-		return false;
-	}
-	
+{				
 	if (s_DaemonMode == true)
 	{
 		printf("Initializing as a daemon.\n");
@@ -183,7 +158,7 @@ static bool Initialize()
 		umask(0);
 		
 		// Initialize logging.
-		if (LoggerInitialize(TEMPDIR "sandman.log", (s_DaemonMode == false)) == false)
+		if (LoggerInitialize(TEMPDIR "sandman.log") == false)
 		{
 			return false;
 		}
@@ -196,7 +171,7 @@ static bool Initialize()
 			LoggerAddMessage("Failed to get new session ID for daemon.");
 			return false;
 		}
-		
+	
 		// Change the current working directory.
 		if (chdir(TEMPDIR) < 0)
 		{
@@ -257,7 +232,7 @@ static bool Initialize()
 			return false;
 		}
 		
-		// Sockets setup!
+		// Sockets setup!	
 	}
 	else
 	{
@@ -277,12 +252,21 @@ static bool Initialize()
 		nonl();
 			
 		// Initialize logging.
-		if (LoggerInitialize(TEMPDIR "sandman.log", (s_DaemonMode == false)) == false)
+		if (LoggerInitialize(TEMPDIR "sandman.log") == false)
 		{
 			return false;
 		}
+		
+		LoggerEchoToScreen(true);
 	}
-
+				
+	// Read the config.
+	Config l_Config;
+	if (l_Config.ReadFromFile(CONFIGDIR "sandman.conf") == false)
+	{
+		return false;
+	}	
+		
 	#if defined (USE_INTERNAL_SPEECH_RECOGNITION)
 
 		// Initialize speech recognition.
@@ -314,9 +298,9 @@ static bool Initialize()
 	}
 
 	// Initialize controls.
-	for (unsigned int l_ControlIndex = 0; l_ControlIndex < NUM_CONTROL_TYPES; l_ControlIndex++)
-	{		
-		ControlsCreateControl(s_ControlConfigs[l_ControlIndex]);
+	for (auto const& l_ControlConfig : l_Config.GetControlConfigs())
+	{
+		ControlsCreateControl(l_ControlConfig);
 	}
 
 	// Set control durations.
