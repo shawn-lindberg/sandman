@@ -12,7 +12,7 @@
 //
 
 // The file to log messages to.
-static FILE* s_LogFile = NULL;
+static FILE* s_LogFile = nullptr;
 
 // Whether to echo messages to the screen.
 static bool s_LogToScreen = false;
@@ -52,7 +52,7 @@ bool LoggerInitialize(char const* p_LogFileName)
 void LoggerUninitialize()
 {
 	// Close the file.
-	if (s_LogFile != NULL)
+	if (s_LogFile != nullptr)
 	{
 		fclose(s_LogFile);
 	}
@@ -115,7 +115,7 @@ bool LoggerAddMessage(char const* p_Format, va_list& p_Arguments)
 	l_RemainingBuffer[l_RemainingCapacity - 1] = '\0';
 
 	// Update buffer write parameters.
-	unsigned int l_CapacityUsed = strlen(l_RemainingBuffer);
+	unsigned int const l_CapacityUsed = strlen(l_RemainingBuffer);
 	l_RemainingBuffer += l_CapacityUsed;
 	l_RemainingCapacity -= l_CapacityUsed;
 

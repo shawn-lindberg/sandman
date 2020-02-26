@@ -132,7 +132,7 @@ bool SoundInitialize()
 	// Initialize the play queue.
 	for (unsigned int l_SoundIndex = 0; l_SoundIndex < s_MaxQueuedSounds; l_SoundIndex++)
 	{
-		s_PlayQueue[l_SoundIndex] = NULL;
+		s_PlayQueue[l_SoundIndex] = nullptr;
 	}
 	
 	s_NumQueuedSounds = 0;
@@ -158,12 +158,12 @@ void SoundUninitialize()
 	// Clean up leftover sounds.
 	for (unsigned int l_SoundIndex = 0; l_SoundIndex < s_NumQueuedSounds; l_SoundIndex++)
 	{
-		if (s_PlayQueue[l_SoundIndex] != NULL)
+		if (s_PlayQueue[l_SoundIndex] != nullptr)
 		{
 			Mix_FreeChunk(s_PlayQueue[l_SoundIndex]);
 		}
 		
-		s_PlayQueue[l_SoundIndex] = NULL;
+		s_PlayQueue[l_SoundIndex] = nullptr;
 	}
 		
 	s_NumQueuedSounds = 0;
@@ -320,7 +320,7 @@ bool SoundAddToQueue(char const* const p_FileName)
 	// Load the file.
 	Mix_Chunk* l_Sample = Mix_LoadWAV(p_FileName);
 	
-	if (l_Sample == NULL)
+	if (l_Sample == nullptr)
 	{
 		LoggerAddMessage("Failed to load sound from file \"%s\"", p_FileName);
 		return false;

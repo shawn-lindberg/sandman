@@ -111,12 +111,12 @@ T const& Min(T const& p_A, T const& p_B)
 static void ConvertStringToLowercase(char* p_String)
 {
 	// Sanity check.
-	if (p_String == NULL)
+	if (p_String == nullptr)
 	{
 		return;
 	}
 
-	char* l_CurrentLetter = p_String;
+	auto* l_CurrentLetter = p_String;
 	while (*l_CurrentLetter != '\0')
 	{
 		// Convert this letter.
@@ -138,7 +138,7 @@ static bool Initialize()
 		printf("Initializing as a daemon.\n");
 		
 		// Fork a child off of the parent process.
-		pid_t l_ProcessID = fork();
+		auto const l_ProcessID = fork();
 		
 		// Legitimate failure.
 		if (l_ProcessID < 0)
@@ -164,7 +164,7 @@ static bool Initialize()
 		}
 
 		// Need a new session ID.
-		pid_t l_SessionID = setsid();
+		auto const l_SessionID = setsid();
 		
 		if (l_SessionID < 0)
 		{
@@ -374,24 +374,25 @@ static void Uninitialize()
 // p_CommandTokenBufferCapacity:	The maximum the command token buffer can hold.
 // p_CommandString:					The command string to tokenize.
 //
-static void TokenizeCommandString(unsigned int& p_CommandTokenBufferSize, CommandTokenTypes* p_CommandTokenBuffer,
+static void TokenizeCommandString(unsigned int& p_CommandTokenBufferSize, 
+	CommandTokenTypes* p_CommandTokenBuffer,
 	unsigned int const p_CommandTokenBufferCapacity, char const* p_CommandString)
 {
 	// Store token strings here.
-	unsigned int const l_TokenStringBufferCapacity = 32;
+	static constexpr unsigned int l_TokenStringBufferCapacity = 32;
 	char l_TokenStringBuffer[l_TokenStringBufferCapacity];
 
 	// Get the first token string start.
-	char const* l_NextTokenStringStart = p_CommandString;
+	auto const* l_NextTokenStringStart = p_CommandString;
 
-	while (l_NextTokenStringStart != NULL)
+	while (l_NextTokenStringStart != nullptr)
 	{
 		// Get the next token string end.
-		char const* l_NextTokenStringEnd = strchr(l_NextTokenStringStart, ' ');
+		auto const* l_NextTokenStringEnd = strchr(l_NextTokenStringStart, ' ');
 
 		// Get the token string length.
 		unsigned int l_TokenStringLength = 0;
-		if (l_NextTokenStringEnd != NULL)
+		if (l_NextTokenStringEnd != nullptr)
 		{
 			l_TokenStringLength = l_NextTokenStringEnd - l_NextTokenStringStart;
 		}
@@ -401,7 +402,7 @@ static void TokenizeCommandString(unsigned int& p_CommandTokenBufferSize, Comman
 		}
 
 		// Copy the token string.
-		unsigned int l_AmountToCopy = Min(l_TokenStringBufferCapacity - 1, l_TokenStringLength);
+		unsigned int const l_AmountToCopy = Min(l_TokenStringBufferCapacity - 1, l_TokenStringLength);
 		strncpy(l_TokenStringBuffer, l_NextTokenStringStart, l_AmountToCopy);
 		l_TokenStringBuffer[l_AmountToCopy] = '\0';
 
@@ -409,7 +410,7 @@ static void TokenizeCommandString(unsigned int& p_CommandTokenBufferSize, Comman
 		ConvertStringToLowercase(l_TokenStringBuffer);
 
 		// Match the token string to a token if possible.
-		CommandTokenTypes l_Token = COMMAND_TOKEN_INVALID;
+		auto l_Token = COMMAND_TOKEN_INVALID;
 
 		for (unsigned int l_TokenType = 0; l_TokenType < NUM_COMMAND_TOKEN_TYPES; l_TokenType++)
 		{
@@ -436,13 +437,13 @@ static void TokenizeCommandString(unsigned int& p_CommandTokenBufferSize, Comman
 		}
 
 		// Get the next token string start (skip delimiter).
-		if (l_NextTokenStringEnd != NULL)
+		if (l_NextTokenStringEnd != nullptr)
 		{
 			l_NextTokenStringStart = l_NextTokenStringEnd + 1;
 		}
 		else
 		{
-			l_NextTokenStringStart = NULL;
+			l_NextTokenStringStart = nullptr;
 		}
 	}
 }
@@ -644,14 +645,14 @@ static bool ProcessKeyboardInput(char* p_KeyboardInputBuffer, unsigned int& p_Ke
 	unsigned int const p_KeyboardInputBufferCapacity)
 {
 	// Try to get keyboard commands.
-	int l_InputKey = getch();
+	auto const l_InputKey = getch();
 	if ((l_InputKey == ERR) || (isascii(l_InputKey) == false))
 	{
 		return false;
 	}
 	
 	// Get the character.
-	char l_NextChar = static_cast<char>(l_InputKey);
+	auto const l_NextChar = static_cast<char>(l_InputKey);
 
 	// Accumulate characters until we get a terminating character or we run out of space.
 	if ((l_NextChar != '\r') && (p_KeyboardInputBufferSize < (p_KeyboardInputBufferCapacity - 1)))
@@ -670,7 +671,7 @@ static bool ProcessKeyboardInput(char* p_KeyboardInputBuffer, unsigned int& p_Ke
 	// Parse a command.
 
 	// Store command tokens here.
-	unsigned int const l_CommandTokenBufferCapacity = 32;
+	static constexpr unsigned int l_CommandTokenBufferCapacity = 32;
 	CommandTokenTypes l_CommandTokenBuffer[l_CommandTokenBufferCapacity];
 	unsigned int l_CommandTokenBufferSize = 0;
 
@@ -699,7 +700,7 @@ static bool ProcessKeyboardInput(char* p_KeyboardInputBuffer, unsigned int& p_Ke
 static bool ProcessSocketCommunication()
 {
 	// Attempt to accept an incoming connection.
-	int l_ConnectionSocket = accept(s_ListeningSocket, NULL, NULL);
+	auto const l_ConnectionSocket = accept(s_ListeningSocket, nullptr, nullptr);
 	
 	if (l_ConnectionSocket < 0)
 	{
@@ -710,10 +711,11 @@ static bool ProcessSocketCommunication()
 	LoggerAddMessage("Got a new connection.");
 	
 	// Try to read data.
-	unsigned int const l_MessageBufferCapacity = 100;
+	static constexpr unsigned int l_MessageBufferCapacity = 100;
 	char l_MessageBuffer[l_MessageBufferCapacity];
 	
-	int l_NumReceivedBytes = recv(l_ConnectionSocket, l_MessageBuffer, l_MessageBufferCapacity - 1, 0);
+	auto const l_NumReceivedBytes = recv(l_ConnectionSocket, l_MessageBuffer, l_MessageBufferCapacity - 1, 
+		0);
 	
 	if (l_NumReceivedBytes <= 0)
 	{
@@ -730,7 +732,7 @@ static bool ProcessSocketCommunication()
 	LoggerAddMessage("Received \"%s\".", l_MessageBuffer);
 	
 	// Handle the message, if necessary.
-	bool l_Done = false;
+	auto l_Done = false;
 	
 	if (strcmp(l_MessageBuffer, "shutdown") == 0)
 	{
@@ -741,7 +743,7 @@ static bool ProcessSocketCommunication()
 		// Parse a command.
 
 		// Store command tokens here.
-		unsigned int const l_CommandTokenBufferCapacity = 32;
+		static constexpr unsigned int l_CommandTokenBufferCapacity = 32;
 		CommandTokenTypes l_CommandTokenBuffer[l_CommandTokenBufferCapacity];
 		unsigned int l_CommandTokenBufferSize = 0;
 
@@ -768,7 +770,7 @@ static bool ProcessSocketCommunication()
 static void SendMessageToDaemon(char const* p_Message)
 {
 	// Create a sending socket.
-	int l_SendingSocket = socket(AF_UNIX, SOCK_STREAM, 0);
+	auto const l_SendingSocket = socket(AF_UNIX, SOCK_STREAM, 0);
 	
 	if (l_SendingSocket < 0)
 	{
@@ -810,7 +812,7 @@ int main(int argc, char** argv)
 	// Deal with command line arguments.
 	for (unsigned int l_ArgumentIndex = 0; l_ArgumentIndex < argc; l_ArgumentIndex++)
 	{
-		char const* l_Argument = argv[l_ArgumentIndex];
+		auto const* l_Argument = argv[l_ArgumentIndex];
 		
 		// Start as a daemon?
 		if (strcmp(l_Argument, "--daemon") == 0)
@@ -828,14 +830,14 @@ int main(int argc, char** argv)
 			// We are going to see if there is a command to send to the daemon.
 			static char const* s_CommandPrefix = "--command=";	
 			
-			char const* l_CommandStringStart = strstr(l_Argument, s_CommandPrefix);
+			auto const* l_CommandStringStart = strstr(l_Argument, s_CommandPrefix);
 			
-			if (l_CommandStringStart != NULL)
+			if (l_CommandStringStart != nullptr)
 			{
 				// Skip the command prefix.
 				l_CommandStringStart += strlen(s_CommandPrefix);
 				
-				unsigned int const l_CommandBufferCapacity = 100;
+				static constexpr unsigned int l_CommandBufferCapacity = 100;
 				char l_CommandBuffer[l_CommandBufferCapacity];
 
 				unsigned int const l_CommandStringLength = strlen(l_CommandStringStart);
@@ -846,7 +848,7 @@ int main(int argc, char** argv)
 				l_CommandBuffer[l_CommandBufferCapacity - 1] = '\0';
 				
 				// Replace '_' with ' '.
-				char* l_CurrentCharacter = l_CommandBuffer;
+				auto* l_CurrentCharacter = l_CommandBuffer;
 				
 				while (*l_CurrentCharacter != '\0')
 				{
@@ -873,11 +875,11 @@ int main(int argc, char** argv)
 	}
 
 	// Store a keyboard input here.
-	unsigned int const l_KeyboardInputBufferCapacity = 128;
+	static constexpr unsigned int l_KeyboardInputBufferCapacity = 128;
 	char l_KeyboardInputBuffer[l_KeyboardInputBufferCapacity];
 	unsigned int l_KeyboardInputBufferSize = 0;
 
-	bool l_Done = false;
+	auto l_Done = false;
 	while (l_Done == false)
 	{
 		// We're gonna track the framerate.
@@ -894,19 +896,19 @@ int main(int argc, char** argv)
 		#if defined (USE_INTERNAL_SPEECH_RECOGNITION)
 		
 			// Process speech recognition.
-			char const* l_RecognizedSpeech = NULL;
+			char const* l_RecognizedSpeech = nullptr;
 			if (s_Recognizer.Process(l_RecognizedSpeech) == false)
 			{
 				LoggerAddMessage("Error during speech recognition.");
 				l_Done = true;
 			}
 
-			if (l_RecognizedSpeech != NULL)
+			if (l_RecognizedSpeech != nullptr)
 			{
 				// Parse a command.
 
 				// Store command tokens here.
-				unsigned int const l_CommandTokenBufferCapacity = 32;
+				static constexpr unsigned int l_CommandTokenBufferCapacity = 32;
 				CommandTokenTypes l_CommandTokenBuffer[l_CommandTokenBufferCapacity];
 				unsigned int l_CommandTokenBufferSize = 0;
 
@@ -943,7 +945,7 @@ int main(int argc, char** argv)
 		TimerGetCurrent(l_FrameEndTime);
 		
 		float const l_FrameDurationMS = TimerGetElapsedMilliseconds(l_FrameStartTime, l_FrameEndTime);
-		unsigned long const l_FrameDurationNS = static_cast<unsigned long>(l_FrameDurationMS * 1.0e6f);
+		auto const l_FrameDurationNS = static_cast<unsigned long>(l_FrameDurationMS * 1.0e6f);
 		
 		// If the frame is shorter than the duration corresponding to the desired framerate, sleep the
 		// difference off.
