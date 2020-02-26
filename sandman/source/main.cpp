@@ -298,10 +298,7 @@ static bool Initialize()
 	}
 
 	// Initialize controls.
-	for (auto const& l_ControlConfig : l_Config.GetControlConfigs())
-	{
-		ControlsCreateControl(l_ControlConfig);
-	}
+	ControlsInitialize(l_Config.GetControlConfigs());
 
 	// Set control durations.
 	Control::SetDurations(l_Config.GetControlMaxMovingDurationMS(), 

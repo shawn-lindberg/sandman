@@ -422,9 +422,113 @@ void Control::QueueSound()
 	SoundAddToQueue(l_SoundFileName);
 }
 
+// ControlAction members
+
+// A constructor for emplacing.
+// 
+ControlAction::ControlAction(char const* p_ControlName, Control::Actions p_Action)
+	: m_Action(p_Action)
+{
+	// Copy the control name.
+	unsigned int const l_AmountToCopy = 
+		Min(static_cast<unsigned int>(ms_ControlNameCapacity) - 1, strlen(p_ControlName));
+	strncpy(m_ControlName, p_ControlName, l_AmountToCopy);
+	m_ControlName[l_AmountToCopy] = '\0';
+}
+
+// Read a control action from XML. 
+//
+// p_Document:	The XML document that the node belongs to.
+// p_Node:		The XML node to read the control action from.
+//	
+// Returns:		True if the action was read successfully, false otherwise.
+//
+bool ControlAction::ReadFromXML(xmlDocPtr p_Document, xmlNodePtr p_Node)
+{
+	// We must have a control name.
+	static auto const* s_ControlNameNodeName = "ControlName";
+	auto* l_ControlNameNode = XMLFindNextNodeByName(p_Node->xmlChildrenNode, s_ControlNameNodeName);
+	
+	if (l_ControlNameNode == nullptr) 
+	{
+		return false;
+	}
+	
+	// Copy the control name.
+	if (XMLCopyNodeText(m_ControlName, ms_ControlNameCapacity, p_Document, l_ControlNameNode) < 0)
+	{
+		return false;
+	}
+	
+	// We must also have an action.
+	static auto const* s_ActionNodeName = "Action";
+	auto* l_ActionNode = XMLFindNextNodeByName(p_Node->xmlChildrenNode, s_ActionNodeName);
+	
+	if (l_ActionNode == nullptr) 
+	{
+		return false;
+	}	
+	
+	// Make a copy of the node text so that we can parse it.
+	static constexpr unsigned int s_ActionTextCapacity = 32;
+	char l_ActionText[s_ActionTextCapacity];
+	
+	if (XMLCopyNodeText(l_ActionText, s_ActionTextCapacity, p_Document, l_ActionNode) < 0)
+	{
+		return false;
+	}
+	
+	// The names of the actions.
+	static char const* const s_ActionNames[] =
+	{
+		"stop",	// ACTION_STOPPED
+		"up",	// ACTION_MOVING_UP
+		"down",	// ACTION_MOVING_DOWN
+	};
+	
+	// Try to find a control action that matches this text.
+	auto l_GetActionFromString = [&](Control::Actions& p_Action, char const* p_InputText)
+	{
+		auto const l_ActionCount = Control::Actions::NUM_ACTIONS;
+		for (unsigned int l_ActionIndex = 0; l_ActionIndex < l_ActionCount; l_ActionIndex++)
+		{
+			// Compare the text to the action name.
+			auto const* l_ActionName = s_ActionNames[l_ActionIndex];
+			
+			if (strncmp(p_InputText, l_ActionName, strlen(l_ActionName)) != 0)			
+			{
+				continue;
+			}
+			
+			// We found the action, so return it.
+			p_Action = static_cast<Control::Actions>(l_ActionIndex);
+			return true;
+		}
+		
+		return false;
+	};
+	
+	if (l_GetActionFromString(m_Action, l_ActionText) == false) {
+		return false;
+	}
+	
+	return true;
+}
 
 // Functions
 //
+
+// Initialize all of the controls.
+//
+// p_Configs:	Configuration parameters for the controls to add.
+//
+void ControlsInitialize(std::vector<ControlConfig> const& p_Configs)
+{
+	for (auto const& l_Config : p_Configs)
+	{
+		ControlsCreateControl(l_Config);
+	}
+}
 
 // Uninitialize all of the controls.
 //

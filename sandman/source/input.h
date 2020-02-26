@@ -11,34 +11,6 @@
 // Types
 //
 
-// Enough information to trigger a specific control action.
-struct ControlAction
-{	
-	ControlAction() = default;
-	
-	// A constructor for emplacing.
-	// 
-	ControlAction(char const* p_ControlName, Control::Actions p_Action);
-
-	// Read a control action from XML. 
-	//
-	// p_Document:	The XML document that the node belongs to.
-	// p_Node:		The XML node to read the control action from.
-	//	
-	// Returns:		True if the action was read successfully, false otherwise.
-	//
-	bool ReadFromXML(xmlDocPtr p_Document, xmlNodePtr p_Node);
-	
-	// Constants.
-	static constexpr unsigned int ms_ControlNameCapacity = 32;
-	
-	// The control to manipulate.
-	char					m_ControlName[ms_ControlNameCapacity];
-	
-	// The action for the control.
-	Control::Actions	m_Action;
-};
-
 // The description of an input binding and its associated action.
 struct InputBinding
 {	
