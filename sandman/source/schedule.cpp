@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <vector>
 
 #include "control.h"
 #include "logger.h"
@@ -34,10 +35,11 @@ struct ScheduleEvent
 // Locals
 //
 
+// Whether the system is initialized.
+static bool s_ScheduleInitialized = false;
+
 // This will contain the schedule once it has been parsed in.
-static ScheduleEvent* s_ScheduleEvents = nullptr;
-static unsigned int s_ScheduleMaxEvents = 0;
-static unsigned int s_ScheduleNumEvents = 0;
+static std::vector<ScheduleEvent> s_ScheduleEvents;
 
 // The current spot in the schedule.
 static unsigned int s_ScheduleIndex = UINT_MAX;
@@ -77,15 +79,14 @@ static char* SkipWhitespace(char* p_InputString)
 static bool ScheduleLoad()
 {
 	// Open the schedule file.
-	FILE* l_ScheduleFile = fopen(CONFIGDIR "sandman.sched", "r");
+	auto* l_ScheduleFile = fopen(CONFIGDIR "sandman.sched", "r");
 	
 	if (l_ScheduleFile == nullptr)
 	{
 		return false;
 	}
 	
-	// First, we have to count the number of actions in the schedule.
-	s_ScheduleMaxEvents = 0;
+	// First, we have to find the first action in the schedule.
 	bool l_HaveSeenStart = false;
 	
 	// Read each line in turn.
@@ -126,24 +127,9 @@ static bool ScheduleLoad()
 		{
 			break;
 		}
+	}
 		
-		// Count the line.
-		s_ScheduleMaxEvents++;
-	}
-	
-	// Now we can allocate memory for the schedule.
-	size_t l_AllocationSize = s_ScheduleMaxEvents * sizeof(ScheduleEvent);
-	s_ScheduleEvents = reinterpret_cast<ScheduleEvent*>(malloc(l_AllocationSize));
-	
-	if (s_ScheduleEvents == nullptr)
-	{
-		// Close the file.
-		fclose(l_ScheduleFile);
-		return false;
-	}
-	
 	// Now we parse in the actual events.
-	s_ScheduleNumEvents = 0;
 	
 	// Jump back to the first action.
 	if (fsetpos(l_ScheduleFile, &l_FirstActionFilePosition) < 0)
@@ -205,10 +191,11 @@ static bool ScheduleLoad()
 		
 		// There should be nothing after the direction.
 		
-		auto& l_NewEvent = s_ScheduleEvents[s_ScheduleNumEvents];
+		// Build the event here.
+		ScheduleEvent l_Event;
 		
 		// Parse the delay.
-		l_NewEvent.m_DelaySec = atoi(l_DelayString);
+		l_Event.m_DelaySec = atoi(l_DelayString);
 		
 		// Parse the direction.
 		auto l_Action = Control::ACTION_STOPPED;
@@ -233,10 +220,10 @@ static bool ScheduleLoad()
 			continue;
 		}
 		
-		l_NewEvent.m_ControlAction = ControlAction(l_ControlNameString, l_Action);
+		l_Event.m_ControlAction = ControlAction(l_ControlNameString, l_Action);
 		
 		// Keep it.
-		s_ScheduleNumEvents++;
+		s_ScheduleEvents.push_back(l_Event);
 	}
 	
 	// Close the file.
@@ -249,18 +236,11 @@ static bool ScheduleLoad()
 //
 static void ScheduleLogLoaded()
 {
-	if (s_ScheduleEvents == nullptr)
-	{
-		return;
-	}
-	
 	// Now write out the schedule.
 	LoggerAddMessage("The following schedule is loaded:");
 	
-	for (unsigned int l_EventIndex = 0; l_EventIndex < s_ScheduleNumEvents; l_EventIndex++)
+	for (auto const& l_Event : s_ScheduleEvents)
 	{
-		auto const& l_Event = s_ScheduleEvents[l_EventIndex];
-		
 		// Split the delay into multiple units.
 		auto l_DelaySec = l_Event.m_DelaySec;
 		
@@ -287,9 +267,7 @@ void ScheduleInitialize()
 {	
 	s_ScheduleIndex = UINT_MAX;
 	
-	s_ScheduleEvents = nullptr;
-	s_ScheduleMaxEvents = 0;
-	s_ScheduleNumEvents = 0;
+	s_ScheduleEvents.clear();
 	
 	LoggerAddMessage("Initializing the schedule...");
 
@@ -305,17 +283,22 @@ void ScheduleInitialize()
 	
 	// Log the schedule that just got loaded.
 	ScheduleLogLoaded();
+	
+	s_ScheduleInitialized = true;
 }
 
 // Uninitialize the schedule.
 // 
 void ScheduleUninitialize()
 {
-	if (s_ScheduleEvents != nullptr)
+	if (s_ScheduleInitialized == false)
 	{
-		free(s_ScheduleEvents);
-		s_ScheduleEvents = nullptr;
+		return;
 	}
+	
+	s_ScheduleInitialized = false;
+	
+	s_ScheduleEvents.clear();
 }
 
 // Start the schedule.
@@ -323,7 +306,7 @@ void ScheduleUninitialize()
 void ScheduleStart()
 {
 	// Make sure it's initialized.
-	if (s_ScheduleEvents == nullptr)
+	if (s_ScheduleInitialized == false)
 	{
 		return;
 	}
@@ -348,7 +331,7 @@ void ScheduleStart()
 void ScheduleStop()
 {
 	// Make sure it's initialized.
-	if (s_ScheduleEvents == nullptr)
+	if (s_ScheduleInitialized == false)
 	{
 		return;
 	}
@@ -379,7 +362,7 @@ bool ScheduleIsRunning()
 void ScheduleProcess()
 {
 	// Make sure it's initialized.
-	if (s_ScheduleEvents == nullptr)
+	if (s_ScheduleInitialized == false)
 	{
 		return;
 	}
@@ -406,7 +389,8 @@ void ScheduleProcess()
 	}
 	
 	// Move to the next event.
-	s_ScheduleIndex = (s_ScheduleIndex + 1) % s_ScheduleNumEvents;
+	auto const l_ScheduleEventCount = static_cast<unsigned int>(s_ScheduleEvents.size());
+	s_ScheduleIndex = (s_ScheduleIndex + 1) % l_ScheduleEventCount;
 	
 	// Set the new delay start time.
 	TimerGetCurrent(s_ScheduleDelayStartTime);
