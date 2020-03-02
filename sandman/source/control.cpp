@@ -103,6 +103,13 @@ void SetGPIOPinOff(int p_Pin)
 	digitalWrite(p_Pin, CONTROL_OFF_GPIO_VALUE);
 }
 
+// ControlHandle members
+
+// A private constructor.
+ControlHandle::ControlHandle(unsigned short p_UID) : m_UID(p_UID)
+{
+}
+
 // ControlConfig members
 
 // Read a control config from XML. 
@@ -209,42 +216,6 @@ void Control::Uninitialize()
 	// Revert to input.
 	pinMode(m_UpGPIOPin, INPUT);
 	pinMode(m_DownGPIOPin, INPUT);
-}
-
-// Enable or disable all controls.
-//
-// p_Enable:	Whether to enable or disable all controls.
-//
-void Control::Enable(bool p_Enable)
-{
-	if (p_Enable == false)
-	{
-		// Revert to input.
-		//pinMode(ENABLE_GPIO_PIN, INPUT);
-
-		LoggerAddMessage("Controls disabled.");
-	}
-	else
-	{
-		// Setup the pin and set it to off.
-		//pinMode(ENABLE_GPIO_PIN, OUTPUT);
-		//SetGPIOPinOff(ENABLE_GPIO_PIN);
-
-		LoggerAddMessage("Controls enabled.");
-	}
-}
-
-// Set the durations.
-//
-// p_MovingDurationMS:		Duration of the moving state (in milliseconds).
-// p_CoolDownDurationMS:	Duration of the cool down state (in milliseconds).
-//
-void Control::SetDurations(unsigned int p_MovingDurationMS, unsigned int p_CoolDownDurationMS)
-{
-	ms_MovingDurationMS = p_MovingDurationMS;
-	ms_CoolDownDurationMS = p_CoolDownDurationMS;
-	
-	LoggerAddMessage("Control durations set to moving - %i ms, cool down - %i ms.", p_MovingDurationMS, p_CoolDownDurationMS);
 }
 
 // Process a tick.
@@ -403,6 +374,96 @@ void Control::SetDesiredAction(Actions p_DesiredAction, Modes p_Mode)
 		s_ControlActionNames[p_DesiredAction], s_ControlModeNames[p_Mode]);
 }
 
+// Enable or disable all controls.
+//
+// p_Enable:	Whether to enable or disable all controls.
+//
+void Control::Enable(bool p_Enable)
+{
+	if (p_Enable == false)
+	{
+		// Revert to input.
+		//pinMode(ENABLE_GPIO_PIN, INPUT);
+
+		LoggerAddMessage("Controls disabled.");
+	}
+	else
+	{
+		// Setup the pin and set it to off.
+		//pinMode(ENABLE_GPIO_PIN, OUTPUT);
+		//SetGPIOPinOff(ENABLE_GPIO_PIN);
+
+		LoggerAddMessage("Controls enabled.");
+	}
+}
+
+// Set the durations.
+//
+// p_MovingDurationMS:		Duration of the moving state (in milliseconds).
+// p_CoolDownDurationMS:	Duration of the cool down state (in milliseconds).
+//
+void Control::SetDurations(unsigned int p_MovingDurationMS, unsigned int p_CoolDownDurationMS)
+{
+	ms_MovingDurationMS = p_MovingDurationMS;
+	ms_CoolDownDurationMS = p_CoolDownDurationMS;
+	
+	LoggerAddMessage("Control durations set to moving - %i ms, cool down - %i ms.", p_MovingDurationMS, p_CoolDownDurationMS);
+}
+
+// Attempt to get the handle of a control based on its name.
+//
+// p_Name:	The unique name of the control.
+//
+// Returns:	A handle to the control, or an invalid handle if one with the given name could not be found.
+//
+ControlHandle Control::GetHandle(char const* p_Name)
+{
+	ControlHandle l_Handle;
+	
+	auto const l_ControlCount = static_cast<unsigned short>(s_Controls.size());
+	for (unsigned short l_ControlIndex = 0; l_ControlIndex < l_ControlCount; l_ControlIndex++)
+	{
+		auto const& l_Control = s_Controls[l_ControlIndex];
+		
+		// Look for a control with the matching name.
+		if (strcmp(l_Control.GetName(), p_Name) != 0)
+		{
+			continue;
+		}
+		
+		// Found it, return the handle.
+		l_Handle.m_UID = l_ControlIndex;
+		break;
+	}
+	
+	// Return the handle we found, or didn't.
+	return l_Handle;
+}
+
+// Look up a control from its handle.
+//
+// p_Handle:	A handle to the control.
+//
+// Returns:		The control, or null if the handle is not valid.
+//
+Control* Control::GetFromHandle(ControlHandle const& p_Handle)
+{
+	// Sanity checking.
+	if (p_Handle.IsValid() == false)
+	{
+		return nullptr;
+	}
+	
+	auto const l_ControlCount = static_cast<unsigned short>(s_Controls.size());
+	if (p_Handle.m_UID >= l_ControlCount)
+	{
+		return nullptr;
+	}
+	
+	// Seems we have a valid handle, return the control.
+	return &(s_Controls[p_Handle.m_UID]);
+}
+		
 // Queue sound for the state.
 //
 void Control::QueueSound()

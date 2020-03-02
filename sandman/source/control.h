@@ -9,6 +9,35 @@
 // Types
 //
 
+// A handle to a control.
+class ControlHandle
+{
+	public:
+		
+		// Only allow non-friends to construct invalid handles.
+		ControlHandle() = default;
+		
+		// Determine whether the handle is valid.
+		//
+		bool IsValid() const
+		{
+			return (m_UID != ms_InvalidUID);
+		}
+				
+	private:
+	
+		// Make this constructor private so that non-friends can only construct invalid handles.
+		ControlHandle(unsigned short p_UID);
+		
+		friend class Control;
+		
+		// The invalid unique identifier for a control.
+		static constexpr unsigned short ms_InvalidUID = 0xFFFF;
+		
+		// The unique identifier for the control.
+		unsigned short m_UID = ms_InvalidUID;
+};
+
 // Configuration parameters to initialize a control.
 struct ControlConfig
 {
@@ -66,19 +95,6 @@ class Control
 		// Handle uninitialization.
 		//
 		void Uninitialize();
-
-		// Enable or disable all controls.
-		//
-		// p_Enable:	Whether to enable or disable all controls.
-		//
-		static void Enable(bool p_Enable);
-		
-		// Set the durations.
-		//
-		// p_MovingDurationMS:		Duration of the moving state (in milliseconds).
-		// p_CoolDownDurationMS:	Duration of the cool down state (in milliseconds).
-		//
-		static void SetDurations(unsigned int p_MovingDurationMS, unsigned int p_CoolDownDurationMS);
 		
 		// Process a tick.
 		//
@@ -97,6 +113,35 @@ class Control
 		{
 			return m_Name;
 		}
+		
+		// Enable or disable all controls.
+		//
+		// p_Enable:	Whether to enable or disable all controls.
+		//
+		static void Enable(bool p_Enable);
+		
+		// Set the durations.
+		//
+		// p_MovingDurationMS:		Duration of the moving state (in milliseconds).
+		// p_CoolDownDurationMS:	Duration of the cool down state (in milliseconds).
+		//
+		static void SetDurations(unsigned int p_MovingDurationMS, unsigned int p_CoolDownDurationMS);
+		
+		// Attempt to get the handle of a control based on its name.
+		//
+		// p_Name:	The unique name of the control.
+		//
+		// Returns:	A handle to the control, or an invalid handle if one with the given name could not be found.
+		//
+		static ControlHandle GetHandle(char const* p_Name);
+
+		// Look up a control from its handle.
+		//
+		// p_Handle:	A handle to the control.
+		//
+		// Returns:		The control, or null if the handle is not valid.
+		//
+		static Control* GetFromHandle(ControlHandle const& p_Handle);
 		
 	private:
 
@@ -169,11 +214,14 @@ struct ControlAction
 	// Constants.
 	static constexpr unsigned int ms_ControlNameCapacity = 32;
 	
-	// The control to manipulate.
+	// The name of the control to manipulate.
 	char				m_ControlName[ms_ControlNameCapacity];
 	
 	// The action for the control.
 	Control::Actions	m_Action;
+	
+	// A handle to the control for fast lookup.
+	ControlHandle		m_ControlHandle;
 };
 
 

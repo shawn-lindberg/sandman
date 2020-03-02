@@ -95,6 +95,11 @@ static bool s_DaemonMode = false;
 // Used to listen for connections.
 static int s_ListeningSocket = -1;
 
+// Keep handles to the controls.
+static ControlHandle s_BackControlHandle;
+static ControlHandle s_LegsControlHandle;
+static ControlHandle s_ElevationControlHandle;
+
 // Functions
 //
 
@@ -493,9 +498,14 @@ void ParseCommandTokens(unsigned int& p_CommandTokenBufferSize, CommandTokenType
 			{
 				break;
 			}
-			
+							
 			// Try to find the control.
-			auto* l_Control = ControlsFindControl("back");
+			if (s_BackControlHandle.IsValid() == false)
+			{
+				s_BackControlHandle = Control::GetHandle("back");
+			}
+			
+			auto* l_Control = Control::GetFromHandle(s_BackControlHandle);
 			
 			if (l_Control == nullptr)
 			{
@@ -521,7 +531,12 @@ void ParseCommandTokens(unsigned int& p_CommandTokenBufferSize, CommandTokenType
 			}
 			
 			// Try to find the control.
-			auto* l_Control = ControlsFindControl("legs");
+			if (s_LegsControlHandle.IsValid() == false)
+			{
+				s_LegsControlHandle = Control::GetHandle("legs");
+			}
+			
+			auto* l_Control = Control::GetFromHandle(s_LegsControlHandle);
 			
 			if (l_Control == nullptr)
 			{
@@ -547,7 +562,12 @@ void ParseCommandTokens(unsigned int& p_CommandTokenBufferSize, CommandTokenType
 			}
 			
 			// Try to find the control.
-			auto* l_Control = ControlsFindControl("elev");
+			if (s_ElevationControlHandle.IsValid() == false)
+			{
+				s_ElevationControlHandle = Control::GetHandle("elev");
+			}
+			
+			auto* l_Control = Control::GetFromHandle(s_ElevationControlHandle);
 			
 			if (l_Control == nullptr)
 			{
