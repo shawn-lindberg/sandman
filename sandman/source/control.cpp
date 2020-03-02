@@ -576,6 +576,21 @@ bool ControlAction::ReadFromXML(xmlDocPtr p_Document, xmlNodePtr p_Node)
 	return true;
 }
 
+// Attempt to get the control corresponding to the control action.
+//
+// Returns:	The control if successful, null otherwise.
+//
+Control* ControlAction::GetControl()
+{
+	// Look up the handle, if we haven't done that yet.
+	if (m_ControlHandle.IsValid() == false) {
+		m_ControlHandle = Control::GetHandle(m_ControlName);
+	}
+	
+	// Try to find the control.
+	return Control::GetFromHandle(m_ControlHandle);
+}
+	
 // Functions
 //
 
@@ -623,9 +638,8 @@ void ControlsProcess()
 bool ControlsCreateControl(ControlConfig const& p_Config)
 {
 	// Check to see whether a control with this name already exists.
-	if (ControlsFindControl(p_Config.m_Name) != nullptr)
-	{
-		
+	if (Control::GetHandle(p_Config.m_Name).IsValid() == true)
+	{		
 		LoggerAddMessage("Control with name \"%s\" already exists.", p_Config.m_Name);
 		return false;
 	}
@@ -638,29 +652,6 @@ bool ControlsCreateControl(ControlConfig const& p_Config)
 	l_Control.Initialize(p_Config);
 	
 	return true;
-}
-
-// Try to find the control with the given name.
-//
-// p_Name:	The name of the control being searched for.
-//
-// Returns:	A pointer to the control, or null if it was not found.
-//
-Control* ControlsFindControl(char const* p_Name)
-{
-	for (auto& l_Control : s_Controls)
-	{
-		// Look for a control with the matching name.
-		if (strcmp(l_Control.GetName(), p_Name) != 0)
-		{
-			continue;
-		}
-		
-		// Found it.
-		return &l_Control;
-	}
-	
-	return nullptr;
 }
 
 // Stop all of the controls.

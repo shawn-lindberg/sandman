@@ -24,21 +24,11 @@
 // A schedule event.
 struct ScheduleEvent
 {
-
-	// Constants.
-	enum {
-		
-		CONTROL_NAME_CAPACITY = 32,
-	};
-	
 	// Delay in seconds before this entry occurs (since the last).
-	unsigned int		m_DelaySec;
+	unsigned int	m_DelaySec;
 	
-	// The control to manipulate.
-	char				m_ControlName[CONTROL_NAME_CAPACITY];
-	
-	// The action for the control.
-	Control::Actions	m_Action;
+	// The control action to perform at the scheduled time.
+	ControlAction	m_ControlAction;
 };
 
 // Locals
@@ -99,7 +89,7 @@ static bool ScheduleLoad()
 	bool l_HaveSeenStart = false;
 	
 	// Read each line in turn.
-	unsigned int const l_LineBufferCapacity = 128;
+	static constexpr unsigned int const l_LineBufferCapacity = 128;
 	char l_LineBuffer[l_LineBufferCapacity];
 	
 	fpos_t l_FirstActionFilePosition;
@@ -190,7 +180,7 @@ static bool ScheduleLoad()
 		}
 		
 		// For now, modify the string to split it.
-		char const* l_DelayString = l_LineText;
+		auto const* l_DelayString = l_LineText;
 		l_LineText = l_Separator + 1;
 		(*l_Separator) = '\0';
 		
@@ -206,7 +196,7 @@ static bool ScheduleLoad()
 		}
 		
 		// For now, modify the string to split it.
-		char const* l_ControlNameString = l_LineText;
+		auto const* l_ControlNameString = l_LineText;
 		l_LineText = l_Separator + 1;
 		(*l_Separator) = '\0';
 		
@@ -215,41 +205,35 @@ static bool ScheduleLoad()
 		
 		// There should be nothing after the direction.
 		
-		ScheduleEvent& l_NewEvent = s_ScheduleEvents[s_ScheduleNumEvents];
+		auto& l_NewEvent = s_ScheduleEvents[s_ScheduleNumEvents];
 		
 		// Parse the delay.
 		l_NewEvent.m_DelaySec = atoi(l_DelayString);
 		
-		// Copy the control name.
-		unsigned int const l_ControlNameStringLength = strlen(l_ControlNameString);
-		unsigned int const l_AmountToCopy = 
-				Min(static_cast<unsigned int>(ScheduleEvent::CONTROL_NAME_CAPACITY) - 1,
-					l_ControlNameStringLength);
-		strncpy(l_NewEvent.m_ControlName, l_ControlNameString, l_AmountToCopy);
-		l_NewEvent.m_ControlName[l_AmountToCopy] = '\0';
-		
 		// Parse the direction.
-		l_NewEvent.m_Action = Control::ACTION_STOPPED;
+		auto l_Action = Control::ACTION_STOPPED;
 		
-		char const* const l_UpString = "up";
-		char const* const l_DownString = "down";
+		static char const* const l_UpString = "up";
+		static char const* const l_DownString = "down";
 		
 		if (strncmp(l_LineText, l_UpString, strlen(l_UpString)) == 0)
 		{
-			l_NewEvent.m_Action = Control::ACTION_MOVING_UP;
+			l_Action = Control::ACTION_MOVING_UP;
 		}
 		else if (strncmp(l_LineText, l_DownString, strlen(l_DownString)) == 0)
 		{
-			l_NewEvent.m_Action = Control::ACTION_MOVING_DOWN;
+			l_Action = Control::ACTION_MOVING_DOWN;
 		}
 		
 		// Validate it.
-		if (l_NewEvent.m_Action == Control::ACTION_STOPPED)
+		if (l_Action == Control::ACTION_STOPPED)
 		{
 			LoggerAddMessage("\"%s\" is not a valid control direction.  This entry will be ignored.", 
 				l_LineText);
 			continue;
 		}
+		
+		l_NewEvent.m_ControlAction = ControlAction(l_ControlNameString, l_Action);
 		
 		// Keep it.
 		s_ScheduleNumEvents++;
@@ -275,26 +259,23 @@ static void ScheduleLogLoaded()
 	
 	for (unsigned int l_EventIndex = 0; l_EventIndex < s_ScheduleNumEvents; l_EventIndex++)
 	{
-		ScheduleEvent const& l_Event = s_ScheduleEvents[l_EventIndex];
+		auto const& l_Event = s_ScheduleEvents[l_EventIndex];
 		
 		// Split the delay into multiple units.
-		unsigned int l_DelaySec = l_Event.m_DelaySec;
+		auto l_DelaySec = l_Event.m_DelaySec;
 		
-		unsigned int const l_DelayHours = l_DelaySec / 3600;
+		auto const l_DelayHours = l_DelaySec / 3600;
 		l_DelaySec %= 3600;
 		
-		unsigned int const l_DelayMin = l_DelaySec / 60;
+		auto const l_DelayMin = l_DelaySec / 60;
 		l_DelaySec %= 60;
 		
-		char const* const l_UpString = "up";
-		char const* const l_DownString = "down";
-
-		char const* l_ActionString = (l_Event.m_Action == Control::ACTION_MOVING_UP) ? 
-			l_UpString : l_DownString;
+		auto const* l_ActionText = (l_Event.m_ControlAction.m_Action == Control::ACTION_MOVING_UP) ? 
+			"up" : "down";
 			
 		// Print the event.
-		LoggerAddMessage("\t+%01ih %02im %02is - %s -> %s", l_DelayHours, l_DelayMin, 
-			l_DelaySec, l_Event.m_ControlName, l_ActionString);
+		LoggerAddMessage("\t+%01ih %02im %02is -> %s, %s", l_DelayHours, l_DelayMin, 
+			l_DelaySec, l_Event.m_ControlAction.m_ControlName, l_ActionText);
 	}
 	
 	LoggerAddMessage("");
@@ -413,10 +394,11 @@ void ScheduleProcess()
 	Time l_CurrentTime;
 	TimerGetCurrent(l_CurrentTime);
 
-	float l_ElapsedTimeSec = TimerGetElapsedMilliseconds(s_ScheduleDelayStartTime, l_CurrentTime) / 1000.0f;
+	auto const l_ElapsedTimeSec = TimerGetElapsedMilliseconds(s_ScheduleDelayStartTime, l_CurrentTime) / 
+		1000.0f;
 
 	// Time up?
-	ScheduleEvent const& l_Event = s_ScheduleEvents[s_ScheduleIndex];
+	auto& l_Event = s_ScheduleEvents[s_ScheduleIndex];
 	
 	if (l_ElapsedTimeSec < l_Event.m_DelaySec)
 	{
@@ -430,24 +412,24 @@ void ScheduleProcess()
 	TimerGetCurrent(s_ScheduleDelayStartTime);
 	
 	// Sanity check the event.
-	if (l_Event.m_Action >= Control::NUM_ACTIONS)
+	if (l_Event.m_ControlAction.m_Action >= Control::NUM_ACTIONS)
 	{
 		LoggerAddMessage("Schedule moving to event %i.", s_ScheduleIndex);
 		return;
 	}
 
 	// Try to find the control to perform the action.
-	auto* l_Control = ControlsFindControl(l_Event.m_ControlName); 
+	auto* l_Control = l_Event.m_ControlAction.GetControl();
 	
 	if (l_Control == nullptr) {
 		
 		LoggerAddMessage("Schedule couldn't find control \"%s\". Moving to event %i.", 
-			l_Event.m_ControlName, s_ScheduleIndex);
+			l_Event.m_ControlAction.m_ControlName, s_ScheduleIndex);
 		return;
 	}
 		
 	// Perform the action.
-	l_Control->SetDesiredAction(l_Event.m_Action, Control::MODE_TIMED);
+	l_Control->SetDesiredAction(l_Event.m_ControlAction.m_Action, Control::MODE_TIMED);
 	
 	LoggerAddMessage("Schedule moving to event %i.", s_ScheduleIndex);
 }

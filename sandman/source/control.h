@@ -211,6 +211,12 @@ struct ControlAction
 	//
 	bool ReadFromXML(xmlDocPtr p_Document, xmlNodePtr p_Node);
 	
+	// Attempt to get the control corresponding to the control action.
+	//
+	// Returns:	The control if successful, null otherwise.
+	//
+	Control* GetControl();
+	
 	// Constants.
 	static constexpr unsigned int ms_ControlNameCapacity = 32;
 	
@@ -249,14 +255,6 @@ void ControlsProcess();
 // Returns:		True if the control was successfully created, false otherwise.
 //
 bool ControlsCreateControl(ControlConfig const& p_Config);
-
-// Try to find the control with the given name.
-//
-// p_Name:	The name of the control being searched for.
-//
-// Returns:	A pointer to the control, or null if it was not found.
-//
-Control* ControlsFindControl(char const* p_Name);
 
 // Stop all of the controls.
 //

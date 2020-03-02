@@ -230,7 +230,7 @@ void Input::Process()
 		//	l_Event.value);
 			
 		// Try to find a control action corresponding to this input.
-		auto const l_Result = m_InputToActionMap.find(l_Event.code);
+		auto l_Result = m_InputToActionMap.find(l_Event.code);
 		
 		if (l_Result == m_InputToActionMap.end())
 		{
@@ -238,10 +238,10 @@ void Input::Process()
 		}
 		
 		// The action is the second member of the pair.
-		auto const& l_ControlAction = l_Result->second;
-		
+		auto& l_ControlAction = l_Result->second;
+	
 		// Try to find the corresponding control.
-		auto* l_Control = ControlsFindControl(l_ControlAction.m_ControlName);
+		auto* l_Control = l_ControlAction.GetControl();
 		
 		if (l_Control == nullptr) {
 			
