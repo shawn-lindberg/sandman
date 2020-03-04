@@ -11,8 +11,9 @@
 #include "logger.h"
 #include "sound.h"
 #include "timer.h"
+#include "xml.h"
 
-#define DATADIR		AM_DATADIR
+#define DATADIR	AM_DATADIR
 #define CONFIGDIR	AM_CONFIGDIR
 
 // Constants
@@ -25,6 +26,15 @@
 // A schedule event.
 struct ScheduleEvent
 {
+	// Read a schedule event from XML. 
+	//
+	// p_Document:	The XML document that the node belongs to.
+	// p_Node:		The XML node to read the event from.
+	//	
+	// Returns:		True if the event was read successfully, false otherwise.
+	//
+	bool ReadFromXML(xmlDocPtr p_Document, xmlNodePtr p_Node);
+	
 	// Delay in seconds before this entry occurs (since the last).
 	unsigned int	m_DelaySec;
 	
@@ -56,178 +66,92 @@ T const& Min(T const& p_A, T const& p_B)
 	return (p_A < p_B) ? p_A : p_B;
 }
 
-// Skip whitespace.
-// 
-// p_InputString:	The string whose whitespace will be skipped.
-// 
-// returns:			A pointer to the next non-whitespace character.
-// 
-static char* SkipWhitespace(char* p_InputString)
+// ScheduleEvent members
+
+// Read a schedule event from XML. 
+//
+// p_Document:	The XML document that the node belongs to.
+// p_Node:		The XML node to read the event from.
+//	
+// Returns:		True if the event was read successfully, false otherwise.
+//
+bool ScheduleEvent::ReadFromXML(xmlDocPtr p_Document, xmlNodePtr p_Node)
 {
-	char* l_OutputString = p_InputString;
+	// We must have a delay.
+	static auto const* s_DelayNodeName = "DelaySec";
+	auto* l_DelayNode = XMLFindNextNodeByName(p_Node->xmlChildrenNode, s_DelayNodeName);
 	
-	while (isspace(*l_OutputString) != 0)
+	if (l_DelayNode == nullptr) 
 	{
-		l_OutputString++;
+		return false;
 	}
 	
-	return l_OutputString;
+	// Read the delay from the node.
+	m_DelaySec = XMLGetNodeTextAsInteger(p_Document, l_DelayNode);
+	
+	// We must also have a control action.
+	static auto const* s_ControlActionNodeName = "ControlAction";
+	auto* l_ControlActionNode = XMLFindNextNodeByName(p_Node->xmlChildrenNode, s_ControlActionNodeName);
+	
+	if (l_ControlActionNode == nullptr)
+	{
+		return false;
+	}
+	
+	// Read the control action from the node.
+	if (m_ControlAction.ReadFromXML(p_Document, l_ControlActionNode) == false) 
+	{
+		return false;
+	}
+	
+	return true;
 }
 		
+// Functions
+//
+
 // Load the schedule from a file.
 // 
 static bool ScheduleLoad()
 {
 	// Open the schedule file.
-	auto* l_ScheduleFile = fopen(CONFIGDIR "sandman.sched", "r");
-	
-	if (l_ScheduleFile == nullptr)
-	{
-		return false;
-	}
-	
-	// First, we have to find the first action in the schedule.
-	bool l_HaveSeenStart = false;
-	
-	// Read each line in turn.
-	static constexpr unsigned int const l_LineBufferCapacity = 128;
-	char l_LineBuffer[l_LineBufferCapacity];
-	
-	fpos_t l_FirstActionFilePosition;
-	
-	while (fgets(l_LineBuffer, l_LineBufferCapacity, l_ScheduleFile) != nullptr)
-	{
-		// Skip comments.
-		if (l_LineBuffer[0] == '#')
-		{
-			continue;
-		}
-	
-		// Skip whitespace.
-		char* l_LineText = SkipWhitespace(l_LineBuffer);
-		
-		// Until we see the start command, don't begin counting.
-		if (l_HaveSeenStart == false) 
-		{
-			static char const* s_StartText = "start";
-			if (strncmp(l_LineText, s_StartText, strlen(s_StartText)) == 0)
-			{
-				l_HaveSeenStart = true;
-				
-				// Save the file position so we can re-parse from here.
-				fgetpos(l_ScheduleFile, &l_FirstActionFilePosition);
-			}
+	static auto const* const s_ScheduleFileName = CONFIGDIR "sandman.sched";
 			
-			continue;
-		}
-
-		// Once we see the end command, stop counting.
-		static char const* s_EndText = "end";
-		if (strncmp(l_LineText, s_EndText, strlen(s_EndText)) == 0)
-		{
-			break;
-		}
-	}
-		
-	// Now we parse in the actual events.
+	auto* l_ScheduleDocument = xmlParseFile(s_ScheduleFileName);
 	
-	// Jump back to the first action.
-	if (fsetpos(l_ScheduleFile, &l_FirstActionFilePosition) < 0)
-	{
-		// Close the file.
-		fclose(l_ScheduleFile);
+	if (l_ScheduleDocument == nullptr) {		
+		
+		LoggerAddMessage("Failed to open the schedule file.\n");
 		return false;
 	}
 	
-	while (fgets(l_LineBuffer, l_LineBufferCapacity, l_ScheduleFile) != nullptr)
-	{
-		// Skip comments.
-		if (l_LineBuffer[0] == '#')
-		{
-			continue;
-		}
+	// Get the root element of the tree.
+	auto const* l_RootNode = xmlDocGetRootElement(l_ScheduleDocument);
 	
-		// Skip whitespace.
-		char* l_LineText = SkipWhitespace(l_LineBuffer);
+	if (l_RootNode == nullptr) {
 		
-		// Once we see the end command, stop.
-		static char const* s_EndText = "end";
-		if (strncmp(l_LineText, s_EndText, strlen(s_EndText)) == 0)
-		{
-			break;
-		}
-
-		// The delay is followed by a comma.
-		char* l_Separator = strchr(l_LineText, ',');
-		
-		if (l_Separator == nullptr)
-		{
-			continue;
-		}
-		
-		// For now, modify the string to split it.
-		auto const* l_DelayString = l_LineText;
-		l_LineText = l_Separator + 1;
-		(*l_Separator) = '\0';
-		
-		// Skip whitespace.
-		l_LineText = SkipWhitespace(l_LineText);
-		
-		// The control name is also followed by a comma.
-		l_Separator = strchr(l_LineText, ',');
-		
-		if (l_Separator == nullptr)
-		{
-			continue;
-		}
-		
-		// For now, modify the string to split it.
-		auto const* l_ControlNameString = l_LineText;
-		l_LineText = l_Separator + 1;
-		(*l_Separator) = '\0';
-		
-		// Skip whitespace.
-		l_LineText = SkipWhitespace(l_LineText);
-		
-		// There should be nothing after the direction.
-		
-		// Build the event here.
-		ScheduleEvent l_Event;
-		
-		// Parse the delay.
-		l_Event.m_DelaySec = atoi(l_DelayString);
-		
-		// Parse the direction.
-		auto l_Action = Control::ACTION_STOPPED;
-		
-		static char const* const l_UpString = "up";
-		static char const* const l_DownString = "down";
-		
-		if (strncmp(l_LineText, l_UpString, strlen(l_UpString)) == 0)
-		{
-			l_Action = Control::ACTION_MOVING_UP;
-		}
-		else if (strncmp(l_LineText, l_DownString, strlen(l_DownString)) == 0)
-		{
-			l_Action = Control::ACTION_MOVING_DOWN;
-		}
-		
-		// Validate it.
-		if (l_Action == Control::ACTION_STOPPED)
-		{
-			LoggerAddMessage("\"%s\" is not a valid control direction.  This entry will be ignored.", 
-				l_LineText);
-			continue;
-		}
-		
-		l_Event.m_ControlAction = ControlAction(l_ControlNameString, l_Action);
-		
-		// Keep it.
-		s_ScheduleEvents.push_back(l_Event);
+		xmlFreeDoc(l_ScheduleDocument);
+		LoggerAddMessage("Failed to get the root node of the schedule file. Maybe it is corrupt?\n");
+		return false;
 	}
+	
+	// Loop through all of the event nodes.
+	static auto const* s_EventNodeName = "Event";
+	XMLForEachNodeNamed(l_RootNode->xmlChildrenNode, s_EventNodeName, [&](xmlNodePtr p_Node)
+	{								
+		// Try to read the event.
+		ScheduleEvent l_Event;
+		if (l_Event.ReadFromXML(l_ScheduleDocument, p_Node) == false)
+		{
+			return;
+		}
+					
+		// If we successfully read the event, add it to the list.
+		s_ScheduleEvents.push_back(l_Event);
+	});
 	
 	// Close the file.
-	fclose(l_ScheduleFile);
+	xmlFreeDoc(l_ScheduleDocument);
 		
 	return true;
 }

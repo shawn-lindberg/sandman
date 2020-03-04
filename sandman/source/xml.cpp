@@ -95,7 +95,7 @@ int XMLCopyNodeText(char* p_Buffer, unsigned int p_BufferCapacity, xmlDocPtr p_D
 // Searches a list of XML nodes starting from a given node and returns the next node with a matching 
 // name.
 //
-// p_StartNode:	Does node to start with. This can any node among the same list. Pass in the 
+// p_StartNode:	The node to start with. This can any node among the same list. Pass in the 
 // 					previously found node to get the next one.
 // p_SearchName:	The name of the node to search for.
 //
