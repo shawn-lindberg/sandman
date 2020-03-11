@@ -72,10 +72,10 @@ class Config
 		char m_SpeechInputDeviceName[ms_InputDeviceNameCapacity];
 
 		// The input sample rate.
-		unsigned int m_InputSampleRate;
+		unsigned int m_InputSampleRate = 0;
 		
 		// How long to wait with no new voice to end an utterance in seconds.
-		float m_PostSpeechDelaySec;
+		float m_PostSpeechDelaySec = 1.0f;
 		
 		// The name of the input device.
 		char m_InputDeviceName[ms_InputDeviceNameCapacity];
@@ -84,10 +84,10 @@ class Config
 		std::vector<InputBinding> m_InputBindings;
 		
 		// The maximum duration a control can move for (in milliseconds).
-		unsigned int m_ControlMaxMovingDurationMS;
+		unsigned int m_ControlMaxMovingDurationMS = 100000;
 				
 		// The duration a control will be on cooldown (in milliseconds).
-		unsigned int m_ControlCoolDownDurationMS;
+		unsigned int m_ControlCoolDownDurationMS = 50000;
 		
 		// The list of control configs.
 		std::vector<ControlConfig> m_ControlConfigs;

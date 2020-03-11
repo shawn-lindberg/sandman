@@ -19,18 +19,20 @@ class SpeechRecognizer
 
 		// Initialize the recognizer.
 		//
-		// p_CaptureDeviceName:						The name of the audio capture device.
-		// p_SampleRate:							The audio capture sample rate.
-		// p_HMMFileName:							File name of the HMM the recognizer will use.
-		// p_LanguageModelFileName:					File name of the language model the recognizer will use.
-		// p_DictionaryFileName:					File name of the dictionary the recognizer will use.
-		// p_LogFileName:							File name of the log for recognizer output.
-		// p_UtteranceTrailingSilenceThresholdSec:	How long to wait with no new voice to end an utterance in seconds.
+		// p_CaptureDeviceName:								The name of the audio capture device.
+		// p_SampleRate:										The audio capture sample rate.
+		// p_HMMFileName:										File name of the HMM the recognizer will use.
+		// p_LanguageModelFileName:						File name of the language model the recognizer will use.
+		// p_DictionaryFileName:							File name of the dictionary the recognizer will use.
+		// p_LogFileName:										File name of the log for recognizer output.
+		// p_UtteranceTrailingSilenceThresholdSec:	How long to wait with no new voice to end an 
+		// 														utterance in seconds.
 		//
 		// returns:		True for success, false otherwise.
 		//
-		bool Initialize(char const* p_CaptureDeviceName, unsigned int p_SampleRate, char const* p_HMMFileName,
-			char const* p_LanguageModelFileName, char const* p_DictionaryFileName, char const* p_LogFileName,
+		bool Initialize(char const* p_CaptureDeviceName, unsigned int p_SampleRate, 
+			char const* p_HMMFileName,	char const* p_LanguageModelFileName, 
+			char const* p_DictionaryFileName, char const* p_LogFileName,
 			float p_UtteranceTrailingSilenceThresholdSec);
 
 		// Uninitialize the recognizer.
@@ -39,7 +41,7 @@ class SpeechRecognizer
 
 		// Process audio input in an attempt to recognize speech.
 		//
-		// p_RecognizedSpeech:	(Output) The speech recognized if any, or NULL if not.
+		// p_RecognizedSpeech:	(Output) The speech recognized if any, or null if not.
 		//
 		// returns:				True for success, false if an error occurred.
 		//

@@ -22,11 +22,7 @@
 Config::Config()
 {
 	m_SpeechInputDeviceName[0] = '\0';
-	m_InputSampleRate = 0;
-	m_PostSpeechDelaySec = 1.0f;
 	m_InputDeviceName[0] = '\0';
-	m_ControlMaxMovingDurationMS = 100000;
-	m_ControlCoolDownDurationMS = 50000;
 }
 
 // Read the configuration from a file.

@@ -29,7 +29,8 @@ void TimerGetCurrent(Time& p_Time)
 	
 		// Convert to our form.
 		p_Time.m_Seconds = l_Ticks.QuadPart / l_Frequency.QuadPart;
-		p_Time.m_Nanoseconds = ((l_Ticks.QuadPart % l_Frequency.QuadPart) * 1000000000) / l_Frequency.QuadPart;
+		p_Time.m_Nanoseconds = ((l_Ticks.QuadPart % l_Frequency.QuadPart) * 1000000000) / 
+			l_Frequency.QuadPart;
 		
 	#elif defined (__linux__)
 
@@ -46,7 +47,7 @@ void TimerGetCurrent(Time& p_Time)
 // Get the elapsed time in milliseconds between to times.
 //
 // p_StartTime:	Start time.
-// p_EndTime:	End time.
+// p_EndTime:		End time.
 //
 float TimerGetElapsedMilliseconds(Time const& p_StartTime, Time const& p_EndTime)
 {
@@ -70,6 +71,7 @@ float TimerGetElapsedMilliseconds(Time const& p_StartTime, Time const& p_EndTime
 	}
 	
 	// Convert to milliseconds.
-	float const l_ElapsedTimeMS = (1.0e3f * l_ElapsedTime.m_Seconds) + (l_ElapsedTime.m_Nanoseconds / 1.0e6f);
+	float const l_ElapsedTimeMS = (1.0e3f * l_ElapsedTime.m_Seconds) + 
+		(l_ElapsedTime.m_Nanoseconds / 1.0e6f);
 	return l_ElapsedTimeMS;
 }

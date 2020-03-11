@@ -19,41 +19,43 @@ static float const s_UtteranceMaxLengthSec = 30.0f;
 
 // Initialize the recognizer.
 //
-// p_CaptureDeviceName:						The name of the audio capture device.
-// p_SampleRate:							The audio capture sample rate.
-// p_HMMFileName:							File name of the HMM the recognizer will use.
-// p_LanguageModelFileName:					File name of the language model the recognizer will use.
-// p_DictionaryFileName:					File name of the dictionary the recognizer will use.
-// p_LogFileName:							File name of the log for recognizer output.
-// p_UtteranceTrailingSilenceThresholdSec:	How long to wait with no new voice to end an utterance in seconds.
+// p_CaptureDeviceName:								The name of the audio capture device.
+// p_SampleRate:										The audio capture sample rate.
+// p_HMMFileName:										File name of the HMM the recognizer will use.
+// p_LanguageModelFileName:						File name of the language model the recognizer will use.
+// p_DictionaryFileName:							File name of the dictionary the recognizer will use.
+// p_LogFileName:										File name of the log for recognizer output.
+// p_UtteranceTrailingSilenceThresholdSec:	How long to wait with no new voice to end an utterance 
+// 														in seconds.
 //
 // returns:		True for success, false otherwise.
 //
-bool SpeechRecognizer::Initialize(char const* p_CaptureDeviceName, unsigned int p_SampleRate, char const* p_HMMFileName,
-	char const* p_LanguageModelFileName, char const* p_DictionaryFileName, char const* p_LogFileName,
-	float p_UtteranceTrailingSilenceThresholdSec)
+bool SpeechRecognizer::Initialize(char const* p_CaptureDeviceName, unsigned int p_SampleRate, 
+	char const* p_HMMFileName,	char const* p_LanguageModelFileName, char const* p_DictionaryFileName, 
+	char const* p_LogFileName, float p_UtteranceTrailingSilenceThresholdSec)
 {
-	m_AudioRecorder = NULL;
-	m_VoiceActivityDetector = NULL;
-	m_SpeechDecoder = NULL;
+	m_AudioRecorder = nullptr;
+	m_VoiceActivityDetector = nullptr;
+	m_SpeechDecoder = nullptr;
 
 	m_InUtterance = false;
 	m_LastVoiceSampleCount = 0;
 
 	// Delete the current recognizer log.
-	FILE* l_LogFile = fopen(p_LogFileName, "w");
+	auto* l_LogFile = fopen(p_LogFileName, "w");
 
-	if (l_LogFile != NULL)
+	if (l_LogFile != nullptr)
 	{
 		fclose(l_LogFile);
 	}
 
-	LoggerAddMessage("Initializing audio input device \"%s\" at %i Hz...", p_CaptureDeviceName, p_SampleRate);
+	LoggerAddMessage("Initializing audio input device \"%s\" at %i Hz...", p_CaptureDeviceName, 
+		p_SampleRate);
 
 	// Open the default audio device for recording.
 	m_AudioRecorder = ad_open_dev(p_CaptureDeviceName, p_SampleRate);
 
-	if (m_AudioRecorder == NULL)
+	if (m_AudioRecorder == nullptr)
 	{
 		LoggerAddMessage("\tfailed");
 		return false;
@@ -67,7 +69,7 @@ bool SpeechRecognizer::Initialize(char const* p_CaptureDeviceName, unsigned int 
 	// Initialize the voice activity detector.
 	m_VoiceActivityDetector = cont_ad_init(m_AudioRecorder, ad_read);
 
-	if (m_VoiceActivityDetector == NULL)
+	if (m_VoiceActivityDetector == nullptr)
 	{
 		Uninitialize();
 
@@ -103,10 +105,11 @@ bool SpeechRecognizer::Initialize(char const* p_CaptureDeviceName, unsigned int 
 	LoggerAddMessage("Initializing the speech decoder...");
 
 	// Initialize the speech decoder.
-	cmd_ln_t* l_SpeechDecoderConfig = cmd_ln_init(NULL, ps_args(), TRUE, "-hmm", p_HMMFileName, "-lm", p_LanguageModelFileName,
-		"-dict", p_DictionaryFileName, "-logfn", p_LogFileName, NULL);
+	auto* l_SpeechDecoderConfig = cmd_ln_init(nullptr, ps_args(), TRUE, "-hmm", p_HMMFileName, 
+		"-lm", p_LanguageModelFileName, "-dict", p_DictionaryFileName, "-logfn", p_LogFileName, 
+		nullptr);
 
-	if (l_SpeechDecoderConfig == NULL)
+	if (l_SpeechDecoderConfig == nullptr)
 	{
 		Uninitialize();
 
@@ -116,7 +119,7 @@ bool SpeechRecognizer::Initialize(char const* p_CaptureDeviceName, unsigned int 
 
 	m_SpeechDecoder = ps_init(l_SpeechDecoderConfig);
 	
-	if (m_SpeechDecoder == NULL)
+	if (m_SpeechDecoder == nullptr)
 	{
 		Uninitialize();
 
@@ -132,7 +135,8 @@ bool SpeechRecognizer::Initialize(char const* p_CaptureDeviceName, unsigned int 
 	{
 		s_UtteranceTrailingSilenceThresholdSec = p_UtteranceTrailingSilenceThresholdSec;
 
-		LoggerAddMessage("Speech recognizer post speech delay set to - %f sec.", p_UtteranceTrailingSilenceThresholdSec);
+		LoggerAddMessage("Speech recognizer post speech delay set to - %f sec.", 
+			p_UtteranceTrailingSilenceThresholdSec);
 	}
 		
 	return true;
@@ -143,40 +147,41 @@ bool SpeechRecognizer::Initialize(char const* p_CaptureDeviceName, unsigned int 
 void SpeechRecognizer::Uninitialize()
 {
 	// Uninitialize the speech decoder.
-	if (m_SpeechDecoder != NULL)
+	if (m_SpeechDecoder != nullptr)
 	{
 		ps_free(m_SpeechDecoder);
-		m_SpeechDecoder = NULL;
+		m_SpeechDecoder = nullptr;
 	}
 
 	// Uninitialize the voice activity detector.
-	if (m_VoiceActivityDetector != NULL)
+	if (m_VoiceActivityDetector != nullptr)
 	{
 		cont_ad_close(m_VoiceActivityDetector);
-		m_VoiceActivityDetector = NULL;
+		m_VoiceActivityDetector = nullptr;
 	}
 
 	// Uninitialize the audio input device.
-	if (m_AudioRecorder != NULL)
+	if (m_AudioRecorder != nullptr)
 	{
 		ad_close(m_AudioRecorder);
-		m_AudioRecorder = NULL;
+		m_AudioRecorder = nullptr;
 	}
 }
 
 // Process audio input in an attempt to recognize speech.
 //
-// p_RecognizedSpeech:	(Output) The speech recognized if any, or NULL if not.
+// p_RecognizedSpeech:	(Output) The speech recognized if any, or null if not.
 //
 // returns:				True for success, false if an error occurred.
 //
 bool SpeechRecognizer::Process(char const*& p_RecognizedSpeech)
 {
 	// Read some more audio looking for voice.
-	unsigned int const l_VoiceDataBufferCapacity = 4096;
+	static constexpr unsigned int const l_VoiceDataBufferCapacity = 4096;
 	short int l_VoiceDataBuffer[l_VoiceDataBufferCapacity];
 
-	int l_NumSamplesRead = cont_ad_read(m_VoiceActivityDetector, l_VoiceDataBuffer, l_VoiceDataBufferCapacity);
+	auto l_NumSamplesRead = cont_ad_read(m_VoiceActivityDetector, l_VoiceDataBuffer, 
+		l_VoiceDataBufferCapacity);
 
 	if (l_NumSamplesRead < 0)
 	{
@@ -191,8 +196,8 @@ bool SpeechRecognizer::Process(char const*& p_RecognizedSpeech)
 		{
 			LoggerAddMessage("Beginning of utterance detected.");
 
-			// NULL here means automatically choose an utterance ID.
-			if (ps_start_utt(m_SpeechDecoder, NULL) < 0)
+			// Null here means automatically choose an utterance ID.
+			if (ps_start_utt(m_SpeechDecoder, nullptr) < 0)
 			{
 				LoggerAddMessage("Error starting utterance.");
 				return false;
@@ -217,14 +222,15 @@ bool SpeechRecognizer::Process(char const*& p_RecognizedSpeech)
 	if (m_InUtterance == true)
 	{
 		// Get the time since last voice sample.
-		float l_TimeSinceVoiceSec = 
-			(m_VoiceActivityDetector->read_ts - m_LastVoiceSampleCount) / static_cast<float>(m_AudioRecorder->sps);
+		auto const l_TimeSinceVoiceSec = (m_VoiceActivityDetector->read_ts - m_LastVoiceSampleCount) / 
+			static_cast<float>(m_AudioRecorder->sps);
 
 		// Get elapsed time since utterance start.
 		Time l_CurrentTime;
 		TimerGetCurrent(l_CurrentTime);
 
-		float l_ElapsedTimeSec = TimerGetElapsedMilliseconds(m_UtteranceStartTime, l_CurrentTime) / 1000.0f;
+		auto const l_ElapsedTimeSec = TimerGetElapsedMilliseconds(m_UtteranceStartTime, l_CurrentTime) / 
+			1000.0f;
 
 		// The utterance either ends if it experiences a long enough silence or gets too long.
 		if (((l_NumSamplesRead == 0) && (l_TimeSinceVoiceSec >= s_UtteranceTrailingSilenceThresholdSec)) ||
@@ -246,10 +252,11 @@ bool SpeechRecognizer::Process(char const*& p_RecognizedSpeech)
 
 			// Get the speech for the utterance.
 			int l_Score = 0;
-			char const* l_UtteranceID = NULL;
+			char const* l_UtteranceID = nullptr;
 			p_RecognizedSpeech = ps_get_hyp(m_SpeechDecoder, &l_Score, &l_UtteranceID);
 
-			LoggerAddMessage("Recognized: \"%s\", score %d, utterance ID \"%s\"", p_RecognizedSpeech, l_Score, l_UtteranceID);
+			LoggerAddMessage("Recognized: \"%s\", score %d, utterance ID \"%s\"", p_RecognizedSpeech, 
+				l_Score, l_UtteranceID);
 		}
 	}
 

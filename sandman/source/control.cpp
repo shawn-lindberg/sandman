@@ -17,7 +17,7 @@
 //
 
 // Maximum duration of the moving state.
-#define MAX_MOVING_STATE_DURATION_MS	(100 * 1000) // 100 sec.
+#define MAX_MOVING_STATE_DURATION_MS		(100 * 1000) // 100 sec.
 
 // Maximum duration of the cool down state.
 #define MAX_COOL_DOWN_STATE_DURATION_MS	(50 * 1000) // 50 sec.
@@ -26,11 +26,11 @@
 //#define COMMAND_INTERVAL_MS				(2 * 1000) // 2 sec.
 
 // The pin to use for enabling controls.
-#define ENABLE_GPIO_PIN					(7)
+#define ENABLE_GPIO_PIN							(7)
 
 // GPIO values for on and off respectively.
-#define CONTROL_ON_GPIO_VALUE			(LOW)
-#define CONTROL_OFF_GPIO_VALUE			(HIGH)
+#define CONTROL_ON_GPIO_VALUE					(LOW)
+#define CONTROL_OFF_GPIO_VALUE				(HIGH)
 
 // Locals
 //
@@ -467,7 +467,7 @@ void Control::QueueSound()
 	}
 	
 	// Build the file name.
-	unsigned int l_SoundFileNameCapacity = 128;
+	static constexpr unsigned int l_SoundFileNameCapacity = 128;
 	char l_SoundFileName[l_SoundFileNameCapacity];
 	snprintf(l_SoundFileName, l_SoundFileNameCapacity, DATADIR "audio/%s_%s.wav", m_Name,
 		s_ControlStateFileNames[m_State]);

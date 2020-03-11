@@ -27,6 +27,6 @@ void TimerGetCurrent(Time& p_Time);
 // Get the elapsed time in milliseconds between to times.
 //
 // p_StartTime:	Start time.
-// p_EndTime:	End time.
+// p_EndTime:		End time.
 //
 float TimerGetElapsedMilliseconds(Time const& p_StartTime, Time const& p_EndTime);
