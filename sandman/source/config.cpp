@@ -17,13 +17,6 @@
 // Functions
 //
 
-template<class T>
-T const& Min(T const& p_A, T const& p_B)
-{
-	return (p_A < p_B) ? p_A : p_B;
-}
-
-
 // Config members
 
 Config::Config()

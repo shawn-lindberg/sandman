@@ -103,12 +103,6 @@ static ControlHandle s_ElevationControlHandle;
 // Functions
 //
 
-template<class T>
-T const& Min(T const& p_A, T const& p_B)
-{
-	return (p_A < p_B) ? p_A : p_B;
-}
-
 // Converts a string to lowercase.
 //
 // p_String:	The string to convert.
@@ -403,13 +397,12 @@ static void TokenizeCommandString(unsigned int& p_CommandTokenBufferSize,
 		}
 		else 
 		{
-			l_TokenStringLength = strlen(l_NextTokenStringStart);
+			l_TokenStringLength = l_TokenStringBufferCapacity - 1;
 		}
 
 		// Copy the token string.
-		unsigned int const l_AmountToCopy = Min(l_TokenStringBufferCapacity - 1, l_TokenStringLength);
-		strncpy(l_TokenStringBuffer, l_NextTokenStringStart, l_AmountToCopy);
-		l_TokenStringBuffer[l_AmountToCopy] = '\0';
+		strncpy(l_TokenStringBuffer, l_NextTokenStringStart, l_TokenStringLength);
+		l_TokenStringBuffer[l_TokenStringLength] = '\0';
 
 		// Make sure the token string is lowercase.
 		ConvertStringToLowercase(l_TokenStringBuffer);

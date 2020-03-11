@@ -11,12 +11,6 @@
 // Functions
 //
 
-template<class T>
-T const& Min(T const& p_A, T const& p_B)
-{
-	return (p_A < p_B) ? p_A : p_B;
-}
-
 // Determines whether the name of a node matches a string. I don't like this, but for some reason 
 // the developers of the XML library decided to make this other type for the strings, but the "official" 
 // examples do blind casts anyway. So I'm hiding this detail in this function.
@@ -67,29 +61,27 @@ int XMLGetNodeTextAsInteger(xmlDocPtr p_Document, xmlNodePtr p_Node)
 // p_Document:			The XML document that the node belongs to.
 // p_Node:				The XML node to get the text from.
 //
-// Returns:		The number of characters copied into the buffer.
+// Returns:		True if the text was copied, false otherwise.
 //
-int XMLCopyNodeText(char* p_Buffer, unsigned int p_BufferCapacity, xmlDocPtr p_Document, 
+bool XMLCopyNodeText(char* p_Buffer, unsigned int p_BufferCapacity, xmlDocPtr p_Document, 
 	xmlNodePtr p_Node)
 {
 	// Get the string representation of the note text.
 	auto* l_NodeText = xmlNodeListGetString(p_Document, p_Node->xmlChildrenNode, 1);
 	
 	if (l_NodeText == nullptr) {
-		return -1;
+		return false;
 	}
 	
 	// Copy no more than the amount of text the buffer can hold.
 	auto const* l_NodeTextString = reinterpret_cast<char const*>(l_NodeText);
-	unsigned int const l_AmountToCopy = 
-		Min(static_cast<unsigned int>(p_BufferCapacity) - 1, strlen(l_NodeTextString));
-	strncpy(p_Buffer, l_NodeTextString, l_AmountToCopy);
-	p_Buffer[l_AmountToCopy] = '\0';
+	strncpy(p_Buffer, l_NodeTextString, p_BufferCapacity - 1);
+	p_Buffer[p_BufferCapacity - 1] = '\0';
 	
 	// Free the memory that was allocated and return the amount copied.
 	xmlFree(l_NodeText);
 	
-	return l_AmountToCopy;
+	return true;
 }
 
 // Searches a list of XML nodes starting from a given node and returns the next node with a matching 

@@ -34,12 +34,6 @@
 // Functions
 //
 
-template<class T>
-T const& Min(T const& p_A, T const& p_B)
-{
-	return (p_A < p_B) ? p_A : p_B;
-}
-
 
 // InputBinding members
 
@@ -92,10 +86,8 @@ bool InputBinding::ReadFromXML(xmlDocPtr p_Document, xmlNodePtr p_Node)
 void Input::Initialize(char const* p_DeviceName, std::vector<InputBinding> const& p_Bindings)
 {
 	// Copy the device name.
-	unsigned int const l_AmountToCopy = 
-		Min(static_cast<unsigned int>(ms_DeviceNameCapacity) - 1, strlen(p_DeviceName));
-	strncpy(m_DeviceName, p_DeviceName, l_AmountToCopy);
-	m_DeviceName[l_AmountToCopy] = '\0';
+	strncpy(m_DeviceName, p_DeviceName, ms_DeviceNameCapacity - 1);
+	m_DeviceName[ms_DeviceNameCapacity - 1] = '\0';
 	
 	// Populate the input bindings.
 	m_Bindings = p_Bindings;

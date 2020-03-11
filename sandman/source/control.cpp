@@ -79,12 +79,6 @@ unsigned int Control::ms_CoolDownDurationMS = MAX_COOL_DOWN_STATE_DURATION_MS;
 // Functions
 //
 
-template<class T>
-T const& Min(T const& p_A, T const& p_B)
-{
-	return (p_A < p_B) ? p_A : p_B;
-}
-
 // Set the given GPIO pin to the "on" value.
 //
 // p_Pin:	The GPIO pin to set the value of.
@@ -131,7 +125,7 @@ bool ControlConfig::ReadFromXML(xmlDocPtr p_Document, xmlNodePtr p_Node)
 	}
 	
 	// Copy the control name.
-	if (XMLCopyNodeText(m_Name, ms_ControlNameCapacity, p_Document, l_ControlNameNode) < 0)
+	if (XMLCopyNodeText(m_Name, ms_ControlNameCapacity, p_Document, l_ControlNameNode) == false)
 	{
 		return false;
 	}
@@ -184,10 +178,8 @@ bool ControlConfig::ReadFromXML(xmlDocPtr p_Document, xmlNodePtr p_Node)
 void Control::Initialize(ControlConfig const& p_Config)
 {
 	// Copy the name.
-	unsigned int const l_AmountToCopy = 
-		Min(static_cast<unsigned int>(NAME_CAPACITY) - 1, strlen(p_Config.m_Name));
-	strncpy(m_Name, p_Config.m_Name, l_AmountToCopy);
-	m_Name[l_AmountToCopy] = '\0';
+	strncpy(m_Name, p_Config.m_Name, ms_NameCapacity - 1);
+	m_Name[ms_NameCapacity - 1] = '\0';
 	
 	m_State = STATE_IDLE;
 	TimerGetCurrent(m_StateStartTime);
@@ -491,10 +483,8 @@ ControlAction::ControlAction(char const* p_ControlName, Control::Actions p_Actio
 	: m_Action(p_Action)
 {
 	// Copy the control name.
-	unsigned int const l_AmountToCopy = 
-		Min(static_cast<unsigned int>(ms_ControlNameCapacity) - 1, strlen(p_ControlName));
-	strncpy(m_ControlName, p_ControlName, l_AmountToCopy);
-	m_ControlName[l_AmountToCopy] = '\0';
+	strncpy(m_ControlName, p_ControlName, ms_ControlNameCapacity - 1);
+	m_ControlName[ms_ControlNameCapacity - 1] = '\0';
 }
 
 // Read a control action from XML. 
@@ -516,7 +506,7 @@ bool ControlAction::ReadFromXML(xmlDocPtr p_Document, xmlNodePtr p_Node)
 	}
 	
 	// Copy the control name.
-	if (XMLCopyNodeText(m_ControlName, ms_ControlNameCapacity, p_Document, l_ControlNameNode) < 0)
+	if (XMLCopyNodeText(m_ControlName, ms_ControlNameCapacity, p_Document, l_ControlNameNode) == false)
 	{
 		return false;
 	}
@@ -534,7 +524,7 @@ bool ControlAction::ReadFromXML(xmlDocPtr p_Document, xmlNodePtr p_Node)
 	static constexpr unsigned int s_ActionTextCapacity = 32;
 	char l_ActionText[s_ActionTextCapacity];
 	
-	if (XMLCopyNodeText(l_ActionText, s_ActionTextCapacity, p_Document, l_ActionNode) < 0)
+	if (XMLCopyNodeText(l_ActionText, s_ActionTextCapacity, p_Document, l_ActionNode) == false)
 	{
 		return false;
 	}

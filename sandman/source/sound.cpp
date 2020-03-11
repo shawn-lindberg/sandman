@@ -1,5 +1,6 @@
 #include "sound.h"
 
+#include <algorithm>
 #include <limits.h>
 
 #include <SDL.h>
@@ -42,18 +43,6 @@ static unsigned int s_NumSoundsToPlayBeforeMute = UINT_MAX;
 
 // Functions
 //
-
-template<class T>
-T const& Min(T const& p_A, T const& p_B)
-{
-	return (p_A < p_B) ? p_A : p_B;
-}
-
-template<class T>
-T const& Max(T const& p_A, T const& p_B)
-{
-	return (p_A > p_B) ? p_A : p_B;
-}
 
 // Remove a sound from the front of the play queue.
 //
@@ -195,7 +184,7 @@ void SoundDecreaseVolume()
 	}
 
 	// Calculate the new volume.
-	int l_NewVolume = Max(s_DesiredVolume - s_VolumeChange, s_VolumeChange);
+	int l_NewVolume = std::max(s_DesiredVolume - s_VolumeChange, s_VolumeChange);
 	
 	if (l_NewVolume == s_DesiredVolume)
 	{
@@ -234,7 +223,7 @@ void SoundIncreaseVolume()
 	}
 
 	// Calculate the new volume.
-	int l_NewVolume = Min(s_DesiredVolume + s_VolumeChange, MIX_MAX_VOLUME);
+	int l_NewVolume = std::min(s_DesiredVolume + s_VolumeChange, MIX_MAX_VOLUME);
 	
 	if (l_NewVolume == s_DesiredVolume)
 	{
@@ -329,6 +318,7 @@ bool SoundAddToQueue(char const* const p_FileName)
 	// Add it to the queue.
 	s_PlayQueue[s_NumQueuedSounds] = l_Sample;
 	s_NumQueuedSounds++;
+	return true;
 }
 
 // Process sound.

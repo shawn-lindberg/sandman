@@ -146,10 +146,7 @@ class Control
 	private:
 
 		// Constants.
-		enum
-		{
-			NAME_CAPACITY = 32,
-		};
+		static constexpr unsigned int ms_NameCapacity = 32;
 
 		// States a control may be in.
 		enum State
@@ -165,7 +162,7 @@ class Control
 		void QueueSound();
 		
 		// The name of the control.
-		char m_Name[NAME_CAPACITY];
+		char m_Name[ms_NameCapacity];
 		
 		// The control state.
 		State m_State;
