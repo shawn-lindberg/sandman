@@ -73,7 +73,7 @@ static std::vector<Control> s_Controls;
 
 // Control members
 
-unsigned int Control::ms_MovingDurationMS = MAX_MOVING_STATE_DURATION_MS;
+unsigned int Control::ms_MaxMovingDurationMS = MAX_MOVING_STATE_DURATION_MS;
 unsigned int Control::ms_CoolDownDurationMS = MAX_COOL_DOWN_STATE_DURATION_MS;
 
 // Functions
@@ -195,10 +195,10 @@ void Control::Initialize(ControlConfig const& p_Config)
 	SetGPIOPinOff(m_DownGPIOPin);
 	
 	// Set the individual control moving duration.
-	m_MovingDurationMS = p_Config.m_MovingDurationMS;
+	m_StandardMovingDurationMS = p_Config.m_MovingDurationMS;
 	
 	LoggerAddMessage("Initialized control \'%s\' with GPIO pins (up %i, "
-		"down %i) and duration %i ms.", m_Name, m_UpGPIOPin, m_DownGPIOPin, m_MovingDurationMS);
+		"down %i) and duration %i ms.", m_Name, m_UpGPIOPin, m_DownGPIOPin, m_StandardMovingDurationMS);
 }
 
 // Handle uninitialization.
@@ -265,13 +265,9 @@ void Control::Process()
 				ACTION_MOVING_DOWN;
 			auto const l_OppositeAction = (m_State == STATE_MOVING_UP) ? ACTION_MOVING_DOWN : 
 				ACTION_MOVING_UP;
-
-			// Get the duration based on the mode.
-			auto const l_MovingDurationMS = (m_Mode == MODE_TIMED) ? m_MovingDurationMS : 
-				ms_MovingDurationMS;
 			
 			// Wait until the desired action no longer matches or the time limit has run out.
-			if ((m_DesiredAction == l_MatchingAction) && (l_ElapsedTimeMS < l_MovingDurationMS))
+			if ((m_DesiredAction == l_MatchingAction) && (l_ElapsedTimeMS < m_MovingDurationMS))
 			{
 				break;
 			}
@@ -354,16 +350,32 @@ void Control::Process()
 
 // Set the desired action.
 //
-// p_DesiredAction:	The desired action.
-// p_Mode:			The mode of the action.
+// p_DesiredAction:		The desired action.
+// p_Mode:					The mode of the action.
+// p_DurationPercent:	(Optional) The percent of the normal duration to perform the action 
+//								for.
 //
-void Control::SetDesiredAction(Actions p_DesiredAction, Modes p_Mode)
+void Control::SetDesiredAction(Actions p_DesiredAction, Modes p_Mode, 
+	unsigned int p_DurationPercent /* = 100 */)
 {
 	m_DesiredAction = p_DesiredAction;
 	m_Mode = p_Mode;
+	
+	if (m_Mode == MODE_TIMED) 
+	{
+		// Set the current moving duration based on the requested percentage of the standard amount.
+		auto const l_DurationFraction = std::min(p_DurationPercent, 100u) / 100.0f;
+		m_MovingDurationMS = static_cast<unsigned int>(m_StandardMovingDurationMS * 
+			l_DurationFraction);
+	}
+	else
+	{
+		m_MovingDurationMS = ms_MaxMovingDurationMS;
+	}
 
-	LoggerAddMessage("Control \"%s\": Setting desired action to \"%s\" with mode \"%s\".", m_Name, 
-		s_ControlActionNames[p_DesiredAction], s_ControlModeNames[p_Mode]);
+	LoggerAddMessage("Control \"%s\": Setting desired action to \"%s\" with mode \"%s\" and "
+		"duration %i ms.", m_Name, s_ControlActionNames[p_DesiredAction], 
+		s_ControlModeNames[p_Mode], m_MovingDurationMS);
 }
 
 // Enable or disable all controls.
@@ -396,7 +408,7 @@ void Control::Enable(bool p_Enable)
 //
 void Control::SetDurations(unsigned int p_MovingDurationMS, unsigned int p_CoolDownDurationMS)
 {
-	ms_MovingDurationMS = p_MovingDurationMS;
+	ms_MaxMovingDurationMS = p_MovingDurationMS;
 	ms_CoolDownDurationMS = p_CoolDownDurationMS;
 	
 	LoggerAddMessage("Control durations set to moving - %i ms, cool down - %i ms.", p_MovingDurationMS, p_CoolDownDurationMS);

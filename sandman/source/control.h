@@ -102,10 +102,13 @@ class Control
 
 		// Set the desired action.
 		//
-		// p_DesiredAction:	The desired action.
-		// p_Mode:			The mode of the action.
+		// p_DesiredAction:		The desired action.
+		// p_Mode:					The mode of the action.
+		// p_DurationPercent:	(Optional) The percent of the normal duration to perform the action 
+		//								for.
 		//
-		void SetDesiredAction(Actions p_DesiredAction, Modes p_Mode);
+		void SetDesiredAction(Actions p_DesiredAction, Modes p_Mode, 
+			unsigned int p_DurationPercent = 100);
 
 		// Get the name.
 		//
@@ -180,11 +183,14 @@ class Control
 		int m_UpGPIOPin;
 		int m_DownGPIOPin;
 		
-		// The duration of the moving state (in milliseconds) for this control.
+		// The current duration of the moving state (in milliseconds) for this control.
 		unsigned int m_MovingDurationMS;
+		
+		// The standard duration of the moving state (in milliseconds) for this control.
+		unsigned int m_StandardMovingDurationMS;
 
 		// Maximum duration of the moving state (in milliseconds).
-		static unsigned int ms_MovingDurationMS;
+		static unsigned int ms_MaxMovingDurationMS;
 		
 		// Maximum duration of the cool down state (in milliseconds).
 		static unsigned int ms_CoolDownDurationMS;	
@@ -218,7 +224,7 @@ struct ControlAction
 	static constexpr unsigned int ms_ControlNameCapacity = 32;
 	
 	// The name of the control to manipulate.
-	char				m_ControlName[ms_ControlNameCapacity];
+	char					m_ControlName[ms_ControlNameCapacity];
 	
 	// The action for the control.
 	Control::Actions	m_Action;
