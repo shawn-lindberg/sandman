@@ -17,23 +17,12 @@
 // Functions
 //
 
-template<class T>
-T const& Min(T const& p_A, T const& p_B)
-{
-	return (p_A < p_B) ? p_A : p_B;
-}
-
-
 // Config members
 
 Config::Config()
 {
 	m_SpeechInputDeviceName[0] = '\0';
-	m_InputSampleRate = 0;
-	m_PostSpeechDelaySec = 1.0f;
 	m_InputDeviceName[0] = '\0';
-	m_ControlMaxMovingDurationMS = 100000;
-	m_ControlCoolDownDurationMS = 50000;
 }
 
 // Read the configuration from a file.
@@ -109,26 +98,20 @@ bool Config::ReadFromFile(char const* p_ConfigFileName)
 					m_InputBindings.clear();
 		
 					// Let's go through the bindings and try to load those in.
-					auto l_BindingNode = l_InputDeviceNode->xmlChildrenNode;
-					for (; l_BindingNode != nullptr; l_BindingNode = l_BindingNode->next)
-					{
-						// See if this is a binding.
-						static auto const* s_BindingNodeName = "Binding";
-						if (XMLIsNodeNamed(l_BindingNode, s_BindingNodeName) == false)
-						{
-							continue;
-						}
-						
+					static auto const* s_BindingNodeName = "Binding";
+					XMLForEachNodeNamed(l_InputDeviceNode->xmlChildrenNode, s_BindingNodeName, 
+						[&](xmlNodePtr p_Node)
+					{						
 						// Try to read the binding.
 						InputBinding l_Binding;
-						if (l_Binding.ReadFromXML(l_ConfigDocument, l_BindingNode) == false)
+						if (l_Binding.ReadFromXML(l_ConfigDocument, p_Node) == false)
 						{
-							continue;
+							return;
 						}
 						
 						// If we successfully read a binding, add it to the list.
 						m_InputBindings.push_back(l_Binding);
-					}				
+					});				
 	
 					continue;
 				}
@@ -176,27 +159,20 @@ bool Config::ReadFromFile(char const* p_ConfigFileName)
 				// Clear the list so that if there are multiple sets, we always take the last ones.
 				m_ControlConfigs.clear();
 		
-				// Let's go through the bindings and try to load those in.
-				auto l_ControlConfigNode = l_SettingNode->xmlChildrenNode;
-				for (; l_ControlConfigNode != nullptr; l_ControlConfigNode = l_ControlConfigNode->next)
-				{
-					// See if this is a control config.
-					static auto const* s_ControlConfigNodeName = "ControlConfig";
-					if (XMLIsNodeNamed(l_ControlConfigNode, s_ControlConfigNodeName) == false)
-					{
-						continue;
-					}
-						
+				static auto const* s_ControlConfigNodeName = "ControlConfig";
+				XMLForEachNodeNamed(l_SettingNode->xmlChildrenNode, s_ControlConfigNodeName, 
+					[&](xmlNodePtr p_Node)
+				{								
 					// Try to read the control config.
 					ControlConfig l_ControlConfig;
-					if (l_ControlConfig.ReadFromXML(l_ConfigDocument, l_ControlConfigNode) == false)
+					if (l_ControlConfig.ReadFromXML(l_ConfigDocument, p_Node) == false)
 					{
-						continue;
+						return;
 					}
 					
 					// If we successfully read a control config, add it to the list.
 					m_ControlConfigs.push_back(l_ControlConfig);
-				}				
+				});		
 
 				continue;
 			}

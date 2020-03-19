@@ -23,8 +23,8 @@ class SerialConnection
 
 		// Reads a string from the serial connection.
 		//
-		// p_NumBytesRead:				(Output) The number of bytes actually read.
-		// p_StringBuffer:				(Output) A buffer to hold the string that is read.
+		// p_NumBytesRead:					(Output) The number of bytes actually read.
+		// p_StringBuffer:					(Output) A buffer to hold the string that is read.
 		// p_StringBufferCapacityBytes:	The capacity of the string buffer.
 		//
 		// returns:						True for success, false otherwise.
@@ -35,7 +35,7 @@ class SerialConnection
 		// Write a string to the serial connection.
 		//
 		// p_NumBytesWritten:	(Output) The number of bytes actually written.
-		// p_String:			The string to write.
+		// p_String:				The string to write.
 		//
 		// returns:				True for success, false otherwise.
 		//

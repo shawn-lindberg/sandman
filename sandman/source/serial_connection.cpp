@@ -23,7 +23,8 @@ bool SerialConnection::Initialize(char const* const p_PortName)
 	m_PortName[PORT_NAME_MAX_LENGTH - 1] = 0;
 
 	// Open the serial port.
-	m_Handle = CreateFile(p_PortName, GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+	m_Handle = CreateFile(p_PortName, GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, 
+		FILE_ATTRIBUTE_NORMAL, 0);
 
 	if (m_Handle == INVALID_HANDLE_VALUE)
 	{
@@ -35,7 +36,8 @@ bool SerialConnection::Initialize(char const* const p_PortName)
 	DCB l_SerialParams;
 	if (GetCommState(m_Handle, &l_SerialParams) == false)
 	{
-		LoggerAddMessage("Failed to get serial port %s params: error code 0x%x", m_PortName, GetLastError());
+		LoggerAddMessage("Failed to get serial port %s params: error code 0x%x", m_PortName, 
+			GetLastError());
 		CloseHandle(m_Handle);
 		return false;
 	}
@@ -45,7 +47,8 @@ bool SerialConnection::Initialize(char const* const p_PortName)
 
 	if (SetCommState(m_Handle, &l_SerialParams) == false)
 	{
-		LoggerAddMessage("Failed to set serial port %s params: error code 0x%x", m_PortName, GetLastError());
+		LoggerAddMessage("Failed to set serial port %s params: error code 0x%x", m_PortName, 
+			GetLastError());
 		CloseHandle(m_Handle);
 		return false;
 	}
@@ -62,7 +65,8 @@ bool SerialConnection::Initialize(char const* const p_PortName)
 
 	if (SetCommTimeouts(m_Handle, &l_SerialTimeouts) == false)
 	{
-		LoggerAddMessage("Failed to set serial port %s timeouts: error code 0x%x", m_PortName, GetLastError());
+		LoggerAddMessage("Failed to set serial port %s timeouts: error code 0x%x", m_PortName, 
+			GetLastError());
 		CloseHandle(m_Handle);
 		return false;
 	}
@@ -85,8 +89,8 @@ void SerialConnection::Uninitialize()
 
 // Reads a string from the serial connection.
 //
-// p_NumBytesRead:				(Output) The number of bytes actually read.
-// p_StringBuffer:				(Output) A buffer to hold the string that is read.
+// p_NumBytesRead:					(Output) The number of bytes actually read.
+// p_StringBuffer:					(Output) A buffer to hold the string that is read.
 // p_StringBufferCapacityBytes:	The capacity of the string buffer.
 //
 // returns:						True for success, false otherwise.
@@ -103,9 +107,11 @@ bool SerialConnection::ReadString(unsigned long int& p_NumBytesRead, char* p_Str
 	}
 
 	// Read serial port text, if there is any.
-	if (ReadFile(m_Handle, p_StringBuffer, p_StringBufferCapacityBytes - 1, &p_NumBytesRead, NULL) == false)
+	if (ReadFile(m_Handle, p_StringBuffer, p_StringBufferCapacityBytes - 1, &p_NumBytesRead, 
+		nullptr) == false)
 	{
-		LoggerAddMessage("Failed to read from serial port %s: error code 0x%x", m_PortName, GetLastError());
+		LoggerAddMessage("Failed to read from serial port %s: error code 0x%x", m_PortName, 
+			GetLastError());
 		return false;
 	}
 
@@ -118,7 +124,7 @@ bool SerialConnection::ReadString(unsigned long int& p_NumBytesRead, char* p_Str
 // Write a string to the serial connection.
 //
 // p_NumBytesWritten:	(Output) The number of bytes actually written.
-// p_String:			The string to write.
+// p_String:				The string to write.
 //
 // returns:				True for success, false otherwise.
 //
@@ -135,9 +141,10 @@ bool SerialConnection::WriteString(unsigned long int& p_NumBytesWritten, char co
 	// Write the string.
 	unsigned long int const l_NumBytesToWrite = strlen(p_String);
 
-	if (WriteFile(m_Handle, p_String, l_NumBytesToWrite, &p_NumBytesWritten, NULL) == false)
+	if (WriteFile(m_Handle, p_String, l_NumBytesToWrite, &p_NumBytesWritten, nullptr) == false)
 	{
-		LoggerAddMessage("Failed to write to serial port %s: error code 0x%x", m_PortName, GetLastError());
+		LoggerAddMessage("Failed to write to serial port %s: error code 0x%x", m_PortName, 
+			GetLastError());
 		return false;
 	}
 

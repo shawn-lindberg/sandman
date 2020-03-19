@@ -33,9 +33,9 @@ int XMLGetNodeTextAsInteger(xmlDocPtr p_Document, xmlNodePtr p_Node);
 // p_Document:			The XML document that the node belongs to.
 // p_Node:				The XML node to get the text from.
 //
-// Returns:		The number of characters copied into the buffer.
+// Returns:		True if the text was copied, false otherwise.
 //
-int XMLCopyNodeText(char* p_Buffer, unsigned int p_BufferCapacity, xmlDocPtr p_Document, 
+bool XMLCopyNodeText(char* p_Buffer, unsigned int p_BufferCapacity, xmlDocPtr p_Document, 
 	xmlNodePtr p_Node);
 
 // Searches a list of XML nodes starting from a given node and returns the next node with a matching 
