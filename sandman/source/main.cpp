@@ -24,9 +24,9 @@
 	
 #include "timer.h"
 
-#define DATADIR		AM_DATADIR
+#define DATADIR	AM_DATADIR
 #define CONFIGDIR	AM_CONFIGDIR
-#define TEMPDIR		AM_TEMPDIR
+#define TEMPDIR	AM_TEMPDIR
 
 // Types
 //
@@ -36,8 +36,6 @@ enum CommandTokenTypes
 {
 	COMMAND_TOKEN_INVALID = -1,
 
-	COMMAND_TOKEN_SAND,
-	COMMAND_TOKEN_MAN,
 	COMMAND_TOKEN_BACK,
 	COMMAND_TOKEN_LEGS,
 	COMMAND_TOKEN_ELEVATION,
@@ -60,19 +58,17 @@ enum CommandTokenTypes
 // Names for each command token.
 static char const* const s_CommandTokenNames[] = 
 {
-	"sand",			// COMMAND_TOKEN_SAND
-	"man",			// COMMAND_TOKEN_MAN
 	"back",			// COMMAND_TOKEN_BACK
 	"legs",			// COMMAND_TOKEN_LEGS
 	"elevation",	// COMMAND_TOKEN_ELEVATION
-	"raise",		// COMMAND_TOKEN_RAISE
-	"lower",		// COMMAND_TOKEN_LOWER
+	"raise",			// COMMAND_TOKEN_RAISE
+	"lower",			// COMMAND_TOKEN_LOWER
 	"stop",			// COMMAND_TOKEN_STOP
 	"volume",		// COMMAND_TOKEN_VOLUME
 	// "mute",			// COMMAND_TOKEN_MUTE
 	// "unmute",		// COMMAND_TOKEN_UNMUTE
 	"schedule",		// COMMAND_TOKEN_SCHEDULE
-	"start",		// COMMAND_TOKEN_START
+	"start",			// COMMAND_TOKEN_START
 	"status",		// COMMAND_TOKEN_STATUS
 };
 
@@ -368,14 +364,11 @@ static void Uninitialize()
 
 // Take a command string and turn it into a list of tokens.
 //
-// p_CommandTokenBufferSize:		(Output) How man tokens got put in the buffer.
-// p_CommandTokenBuffer:			(Output) A buffer to hold the tokens.
-// p_CommandTokenBufferCapacity:	The maximum the command token buffer can hold.
-// p_CommandString:					The command string to tokenize.
+// p_CommandTokens:	(Output) The resulting command tokens, in order.
+// p_CommandString:	The command string to tokenize.
 //
-static void TokenizeCommandString(unsigned int& p_CommandTokenBufferSize, 
-	CommandTokenTypes* p_CommandTokenBuffer,
-	unsigned int const p_CommandTokenBufferCapacity, char const* p_CommandString)
+static void TokenizeCommandString(std::vector<CommandTokenTypes>& p_CommandTokens, 
+	char const* p_CommandString)
 {
 	// Store token strings here.
 	static constexpr unsigned int l_TokenStringBufferCapacity = 32;
@@ -423,16 +416,8 @@ static void TokenizeCommandString(unsigned int& p_CommandTokenBufferSize,
 			break;
 		}
 
-		// Add the token to the buffer.
-		if (p_CommandTokenBufferSize < p_CommandTokenBufferCapacity)
-		{
-			p_CommandTokenBuffer[p_CommandTokenBufferSize] = l_Token;
-			p_CommandTokenBufferSize++;
-		} 
-		else
-		{
-			LoggerAddMessage("Voice command too long, tail will be ignored.");
-		}
+		// Add the token to the list.
+		p_CommandTokens.push_back(l_Token);
 
 		// Get the next token string start (skip delimiter).
 		if (l_NextTokenStringEnd != nullptr)
@@ -448,202 +433,182 @@ static void TokenizeCommandString(unsigned int& p_CommandTokenBufferSize,
 
 // Parse the command tokens into commands.
 //
-// p_CommandTokenBufferSize:		(Input/Output) How man tokens got put in the buffer.
-// p_CommandTokenBuffer:			(Input/Output) A buffer to hold the tokens.
+// p_CommandTokens:	All of the potential tokens for the command.
 //
-void ParseCommandTokens(unsigned int& p_CommandTokenBufferSize, CommandTokenTypes* p_CommandTokenBuffer)
+static void ParseCommandTokens(std::vector<CommandTokenTypes> const& p_CommandTokens)
 {
 	// Parse command tokens.
-	for (unsigned int l_TokenIndex = 0; l_TokenIndex < p_CommandTokenBufferSize; l_TokenIndex++)
+	auto const l_TokenCount = static_cast<unsigned int>(p_CommandTokens.size());
+	for (unsigned int l_TokenIndex = 0; l_TokenIndex < l_TokenCount; l_TokenIndex++)
 	{
-		// Look for the prefix.
-		if (p_CommandTokenBuffer[l_TokenIndex] != COMMAND_TOKEN_SAND)
-		{
-			continue;
-		}
-
-		// Next token.
-		l_TokenIndex++;
-		if (l_TokenIndex >= p_CommandTokenBufferSize)
-		{
-			break;
-		}
-
-		// Look for the rest of the prefix.
-		if (p_CommandTokenBuffer[l_TokenIndex] != COMMAND_TOKEN_MAN)
-		{
-			continue;
-		}
-
-		// Next token.
-		l_TokenIndex++;
-		if (l_TokenIndex >= p_CommandTokenBufferSize)
-		{
-			break;
-		}
-
 		// Parse commands.
-		if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_BACK)
+		auto l_Token = p_CommandTokens[l_TokenIndex];
+		switch (l_Token)
 		{
-			// Next token.
-			l_TokenIndex++;
-			if (l_TokenIndex >= p_CommandTokenBufferSize)
+			case COMMAND_TOKEN_BACK:		// Fall through...
+			case COMMAND_TOKEN_LEGS:		// Fall through...
+			case COMMAND_TOKEN_ELEVATION:	
 			{
-				break;
-			}
-							
-			// Try to find the control.
-			if (s_BackControlHandle.IsValid() == false)
-			{
-				s_BackControlHandle = Control::GetHandle("back");
-			}
+				// Try to access the control corresponding to the command token.
+				Control* l_Control = nullptr;
+				
+				switch (l_Token)
+				{
+					case COMMAND_TOKEN_BACK:
+					{
+						// Try to find the control.
+						if (s_BackControlHandle.IsValid() == false)
+						{
+							s_BackControlHandle = Control::GetHandle("back");
+						}
+						
+						l_Control = Control::GetFromHandle(s_BackControlHandle);
+					}
+					break;
+					
+					case COMMAND_TOKEN_LEGS:
+					{
+						// Try to find the control.
+						if (s_LegsControlHandle.IsValid() == false)
+						{
+							s_LegsControlHandle = Control::GetHandle("legs");
+						}
+						
+						l_Control = Control::GetFromHandle(s_LegsControlHandle);
+					}
+					break;
+					
+					case COMMAND_TOKEN_ELEVATION:
+					{
+						// Try to find the control.
+						if (s_ElevationControlHandle.IsValid() == false)
+						{
+							s_ElevationControlHandle = Control::GetHandle("elev");
+						}
 			
-			auto* l_Control = Control::GetFromHandle(s_BackControlHandle);
+						l_Control = Control::GetFromHandle(s_ElevationControlHandle);
+					}
+					break;
+					
+					default:
+					{
+						LoggerAddMessage("Unrecognized token \"%s\" trying to process a control movement "
+							"command.", s_CommandTokenNames[l_Token]);
+					}
+					break;
+				}
 			
-			if (l_Control == nullptr)
-			{
-				break;
-			}
+				if (l_Control == nullptr)
+				{
+					break;
+				}			
 			
-			if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_RAISE)
-			{
-				l_Control->SetDesiredAction(Control::ACTION_MOVING_UP, Control::MODE_TIMED);
+				// Next token.
+				l_TokenIndex++;
+				if (l_TokenIndex >= l_TokenCount)
+				{
+					break;
+				}
+				
+				l_Token = p_CommandTokens[l_TokenIndex];
+				
+				if (l_Token == COMMAND_TOKEN_RAISE)
+				{
+					l_Control->SetDesiredAction(Control::ACTION_MOVING_UP, Control::MODE_TIMED);
+				}
+				else if (l_Token == COMMAND_TOKEN_LOWER)
+				{
+					l_Control->SetDesiredAction(Control::ACTION_MOVING_DOWN, Control::MODE_TIMED);
+				}
 			}
-			else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_LOWER)
-			{
-				l_Control->SetDesiredAction(Control::ACTION_MOVING_DOWN, Control::MODE_TIMED);
-			}
-		}
-		else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_LEGS)
-		{
-			// Next token.
-			l_TokenIndex++;
-			if (l_TokenIndex >= p_CommandTokenBufferSize)
-			{
-				break;
-			}
+			break;
 			
-			// Try to find the control.
-			if (s_LegsControlHandle.IsValid() == false)
+			case COMMAND_TOKEN_STOP:
 			{
-				s_LegsControlHandle = Control::GetHandle("legs");
+				// Stop controls.
+				ControlsStopAll();			
 			}
+			break;
 			
-			auto* l_Control = Control::GetFromHandle(s_LegsControlHandle);
+			case COMMAND_TOKEN_SCHEDULE:
+			{
+				// Next token.
+				l_TokenIndex++;
+				if (l_TokenIndex >= l_TokenCount)
+				{
+					break;
+				}
+				
+				l_Token = p_CommandTokens[l_TokenIndex];
 			
-			if (l_Control == nullptr)
-			{
-				break;
+				if (l_Token == COMMAND_TOKEN_START)
+				{
+					ScheduleStart();
+				}
+				else if (l_Token == COMMAND_TOKEN_STOP)
+				{
+					ScheduleStop();
+				}			
 			}
+			break;
 			
-			if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_RAISE)
+			case COMMAND_TOKEN_VOLUME:
 			{
-				l_Control->SetDesiredAction(Control::ACTION_MOVING_UP, Control::MODE_TIMED);
-			}
-			else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_LOWER)
-			{
-				l_Control->SetDesiredAction(Control::ACTION_MOVING_DOWN, Control::MODE_TIMED);
-			}
-		}
-		else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_ELEVATION)
-		{
-			// Next token.
-			l_TokenIndex++;
-			if (l_TokenIndex >= p_CommandTokenBufferSize)
-			{
-				break;
-			}
-			
-			// Try to find the control.
-			if (s_ElevationControlHandle.IsValid() == false)
-			{
-				s_ElevationControlHandle = Control::GetHandle("elev");
-			}
-			
-			auto* l_Control = Control::GetFromHandle(s_ElevationControlHandle);
-			
-			if (l_Control == nullptr)
-			{
-				break;
-			}
+				// Next token.
+				l_TokenIndex++;
+				if (l_TokenIndex >= l_TokenCount)
+				{
+					break;
+				}
 
-			if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_RAISE)
-			{
-				l_Control->SetDesiredAction(Control::ACTION_MOVING_UP, Control::MODE_TIMED);
+				l_Token = p_CommandTokens[l_TokenIndex];
+				
+				if (l_Token == COMMAND_TOKEN_RAISE)
+				{
+					SoundIncreaseVolume();
+				}
+				else if (l_Token == COMMAND_TOKEN_LOWER)
+				{
+					SoundDecreaseVolume();
+				}
 			}
-			else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_LOWER)
-			{
-				l_Control->SetDesiredAction(Control::ACTION_MOVING_DOWN, Control::MODE_TIMED);
-			}
-		}
-		else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_STOP)
-		{
-			// Stop controls.
-			ControlsStopAll();			
-		}
-		else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_SCHEDULE)
-		{
-			// Next token.
-			l_TokenIndex++;
-			if (l_TokenIndex >= p_CommandTokenBufferSize)
-			{
-				break;
-			}
-		
-			if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_START)
-			{
-				ScheduleStart();
-			}
-			else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_STOP)
-			{
-				ScheduleStop();
-			}			
-		}
-		else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_VOLUME)
-		{
-			// Next token.
-			l_TokenIndex++;
-			if (l_TokenIndex >= p_CommandTokenBufferSize)
-			{
-				break;
-			}
-
-			if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_RAISE)
-			{
-				SoundIncreaseVolume();
-			}
-			else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_LOWER)
-			{
-				SoundDecreaseVolume();
-			}
-		}
-		// else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_MUTE)
-		// {
-		// 	SoundMute(true);
-		// }
-		// else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_UNMUTE)
-		// {
-		// 	SoundMute(false);
-		// }
-		else if (p_CommandTokenBuffer[l_TokenIndex] == COMMAND_TOKEN_STATUS)
-		{
-			// Play status speech.
-			SoundAddToQueue(DATADIR "audio/running.wav");	
+			break;
 			
-			if (ScheduleIsRunning() == true)
-			{
-				SoundAddToQueue(DATADIR "audio/sched_running.wav");	
-			}
+			// case COMMAND_TOKEN_MUTE:
+			// {
+			// 	SoundMute(true);
+			// }
+			// break;
 			
-			if (s_Input.IsConnected() == true)
+			// case COMMAND_TOKEN_UNMUTE:
+			// {
+			// 	SoundMute(false);
+			// }
+			// break;
+			
+			case COMMAND_TOKEN_STATUS:
 			{
-				SoundAddToQueue(DATADIR "audio/control_connected.wav");
+				// Play status speech.
+				SoundAddToQueue(DATADIR "audio/running.wav");	
+				
+				if (ScheduleIsRunning() == true)
+				{
+					SoundAddToQueue(DATADIR "audio/sched_running.wav");	
+				}
+				
+				if (s_Input.IsConnected() == true)
+				{
+					SoundAddToQueue(DATADIR "audio/control_connected.wav");
+				}
 			}
+			break;
+			
+			default:	
+			{
+			}
+			break;
 		}
 	}
-
-	// All tokens parsed.
-	p_CommandTokenBufferSize = 0;
 }
 
 // Get keyboard input.
@@ -683,17 +648,12 @@ static bool ProcessKeyboardInput(char* p_KeyboardInputBuffer, unsigned int& p_Ke
 
 	// Parse a command.
 
-	// Store command tokens here.
-	static constexpr unsigned int l_CommandTokenBufferCapacity = 32;
-	CommandTokenTypes l_CommandTokenBuffer[l_CommandTokenBufferCapacity];
-	unsigned int l_CommandTokenBufferSize = 0;
-
-	// Tokenize the speech.
-	TokenizeCommandString(l_CommandTokenBufferSize, l_CommandTokenBuffer, l_CommandTokenBufferCapacity,
-		p_KeyboardInputBuffer);
+	// Tokenize the string.
+	std::vector<CommandTokenTypes> l_CommandTokens;
+	TokenizeCommandString(l_CommandTokens, p_KeyboardInputBuffer);
 
 	// Parse command tokens.
-	ParseCommandTokens(l_CommandTokenBufferSize, l_CommandTokenBuffer);
+	ParseCommandTokens(l_CommandTokens);
 
 	// Prepare for a new command.
 	p_KeyboardInputBufferSize = 0;
@@ -755,17 +715,12 @@ static bool ProcessSocketCommunication()
 	{
 		// Parse a command.
 
-		// Store command tokens here.
-		static constexpr unsigned int l_CommandTokenBufferCapacity = 32;
-		CommandTokenTypes l_CommandTokenBuffer[l_CommandTokenBufferCapacity];
-		unsigned int l_CommandTokenBufferSize = 0;
-
 		// Tokenize the message.
-		TokenizeCommandString(l_CommandTokenBufferSize, l_CommandTokenBuffer, l_CommandTokenBufferCapacity,
-			l_MessageBuffer);
+		std::vector<CommandTokenTypes> l_CommandTokens;
+		TokenizeCommandString(l_CommandTokens,	l_MessageBuffer);
 
 		// Parse command tokens.
-		ParseCommandTokens(l_CommandTokenBufferSize, l_CommandTokenBuffer);
+		ParseCommandTokens(l_CommandTokens);
 	}
 	
 	LoggerAddMessage("Connection closed.");
@@ -856,8 +811,7 @@ int main(int argc, char** argv)
 				unsigned int const l_CommandStringLength = strlen(l_CommandStringStart);
 				
 				// Copy only the actual command.
-				snprintf(l_CommandBuffer, l_CommandBufferCapacity, "sand man %.*s", 
-					l_CommandStringLength, l_CommandStringStart);
+				strncpy(l_CommandBuffer, l_CommandStringStart, l_CommandBufferCapacity - 1);
 				l_CommandBuffer[l_CommandBufferCapacity - 1] = '\0';
 				
 				// Replace '_' with ' '.
@@ -919,7 +873,8 @@ int main(int argc, char** argv)
 			if (l_RecognizedSpeech != nullptr)
 			{
 				// Parse a command.
-
+				static_assert(false, "Need to validate/ignore the command prefix.");
+				
 				// Store command tokens here.
 				static constexpr unsigned int l_CommandTokenBufferCapacity = 32;
 				CommandTokenTypes l_CommandTokenBuffer[l_CommandTokenBufferCapacity];
