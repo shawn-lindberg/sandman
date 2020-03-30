@@ -904,12 +904,18 @@ static void SendMessageToDaemon(char const* p_Message)
 	close(l_SendingSocket);
 }
 
-int main(int argc, char** argv)
-{		
-	// Deal with command line arguments.
-	for (unsigned int l_ArgumentIndex = 0; l_ArgumentIndex < argc; l_ArgumentIndex++)
+// Handle the commandline arguments.
+//
+//	p_Arguments:		The argument list.
+// p_ArgumentCount:	The number of arguments in the list.
+//
+// Returns:	True if the program should exit, false if it should continue.
+//
+static bool HandleCommandLine(char** p_Arguments, int p_ArgumentCount)
+{
+	for (unsigned int l_ArgumentIndex = 0; l_ArgumentIndex < p_ArgumentCount; l_ArgumentIndex++)
 	{
-		auto const* l_Argument = argv[l_ArgumentIndex];
+		auto const* l_Argument = p_Arguments[l_ArgumentIndex];
 		
 		// Start as a daemon?
 		if (strcmp(l_Argument, "--daemon") == 0)
@@ -920,7 +926,7 @@ int main(int argc, char** argv)
 		else if (strcmp(l_Argument, "--shutdown") == 0)
 		{
 			SendMessageToDaemon("shutdown");
-			return 0;
+			return true;
 		}
 		else 
 		{
@@ -936,8 +942,6 @@ int main(int argc, char** argv)
 				
 				static constexpr unsigned int l_CommandBufferCapacity = 100;
 				char l_CommandBuffer[l_CommandBufferCapacity];
-
-				unsigned int const l_CommandStringLength = strlen(l_CommandStringStart);
 				
 				// Copy only the actual command.
 				strncpy(l_CommandBuffer, l_CommandStringStart, l_CommandBufferCapacity - 1);
@@ -958,9 +962,20 @@ int main(int argc, char** argv)
 				
 				// Send the command to the daemon.
 				SendMessageToDaemon(l_CommandBuffer);
-				return 0;
+				return true;
 			}
 		}
+	}
+	
+	return false;
+}
+
+int main(int argc, char** argv)
+{		
+	// Deal with command line arguments.
+	if (HandleCommandLine(argv, argc) == true) 
+	{
+		return 0;
 	}
 	
 	// Initialization.
