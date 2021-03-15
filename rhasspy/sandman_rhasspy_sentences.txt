@@ -1,0 +1,14 @@
+[GetStatus]
+what is the status
+tell me the status
+
+[MovePart]
+part_name = (back | legs | elevation) {name}
+part_direction = (up | down) {direction}
+
+move <part_direction> [the] <part_name>
+move [the] <part_name> <part_direction>
+
+[SetSchedule]
+start [the] schedule {action:start}
+stop [the] schedule {action:stop}
