@@ -8,7 +8,10 @@ part_direction = (up | down) {direction}
 
 move <part_direction> [the] <part_name>
 move [the] <part_name> <part_direction>
+put [the] <part_name> <part_direction>
+raise {direction:up} [the] <part_name>
+lower {direction:down} [the] <part_name>
 
 [SetSchedule]
-start [the] schedule {action:start}
-stop [the] schedule {action:stop}
+start {action:start} [the] schedule
+stop {action:stop} [the] schedule 
