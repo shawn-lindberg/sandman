@@ -20,7 +20,7 @@ PKG_PROG_PKG_CONFIG
 # Checks for libraries.
 AC_CHECK_LIB([rt], [clock_gettime])
 AC_CHECK_LIB([ncurses], [initscr])
-AC_CHECK_LIB([wiringPi], [wiringPiSetup])
+AC_CHECK_LIB([pigpio], [gpioInitialise])
 
 # Check for SDL.
 PKG_CHECK_MODULES([SDL_MIXER], [SDL_mixer])
@@ -29,7 +29,7 @@ PKG_CHECK_MODULES([SDL_MIXER], [SDL_mixer])
 PKG_CHECK_MODULES([XML], [libxml-2.0 >= 2.4])
 
 # Checks for header files.
-AC_CHECK_HEADERS([stdint.h string.h ncurses.h wiringPi.h])
+AC_CHECK_HEADERS([stdint.h string.h ncurses.h pigpio.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL

@@ -4,12 +4,12 @@
 #include <string.h>
 #include <vector>
 
+#include <pigpio.h>
+
 #include "logger.h"
 #include "sound.h"
 #include "timer.h"
 #include "xml.h"
-
-#include "wiringPi.h"
 
 #define DATADIR		AM_DATADIR
 
@@ -29,8 +29,8 @@
 #define ENABLE_GPIO_PIN							(7)
 
 // GPIO values for on and off respectively.
-#define CONTROL_ON_GPIO_VALUE					(LOW)
-#define CONTROL_OFF_GPIO_VALUE				(HIGH)
+#define CONTROL_ON_GPIO_VALUE					(0)
+#define CONTROL_OFF_GPIO_VALUE				(1)
 
 // Locals
 //
@@ -85,7 +85,7 @@ unsigned int Control::ms_CoolDownDurationMS = MAX_COOL_DOWN_STATE_DURATION_MS;
 //
 void SetGPIOPinOn(int p_Pin)
 {
-	digitalWrite(p_Pin, CONTROL_ON_GPIO_VALUE);
+	gpioWrite(p_Pin, CONTROL_ON_GPIO_VALUE);
 }
 
 // Set the given GPIO pin to the "off" value.
@@ -94,7 +94,7 @@ void SetGPIOPinOn(int p_Pin)
 //
 void SetGPIOPinOff(int p_Pin)
 {
-	digitalWrite(p_Pin, CONTROL_OFF_GPIO_VALUE);
+	gpioWrite(p_Pin, CONTROL_OFF_GPIO_VALUE);
 }
 
 // ControlHandle members
@@ -187,11 +187,11 @@ void Control::Initialize(ControlConfig const& p_Config)
 
 	// Setup the pins and set them to off.
 	m_UpGPIOPin = p_Config.m_UpGPIOPin;
-	pinMode(m_UpGPIOPin, OUTPUT);
+	gpioSetMode(m_UpGPIOPin, PI_OUTPUT);
 	SetGPIOPinOff(m_UpGPIOPin);
 	
 	m_DownGPIOPin = p_Config.m_DownGPIOPin;
-	pinMode(m_DownGPIOPin, OUTPUT);
+	gpioSetMode(m_DownGPIOPin, PI_OUTPUT);
 	SetGPIOPinOff(m_DownGPIOPin);
 	
 	// Set the individual control moving duration.
@@ -206,8 +206,8 @@ void Control::Initialize(ControlConfig const& p_Config)
 void Control::Uninitialize()
 {
 	// Revert to input.
-	pinMode(m_UpGPIOPin, INPUT);
-	pinMode(m_DownGPIOPin, INPUT);
+	gpioSetMode(m_UpGPIOPin, PI_INPUT);
+	gpioSetMode (m_DownGPIOPin, PI_INPUT);
 }
 
 // Process a tick.

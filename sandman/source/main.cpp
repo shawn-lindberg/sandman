@@ -9,7 +9,7 @@
 #include <sys/un.h>
 
 #include <ncurses.h>
-#include "wiringPi.h"
+#include <pigpio.h>
 
 #include "config.h"
 #include "control.h"
@@ -367,7 +367,7 @@ static bool Initialize()
 
 	LoggerAddMessage("Initializing GPIO support...");
 	
-	if (wiringPiSetup() == -1)
+	if (gpioInitialise() < 0)
 	{
 		LoggerAddMessage("\tfailed");
 		return false;
@@ -442,6 +442,9 @@ static void Uninitialize()
 	// Uninitialize the input.
 	s_Input.Uninitialize();
 		
+	// Uninitialize GPIO support.
+	gpioTerminate();
+	
 	// Uninitialize logging.
 	LoggerUninitialize();
 
