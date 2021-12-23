@@ -15,6 +15,7 @@
 #include "control.h"
 #include "input.h"
 #include "logger.h"
+#include "mqtt.h"
 #include "schedule.h"
 #include "sound.h"
 
@@ -376,6 +377,12 @@ static bool Initialize()
 	LoggerAddMessage("\tsucceeded");
 	LoggerAddMessage("");
 			
+	// Initialize MQTT.
+	if (MQTTInitialize() == false) 
+	{
+		return false;
+	}
+
 	// Initialize sound.
 	if (SoundInitialize() == false)
 	{
@@ -430,6 +437,9 @@ static void Uninitialize()
 	// Uninitialize sound.
 	SoundUninitialize();
 	
+	// Uninitialize MQTT.
+	MQTTUninitialize();
+
 	if (s_ControlsInitialized == true)
 	{
 		// Disable all controls.
