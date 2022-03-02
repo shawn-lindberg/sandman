@@ -11,6 +11,7 @@
 #include <ncurses.h>
 #include <pigpio.h>
 
+#include "command.h"
 #include "config.h"
 #include "control.h"
 #include "input.h"
@@ -32,63 +33,9 @@
 // Types
 //
 
-// Describes a command token.
-struct CommandToken
-{
-	// Types of command tokens.
-	enum Types
-	{
-		TYPE_INVALID = -1,
-
-		TYPE_BACK,
-		TYPE_LEGS,
-		TYPE_ELEVATION,
-		TYPE_RAISE,
-		TYPE_LOWER,
-		TYPE_STOP,
-		TYPE_VOLUME,
-		// TYPE_MUTE,
-		// TYPE_UNMUTE,
-		TYPE_SCHEDULE,
-		TYPE_START,
-		TYPE_STATUS,
-		
-		TYPE_NOT_PARAMETER_COUNT, 
-		
-		// The following command tokens are parameters.
-		TYPE_INTEGER = TYPE_NOT_PARAMETER_COUNT, 
-		
-		TYPE_COUNT,
-	};
-
-	// The type of the token.
-	Types	m_Type = TYPE_INVALID;
-	
-	// The value of the integer parameter, if relevant.
-	int m_Parameter = 0;
-};
 
 // Locals
 //
-
-// Names for each command token.
-static char const* const s_CommandTokenNames[] = 
-{
-	"back",			// TYPE_BACK
-	"legs",			// TYPE_LEGS
-	"elevation",	// TYPE_ELEVATION
-	"raise",			// TYPE_RAISE
-	"lower",			// TYPE_LOWER
-	"stop",			// TYPE_STOP
-	"volume",		// TYPE_VOLUME
-	// "mute",			// TYPE_MUTE
-	// "unmute",		// TYPE_UNMUTE
-	"schedule",		// TYPE_SCHEDULE
-	"start",			// TYPE_START
-	"status",		// TYPE_STATUS
-	
-	"integer", 		// TYPE_INTEGER
-};
 
 // Whether controls have been initialized.
 static bool s_ControlsInitialized = false;
@@ -109,109 +56,8 @@ static bool s_DaemonMode = false;
 // Used to listen for connections.
 static int s_ListeningSocket = -1;
 
-// Keep handles to the controls.
-static ControlHandle s_BackControlHandle;
-static ControlHandle s_LegsControlHandle;
-static ControlHandle s_ElevationControlHandle;
-
 // Functions
 //
-
-// Converts a string to lowercase.
-//
-// p_String:	The string to convert.
-//
-static void ConvertStringToLowercase(char* p_String)
-{
-	// Sanity check.
-	if (p_String == nullptr)
-	{
-		return;
-	}
-
-	auto* l_CurrentLetter = p_String;
-	while (*l_CurrentLetter != '\0')
-	{
-		// Convert this letter.
-		*l_CurrentLetter = static_cast<char>(tolower(static_cast<unsigned int>(*l_CurrentLetter)));
-
-		// Next letter.
-		l_CurrentLetter++;
-	}
-}
-
-// Converts a string to an (unsigned) integer.
-//
-// p_Integer:	(Output) The converted integer value.
-// p_String:	The string to convert.
-// 
-// Returns:	True if a valid integer was created, false otherwise.
-//
-static bool ConvertStringToInteger(int& p_Integer, char* p_String)
-{
-	// Sanity check.
-	if (p_String == nullptr)
-	{
-		return false;
-	}
-	
-	if (p_String[0] == '\0')
-	{
-		return false;
-	}
-	
-	// Build up the integer in a larger container, so overflow can be easily detected.
-	int64_t l_Integer = 0;
-	
-	auto* l_CurrentCharacter = p_String;
-	
-	while (*l_CurrentCharacter != '\0')
-	{
-		// Convert this letter.
-		switch (*l_CurrentCharacter)
-		{
-			case '0':	// Fall through...
-			case '1':	// Fall through...
-			case '2':	// Fall through...
-			case '3':	// Fall through...
-			case '4':	// Fall through...
-			case '5':	// Fall through...
-			case '6':	// Fall through...
-			case '7':	// Fall through...
-			case '8':	// Fall through...
-			case '9':
-			{
-				// Consider leading zeros to be badly formed.
-				if ((l_Integer == 0) && (l_CurrentCharacter != p_String)) {
-					return false;
-				}
-			
-				// This calculation depends on the ASCII character values starting at zero and 
-				// going up to nine contiguously.
-				auto const l_Digit = (*l_CurrentCharacter - '0');
-				l_Integer = (l_Integer * 10) + l_Digit;
-			}
-			break;
-			
-			default:
-			{
-			}
-			return false;
-		}
-
-		// If the number has gotten too large, bail.
-		if (l_Integer > INT_MAX) {
-			return false;
-		}
-		
-		// Next letter.
-		l_CurrentCharacter++;
-	}
-	
-	// Convert the accumulated value.
-	p_Integer = static_cast<int>(l_Integer);
-	return true;
-}
 
 // Initialize program components.
 //
@@ -305,7 +151,8 @@ static bool Initialize()
 		unlink(l_ListeningAddress.sun_path);
 		
 		// Bind the socket to the file.
-		if (bind(s_ListeningSocket, reinterpret_cast<sockaddr*>(&l_ListeningAddress), sizeof(sockaddr_un)) < 0)
+		if (bind(s_ListeningSocket, reinterpret_cast<sockaddr*>(&l_ListeningAddress), 
+			sizeof(sockaddr_un)) < 0)
 		{
 			LoggerAddMessage("Failed to bind listening socket.");
 			return false;
@@ -408,6 +255,9 @@ static bool Initialize()
 	// Initialize the schedule.
 	ScheduleInitialize();
 	
+	// Initialize the commands.
+	CommandInitialize(s_Input);
+
 	// Play initialization speech.
 	SoundAddToQueue(DATADIR "audio/initialized.wav");
 
@@ -424,6 +274,9 @@ static void Uninitialize()
 		close(s_ListeningSocket);
 	}
 	
+	// Uninitialize the commands.
+	CommandUninitialize();
+
 	// Uninitialize the schedule.
 	ScheduleUninitialize();
 	
@@ -462,294 +315,6 @@ static void Uninitialize()
 	{
 		// Uninitialize ncurses.
 		endwin();
-	}
-}
-
-// Take a command string and turn it into a list of tokens.
-//
-// p_CommandTokens:	(Output) The resulting command tokens, in order.
-// p_CommandString:	The command string to tokenize.
-//
-static void TokenizeCommandString(std::vector<CommandToken>& p_CommandTokens, 
-	char const* p_CommandString)
-{
-	// Store token strings here.
-	static constexpr unsigned int l_TokenStringBufferCapacity = 32;
-	char l_TokenStringBuffer[l_TokenStringBufferCapacity];
-
-	// Get the first token string start.
-	auto const* l_NextTokenStringStart = p_CommandString;
-
-	while (l_NextTokenStringStart != nullptr)
-	{
-		// Get the next token string end.
-		auto const* l_NextTokenStringEnd = strchr(l_NextTokenStringStart, ' ');
-
-		// Get the token string length.
-		unsigned int l_TokenStringLength = 0;
-		if (l_NextTokenStringEnd != nullptr)
-		{
-			l_TokenStringLength = l_NextTokenStringEnd - l_NextTokenStringStart;
-		}
-		else 
-		{
-			l_TokenStringLength = l_TokenStringBufferCapacity - 1;
-		}
-
-		// Copy the token string.
-		strncpy(l_TokenStringBuffer, l_NextTokenStringStart, l_TokenStringLength);
-		l_TokenStringBuffer[l_TokenStringLength] = '\0';
-
-		// Make sure the token string is lowercase.
-		ConvertStringToLowercase(l_TokenStringBuffer);
-
-		// Match the token string to a token (with no parameter) if possible.
-		CommandToken l_Token;
-
-		for (unsigned int l_TokenType = 0; l_TokenType < CommandToken::TYPE_NOT_PARAMETER_COUNT; 
-			l_TokenType++)
-		{
-			// Compare the token string to its name.
-			if (strcmp(l_TokenStringBuffer, s_CommandTokenNames[l_TokenType]) != 0)
-			{
-				continue;
-			}
-
-			// Found a match.
-			l_Token.m_Type = static_cast<CommandToken::Types>(l_TokenType);
-			break;
-		}
-
-		// If we couldn't turn it into a plain old token, see if it is a parameter token.
-		if (l_Token.m_Type == CommandToken::TYPE_INVALID)
-		{
-			if (ConvertStringToInteger(l_Token.m_Parameter, l_TokenStringBuffer) == true)
-			{
-				l_Token.m_Type = CommandToken::TYPE_INTEGER;
-			}
-		}
-		
-		// Add the token to the list.
-		p_CommandTokens.push_back(l_Token);
-
-		// Get the next token string start (skip delimiter).
-		if (l_NextTokenStringEnd != nullptr)
-		{
-			l_NextTokenStringStart = l_NextTokenStringEnd + 1;
-		}
-		else
-		{
-			l_NextTokenStringStart = nullptr;
-		}
-	}
-}
-
-// Parse the command tokens into commands.
-//
-// p_CommandTokens:	All of the potential tokens for the command.
-//
-static void ParseCommandTokens(std::vector<CommandToken> const& p_CommandTokens)
-{
-	// Parse command tokens.
-	auto const l_TokenCount = static_cast<unsigned int>(p_CommandTokens.size());
-	for (unsigned int l_TokenIndex = 0; l_TokenIndex < l_TokenCount; l_TokenIndex++)
-	{
-		// Parse commands.
-		auto l_Token = p_CommandTokens[l_TokenIndex];
-		switch (l_Token.m_Type)
-		{
-			case CommandToken::TYPE_BACK:			// Fall through...
-			case CommandToken::TYPE_LEGS:			// Fall through...
-			case CommandToken::TYPE_ELEVATION:	
-			{
-				// Try to access the control corresponding to the command token.
-				Control* l_Control = nullptr;
-				
-				switch (l_Token.m_Type)
-				{
-					case CommandToken::TYPE_BACK:
-					{
-						// Try to find the control.
-						if (s_BackControlHandle.IsValid() == false)
-						{
-							s_BackControlHandle = Control::GetHandle("back");
-						}
-						
-						l_Control = Control::GetFromHandle(s_BackControlHandle);
-					}
-					break;
-					
-					case CommandToken::TYPE_LEGS:
-					{
-						// Try to find the control.
-						if (s_LegsControlHandle.IsValid() == false)
-						{
-							s_LegsControlHandle = Control::GetHandle("legs");
-						}
-						
-						l_Control = Control::GetFromHandle(s_LegsControlHandle);
-					}
-					break;
-					
-					case CommandToken::TYPE_ELEVATION:
-					{
-						// Try to find the control.
-						if (s_ElevationControlHandle.IsValid() == false)
-						{
-							s_ElevationControlHandle = Control::GetHandle("elev");
-						}
-			
-						l_Control = Control::GetFromHandle(s_ElevationControlHandle);
-					}
-					break;
-					
-					default:
-					{
-						LoggerAddMessage("Unrecognized token \"%s\" trying to process a control movement "
-							"command.", s_CommandTokenNames[l_Token.m_Type]);
-					}
-					break;
-				}
-			
-				if (l_Control == nullptr)
-				{
-					break;
-				}			
-			
-				// Next token.
-				l_TokenIndex++;
-				if (l_TokenIndex >= l_TokenCount)
-				{
-					break;
-				}
-				
-				l_Token = p_CommandTokens[l_TokenIndex];
-				
-				// Try to get the action which should be performed on the control.
-				auto l_Action = Control::ACTION_STOPPED;
-				
-				if (l_Token.m_Type == CommandToken::TYPE_RAISE)
-				{
-					l_Action = Control::ACTION_MOVING_UP;
-				}
-				else if (l_Token.m_Type == CommandToken::TYPE_LOWER)
-				{
-					l_Action = Control::ACTION_MOVING_DOWN;
-				}
-				
-				if (l_Action == Control::ACTION_STOPPED)
-				{
-					break;
-				}
-				
-				// Determine the duration percent.
-				unsigned int l_DurationPercent = 100;
-				
-				// Peak at the next token.
-				auto const l_NextTokenIndex = l_TokenIndex + 1;
-				if (l_NextTokenIndex < l_TokenCount)
-				{
-					auto const l_NextToken = p_CommandTokens[l_NextTokenIndex];
-					
-					if (l_NextToken.m_Type == CommandToken::TYPE_INTEGER)
-					{
-						l_DurationPercent = l_NextToken.m_Parameter;
-						
-						// Actually consume this token.
-						l_TokenIndex++;
-					}
-				}
-				
-				
-				l_Control->SetDesiredAction(l_Action, Control::MODE_TIMED, l_DurationPercent);
-			}
-			break;
-			
-			case CommandToken::TYPE_STOP:
-			{
-				// Stop controls.
-				ControlsStopAll();			
-			}
-			break;
-			
-			case CommandToken::TYPE_SCHEDULE:
-			{
-				// Next token.
-				l_TokenIndex++;
-				if (l_TokenIndex >= l_TokenCount)
-				{
-					break;
-				}
-				
-				l_Token = p_CommandTokens[l_TokenIndex];
-			
-				if (l_Token.m_Type == CommandToken::TYPE_START)
-				{
-					ScheduleStart();
-				}
-				else if (l_Token.m_Type == CommandToken::TYPE_STOP)
-				{
-					ScheduleStop();
-				}			
-			}
-			break;
-			
-			case CommandToken::TYPE_VOLUME:
-			{
-				// Next token.
-				l_TokenIndex++;
-				if (l_TokenIndex >= l_TokenCount)
-				{
-					break;
-				}
-
-				l_Token = p_CommandTokens[l_TokenIndex];
-				
-				if (l_Token.m_Type == CommandToken::TYPE_RAISE)
-				{
-					SoundIncreaseVolume();
-				}
-				else if (l_Token.m_Type == CommandToken::TYPE_LOWER)
-				{
-					SoundDecreaseVolume();
-				}
-			}
-			break;
-			
-			// case CommandToken::TYPE_MUTE:
-			// {
-			// 	SoundMute(true);
-			// }
-			// break;
-			
-			// case CommandToken::TYPE_UNMUTE:
-			// {
-			// 	SoundMute(false);
-			// }
-			// break;
-			
-			case CommandToken::TYPE_STATUS:
-			{
-				// Play status speech.
-				SoundAddToQueue(DATADIR "audio/running.wav");	
-				
-				if (ScheduleIsRunning() == true)
-				{
-					SoundAddToQueue(DATADIR "audio/sched_running.wav");	
-				}
-				
-				if (s_Input.IsConnected() == true)
-				{
-					SoundAddToQueue(DATADIR "audio/control_connected.wav");
-				}
-			}
-			break;
-			
-			default:	
-			{
-			}
-			break;
-		}
 	}
 }
 
@@ -792,10 +357,10 @@ static bool ProcessKeyboardInput(char* p_KeyboardInputBuffer, unsigned int& p_Ke
 
 	// Tokenize the string.
 	std::vector<CommandToken> l_CommandTokens;
-	TokenizeCommandString(l_CommandTokens, p_KeyboardInputBuffer);
+	CommandTokenizeString(l_CommandTokens, p_KeyboardInputBuffer);
 
 	// Parse command tokens.
-	ParseCommandTokens(l_CommandTokens);
+	CommandParseTokens(l_CommandTokens);
 
 	// Prepare for a new command.
 	p_KeyboardInputBufferSize = 0;
@@ -829,8 +394,8 @@ static bool ProcessSocketCommunication()
 	static constexpr unsigned int l_MessageBufferCapacity = 100;
 	char l_MessageBuffer[l_MessageBufferCapacity];
 	
-	auto const l_NumReceivedBytes = recv(l_ConnectionSocket, l_MessageBuffer, l_MessageBufferCapacity - 1, 
-		0);
+	auto const l_NumReceivedBytes = recv(l_ConnectionSocket, l_MessageBuffer, 
+		l_MessageBufferCapacity - 1, 0);
 	
 	if (l_NumReceivedBytes <= 0)
 	{
@@ -859,10 +424,10 @@ static bool ProcessSocketCommunication()
 
 		// Tokenize the message.
 		std::vector<CommandToken> l_CommandTokens;
-		TokenizeCommandString(l_CommandTokens,	l_MessageBuffer);
+		CommandTokenizeString(l_CommandTokens,	l_MessageBuffer);
 
 		// Parse command tokens.
-		ParseCommandTokens(l_CommandTokens);
+		CommandParseTokens(l_CommandTokens);
 	}
 	
 	LoggerAddMessage("Connection closed.");
