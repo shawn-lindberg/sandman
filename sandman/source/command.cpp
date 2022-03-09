@@ -322,7 +322,7 @@ void CommandTokenizeString(std::vector<CommandToken>& p_CommandTokens,
 
 			for (const auto& l_Character : l_TokenString)
 			{
-				l_IsNumeric = std::isdigit(l_Character);
+				l_IsNumeric = l_IsNumeric && std::isdigit(l_Character);
 			}
 			
 			if (l_IsNumeric == true)
