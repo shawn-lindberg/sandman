@@ -34,6 +34,27 @@ static char const* const s_CommandTokenNames[] =
 	"integer", 		// TYPE_INTEGER
 };
 
+// A mapping between token names and token type.
+static const std::map<std::string, CommandToken::Types>	s_CommandTokenNameToTypeMap = 
+{
+	{ "back", 		CommandToken::TYPE_BACK }, 
+	{ "legs",		CommandToken::TYPE_LEGS },
+	{ "elevation",	CommandToken::TYPE_ELEVATION },
+	{ "raise",		CommandToken::TYPE_RAISE },
+	{ "up",			CommandToken::TYPE_RAISE },	// Alternative.
+	{ "lower",		CommandToken::TYPE_LOWER },
+	{ "down",		CommandToken::TYPE_LOWER },	// Alternative.
+	{ "stop",		CommandToken::TYPE_STOP },
+	{ "volume",		CommandToken::TYPE_VOLUME },
+	// "mute",		TYPE_MUTE
+	// "unmute",	TYPE_UNMUTE
+	{ "schedule",	CommandToken::TYPE_SCHEDULE },
+	{ "start",		CommandToken::TYPE_START },
+	{ "status",		CommandToken::TYPE_STATUS },
+	
+	// "integer", 	TYPE_INTEGER
+};
+
 // Keep handles to the controls.
 static ControlHandle s_BackControlHandle;
 static ControlHandle s_LegsControlHandle;
@@ -270,6 +291,27 @@ void CommandParseTokens(std::vector<CommandToken> const& p_CommandTokens)
 	}
 }
 
+// Take a token string and convert it into a token type, if possible.
+//
+// p_TokenString:	The string to attempt to convert.
+// 
+// Returns:	The corresponding token type or invalid if one couldn't be found.
+// 
+static CommandToken::Types CommandConvertStringToTokenType(std::string const& p_TokenString)
+{
+	// Try to find it in the map.
+	auto const l_ResultIterator = s_CommandTokenNameToTypeMap.find(p_TokenString);
+
+	if (l_ResultIterator == s_CommandTokenNameToTypeMap.end()) 
+	{		
+		// No match.
+		return CommandToken::TYPE_INVALID;
+	}
+
+	// Found it!
+	return l_ResultIterator->second;
+}
+
 // Take a command string and turn it into a list of tokens.
 //
 // p_CommandTokens:	(Output) The resulting command tokens, in order.
@@ -299,20 +341,7 @@ void CommandTokenizeString(std::vector<CommandToken>& p_CommandTokens,
 
 		// Match the token string to a token (with no parameter) if possible.
 		CommandToken l_Token;
-
-		for (unsigned int l_TokenType = 0; l_TokenType < CommandToken::TYPE_NOT_PARAMETER_COUNT; 
-			l_TokenType++)
-		{
-			// Compare the token string to its name.
-			if (l_TokenString.compare(s_CommandTokenNames[l_TokenType]) != 0)
-			{
-				continue;
-			}
-
-			// Found a match.
-			l_Token.m_Type = static_cast<CommandToken::Types>(l_TokenType);
-			break;
-		}
+		l_Token.m_Type = CommandConvertStringToTokenType(l_TokenString);
 
 		// If we couldn't turn it into a plain old token, see if it is a parameter token.
 		if (l_Token.m_Type == CommandToken::TYPE_INVALID)
@@ -343,5 +372,203 @@ void CommandTokenizeString(std::vector<CommandToken>& p_CommandTokens,
 			l_NextTokenStringStart++;
 		}
 	}
+}
+
+// Just a simple structure to store a slot name/value pair.
+//
+struct SlotNameValue
+{
+	std::string	m_Name;
+	std::string	m_Value;
+};
+
+// Extract the slots from a JSON document.
+//
+// p_ExtractedSlots:		(Output) The slot name/value pairs that we found.
+// p_CommandDocument:	The command document to get the slots for.
+//
+static void CommandExtractSlotsFromJSONDocument(std::vector<SlotNameValue>& p_ExtractedSlots, 
+	rapidjson::Document const& p_CommandDocument)
+{
+	auto const l_SlotsIterator = p_CommandDocument.FindMember("slots");
+
+	if (l_SlotsIterator == p_CommandDocument.MemberEnd())
+	{
+		return;
+	}
+
+	auto const& l_Slots = l_SlotsIterator->value;
+
+	if (l_Slots.IsArray() == false)
+	{
+		return;
+	}
+
+	// Now extract each slot individually.
+	for (auto const& l_Slot : l_Slots.GetArray())
+	{
+		if (l_Slot.IsObject() == false) 
+		{
+			continue;
+		}
+
+		// Try to find the slot name.
+		auto const l_SlotNameIterator = l_Slot.FindMember("slotName");
+
+		if (l_SlotNameIterator == l_Slot.MemberEnd()) 
+		{
+			continue;
+		}
+
+		auto const& l_SlotName = l_SlotNameIterator->value;
+
+		if (l_SlotName.IsString() == false) 
+		{
+			continue;
+		}
+
+		// Now try to find the value.
+		auto const l_SlotValueIterator = l_Slot.FindMember("rawValue");
+
+		if (l_SlotValueIterator == l_Slot.MemberEnd()) 
+		{
+			continue;
+		}
+
+		auto const& l_SlotValue = l_SlotValueIterator->value;
+
+		if (l_SlotValue.IsString() == false) 
+		{
+			continue;
+		}
+		
+		// Now that we found the name and the value, we can add it to the output.
+		SlotNameValue l_ExtractedSlot;
+		l_ExtractedSlot.m_Name = l_SlotName.GetString();
+		l_ExtractedSlot.m_Value = l_SlotValue.GetString();
+
+		p_ExtractedSlots.push_back(l_ExtractedSlot);
+	}
+}
+
+// Take a command JSON document and turn it into a list of tokens.
+//
+// p_CommandTokens:		(Output) The resulting command tokens, in order.
+// p_CommandDocument:	The command document to tokenize.
+//
+void CommandTokenizeJSONDocument(std::vector<CommandToken>& p_CommandTokens, 
+	rapidjson::Document const& p_CommandDocument)
+{
+	// First we need the intent, then the name of the intent.
+	auto const l_IntentIterator = p_CommandDocument.FindMember("intent");
+
+	if (l_IntentIterator == p_CommandDocument.MemberEnd())
+	{
+		return;
+	}
+
+	auto const l_IntentNameIterator = l_IntentIterator->value.FindMember("intentName");
+
+	if (l_IntentNameIterator == p_CommandDocument.MemberEnd())
+	{
+		return;
+	}
+
+	// Now, try to recognize the intent.
+	auto const l_IntentName = l_IntentNameIterator->value.GetString();
+
+	if (strcmp(l_IntentName, "GetStatus") == 0)
+	{
+		LoggerAddMessage("Recognized a %s intent.", l_IntentName);
+
+		// For status, we only have to output the status token.
+		CommandToken l_Token;
+		l_Token.m_Type = CommandToken::TYPE_STATUS;
+
+		p_CommandTokens.push_back(l_Token);
+		return;
+	}
+
+	if (strcmp(l_IntentName, "MovePart") == 0)
+	{
+		// We need to get the slots so that we can get the necessary parameters.
+		std::vector<SlotNameValue> l_Slots;
+		CommandExtractSlotsFromJSONDocument(l_Slots, p_CommandDocument);
+
+		// We are looking to fill out two tokens, the part and the direction.
+		CommandToken l_PartToken;
+		CommandToken l_DirectionToken;
+
+		for (auto const& l_Slot : l_Slots)
+		{
+			// This is the part slot.
+			if (l_Slot.m_Name.compare("name") == 0)
+			{
+				l_PartToken.m_Type = CommandConvertStringToTokenType(l_Slot.m_Value);
+				continue;
+			}
+
+			// This is the direction slot.
+			if (l_Slot.m_Name.compare("direction") == 0)
+			{
+				l_DirectionToken.m_Type = CommandConvertStringToTokenType(l_Slot.m_Value);
+				continue;
+			}			
+		}	
+
+		if ((l_PartToken.m_Type == CommandToken::TYPE_INVALID) || 
+			(l_DirectionToken.m_Type == CommandToken::TYPE_INVALID))
+		{
+			LoggerAddMessage("Couldn't recognize a %s intent because of invalid parameters.", 
+				l_IntentName);
+			return;
+		}
+
+		LoggerAddMessage("Recognized a %s intent.", l_IntentName);
+
+		// Now that we theoretically have a set of valid tokens, add them to the output.
+		p_CommandTokens.push_back(l_PartToken);
+		p_CommandTokens.push_back(l_DirectionToken);
+		return;
+	}
+
+	if (strcmp(l_IntentName, "SetSchedule") == 0)
+	{
+		// We need to get the slots so that we can get the necessary parameters.
+		std::vector<SlotNameValue> l_Slots;
+		CommandExtractSlotsFromJSONDocument(l_Slots, p_CommandDocument);
+
+		// We are looking to fill out one token, what to do to the schedule.
+		CommandToken l_ScheduleToken;
+		l_ScheduleToken.m_Type = CommandToken::TYPE_SCHEDULE;
+
+		CommandToken l_ActionToken;
+
+		for (auto const& l_Slot : l_Slots)
+		{
+			// This is the action slot.
+			if (l_Slot.m_Name.compare("action") == 0)
+			{
+				l_ActionToken.m_Type = CommandConvertStringToTokenType(l_Slot.m_Value);
+				continue;
+			}		
+		}	
+
+		if (l_ActionToken.m_Type == CommandToken::TYPE_INVALID)
+		{
+			LoggerAddMessage("Couldn't recognize a %s intent because of invalid parameters.", 
+				l_IntentName);
+			return;
+		}
+
+		LoggerAddMessage("Recognized a %s intent.", l_IntentName);
+
+		// Now that we theoretically have a set of valid tokens, add them to the output.
+		p_CommandTokens.push_back(l_ScheduleToken);
+		p_CommandTokens.push_back(l_ActionToken);
+		return;
+	}
+
+	LoggerAddMessage("Unrecognized intent named %s.", l_IntentName);
 }
 

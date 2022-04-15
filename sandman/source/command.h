@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 
+#include "rapidjson/document.h"
+
 // Types
 //
 
@@ -69,3 +71,11 @@ void CommandParseTokens(std::vector<CommandToken> const& p_CommandTokens);
 //
 void CommandTokenizeString(std::vector<CommandToken>& p_CommandTokens, 
 	std::string const& p_CommandString);
+
+// Take a command JSON document and turn it into a list of tokens.
+//
+// p_CommandTokens:		(Output) The resulting command tokens, in order.
+// p_CommandDocument:	The command document to tokenize.
+//
+void CommandTokenizeJSONDocument(std::vector<CommandToken>& p_CommandTokens, 
+	rapidjson::Document const& p_CommandDocument);

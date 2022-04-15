@@ -3,6 +3,7 @@
 #include <mosquitto.h> 
 #include "rapidjson/document.h"
 
+#include "command.h"
 #include "logger.h"
 
 #define DATADIR		AM_DATADIR
@@ -63,8 +64,9 @@ void OnMessageCallback(mosquitto* p_MosquittoClient, void* p_UserData,
 	const mosquitto_message* p_Message)
 {
 	const auto* l_PayloadString = reinterpret_cast<char*>(p_Message->payload);
-	LoggerAddMessage("Received MQTT message for topic \"%s\": %s", p_Message->topic, 
-		l_PayloadString);
+	LoggerAddMessage("Received MQTT message for topic \"%s\".", p_Message->topic);
+	// LoggerAddMessage("Received MQTT message for topic \"%s\": %s", p_Message->topic, 
+	// 	l_PayloadString);
 
 	// Parse the payload as JSON.
 	rapidjson::Document l_PayloadDocument;
@@ -75,21 +77,10 @@ void OnMessageCallback(mosquitto* p_MosquittoClient, void* p_UserData,
 		return;
 	}
 
-	const auto& l_IntentIterator = l_PayloadDocument.FindMember("intent");
+	std::vector<CommandToken> l_CommandTokens;
+	CommandTokenizeJSONDocument(l_CommandTokens, l_PayloadDocument);
 
-	if (l_IntentIterator == l_PayloadDocument.MemberEnd())
-	{
-		return;
-	}
-
-	const auto& l_IntentNameIterator = l_IntentIterator->value.FindMember("intentName");
-
-	if (l_IntentNameIterator == l_IntentIterator->value.MemberEnd())
-	{
-		return;
-	}
-
-	LoggerAddMessage("Received intent \"%s\"", l_IntentNameIterator->value.GetString());
+	CommandParseTokens(l_CommandTokens);
 }
 
 // Initialize MQTT.
