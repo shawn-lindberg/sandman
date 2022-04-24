@@ -268,6 +268,8 @@ void SoundMute(bool p_Mute)
 	
 	if (p_Mute == true)
 	{
+		LoggerAddMessage("Muting sound.");
+
 		// Queue the sound.
 		SoundAddToQueue(DATADIR "audio/vol_mute.wav");
 
@@ -276,6 +278,8 @@ void SoundMute(bool p_Mute)
 		return;
 	}
 	
+	LoggerAddMessage("Unmuting sound.");
+
 	// Queue the sound.
 	SoundAddToQueue(DATADIR "audio/vol_unmute.wav");
 
@@ -307,7 +311,7 @@ bool SoundAddToQueue(char const* const p_FileName)
 	}
 	
 	// Load the file.
-	Mix_Chunk* l_Sample = Mix_LoadWAV(p_FileName);
+	auto l_Sample = Mix_LoadWAV(p_FileName);
 	
 	if (l_Sample == nullptr)
 	{

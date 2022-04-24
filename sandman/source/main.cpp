@@ -617,6 +617,9 @@ int main(int argc, char** argv)
 		
 		// Process the input.
 		s_Input.Process();
+
+		// Process MQTT.
+		MQTTProcess();
 		
 		// Process the schedule.
 		ScheduleProcess();

@@ -4,12 +4,16 @@
 	#include <ncurses.h>
 #endif // defined (__linux__)
 
+#include <mutex>
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
 
 // Locals
 //
+
+// Used to enforce serialization of messages.
+std::mutex s_LogMutex;
 
 // The file to log messages to.
 static FILE* s_LogFile = nullptr;
@@ -28,6 +32,9 @@ static bool s_LogToScreen = false;
 //
 bool LoggerInitialize(char const* p_LogFileName)
 {
+	// Acquire a lock for the rest of the function.
+	const std::lock_guard<std::mutex> l_LogGuard(s_LogMutex);
+
 	// Initialize the file.
 	s_LogFile = nullptr;
 
@@ -51,6 +58,9 @@ bool LoggerInitialize(char const* p_LogFileName)
 //
 void LoggerUninitialize()
 {
+	// Acquire a lock for the rest of the function.
+	const std::lock_guard<std::mutex> l_LogGuard(s_LogMutex);
+
 	// Close the file.
 	if (s_LogFile != nullptr)
 	{
@@ -139,31 +149,36 @@ bool LoggerAddMessage(char const* p_Format, va_list& p_Arguments)
 	// Force terminate.
 	l_RemainingBuffer[l_RemainingCapacity - 1] = '\0';
 
-	// Print to standard output (and add a newline).
-	if (s_LogToScreen == true)
 	{
-		#if defined (_WIN32)
+		// Acquire a lock for the rest of the function.
+		const std::lock_guard<std::mutex> l_LogGuard(s_LogMutex);
 
-			puts(l_LogStringBuffer);
+		// Print to standard output (and add a newline).
+		if (s_LogToScreen == true)
+		{
+			#if defined (_WIN32)
 
-		#elif defined (__linux__)
+				puts(l_LogStringBuffer);
 
-			addstr(l_LogStringBuffer);
-			addch('\n');
-			refresh();
+			#elif defined (__linux__)
 
-		#endif // defined (_WIN32)
-	}
+				addstr(l_LogStringBuffer);
+				addch('\n');
+				refresh();
 
-	// Print to log file.
-	if (s_LogFile != nullptr)
-	{
-		fputs(l_LogStringBuffer, s_LogFile);
+			#endif // defined (_WIN32)
+		}
 
-		// fputs doesn't add a newline, do it now.
-		fputs("\n", s_LogFile);
-		
-		fflush(s_LogFile);
+		// Print to log file.
+		if (s_LogFile != nullptr)
+		{
+			fputs(l_LogStringBuffer, s_LogFile);
+
+			// fputs doesn't add a newline, do it now.
+			fputs("\n", s_LogFile);
+			
+			fflush(s_LogFile);
+		}
 	}
 
 	return true;

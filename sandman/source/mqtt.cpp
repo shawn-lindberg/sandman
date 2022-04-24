@@ -1,5 +1,7 @@
 #include "mqtt.h"
 
+#include <mutex>
+
 #include <mosquitto.h> 
 #include "rapidjson/document.h"
 
@@ -18,6 +20,11 @@
 // The client instance.
 static mosquitto* s_MosquittoClient = nullptr;
 
+// We need to protect access to the list of commands.
+std::mutex s_CommandsMutex;
+
+// A list of commands to be processed.
+std::vector<std::vector<CommandToken>> s_CommandsList;
 
 // Functions
 //
@@ -80,7 +87,12 @@ void OnMessageCallback(mosquitto* p_MosquittoClient, void* p_UserData,
 	std::vector<CommandToken> l_CommandTokens;
 	CommandTokenizeJSONDocument(l_CommandTokens, l_PayloadDocument);
 
-	CommandParseTokens(l_CommandTokens);
+	{
+		// Acquire a lock to protect the command list.
+		std::lock_guard<std::mutex> l_CommandsGuard(s_CommandsMutex);
+
+		s_CommandsList.push_back(l_CommandTokens);
+	}
 }
 
 // Initialize MQTT.
@@ -159,4 +171,15 @@ void MQTTUninitialize()
 //
 void MQTTProcess()
 {
+	// Acquire a lock to protect the command list.
+	// NOTE: It is expected that this will be executed from the main thread.
+	std::lock_guard<std::mutex> l_CommandsGuard(s_CommandsMutex);
+
+	for (auto const& l_CommandTokens : s_CommandsList)
+	{
+		CommandParseTokens(l_CommandTokens);
+	}
+
+	// Get rid of the commands.
+	s_CommandsList.clear();
 }
