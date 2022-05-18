@@ -64,16 +64,16 @@ void OnConnectCallback(mosquitto* p_MosquittoClient, void* p_UserData, int p_Ret
 // Handles message for a subscribed topic.
 //
 // p_MosquittoClient:	The client instance that subscribed.
-// p_UserData:			The user data associated with the client instance.
-// p_Message:			The message data that was received.
+// p_UserData:				The user data associated with the client instance.
+// p_Message:				The message data that was received.
 //
 void OnMessageCallback(mosquitto* p_MosquittoClient, void* p_UserData, 
 	const mosquitto_message* p_Message)
 {
 	const auto* l_PayloadString = reinterpret_cast<char*>(p_Message->payload);
 	LoggerAddMessage("Received MQTT message for topic \"%s\".", p_Message->topic);
-	// LoggerAddMessage("Received MQTT message for topic \"%s\": %s", p_Message->topic, 
-	// 	l_PayloadString);
+	//LoggerAddMessage("Received MQTT message for topic \"%s\": %s", p_Message->topic, 
+	//	l_PayloadString);
 
 	// Parse the payload as JSON.
 	rapidjson::Document l_PayloadDocument;
@@ -87,6 +87,7 @@ void OnMessageCallback(mosquitto* p_MosquittoClient, void* p_UserData,
 	std::vector<CommandToken> l_CommandTokens;
 	CommandTokenizeJSONDocument(l_CommandTokens, l_PayloadDocument);
 
+	if (l_CommandTokens.empty() == false)
 	{
 		// Acquire a lock to protect the command list.
 		std::lock_guard<std::mutex> l_CommandsGuard(s_CommandsMutex);
@@ -109,6 +110,13 @@ bool MQTTInitialize()
 		
 	LoggerAddMessage("\tsucceeded");
 	LoggerAddMessage("");
+
+	int l_MajorVersion = 0;
+	int l_MinorVersion = 0;
+	int l_Revision = 0;
+	mosquitto_lib_version(&l_MajorVersion, &l_MinorVersion, &l_Revision);
+
+	LoggerAddMessage("MQTT version %i.%i.%i", l_MajorVersion, l_MinorVersion, l_Revision);
 
 	LoggerAddMessage("Creating MQTT client...");
 
@@ -182,4 +190,79 @@ void MQTTProcess()
 
 	// Get rid of the commands.
 	s_CommandsList.clear();
+}
+
+// Publishes a message to a given topic.
+//
+// p_Topic:		The topic to publish to.
+// p_Message:	The message to be published.
+//
+void MQTTPublishMessage(char const* p_Topic, char const* p_Message)
+{
+	if (p_Topic == nullptr)
+	{
+		return;
+	}
+
+	if (p_Message == nullptr)
+	{
+		return;
+	}
+
+	// I thought that we needed to count the terminator here, but it actually doesn't work if we do. 
+	// Go figure.
+	auto const l_MessageLength = strlen(p_Message);
+
+	int const l_QoS = 0;
+	bool const l_Retain = false;
+	auto l_ReturnCode = mosquitto_publish(s_MosquittoClient, nullptr, p_Topic, l_MessageLength,
+		p_Message, l_QoS, l_Retain);
+
+	if (l_ReturnCode != MOSQ_ERR_SUCCESS)
+	{
+		LoggerAddMessage("Publish to MQTT topic \"%s\" failed with return code %d", p_Topic,
+			l_ReturnCode);		
+	} 
+	else 
+	{
+		LoggerAddMessage("Published message to MQTT topic \"%s\": %s", p_Topic, p_Message);			
+	}
+}
+
+// Generates and publishes a message to cause the provided text to be spoken.
+//
+// p_Text:	The text that should be spoken.
+//
+void MQTTTextToSpeech(std::string const& p_Text)
+{
+	// Create a properly formatted message that will trigger the text to be spoken.
+	static constexpr unsigned int l_MessageBufferCapacity = 500;
+	char l_MessageBuffer[l_MessageBufferCapacity];
+
+	snprintf(l_MessageBuffer, l_MessageBufferCapacity, 
+		"{\"text\": \"%s\", \"siteId\": \"default\", \"lang\": null, \"id\": \"\", "
+		"\"sessionId\": \"\", \"volume\": 1.0}", p_Text.c_str());
+
+	// Actually publish to the topic.
+	char const* l_Topic = "hermes/tts/say";
+	MQTTPublishMessage(l_Topic, l_MessageBuffer);
+}
+
+// Generates and publishes a message that causes a spoken notification.
+//
+// p_Text:	The notification text.
+//
+void MQTTNotification(std::string const& p_Text)
+{
+	// Create a properly formatted message that will trigger the notification.
+	static constexpr unsigned int l_MessageBufferCapacity = 500;
+	char l_MessageBuffer[l_MessageBufferCapacity];
+
+	snprintf(l_MessageBuffer, l_MessageBufferCapacity, 
+		"{\"init\": {\"type\": \"notification\", \"text\": \"%s\"}, \"siteId\": \"default\"}",
+		p_Text.c_str());
+
+	// Actually publish to the topic.
+	char const* l_Topic = "hermes/dialogueManager/startSession";
+	MQTTPublishMessage(l_Topic, l_MessageBuffer);
 }
