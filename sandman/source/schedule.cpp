@@ -9,7 +9,7 @@
 
 #include "control.h"
 #include "logger.h"
-#include "sound.h"
+#include "notification.h"
 #include "timer.h"
 #include "xml.h"
 
@@ -239,8 +239,8 @@ void ScheduleStart()
 	s_ScheduleIndex = 0;
 	TimerGetCurrent(s_ScheduleDelayStartTime);
 	
-	// Queue the sound.
-	SoundAddToQueue(DATADIR "audio/sched_start.wav");
+	// Notify.
+	NotificationPlay("schedule_start");
 	
 	LoggerAddMessage("Schedule started.");
 }
@@ -263,8 +263,8 @@ void ScheduleStop()
 	
 	s_ScheduleIndex = UINT_MAX;
 	
-	// Queue the sound.
-	SoundAddToQueue(DATADIR "audio/sched_stop.wav");
+	// Notify.
+	NotificationPlay("schedule_stop");
 	
 	LoggerAddMessage("Schedule stopped.");
 }

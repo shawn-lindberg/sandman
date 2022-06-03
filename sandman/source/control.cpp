@@ -7,7 +7,7 @@
 #include <pigpio.h>
 
 #include "logger.h"
-#include "sound.h"
+#include "notification.h"
 #include "timer.h"
 #include "xml.h"
 
@@ -59,8 +59,8 @@ static char const* const s_ControlStateNames[] =
 	"cool down",	// STATE_COOL_DOWN
 };
 
-// The file names of the states.
-static char const* const s_ControlStateFileNames[] =
+// The notification names of the states.
+static char const* const s_ControlStateNotificationNames[] =
 {
 	"",				// STATE_IDLE
 	"moving_up",	// STATE_MOVING_UP
@@ -240,8 +240,8 @@ void Control::Process()
 				SetGPIOPinOn(m_DownGPIOPin);
 			}
 			
-			// Queue the sound.
-			QueueSound();
+			// Play the notification.
+			PlayNotification();
 			
 			// Record when the state transition timer began.
 			TimerGetCurrent(m_StateStartTime);
@@ -300,9 +300,9 @@ void Control::Process()
 				SetGPIOPinOff(m_DownGPIOPin);
 			}
 			
-			// Queue the sound.
-			QueueSound();
-
+			// Play the notification.
+			PlayNotification();
+			
 			// Record when the state transition timer began.
 			TimerGetCurrent(m_StateStartTime);
 
@@ -468,23 +468,23 @@ Control* Control::GetFromHandle(ControlHandle const& p_Handle)
 	return &(s_Controls[p_Handle.m_UID]);
 }
 		
-// Queue sound for the state.
+// Play a notification for the state.
 //
-void Control::QueueSound()
+void Control::PlayNotification()
 {
-	// Do not make a sound if the mode is manual.
+	// Do not play a notification if the mode is manual.
 	if (m_Mode == MODE_MANUAL)
 	{
 		return;
 	}
 	
-	// Build the file name.
-	static constexpr unsigned int l_SoundFileNameCapacity = 128;
-	char l_SoundFileName[l_SoundFileNameCapacity];
-	snprintf(l_SoundFileName, l_SoundFileNameCapacity, DATADIR "audio/%s_%s.wav", m_Name,
-		s_ControlStateFileNames[m_State]);
+	// Build the notification name.
+	static constexpr unsigned int l_NotificationNameCapacity = 128;
+	char l_NotificationName[l_NotificationNameCapacity];
+	snprintf(l_NotificationName, l_NotificationNameCapacity, "%s_%s", m_Name,
+		s_ControlStateNotificationNames[m_State]);
 
-	SoundAddToQueue(l_SoundFileName);
+	NotificationPlay(l_NotificationName);
 }
 
 // ControlAction members

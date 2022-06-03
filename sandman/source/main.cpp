@@ -17,6 +17,7 @@
 #include "input.h"
 #include "logger.h"
 #include "mqtt.h"
+#include "notification.h"
 #include "schedule.h"
 #include "sound.h"
 
@@ -231,10 +232,10 @@ static bool Initialize()
 	}
 
 	// Initialize sound.
-	if (SoundInitialize() == false)
-	{
-		return false;
-	}
+ 	//if (SoundInitialize() == false)
+	//{
+	//	return false;
+	//}
 
 	// Initialize controls.
 	ControlsInitialize(l_Config.GetControlConfigs());
@@ -258,8 +259,7 @@ static bool Initialize()
 	// Initialize the commands.
 	CommandInitialize(s_Input);
 
-	// Play initialization speech.
-	SoundAddToQueue(DATADIR "audio/initialized.wav");
+	NotificationPlay("initialized");
 
 	return true;
 }
@@ -367,9 +367,9 @@ static bool ProcessKeyboardInput(char* p_KeyboardInputBuffer, unsigned int& p_Ke
 
 	if (strcmp(p_KeyboardInputBuffer, "quit") == 0)
 	{
-		 return true;
+		return true;
 	}
-	
+
 	return false;
 }
 

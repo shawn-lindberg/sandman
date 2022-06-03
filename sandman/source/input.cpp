@@ -13,7 +13,7 @@
 #include <unistd.h>
 
 #include "logger.h"
-#include "sound.h"
+#include "notification.h"
 #include "timer.h"
 #include "xml.h"
 
@@ -178,8 +178,8 @@ void Input::Process()
 		LoggerAddMessage("Input device bus 0x%x, vendor 0x%x, product 0x%x, version 0x%x.", 
 			l_DeviceID[ID_BUS], l_DeviceID[ID_VENDOR], l_DeviceID[ID_PRODUCT], l_DeviceID[ID_VERSION]);
 			
-		// Play sound indicating the controller connected.
-		SoundAddToQueue(DATADIR "audio/control_connect.wav");
+		// Play controller connected notification.
+		NotificationPlay("control_connected");
 			
 		m_DeviceOpenHasFailed = false;
 	}
@@ -294,6 +294,6 @@ void Input::CloseDevice(bool p_WasFailure, char const* p_Format, ...)
 	
 	va_end(l_Arguments);
 		
-	// Play sound indicating the controller disconnected.
-	SoundAddToQueue(DATADIR "audio/control_disconnect.wav");
+	// Play controller disconnected notification.
+	NotificationPlay("control_disconnected");
 }

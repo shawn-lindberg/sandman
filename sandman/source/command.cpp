@@ -3,6 +3,7 @@
 #include "control.h"
 #include "input.h"
 #include "logger.h"
+#include "notification.h"
 #include "schedule.h"
 #include "sound.h"
 
@@ -268,17 +269,17 @@ void CommandParseTokens(std::vector<CommandToken> const& p_CommandTokens)
 			
 			case CommandToken::TYPE_STATUS:
 			{
-				// Play status speech.
-				SoundAddToQueue(DATADIR "audio/running.wav");	
+				// Play status notification.
+				NotificationPlay("running");
 				
 				if (ScheduleIsRunning() == true)
 				{
-					SoundAddToQueue(DATADIR "audio/sched_running.wav");	
+					NotificationPlay("schedule_running");
 				}
 				
 				if ((s_Input != nullptr) && (s_Input->IsConnected() == true))
 				{
-					SoundAddToQueue(DATADIR "audio/control_connected.wav");
+					NotificationPlay("control_connected");
 				}
 			}
 			break;

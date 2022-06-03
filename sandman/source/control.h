@@ -160,9 +160,9 @@ class Control
 			STATE_COOL_DOWN,    // A delay after moving before moving can occur again.
 		};
 
-		// Queue sound for the state.
+		// Play a notification for the state.
 		//
-		void QueueSound();
+		void PlayNotification();
 		
 		// The name of the control.
 		char m_Name[ms_NameCapacity];
