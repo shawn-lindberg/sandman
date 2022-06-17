@@ -1,12 +1,14 @@
 #include "mqtt.h"
 
 #include <mutex>
+#include <unistd.h>
 
 #include <mosquitto.h> 
 #include "rapidjson/document.h"
 
 #include "command.h"
 #include "logger.h"
+#include "timer.h"
 
 #define DATADIR		AM_DATADIR
 
@@ -138,17 +140,54 @@ bool MQTTInitialize()
 
 	LoggerAddMessage("Connecting to MQTT host...");
 
-	static constexpr int l_Port = 12183;
-	static constexpr int l_KeepAliveSeconds = 60;
-	const auto l_ReturnCode = mosquitto_connect(s_MosquittoClient, "localhost", l_Port, 
-		l_KeepAliveSeconds);
+	// We are going to repeatedly attempt to connect roughly every second for a 
+	// certain period of time.
+	auto l_Connected = false;
+	
+	Time l_ConnectStartTime;
+	TimerGetCurrent(l_ConnectStartTime);
 		
-	if (l_ReturnCode != MOSQ_ERR_SUCCESS)
-	{		
-		LoggerAddMessage("\tfailed with return code %d", l_ReturnCode);
+	while (l_Connected == false)
+	{
+		static constexpr int l_Port = 12183;
+		static constexpr int l_KeepAliveSeconds = 60;
+
+		const auto l_ReturnCode = mosquitto_connect(s_MosquittoClient, "localhost", 
+			l_Port, l_KeepAliveSeconds);
+		
+		if (l_ReturnCode == MOSQ_ERR_SUCCESS)
+		{		
+			l_Connected = true;
+			break;
+		}
+	
+		// Figure out how long we have been attempting to connect.
+		Time l_ConnectCurrentTime;
+		TimerGetCurrent(l_ConnectCurrentTime);
+		
+		float const l_DurationMS = TimerGetElapsedMilliseconds(l_ConnectStartTime, 
+			l_ConnectCurrentTime);
+		auto const l_DurationSeconds = static_cast<unsigned long>(l_DurationMS) / 
+			1000;
+		
+		// Attempt for five minutes at most.
+		static constexpr unsigned long l_TimeoutDurationSeconds = 5 * 60;
+		
+		if (l_DurationSeconds >= l_TimeoutDurationSeconds)
+		{
+			break;
+		}
+		
+		// Sleep for one second.
+		sleep(1);
+	}
+
+	if (l_Connected == false) {
+		
+		LoggerAddMessage("\tfailed");
 		return false;
 	}
-		
+	
 	LoggerAddMessage("\tsucceeded");
 	LoggerAddMessage("");
 
