@@ -15,6 +15,18 @@
 // Constants
 //
 
+// Types
+//
+
+// A message that we need to send later.
+struct PendingMessage
+{
+	// The topic the message will be published to.
+	std::string	m_Topic;
+
+	// The contents of the message to be sent.
+	std::string	m_Message;
+};
 
 // Locals
 //
@@ -22,11 +34,17 @@
 // The client instance.
 static mosquitto* s_MosquittoClient = nullptr;
 
+// Track whether we are connected to the host.
+static bool s_ConnectedToHost = false;
+
 // We need to protect access to the list of commands.
-std::mutex s_CommandsMutex;
+static std::mutex s_CommandsMutex;
 
 // A list of commands to be processed.
-std::vector<std::vector<CommandToken>> s_CommandsList;
+static std::vector<std::vector<CommandToken>> s_CommandsList;
+
+// A list of messages to publish once we are able.
+static std::vector<PendingMessage> s_PendingMessageList;
 
 // Functions
 //
@@ -45,6 +63,7 @@ void OnConnectCallback(mosquitto* p_MosquittoClient, void* p_UserData, int p_Ret
 		return;
 	}
 
+	s_ConnectedToHost = true;
 	LoggerAddMessage("Connected to MQTT host.");
 
 	// Subscribe to the relevant topics.
@@ -103,6 +122,8 @@ void OnMessageCallback(mosquitto* p_MosquittoClient, void* p_UserData,
 bool MQTTInitialize()
 {
 	LoggerAddMessage("Initializing MQTT support...");
+
+	s_ConnectedToHost = false;
 	
 	if (mosquitto_lib_init() != MOSQ_ERR_SUCCESS)
 	{
@@ -214,29 +235,12 @@ void MQTTUninitialize()
 	mosquitto_lib_cleanup();
 }
 
-// Process MQTT.
-//
-void MQTTProcess()
-{
-	// Acquire a lock to protect the command list.
-	// NOTE: It is expected that this will be executed from the main thread.
-	std::lock_guard<std::mutex> l_CommandsGuard(s_CommandsMutex);
-
-	for (auto const& l_CommandTokens : s_CommandsList)
-	{
-		CommandParseTokens(l_CommandTokens);
-	}
-
-	// Get rid of the commands.
-	s_CommandsList.clear();
-}
-
 // Publishes a message to a given topic.
 //
 // p_Topic:		The topic to publish to.
 // p_Message:	The message to be published.
 //
-void MQTTPublishMessage(char const* p_Topic, char const* p_Message)
+static void MQTTPublishMessage(char const* p_Topic, char const* p_Message)
 {
 	if (p_Topic == nullptr)
 	{
@@ -245,6 +249,17 @@ void MQTTPublishMessage(char const* p_Topic, char const* p_Message)
 
 	if (p_Message == nullptr)
 	{
+		return;
+	}
+
+	// If we are not yet connected, put the message and the topic on a list to publish once we are.
+	if (s_ConnectedToHost == false) {
+
+		PendingMessage l_PendingMessage;
+		l_PendingMessage.m_Topic = p_Topic;
+		l_PendingMessage.m_Message = p_Message;
+
+		s_PendingMessageList.push_back(l_PendingMessage);
 		return;
 	}
 
@@ -264,7 +279,39 @@ void MQTTPublishMessage(char const* p_Topic, char const* p_Message)
 	} 
 	else 
 	{
-		LoggerAddMessage("Published message to MQTT topic \"%s\": %s", p_Topic, p_Message);			
+		//LoggerAddMessage("Published message to MQTT topic \"%s\": %s", p_Topic, p_Message);			
+		LoggerAddMessage("Published message to MQTT topic \"%s\"", p_Topic);			
+	}
+}
+
+// Process MQTT.
+//
+void MQTTProcess()
+{
+	{
+		// Acquire a lock to protect the command list.
+		// NOTE: It is expected that this will be executed from the main thread.
+		std::lock_guard<std::mutex> l_CommandsGuard(s_CommandsMutex);
+
+		for (auto const& l_CommandTokens : s_CommandsList)
+		{
+			CommandParseTokens(l_CommandTokens);
+		}
+
+		// Get rid of the commands.
+		s_CommandsList.clear();
+	}
+
+	// If we are connected, send any pending messages.
+	if (s_ConnectedToHost == true) {
+
+		for (auto const& l_PendingMessage : s_PendingMessageList)
+		{
+			MQTTPublishMessage(l_PendingMessage.m_Topic.c_str(), l_PendingMessage.m_Message.c_str());
+		}
+
+		// Get rid of the pending messages.
+		s_PendingMessageList.clear();
 	}
 }
 
