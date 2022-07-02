@@ -37,6 +37,9 @@ static mosquitto* s_MosquittoClient = nullptr;
 // Track whether we are connected to the host.
 static bool s_ConnectedToHost = false;
 
+// Keep track of whether we have ever seen a dialogue manager session start.
+static bool s_FirstDialogueManagerSessionStarted = false;
+
 // We need to protect access to the list of commands.
 static std::mutex s_CommandsMutex;
 
@@ -45,6 +48,9 @@ static std::vector<std::vector<CommandToken>> s_CommandsList;
 
 // A list of messages to publish once we are able.
 static std::vector<PendingMessage> s_PendingMessageList;
+
+// A list of notifications to post once we are able.
+static std::vector<std::string> s_PendingNotificationList;
 
 // Functions
 //
@@ -80,6 +86,19 @@ void OnConnectCallback(mosquitto* p_MosquittoClient, void* p_UserData, int p_Ret
 	{
 		LoggerAddMessage("Subscribed to MQTT topic \"%s\".", l_Topic);
 	}
+
+	l_Topic = "hermes/dialogueManager/#";
+	l_ReturnCode = mosquitto_subscribe(p_MosquittoClient, nullptr, l_Topic, l_QoS);
+
+	if (l_ReturnCode != MOSQ_ERR_SUCCESS)
+	{
+		LoggerAddMessage("Subscription to MQTT topic \"%s\" failed with return code %d", l_Topic,
+			l_ReturnCode);		
+	} 
+	else 
+	{
+		LoggerAddMessage("Subscribed to MQTT topic \"%s\".", l_Topic);
+	}
 }
 
 // Handles message for a subscribed topic.
@@ -92,7 +111,6 @@ void OnMessageCallback(mosquitto* p_MosquittoClient, void* p_UserData,
 	const mosquitto_message* p_Message)
 {
 	const auto* l_PayloadString = reinterpret_cast<char*>(p_Message->payload);
-	LoggerAddMessage("Received MQTT message for topic \"%s\".", p_Message->topic);
 	//LoggerAddMessage("Received MQTT message for topic \"%s\": %s", p_Message->topic, 
 	//	l_PayloadString);
 
@@ -104,6 +122,22 @@ void OnMessageCallback(mosquitto* p_MosquittoClient, void* p_UserData,
 	{
 		return;
 	}
+
+	std::string const l_Topic(p_Message->topic);
+
+	// Keep track of whether the first dialogue manager session started.
+	if (l_Topic.find("hermes/dialogueManager/sessionStarted") != std::string::npos)
+	{
+		s_FirstDialogueManagerSessionStarted = true;
+	}
+
+	// Only do the following for intents.
+	if (l_Topic.find("hermes/intent/") == std::string::npos) 
+	{
+		return;
+	}
+
+	LoggerAddMessage("Received MQTT message for topic \"%s\"", p_Message->topic);
 
 	std::vector<CommandToken> l_CommandTokens;
 	CommandTokenizeJSONDocument(l_CommandTokens, l_PayloadDocument);
@@ -124,6 +158,7 @@ bool MQTTInitialize()
 	LoggerAddMessage("Initializing MQTT support...");
 
 	s_ConnectedToHost = false;
+	s_FirstDialogueManagerSessionStarted = false;
 	
 	if (mosquitto_lib_init() != MOSQ_ERR_SUCCESS)
 	{
@@ -215,7 +250,7 @@ bool MQTTInitialize()
 	// Start processing in another thread.
 	mosquitto_loop_start(s_MosquittoClient);
 
-    return true;
+   return true;
 }
 
 // Uninitialize MQTT.
@@ -284,6 +319,25 @@ static void MQTTPublishMessage(char const* p_Topic, char const* p_Message)
 	}
 }
 
+// Generates and publishes a message that causes a spoken notification.
+//
+// p_Text:	The notification text.
+//
+static void MQTTPublishNotification(std::string const& p_Text)
+{
+	// Create a properly formatted message that will trigger the notification.
+	static constexpr unsigned int l_MessageBufferCapacity = 500;
+	char l_MessageBuffer[l_MessageBufferCapacity];
+
+	snprintf(l_MessageBuffer, l_MessageBufferCapacity, 
+		"{\"init\": {\"type\": \"notification\", \"text\": \"%s\"}, \"siteId\": \"default\"}",
+		p_Text.c_str());
+
+	// Actually publish to the topic.
+	char const* l_Topic = "hermes/dialogueManager/startSession";
+	MQTTPublishMessage(l_Topic, l_MessageBuffer);
+}
+
 // Process MQTT.
 //
 void MQTTProcess()
@@ -312,6 +366,59 @@ void MQTTProcess()
 
 		// Get rid of the pending messages.
 		s_PendingMessageList.clear();
+
+		if (s_FirstDialogueManagerSessionStarted == true)
+		{
+			// If we have successfully started playing notifications, go ahead and post the rest.
+			for (auto const& l_PendingNotification : s_PendingNotificationList)
+			{
+				MQTTPublishNotification(l_PendingNotification);
+			}
+
+			// Get rid of the pending notifications. 
+			s_PendingNotificationList.clear();
+		}
+		else
+		{
+			// We use this to tell not only when we are attempting the first notification for the very 
+			// first time, but to prevent us from double posting the first notification after we 
+			//succeed.
+			static std::string s_FirstNotification = "";
+
+			static Time s_LastAttemptTime;
+
+			if ((s_FirstNotification.compare("") == 0) && (s_PendingNotificationList.size() > 0))
+			{
+				// Pull the first notification off and store it separately.
+				s_FirstNotification = s_PendingNotificationList[0];
+				s_PendingNotificationList.erase(s_PendingNotificationList.begin());
+
+				// Make our first attempt.
+				MQTTPublishNotification(s_FirstNotification);
+				TimerGetCurrent(s_LastAttemptTime);
+
+				LoggerAddMessage("Attempted first notification.");
+			}
+
+			// See if enough time has passed since our last attempt.
+			Time l_CurrentTime;
+			TimerGetCurrent(l_CurrentTime);
+
+			auto const l_DurationMS = TimerGetElapsedMilliseconds(s_LastAttemptTime, l_CurrentTime);
+			auto const l_DurationSeconds = static_cast<unsigned long>(l_DurationMS) / 1000;
+			
+			static constexpr unsigned long l_ReattemptTimeSeconds = 1;
+
+			if ((s_FirstNotification.compare("") != 0) && 
+				(l_DurationSeconds >= l_ReattemptTimeSeconds))
+			{
+				// If so, reattempt the notification.
+				MQTTPublishNotification(s_FirstNotification);
+				TimerGetCurrent(s_LastAttemptTime);
+
+				LoggerAddMessage("Reattempted first notification.");
+			}
+		}
 	}
 }
 
@@ -334,21 +441,11 @@ void MQTTTextToSpeech(std::string const& p_Text)
 	MQTTPublishMessage(l_Topic, l_MessageBuffer);
 }
 
-// Generates and publishes a message that causes a spoken notification.
+// Causes a spoken notification.
 //
 // p_Text:	The notification text.
 //
 void MQTTNotification(std::string const& p_Text)
 {
-	// Create a properly formatted message that will trigger the notification.
-	static constexpr unsigned int l_MessageBufferCapacity = 500;
-	char l_MessageBuffer[l_MessageBufferCapacity];
-
-	snprintf(l_MessageBuffer, l_MessageBufferCapacity, 
-		"{\"init\": {\"type\": \"notification\", \"text\": \"%s\"}, \"siteId\": \"default\"}",
-		p_Text.c_str());
-
-	// Actually publish to the topic.
-	char const* l_Topic = "hermes/dialogueManager/startSession";
-	MQTTPublishMessage(l_Topic, l_MessageBuffer);
+	s_PendingNotificationList.push_back(p_Text);
 }

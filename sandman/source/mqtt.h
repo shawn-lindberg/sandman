@@ -23,7 +23,7 @@ void MQTTProcess();
 //
 void MQTTTextToSpeech(std::string const& p_Text);
 
-// Generates and publishes a message that causes a spoken notification.
+// Causes a spoken notification.
 //
 // p_Text:	The notification text.
 //
