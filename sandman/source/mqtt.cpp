@@ -37,8 +37,8 @@ static mosquitto* s_MosquittoClient = nullptr;
 // Track whether we are connected to the host.
 static bool s_ConnectedToHost = false;
 
-// Keep track of whether we have ever seen a dialogue manager session start.
-static bool s_FirstDialogueManagerSessionStarted = false;
+// Keep track of whether we have ever seen text-to-speech finish.
+static bool s_FirstTextToSpeechFinished = false;
 
 // We need to protect access to the list of commands.
 static std::mutex s_CommandsMutex;
@@ -87,7 +87,7 @@ void OnConnectCallback(mosquitto* p_MosquittoClient, void* p_UserData, int p_Ret
 		LoggerAddMessage("Subscribed to MQTT topic \"%s\".", l_Topic);
 	}
 
-	l_Topic = "hermes/dialogueManager/#";
+	l_Topic = "hermes/tts/#";
 	l_ReturnCode = mosquitto_subscribe(p_MosquittoClient, nullptr, l_Topic, l_QoS);
 
 	if (l_ReturnCode != MOSQ_ERR_SUCCESS)
@@ -125,10 +125,10 @@ void OnMessageCallback(mosquitto* p_MosquittoClient, void* p_UserData,
 
 	std::string const l_Topic(p_Message->topic);
 
-	// Keep track of whether the first dialogue manager session started.
-	if (l_Topic.find("hermes/dialogueManager/sessionStarted") != std::string::npos)
+	// Keep track of whether the first text-to-speech finished.
+	if (l_Topic.find("hermes/tts/sayFinished") != std::string::npos)
 	{
-		s_FirstDialogueManagerSessionStarted = true;
+		s_FirstTextToSpeechFinished = true;
 	}
 
 	// Only do the following for intents.
@@ -158,7 +158,7 @@ bool MQTTInitialize()
 	LoggerAddMessage("Initializing MQTT support...");
 
 	s_ConnectedToHost = false;
-	s_FirstDialogueManagerSessionStarted = false;
+	s_FirstTextToSpeechFinished = false;
 	
 	if (mosquitto_lib_init() != MOSQ_ERR_SUCCESS)
 	{
@@ -367,7 +367,7 @@ void MQTTProcess()
 		// Get rid of the pending messages.
 		s_PendingMessageList.clear();
 
-		if (s_FirstDialogueManagerSessionStarted == true)
+		if (s_FirstTextToSpeechFinished == true)
 		{
 			// If we have successfully started playing notifications, go ahead and post the rest.
 			for (auto const& l_PendingNotification : s_PendingNotificationList)
@@ -407,7 +407,7 @@ void MQTTProcess()
 			auto const l_DurationMS = TimerGetElapsedMilliseconds(s_LastAttemptTime, l_CurrentTime);
 			auto const l_DurationSeconds = static_cast<unsigned long>(l_DurationMS) / 1000;
 			
-			static constexpr unsigned long l_ReattemptTimeSeconds = 1;
+			static constexpr unsigned long l_ReattemptTimeSeconds = 5;
 
 			if ((s_FirstNotification.compare("") != 0) && 
 				(l_DurationSeconds >= l_ReattemptTimeSeconds))
