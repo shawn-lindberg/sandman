@@ -18,6 +18,7 @@
 #include "logger.h"
 #include "mqtt.h"
 #include "notification.h"
+#include "reports.h"
 #include "schedule.h"
 #include "sound.h"
 
@@ -255,7 +256,10 @@ static bool Initialize()
 	
 	// Initialize the schedule.
 	ScheduleInitialize();
-	
+		
+	// Initialize reports.
+	ReportsInitialize();
+
 	// Initialize the commands.
 	CommandInitialize(s_Input);
 
@@ -276,6 +280,9 @@ static void Uninitialize()
 	
 	// Uninitialize the commands.
 	CommandUninitialize();
+
+	// Uninitialize reports.
+	ReportsUninitialize();
 
 	// Uninitialize the schedule.
 	ScheduleUninitialize();
@@ -623,6 +630,9 @@ int main(int argc, char** argv)
 		
 		// Process the schedule.
 		ScheduleProcess();
+		
+		// Presses the reports.
+		ReportsProcess();
 		
 		// Process sound.
 		SoundProcess();

@@ -12,4 +12,4 @@ nobase_dist_sandmandata_DATA = audio/back_moving_down.wav audio/back_stop.wav au
 sandmanconfdir = $(sysconfdir)/sandman
 nobase_dist_sandmanconf_DATA = sandman.conf sandman.sched
 sandmantempdir = $(localstatedir)/sandman
-nobase_dist_sandmantemp_DATA = sandman.log
+nobase_dist_sandmantemp_DATA = reports/sandman.rpt sandman.log

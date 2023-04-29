@@ -8,6 +8,7 @@
 
 #include "logger.h"
 #include "notification.h"
+#include "reports.h"
 #include "timer.h"
 #include "xml.h"
 
@@ -376,6 +377,13 @@ void Control::SetDesiredAction(Actions p_DesiredAction, Modes p_Mode,
 	LoggerAddMessage("Control \"%s\": Setting desired action to \"%s\" with mode \"%s\" and "
 		"duration %i ms.", m_Name, s_ControlActionNames[p_DesiredAction], 
 		s_ControlModeNames[p_Mode], m_MovingDurationMS);
+
+	// For now, only add an entry in the report if the mode is timed, because manual means it's 
+	// coming from a physical controller press.
+	if (m_Mode == MODE_TIMED)
+	{
+		ReportsAddItem("%s: %s", m_Name, s_ControlActionNames[m_DesiredAction]);
+	}
 }
 
 // Enable or disable all controls.

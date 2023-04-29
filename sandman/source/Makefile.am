@@ -1,5 +1,5 @@
 bin_PROGRAMS = sandman
-sandman_SOURCES = config.cpp command.cpp control.cpp input.cpp logger.cpp mqtt.cpp notification.cpp schedule.cpp sound.cpp timer.cpp xml.cpp main.cpp 
+sandman_SOURCES = config.cpp command.cpp control.cpp input.cpp logger.cpp mqtt.cpp notification.cpp reports.cpp schedule.cpp sound.cpp timer.cpp xml.cpp main.cpp 
 if SPHINX_SPEECH_RECOGNITION
 sandman_SOURCES += speech_recognizer.cpp 
 endif
