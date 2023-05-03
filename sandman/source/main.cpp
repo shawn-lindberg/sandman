@@ -631,7 +631,7 @@ int main(int argc, char** argv)
 		// Process the schedule.
 		ScheduleProcess();
 		
-		// Presses the reports.
+		// Process the reports.
 		ReportsProcess();
 		
 		// Process sound.
