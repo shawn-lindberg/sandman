@@ -28,6 +28,9 @@ struct CommandToken
 		TYPE_SCHEDULE,
 		TYPE_START,
 		TYPE_STATUS,
+		TYPE_REBOOT, 
+		TYPE_YES, 
+		TYPE_NO, 
 		
 		TYPE_NOT_PARAMETER_COUNT, 
 		
@@ -44,6 +47,13 @@ struct CommandToken
 	int   m_Parameter = 0;
 };
 
+// Potential return values from parsing tokens.
+enum class CommandParseTokensReturnTypes
+{
+	INVALID = 0, 
+	SUCCESS, 
+	MISSING_CONFIRMATION, 
+};
 
 // Functions
 //
@@ -62,7 +72,20 @@ void CommandUninitialize();
 //
 // p_CommandTokens:	All of the potential tokens for the command.
 //
-void CommandParseTokens(std::vector<CommandToken> const& p_CommandTokens);
+// Returns:	A value signifying the result of the parsing.
+//
+CommandParseTokensReturnTypes CommandParseTokens(std::vector<CommandToken> const& p_CommandTokens);
+
+// Parse the command tokens into commands.
+//
+// p_ConfirmationText:	(Output) In cases with missing confirmation, this is the confirmation 
+// 	 						prompt.
+// p_CommandTokens:		All of the potential tokens for the command.
+//
+// Returns:	A value signifying the result of the parsing.
+//
+CommandParseTokensReturnTypes CommandParseTokens(char const*& p_ConfirmationText, 
+	std::vector<CommandToken> const& p_CommandTokens);
 
 // Take a command string and turn it into a list of tokens.
 //
@@ -74,7 +97,8 @@ void CommandTokenizeString(std::vector<CommandToken>& p_CommandTokens,
 
 // Take a command JSON document and turn it into a list of tokens.
 //
-// p_CommandTokens:		(Output) The resulting command tokens, in order.
+// p_CommandTokens:		(Input/Output) The resulting command tokens, in order. If there was a 
+// 							command pending confirmation, the corresponding tokens will be passed in.
 // p_CommandDocument:	The command document to tokenize.
 //
 void CommandTokenizeJSONDocument(std::vector<CommandToken>& p_CommandTokens, 

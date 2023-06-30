@@ -18,14 +18,14 @@
 // Types
 //
 
-// A message that we need to send later.
-struct PendingMessage
+// A message that we received or need to send later.
+struct MessageInfo
 {
-	// The topic the message will be published to.
+	// The topic the message was or will be published to.
 	std::string	m_Topic;
 
-	// The contents of the message to be sent.
-	std::string	m_Message;
+	// The message payload.
+	std::string	m_Payload;
 };
 
 // Locals
@@ -40,26 +40,55 @@ static bool s_ConnectedToHost = false;
 // Keep track of whether we have ever seen text-to-speech finish.
 static bool s_FirstTextToSpeechFinished = false;
 
-// We need to protect access to the list of commands.
-static std::mutex s_CommandsMutex;
-
-// A list of commands to be processed.
-static std::vector<std::vector<CommandToken>> s_CommandsList;
-
 // A list of messages to publish once we are able.
-static std::vector<PendingMessage> s_PendingMessageList;
+static std::vector<MessageInfo> s_PendingMessageList;
 
 // A list of notifications to post once we are able.
 static std::vector<std::string> s_PendingNotificationList;
 
+// We need to protect access to the list of received messages.
+static std::mutex s_ReceivedMessagesMutex;
+
+// A list of messages we have received to process when we are able.
+static std::vector<MessageInfo> s_ReceivedMessageList;
+
+// Keep track of the current dialogue manager session ID.
+static std::string s_DialogueManagerSessionID;
+
+// If we have command tokens awaiting confirmation, store them here.
+static std::vector<CommandToken> s_CommandTokensPendingConfirmation;
+
 // Functions
 //
+
+// Subscribes to a topic.
+//
+// p_MosquittoClient:	The client instance.
+// p_Topic:					The topic that we want to subscribe to.
+//
+// Returns:	True on success, false on failure.
+//
+static bool MQTTSubscribeTopic(mosquitto* p_MosquittoClient, const char* p_Topic)
+{
+	const int l_QoS = 0;
+	auto l_ReturnCode = mosquitto_subscribe(p_MosquittoClient, nullptr, p_Topic, l_QoS);
+
+	if (l_ReturnCode != MOSQ_ERR_SUCCESS)
+	{
+		LoggerAddMessage("Subscription to MQTT topic \"%s\" failed with return code %d", p_Topic,
+			l_ReturnCode);		
+		return false;
+	}
+	
+	LoggerAddMessage("Subscribed to MQTT topic \"%s\".", p_Topic);
+	return true;
+}
 
 // Handles acknowledgment of a connection.
 //
 // p_MosquittoClient:	The client instance that connected.
-// p_UserData:			The user data associated with the client instance.
-// p_ReturnCode:		The return code of the connection response.
+// p_UserData:				The user data associated with the client instance.
+// p_ReturnCode:			The return code of the connection response.
 //
 void OnConnectCallback(mosquitto* p_MosquittoClient, void* p_UserData, int p_ReturnCode)
 {
@@ -73,32 +102,9 @@ void OnConnectCallback(mosquitto* p_MosquittoClient, void* p_UserData, int p_Ret
 	LoggerAddMessage("Connected to MQTT host.");
 
 	// Subscribe to the relevant topics.
-	const char* l_Topic = "hermes/intent/#";
-	const int l_QoS = 0;
-	auto l_ReturnCode = mosquitto_subscribe(p_MosquittoClient, nullptr, l_Topic, l_QoS);
-
-	if (l_ReturnCode != MOSQ_ERR_SUCCESS)
-	{
-		LoggerAddMessage("Subscription to MQTT topic \"%s\" failed with return code %d", l_Topic,
-			l_ReturnCode);		
-	} 
-	else 
-	{
-		LoggerAddMessage("Subscribed to MQTT topic \"%s\".", l_Topic);
-	}
-
-	l_Topic = "hermes/tts/#";
-	l_ReturnCode = mosquitto_subscribe(p_MosquittoClient, nullptr, l_Topic, l_QoS);
-
-	if (l_ReturnCode != MOSQ_ERR_SUCCESS)
-	{
-		LoggerAddMessage("Subscription to MQTT topic \"%s\" failed with return code %d", l_Topic,
-			l_ReturnCode);		
-	} 
-	else 
-	{
-		LoggerAddMessage("Subscribed to MQTT topic \"%s\".", l_Topic);
-	}
+	MQTTSubscribeTopic(p_MosquittoClient, "hermes/intent/#");
+	MQTTSubscribeTopic(p_MosquittoClient, "hermes/tts/#");
+	MQTTSubscribeTopic(p_MosquittoClient, "hermes/dialogueManager/#");
 }
 
 // Handles message for a subscribed topic.
@@ -114,15 +120,6 @@ void OnMessageCallback(mosquitto* p_MosquittoClient, void* p_UserData,
 	//LoggerAddMessage("Received MQTT message for topic \"%s\": %s", p_Message->topic, 
 	//	l_PayloadString);
 
-	// Parse the payload as JSON.
-	rapidjson::Document l_PayloadDocument;
-	l_PayloadDocument.Parse(l_PayloadString);
-
-	if (l_PayloadDocument.HasParseError() == true)
-	{
-		return;
-	}
-
 	std::string const l_Topic(p_Message->topic);
 
 	// Keep track of whether the first text-to-speech finished.
@@ -131,23 +128,30 @@ void OnMessageCallback(mosquitto* p_MosquittoClient, void* p_UserData,
 		s_FirstTextToSpeechFinished = true;
 	}
 
-	// Only do the following for intents.
-	if (l_Topic.find("hermes/intent/") == std::string::npos) 
+	// Helper lambda to save a message to process later.
+	auto l_SaveMessage = [&]()
 	{
+		// Acquire a lock to protect the received message list.
+		std::lock_guard<std::mutex> l_MessageGuard(s_ReceivedMessagesMutex);
+
+		MessageInfo l_Message;
+		l_Message.m_Topic = l_Topic;
+		l_Message.m_Payload = l_PayloadString;
+
+		s_ReceivedMessageList.push_back(l_Message);
+	};
+
+	// Only save certain messages to process later.
+	if (l_Topic.find("hermes/dialogueManager/") != std::string::npos)
+	{
+		l_SaveMessage();
 		return;
 	}
 
-	LoggerAddMessage("Received MQTT message for topic \"%s\"", p_Message->topic);
-
-	std::vector<CommandToken> l_CommandTokens;
-	CommandTokenizeJSONDocument(l_CommandTokens, l_PayloadDocument);
-
-	if (l_CommandTokens.empty() == false)
+	if (l_Topic.find("hermes/intent/") != std::string::npos) 
 	{
-		// Acquire a lock to protect the command list.
-		std::lock_guard<std::mutex> l_CommandsGuard(s_CommandsMutex);
-
-		s_CommandsList.push_back(l_CommandTokens);
+		l_SaveMessage();
+		return;
 	}
 }
 
@@ -159,6 +163,7 @@ bool MQTTInitialize()
 
 	s_ConnectedToHost = false;
 	s_FirstTextToSpeechFinished = false;
+	s_DialogueManagerSessionID = "";
 	
 	if (mosquitto_lib_init() != MOSQ_ERR_SUCCESS)
 	{
@@ -290,9 +295,9 @@ static void MQTTPublishMessage(char const* p_Topic, char const* p_Message)
 	// If we are not yet connected, put the message and the topic on a list to publish once we are.
 	if (s_ConnectedToHost == false) {
 
-		PendingMessage l_PendingMessage;
+		MessageInfo l_PendingMessage;
 		l_PendingMessage.m_Topic = p_Topic;
-		l_PendingMessage.m_Message = p_Message;
+		l_PendingMessage.m_Payload = p_Message;
 
 		s_PendingMessageList.push_back(l_PendingMessage);
 		return;
@@ -316,6 +321,166 @@ static void MQTTPublishMessage(char const* p_Topic, char const* p_Message)
 	{
 		//LoggerAddMessage("Published message to MQTT topic \"%s\": %s", p_Topic, p_Message);			
 		LoggerAddMessage("Published message to MQTT topic \"%s\"", p_Topic);			
+	}
+}
+
+// End the current dialogue manager session.
+//
+static void DialogueManagerEndSession()
+{
+	// Create a properly formatted message that will end the session.
+	static constexpr unsigned int l_MessageBufferCapacity = 500;
+	char l_MessageBuffer[l_MessageBufferCapacity];
+
+	snprintf(l_MessageBuffer, l_MessageBufferCapacity, "{\"sessionId\": \"%s\", \"text\": \"\"}", 
+		s_DialogueManagerSessionID.c_str());
+
+	// Actually publish to the topic.
+	char const* l_Topic = "hermes/dialogueManager/endSession";
+	MQTTPublishMessage(l_Topic, l_MessageBuffer);
+}
+
+// Handles processing a dialogue manager message.
+//
+// p_Topic:					The topic of the message.
+// p_MessageDocument:	The JSON document for the message payload.
+// 
+static void ProcessDialogueManagerMessage(std::string const& p_Topic, 
+	rapidjson::Document const& p_MessageDocument)
+{
+	// Technically we probably don't need to be able to access the session ID for all cases here, 
+	// but it's reasonable to expect and the code is cleanest this way.
+	auto const l_SessionIDIterator = p_MessageDocument.FindMember("sessionId");
+
+	if (l_SessionIDIterator == p_MessageDocument.MemberEnd())
+	{
+		return;
+	}
+		
+	auto const l_SessionID = l_SessionIDIterator->value.GetString();
+	
+	if (p_Topic.find("sessionStarted") != std::string::npos)
+	{
+		LoggerAddMessage("Dialogue session started with ID: %s", l_SessionID);
+		s_DialogueManagerSessionID = l_SessionID;
+		return;
+	}
+
+	if (p_Topic.find("sessionEnded") != std::string::npos)
+	{
+		auto l_GetReason = [&]() -> char const*
+		{
+			auto const l_TerminationIterator = p_MessageDocument.FindMember("termination");
+
+			if (l_TerminationIterator == p_MessageDocument.MemberEnd())
+			{
+				return nullptr;
+			}
+
+			auto const l_ReasonIterator = l_TerminationIterator->value.FindMember("reason");
+
+			if (l_ReasonIterator == p_MessageDocument.MemberEnd())
+			{
+				return nullptr;
+			}
+
+			return l_ReasonIterator->value.GetString();
+		};
+
+		auto const l_Reason = l_GetReason();
+
+		if (l_Reason != nullptr)
+		{
+			LoggerAddMessage("Dialogue session ended with ID: %s and reason: %s", l_SessionID, 
+				l_Reason);
+		}
+		else
+		{
+			LoggerAddMessage("Dialogue session ended with ID: %s", l_SessionID);
+		}	
+	
+		s_DialogueManagerSessionID = "";
+		return;
+	}
+}
+
+// Handles processing an intent message.
+//
+// p_IntentDocument:	The JSON document for the intent payload.
+//
+static void ProcessIntentMessage(rapidjson::Document const& p_IntentDocument)
+{
+	// Take into account tokens pending confirmation, but only once.
+	auto l_CommandTokens = s_CommandTokensPendingConfirmation;
+	s_CommandTokensPendingConfirmation.clear();
+
+	CommandTokenizeJSONDocument(l_CommandTokens, p_IntentDocument);
+
+	if (l_CommandTokens.empty() == true)
+	{
+		DialogueManagerEndSession();
+		return;
+	}
+		
+	char const* l_ConfirmationText = nullptr;
+	auto const l_ReturnValue = CommandParseTokens(l_ConfirmationText, l_CommandTokens);
+
+	if (l_ReturnValue == CommandParseTokensReturnTypes::INVALID)
+	{
+		DialogueManagerEndSession();
+		return;
+	}
+
+	// Handle missing confirmations, if necessary.
+	if (l_ReturnValue != CommandParseTokensReturnTypes::MISSING_CONFIRMATION)
+	{
+		return;
+	}
+
+ 	// Save these tokens for next time.
+	s_CommandTokensPendingConfirmation = l_CommandTokens;
+	
+	// Create a properly formatted message that will trigger the confirmation.
+	static constexpr unsigned int l_MessageBufferCapacity = 500;
+	char l_MessageBuffer[l_MessageBufferCapacity];
+
+	snprintf(l_MessageBuffer, l_MessageBufferCapacity, "{\"sessionId\": \"%s\", \"text\": \"%s\"}", 
+		s_DialogueManagerSessionID.c_str(), l_ConfirmationText);
+
+	// Actually publish to the topic.
+	char const* l_Topic = "hermes/dialogueManager/continueSession";
+	MQTTPublishMessage(l_Topic, l_MessageBuffer);
+}
+
+// Process is a message that we have received.
+//
+// p_Message:	The message we have received.
+//
+static void MQTTProcessReceivedMessage(MessageInfo const& p_Message)
+{
+	// Parse the payload as JSON.
+	rapidjson::Document l_PayloadDocument;
+	l_PayloadDocument.Parse(p_Message.m_Payload.c_str());
+
+	if (l_PayloadDocument.HasParseError() == true)
+	{
+		return;
+	}
+
+	auto const& l_Topic = p_Message.m_Topic;
+	
+	if (l_Topic.find("hermes/dialogueManager/") != std::string::npos)
+	{
+		ProcessDialogueManagerMessage(l_Topic, l_PayloadDocument);
+		return;
+	}
+
+	if (l_Topic.find("hermes/intent/") != std::string::npos) 
+	{
+		LoggerAddMessage("Received MQTT message for topic \"%s\"", p_Message.m_Topic.c_str());
+
+		ProcessIntentMessage(l_PayloadDocument);
+		return;
 	}
 }
 
@@ -343,17 +508,17 @@ static void MQTTPublishNotification(std::string const& p_Text)
 void MQTTProcess()
 {
 	{
-		// Acquire a lock to protect the command list.
+		// Acquire a lock to protect the received message list.
 		// NOTE: It is expected that this will be executed from the main thread.
-		std::lock_guard<std::mutex> l_CommandsGuard(s_CommandsMutex);
+		std::lock_guard<std::mutex> l_MessageGuard(s_ReceivedMessagesMutex);
 
-		for (auto const& l_CommandTokens : s_CommandsList)
+		for (auto const& l_Message : s_ReceivedMessageList)		
 		{
-			CommandParseTokens(l_CommandTokens);
+			MQTTProcessReceivedMessage(l_Message);
 		}
 
-		// Get rid of the commands.
-		s_CommandsList.clear();
+		// Get rid of the messages.
+		s_ReceivedMessageList.clear();
 	}
 
 	// If we are connected, send any pending messages.
@@ -361,7 +526,7 @@ void MQTTProcess()
 
 		for (auto const& l_PendingMessage : s_PendingMessageList)
 		{
-			MQTTPublishMessage(l_PendingMessage.m_Topic.c_str(), l_PendingMessage.m_Message.c_str());
+			MQTTPublishMessage(l_PendingMessage.m_Topic.c_str(), l_PendingMessage.m_Payload.c_str());
 		}
 
 		// Get rid of the pending messages.
