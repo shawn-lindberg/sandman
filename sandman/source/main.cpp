@@ -619,6 +619,9 @@ int main(int argc, char** argv)
 			
 		#endif // defined (USE_INTERNAL_SPEECH_RECOGNITION)
 
+		// Process command.
+		CommandProcess();
+		
 		// Process controls.
 		ControlsProcess();
 		

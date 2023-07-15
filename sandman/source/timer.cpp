@@ -45,12 +45,19 @@ void TimerGetCurrent(Time& p_Time)
 }
 
 // Get the elapsed time in milliseconds between to times.
+// Note: Will return -1 if the end time is less than the start time.
 //
 // p_StartTime:	Start time.
 // p_EndTime:		End time.
 //
 float TimerGetElapsedMilliseconds(Time const& p_StartTime, Time const& p_EndTime)
 {
+	// For now just return a negative sentinel if the end time is before the start time.
+	if (p_EndTime < p_StartTime)
+	{
+		return -1.0f;
+	}
+
 	// Calculate the elapsed time.
 	Time l_ElapsedTime;
 	

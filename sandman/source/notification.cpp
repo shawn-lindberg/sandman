@@ -62,6 +62,10 @@ static const std::map<std::string, NotificationDescription>	s_NotificationIDToDe
 										  "Lowering the legs" } },
 	{ "legs_stop",					{ DATADIR "audio/legs_stop.wav",
 										  "Legs stopped" } },
+  	{ "canceled",					{ "",
+										  "Canceled" } },
+	{ "restarting",				{ "",
+										  "Restarting" } },
 };
 
 // Functions
@@ -89,4 +93,13 @@ void NotificationPlay(std::string const& p_ID)
 
 	// Generate the notification.
 	MQTTNotification(l_Description.m_SpeechText);
+}
+
+// Get the time that the last notification finished.
+//
+// p_Time:	(Output) The last time.
+//
+void NotificationGetLastPlayFinishedTime(Time& p_Time)
+{
+	MQTTGetLastTextToSpeechFinishedTime(p_Time);
 }

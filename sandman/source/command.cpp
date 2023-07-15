@@ -73,6 +73,12 @@ static ControlHandle s_ElevationControlHandle;
 // Keep a handle to the input.
 static Input const* s_Input = nullptr;
 
+// Signals whether we are in the process of rebooting.
+static bool s_Rebooting = false;
+
+// Keep track of when we started the reboot process so we can time the delay.
+static Time s_RebootDelayStartTime;
+
 // Functions
 //
 
@@ -92,6 +98,54 @@ void CommandUninitialize()
 	s_Input = nullptr;
 }
 
+// Process the system.
+//
+void CommandProcess()
+{
+	// At the moment we only have per frame processing for rebooting.
+	if (s_Rebooting == false)
+	{
+		return;
+	}
+
+	// I don't really want to make a whole function for this, but will call it from multiple code 
+	// paths.
+	auto l_DoReboot = []()
+	{
+		s_Rebooting = false;
+
+		LoggerAddMessage("Rebooting!");
+
+		sync();
+		reboot(RB_AUTOBOOT);
+	};
+
+	// If the notification is done, we can stop waiting.
+	Time l_NotificationFinishedTime;
+	NotificationGetLastPlayFinishedTime(l_NotificationFinishedTime);
+
+	if (l_NotificationFinishedTime > s_RebootDelayStartTime) 
+	{
+		l_DoReboot();
+		return;
+	}
+
+	// Wait for a maximum amount of time regardless.
+	Time l_RebootDelayCurrentTime;
+	TimerGetCurrent(l_RebootDelayCurrentTime);
+	
+	float const l_DurationMS = TimerGetElapsedMilliseconds(s_RebootDelayStartTime, 
+		l_RebootDelayCurrentTime);
+	auto const l_DurationSeconds = static_cast<unsigned long>(l_DurationMS) / 
+		1000;
+	
+	static constexpr unsigned long l_DelayDurationSeconds = 60;
+	
+	if (l_DurationSeconds >= l_DelayDurationSeconds)
+	{
+		l_DoReboot();
+	}
+}
 
 // Parse the command tokens into commands.
 //
@@ -333,13 +387,17 @@ CommandParseTokensReturnTypes CommandParseTokens(char const*& p_ConfirmationText
 				{
 					LoggerAddMessage("Ignoring reboot command because it was not followed by a positive "
 						"confirmation.");
+					NotificationPlay("canceled");
 					break;
 				}
 
-				LoggerAddMessage("Rebooting!");
-				
-				sync();
-				reboot(RB_AUTOBOOT);
+				// Kick off the reboot.
+				s_Rebooting = true;
+				TimerGetCurrent(s_RebootDelayStartTime);
+
+				LoggerAddMessage("Reboot starting!");
+				NotificationPlay("restarting");
+
 				return CommandParseTokensReturnTypes::SUCCESS;
 			}
 			

@@ -8,7 +8,6 @@
 
 #include "command.h"
 #include "logger.h"
-#include "timer.h"
 
 #define DATADIR		AM_DATADIR
 
@@ -39,6 +38,9 @@ static bool s_ConnectedToHost = false;
 
 // Keep track of whether we have ever seen text-to-speech finish.
 static bool s_FirstTextToSpeechFinished = false;
+
+// Keep track of the last time text-to-speech finished.
+static Time s_LastTextToSpeechFinishedTime;
 
 // A list of messages to publish once we are able.
 static std::vector<MessageInfo> s_PendingMessageList;
@@ -126,6 +128,9 @@ void OnMessageCallback(mosquitto* p_MosquittoClient, void* p_UserData,
 	if (l_Topic.find("hermes/tts/sayFinished") != std::string::npos)
 	{
 		s_FirstTextToSpeechFinished = true;
+
+		// Record this time.
+		TimerGetCurrent(s_LastTextToSpeechFinishedTime);
 	}
 
 	// Helper lambda to save a message to process later.
@@ -613,4 +618,13 @@ void MQTTTextToSpeech(std::string const& p_Text)
 void MQTTNotification(std::string const& p_Text)
 {
 	s_PendingNotificationList.push_back(p_Text);
+}
+
+// Get the time that the last text-to-speech finished.
+//
+// p_Time:	(Output) The last time.
+//
+void MQTTGetLastTextToSpeechFinishedTime(Time& p_Time)
+{
+	p_Time = s_LastTextToSpeechFinishedTime;
 }

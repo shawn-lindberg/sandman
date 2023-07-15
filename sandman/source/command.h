@@ -68,6 +68,10 @@ void CommandInitialize(class Input const& p_Input);
 //
 void CommandUninitialize();
 
+// Process the system.
+//
+void CommandProcess();
+
 // Parse the command tokens into commands.
 //
 // p_CommandTokens:	All of the potential tokens for the command.

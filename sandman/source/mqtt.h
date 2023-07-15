@@ -2,6 +2,8 @@
 
 #include <string>
 
+#include "timer.h"
+
 // Functions
 //
 
@@ -28,3 +30,9 @@ void MQTTTextToSpeech(std::string const& p_Text);
 // p_Text:	The notification text.
 //
 void MQTTNotification(std::string const& p_Text);
+
+// Get the time that the last text-to-speech finished.
+//
+// p_Time:	(Output) The last time.
+//
+void MQTTGetLastTextToSpeechFinishedTime(Time& p_Time);
