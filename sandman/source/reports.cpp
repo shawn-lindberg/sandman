@@ -6,9 +6,15 @@
 #include <time.h>
 #include <vector>
 
+#include "rapidjson/document.h"
+#include "rapidjson/stringbuffer.h"
+#include "rapidjson/writer.h"
+
 #include "logger.h"
 
 #define TEMPDIR	AM_TEMPDIR
+
+#define REPORT_VERSION	1
 
 // Types
 //
@@ -92,12 +98,32 @@ static void ReportsOpenFile()
 
 	s_ReportDateString = "";
 
-	// Open the new file for appending.
 	std::string const l_ReportFileName = TEMPDIR "reports/sandman" + l_CurrentReportDateString + 
 		".rpt";
-	LoggerAddMessage("Opening report file %s...", l_ReportFileName.c_str());
 
-	s_ReportFile = fopen(l_ReportFileName.c_str(), "w+");
+	// First, see if the file already exists.
+	bool l_ReportAlreadyExisted = false;
+	
+	// Note: There are other ways to check for file existence, but we don't care about optimal 
+	// performance here.
+	s_ReportFile = fopen(l_ReportFileName.c_str(), "r");
+	
+	if (s_ReportFile != nullptr) {
+
+		// If we were able to open it, it must exist. So update the flag and close it so we can open 
+		// it in the correct mode.
+		l_ReportAlreadyExisted = true;
+
+		fclose(s_ReportFile);
+		s_ReportFile = nullptr;
+	}
+
+	// Open the file for appending.
+	LoggerAddMessage("%s report file %s...", (l_ReportAlreadyExisted == true) ? "Opening" : 
+		"Creating", l_ReportFileName.c_str());
+
+	// This mode works regardless of whether the file exists or not.
+	s_ReportFile = fopen(l_ReportFileName.c_str(), "a");
 
 	if (s_ReportFile == nullptr)
 	{
@@ -109,6 +135,31 @@ static void ReportsOpenFile()
 
 	// Now that we have successfully opened the file, update the date string.
 	s_ReportDateString = l_CurrentReportDateString;
+
+	// If this is a new report file, write out the header.
+	if (l_ReportAlreadyExisted == true)
+	{
+		return;
+	}
+	
+	// Make a JSON representation of the header.
+	rapidjson::Document l_HeaderDocument;
+	l_HeaderDocument.SetObject();
+
+	auto l_HeaderAllocator = l_HeaderDocument.GetAllocator();
+
+	l_HeaderDocument.AddMember("version", REPORT_VERSION, l_HeaderAllocator);
+
+	// Write this into a string.
+	rapidjson::StringBuffer l_HeaderBuffer;
+	rapidjson::Writer<rapidjson::StringBuffer> l_HeaderWriter(l_HeaderBuffer);
+	l_HeaderDocument.Accept(l_HeaderWriter);
+ 
+	// Write the whole thing.
+	fputs(l_HeaderBuffer.GetString(), s_ReportFile);
+
+	// fputs doesn't add a newline, do it now.
+	fputs("\n", s_ReportFile);
 }
 
 // Initialize the reports.
@@ -164,14 +215,27 @@ static void ReportsWriteItem(PendingItem const& p_Item)
 	// Force terminate.
 	l_TimeStringBuffer[l_TimeStringBufferCapacity - 1] = '\0';
 
-	// Write the time first.
-	fputs(l_TimeStringBuffer, s_ReportFile);
+	// Make a JSON representation of this item.
+	rapidjson::Document l_ItemDocument;
+	l_ItemDocument.SetObject();
 
-	// Delineate with tabs.
-	fputs("\t", s_ReportFile);
+	auto l_ItemAllocator = l_ItemDocument.GetAllocator();
 
-	// Write the description.
-	fputs(p_Item.m_Description.c_str(), s_ReportFile);
+	// It is safe to use a string reference here because this document will not live outside of this 
+	// scope.
+	l_ItemDocument.AddMember("dateTime", 
+		rapidjson::Value(rapidjson::StringRef(l_TimeStringBuffer)), l_ItemAllocator);
+
+	l_ItemDocument.AddMember("event", 
+		rapidjson::Value(rapidjson::StringRef(p_Item.m_Description.c_str())), l_ItemAllocator);
+	
+	// Write this into a string.
+	rapidjson::StringBuffer l_ItemBuffer;
+	rapidjson::Writer<rapidjson::StringBuffer> l_ItemWriter(l_ItemBuffer);
+	l_ItemDocument.Accept(l_ItemWriter);
+ 
+	// Write the whole thing.
+	fputs(l_ItemBuffer.GetString(), s_ReportFile);
 
 	// fputs doesn't add a newline, do it now.
 	fputs("\n", s_ReportFile);
