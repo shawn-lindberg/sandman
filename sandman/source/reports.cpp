@@ -14,7 +14,12 @@
 
 #define TEMPDIR	AM_TEMPDIR
 
-#define REPORT_VERSION	1
+#define REPORT_VERSION	2
+//	1					Initial version.
+// 2	2023/08/29	Adding the report start time to the header, for use when analyzing the data.
+
+// Eventually this should be configurable.
+#define REPORT_STARTING_HOUR	17
 
 // Types
 //
@@ -56,8 +61,8 @@ static std::string ReportsGetEffectiveDate()
 	auto const l_RawTime = time(nullptr);
 	auto* l_LocalTime = localtime(&l_RawTime);
 
-	// If the time is after 5 PM, advance the day.
-	if (l_LocalTime->tm_hour >= 17)
+	// If the time is after the starting hour, advance the day.
+	if (l_LocalTime->tm_hour >= REPORT_STARTING_HOUR)
 	{
 		l_LocalTime->tm_mday++;
 	}
@@ -72,6 +77,37 @@ static std::string ReportsGetEffectiveDate()
 	strftime(l_ReportDateBuffer, l_ReportDateBufferCapacity, "%Y-%m-%d", l_ReportTime);
 
 	return std::string(l_ReportDateBuffer);
+}
+
+// Determine the date and time that we should be using for the report now.
+//
+static std::string ReportsGetStartingDateTime()
+{
+	// Get the current time.
+	auto const l_RawTime = time(nullptr);
+	auto* l_LocalTime = localtime(&l_RawTime);
+
+	// If the time is before the starting hour, go back one day.
+	if (l_LocalTime->tm_hour < REPORT_STARTING_HOUR)
+	{
+		l_LocalTime->tm_mday--;
+	}
+
+	// We also need to set the time to the starting time.
+	l_LocalTime->tm_hour = REPORT_STARTING_HOUR;
+	l_LocalTime->tm_min = 0;
+	l_LocalTime->tm_sec = 0;
+
+	// Get the starting time.
+	auto const l_RawStartingTime = mktime(l_LocalTime);
+	auto* l_StartingTime = localtime(&l_RawStartingTime);
+
+	// Put the date and time in the buffer in 2012/09/23 17:44:05 CDT format.
+	static unsigned int const l_TimeStringBufferCapacity = 128;
+	char l_TimeStringBuffer[l_TimeStringBufferCapacity];
+	strftime(l_TimeStringBuffer, l_TimeStringBufferCapacity, "%Y/%m/%d %H:%M:%S %Z", l_StartingTime);
+
+	return std::string(l_TimeStringBuffer);
 }
 
 // Opens the appropriate report file corresponding to the effective date.
@@ -150,6 +186,13 @@ static void ReportsOpenFile()
 
 	l_HeaderDocument.AddMember("version", REPORT_VERSION, l_HeaderAllocator);
 
+	// Also include the starting time. It is safe to use a reference here because the document has 
+	// the same lifetime as the string copy.
+	auto l_StartingTime = ReportsGetStartingDateTime();
+	
+	l_HeaderDocument.AddMember("startingTime", 
+		rapidjson::Value(rapidjson::StringRef(l_StartingTime.c_str())), l_HeaderAllocator);
+	
 	// Write this into a string.
 	rapidjson::StringBuffer l_HeaderBuffer;
 	rapidjson::Writer<rapidjson::StringBuffer> l_HeaderWriter(l_HeaderBuffer);
