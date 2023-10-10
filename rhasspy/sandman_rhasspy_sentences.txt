@@ -15,3 +15,10 @@ lower {direction:down} [the] <part_name>
 [SetSchedule]
 start {action:start} [the] schedule
 stop {action:stop} [the] schedule 
+
+[Reboot]
+reboot
+restart
+
+[ConfirmationResponse]
+(yes | no) {response}
