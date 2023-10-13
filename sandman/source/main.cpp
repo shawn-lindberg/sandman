@@ -201,19 +201,6 @@ static bool Initialize()
 	{
 		return false;
 	}	
-		
-	#if defined (USE_INTERNAL_SPEECH_RECOGNITION)
-
-		// Initialize speech recognition.
-		if (s_Recognizer.Initialize(l_Config.GetSpeechInputDeviceName(), l_Config.GetInputSampleRate(), 
-			DATADIR "hmm/en_US/hub4wsj_sc_8k", DATADIR "lm/en_US/sandman.lm", 
-			DATADIR "dict/en_US/sandman.dic", TEMPDIR "recognizer.log", 
-			l_Config.GetPostSpeechDelaySec()) == false)
-		{
-			return false;
-		}
-		
-	#endif // defined (USE_INTERNAL_SPEECH_RECOGNITION)	
 
 	LoggerAddMessage("Initializing GPIO support...");
 	
@@ -287,13 +274,6 @@ static void Uninitialize()
 	// Uninitialize the schedule.
 	ScheduleUninitialize();
 	
-	#if defined (USE_INTERNAL_SPEECH_RECOGNITION)
-	
-		// Uninitialize the speech recognizer.
-		s_Recognizer.Uninitialize();
-
-	#endif // defined (USE_INTERNAL_SPEECH_RECOGNITION)
-
 	// Uninitialize sound.
 	SoundUninitialize();
 	
@@ -588,36 +568,6 @@ int main(int argc, char** argv)
 			l_Done = ProcessKeyboardInput(l_KeyboardInputBuffer, l_KeyboardInputBufferSize, 
 				l_KeyboardInputBufferCapacity);
 		}
-
-		#if defined (USE_INTERNAL_SPEECH_RECOGNITION)
-		
-			// Process speech recognition.
-			char const* l_RecognizedSpeech = nullptr;
-			if (s_Recognizer.Process(l_RecognizedSpeech) == false)
-			{
-				LoggerAddMessage("Error during speech recognition.");
-				l_Done = true;
-			}
-
-			if (l_RecognizedSpeech != nullptr)
-			{
-				// Parse a command.
-				static_assert(false, "Need to validate/ignore the command prefix.");
-				
-				// Store command tokens here.
-				static constexpr unsigned int l_CommandTokenBufferCapacity = 32;
-				CommandTokenTypes l_CommandTokenBuffer[l_CommandTokenBufferCapacity];
-				unsigned int l_CommandTokenBufferSize = 0;
-
-				// Tokenize the speech.
-				TokenizeCommandString(l_CommandTokenBufferSize, l_CommandTokenBuffer, l_CommandTokenBufferCapacity,
-					l_RecognizedSpeech);
-
-				// Parse command tokens.
-				ParseCommandTokens(l_CommandTokenBufferSize, l_CommandTokenBuffer);
-			}
-			
-		#endif // defined (USE_INTERNAL_SPEECH_RECOGNITION)
 
 		// Process command.
 		CommandProcess();

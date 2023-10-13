@@ -23,21 +23,6 @@ class Config
 		
 		// Accessors.
 		
-		char const* GetSpeechInputDeviceName() const
-		{
-			return m_SpeechInputDeviceName;
-		}
-		
-		unsigned int GetInputSampleRate() const
-		{
-			return m_InputSampleRate;
-		}
-	
-		float GetPostSpeechDelaySec() const
-		{
-			return m_PostSpeechDelaySec;
-		}
-		
 		char const* GetInputDeviceName() const
 		{
 			return m_InputDeviceName;
@@ -67,15 +52,6 @@ class Config
 	
 		// Constants.
 		static constexpr unsigned int ms_InputDeviceNameCapacity = 64;
-		
-		// The name of the speech input device.
-		char m_SpeechInputDeviceName[ms_InputDeviceNameCapacity];
-
-		// The input sample rate.
-		unsigned int m_InputSampleRate = 0;
-		
-		// How long to wait with no new voice to end an utterance in seconds.
-		float m_PostSpeechDelaySec = 1.0f;
 		
 		// The name of the input device.
 		char m_InputDeviceName[ms_InputDeviceNameCapacity];

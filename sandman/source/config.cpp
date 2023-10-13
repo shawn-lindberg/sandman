@@ -21,7 +21,6 @@
 
 Config::Config()
 {
-	m_SpeechInputDeviceName[0] = '\0';
 	m_InputDeviceName[0] = '\0';
 }
 
