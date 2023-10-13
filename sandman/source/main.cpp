@@ -21,11 +21,6 @@
 #include "reports.h"
 #include "schedule.h"
 #include "sound.h"
-
-#if defined (USE_INTERNAL_SPEECH_RECOGNITION)
-	#include "speech_recognizer.h"
-#endif // defined (USE_INTERNAL_SPEECH_RECOGNITION)
-	
 #include "timer.h"
 
 #define DATADIR	AM_DATADIR
@@ -44,13 +39,6 @@ static bool s_ControlsInitialized = false;
 
 // The input device.
 static Input s_Input;
-
-#if defined (USE_INTERNAL_SPEECH_RECOGNITION)
-
-	// The speech recognizer.
-	static SpeechRecognizer s_Recognizer;
-	
-#endif // defined (USE_INTERNAL_SPEECH_RECOGNITION)
 
 // Whether to start as a daemon or terminal program.
 static bool s_DaemonMode = false;
