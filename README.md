@@ -66,7 +66,7 @@ Click Save Settings and it should start using the new sounds.
 Currently, building Sandman from source requires the following libraries:
 
 ```bash
-sudo apt-get install bison autoconf automake libtool libncurses-dev libxml2-dev libmosquitto-dev libsdl1.2-dev libsdl-mixer1.2-dev
+sudo apt-get install bison autoconf automake libtool libncurses-dev libxml2-dev libmosquitto-dev
 ```
 
 Then, it can be built and installed with the following commands:

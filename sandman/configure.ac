@@ -1,5 +1,5 @@
 # Autoconf uses this file to produce a configure script.
-AC_INIT([sandman], [0.5])
+AC_INIT([sandman], [0.7])
 
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 AC_CONFIG_MACRO_DIR([m4])
@@ -22,9 +22,6 @@ AC_CHECK_LIB([rt], [clock_gettime])
 AC_CHECK_LIB([ncurses], [initscr])
 AC_CHECK_LIB([pigpio], [gpioInitialise])
 AC_CHECK_LIB([mosquitto], [mosquitto_lib_init])
-
-# Check for SDL.
-PKG_CHECK_MODULES([SDL_MIXER], [SDL_mixer])
 
 # Check for libxml.
 PKG_CHECK_MODULES([XML], [libxml-2.0 >= 2.4])

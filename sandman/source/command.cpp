@@ -8,7 +8,6 @@
 #include "logger.h"
 #include "notification.h"
 #include "schedule.h"
-#include "sound.h"
 
 #define DATADIR		AM_DATADIR
 
@@ -28,9 +27,6 @@ static char const* const s_CommandTokenNames[] =
 	"raise",			// TYPE_RAISE
 	"lower",			// TYPE_LOWER
 	"stop",			// TYPE_STOP
-	"volume",		// TYPE_VOLUME
-	// "mute",			// TYPE_MUTE
-	// "unmute",		// TYPE_UNMUTE
 	"schedule",		// TYPE_SCHEDULE
 	"start",			// TYPE_START
 	"status",		// TYPE_STATUS
@@ -52,9 +48,6 @@ static const std::map<std::string, CommandToken::Types>	s_CommandTokenNameToType
 	{ "lower",		CommandToken::TYPE_LOWER },
 	{ "down",		CommandToken::TYPE_LOWER },	// Alternative.
 	{ "stop",		CommandToken::TYPE_STOP },
-	{ "volume",		CommandToken::TYPE_VOLUME },
-	// "mute",		TYPE_MUTE
-	// "unmute",	TYPE_UNMUTE
 	{ "schedule",	CommandToken::TYPE_SCHEDULE },
 	{ "start",		CommandToken::TYPE_START },
 	{ "status",		CommandToken::TYPE_STATUS },
@@ -315,42 +308,6 @@ CommandParseTokensReturnTypes CommandParseTokens(char const*& p_ConfirmationText
 				}			
 			}
 			break;
-			
-			case CommandToken::TYPE_VOLUME:
-			{
-				// Next token.
-				l_TokenIndex++;
-				if (l_TokenIndex >= l_TokenCount)
-				{
-					break;
-				}
-
-				l_Token = p_CommandTokens[l_TokenIndex];
-				
-				if (l_Token.m_Type == CommandToken::TYPE_RAISE)
-				{
-					SoundIncreaseVolume();
-					return CommandParseTokensReturnTypes::SUCCESS;
-				}
-				else if (l_Token.m_Type == CommandToken::TYPE_LOWER)
-				{
-					SoundDecreaseVolume();
-					return CommandParseTokensReturnTypes::SUCCESS;
-				}
-			}
-			break;
-			
-			// case CommandToken::TYPE_MUTE:
-			// {
-			// 	SoundMute(true);
-			// }
-			// break;
-			
-			// case CommandToken::TYPE_UNMUTE:
-			// {
-			// 	SoundMute(false);
-			// }
-			// break;
 			
 			case CommandToken::TYPE_STATUS:
 			{

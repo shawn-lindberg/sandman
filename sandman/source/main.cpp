@@ -20,7 +20,6 @@
 #include "notification.h"
 #include "reports.h"
 #include "schedule.h"
-#include "sound.h"
 #include "timer.h"
 
 #define DATADIR	AM_DATADIR
@@ -207,12 +206,6 @@ static bool Initialize()
 		return false;
 	}
 
-	// Initialize sound.
- 	//if (SoundInitialize() == false)
-	//{
-	//	return false;
-	//}
-
 	// Initialize controls.
 	ControlsInitialize(l_Config.GetControlConfigs());
 
@@ -261,9 +254,6 @@ static void Uninitialize()
 
 	// Uninitialize the schedule.
 	ScheduleUninitialize();
-	
-	// Uninitialize sound.
-	SoundUninitialize();
 	
 	// Uninitialize MQTT.
 	MQTTUninitialize();
@@ -574,9 +564,6 @@ int main(int argc, char** argv)
 		
 		// Process the reports.
 		ReportsProcess();
-		
-		// Process sound.
-		SoundProcess();
 		
 		if (s_DaemonMode == true)
 		{
