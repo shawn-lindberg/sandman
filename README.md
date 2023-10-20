@@ -6,7 +6,7 @@ Sandman is a device that is intended to assist people, particularly those with d
 
 ### Rhasspy
 
-Sandman relies on [Rhasspy](https://rhasspy.readthedocs.io) to provide voice control and auditory feedback. Follow these [instructions](https://rhasspy.readthedocs.io/en/latest/installation/). However, use the following command to start the Docker image rather than the one in the instructions, because we need to expose an additional port.
+Sandman relies on [Rhasspy](https://rhasspy.readthedocs.io) to provide voice control and auditory feedback. Follow these [instructions](https://rhasspy.readthedocs.io/en/latest/installation/) in order to install Rhasspy. However, use the following command to start the Docker image rather than the one in the instructions, because we need to expose an additional port.
 
 ```bash
 docker run -d -p 12101:12101 -p 12183:12183 \
