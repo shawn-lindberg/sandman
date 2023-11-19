@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Reports{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <ul>
+    {% for report in reports %}
+      <li><a href="{{ url_for('reports.report', year = report['year'], month = report['month'], day = report['day']) }}">
+        {{ '{year:04d}-{month:02d}-{day:02d}'.format(**report) }}</a>
+    {% endfor %}
+  </ul>
+{% endblock %}

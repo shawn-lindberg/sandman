@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block stylesheet %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='report_style.css') }}">
+{% endblock %}
+
+{%- block header -%}
+  <h1>{% block title %}Report {{ start_date_string }} - {{ end_date_string }}{% endblock %}</h1>
+{%- endblock -%}
+
+{% block content %}
+  <div class="timeline">
+    <div class="events" id="events">
+      {% for event_info in event_infos -%}
+        <span class="event" id="{{ event_info['secondsFromStart'] }}"> </span>
+      {% endfor %}
+    </div>
+    <div class="legend" id="legend">
+      {% for hour in legend_hours -%}
+        <span id="{{ loop.index0 }}">
+          {%- if hour % 12 == 0 %}12 {% else %}{{ hour % 12 }} {% endif %} 
+          {%- if hour < 12 %}am{% else %}pm{% endif %}</span>
+      {% endfor %}
+    </div>
+  </div>
+  <br>
+  <p class="button" onclick="ToggleEventList()">Event List</p>
+  <div id="event_list">
+    <ul>
+      {% for event_info in event_infos -%}
+        <li>{{ "{:04d}-{:02d}-{:02d} {:02d}:{:02d}:{:02d}".format(event_info['year'], event_info['month'], event_info['day'], event_info['hour'] % 12, event_info['minute'], event_info['second']) }}
+          {%- if event_info['hour'] < 12 %} am{% else %} pm{% endif %} - {{ event_info['event'] }}
+      {% endfor %}
+    </ul>
+  </div>
+  <script>
+    // This is used to toggle the display of the event list.
+    function ToggleEventList()
+    {
+      const eventListElement = document.getElementById("event_list");
+
+      if (eventListElement.style.display === "none")
+      {
+        eventListElement.style.display = "block";
+      }
+      else
+      {
+        eventListElement.style.display = "none";
+      }
+    }
+
+    // This handles updating the timeline view.
+    function UpdateTimeline()
+    {
+      // We are going to position all of the events based on how far they are from the start.
+      const viewHourCount = 25;
+      const viewSecondCount = viewHourCount * 60 * 60;
+
+      // The first tick mark doesn't occur exactly at the left. It is one half of the width of each 
+      // hour.
+      const startOffset = 50 / viewHourCount;
+      
+      const eventsElement = document.getElementById("events");
+      const eventElements = eventsElement.getElementsByClassName("event");
+      
+      for (let eventIndex = 0; eventIndex < eventElements.length; eventIndex++)
+      {
+        // The percentage of the view width that this event should be offset.
+        const eventOffset = (100 * parseInt(eventElements[eventIndex].id)) / viewSecondCount;
+        eventElements[eventIndex].style.left = (startOffset + eventOffset) + "%";
+      }
+
+      // Now we are going to programmatically line up and size the legend times.
+      const legendElement = document.getElementById("legend");
+      const legendTimeElements = legendElement.getElementsByTagName("span");
+      
+      const timeWidth = (100 / legendTimeElements.length);
+      for (let legendIndex = 0; legendIndex < legendTimeElements.length; legendIndex++)
+      {
+        legendTimeElements[legendIndex].style.width = timeWidth + "%";
+        legendTimeElements[legendIndex].style.left = (legendIndex * timeWidth) + "%";
+      }
+    }
+
+    UpdateTimeline();
+  </script>
+{% endblock %}

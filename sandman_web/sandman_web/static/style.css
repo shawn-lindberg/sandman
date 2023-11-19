@@ -1,0 +1,55 @@
+html {
+   font-family: Arial, sans-serif;
+}
+
+:root {
+   line-height: 1.5;
+ }
+
+nav {
+   color: white;
+   background-color: black;
+   display: flex;
+   align-items: center;
+}
+
+nav h1 {
+   background-color: blue;
+   padding: 0.5rem;
+   margin: 0.5rem;
+   border-radius: 0.5rem;
+}
+
+nav ul {
+   list-style: none;
+   margin: 0;
+   padding: 0;
+}
+
+nav ul li a {
+   color: white;
+   background-color: purple;
+   display: block;
+   padding: 0.5rem;
+   margin: 0.25rem;
+   border-radius: 0.5rem;
+   text-decoration: none;
+}
+
+nav ul li a:hover {
+   background-color: blueviolet;
+}
+
+.button {
+   color: white;
+   background-color: purple;
+   display: block;
+   padding: 0.5rem;
+   margin: 0.25rem;
+   border-radius: 0.5rem;
+   text-decoration: none;
+}
+
+.button:hover {
+   background-color: blueviolet;
+}
