@@ -10,28 +10,58 @@
 
 {% block content %}
   <div class="timeline">
-    <div class="events" id="events">
-      {% for event_info in event_infos -%}
-        <span class="event" id="{{ event_info['secondsFromStart'] }}"> </span>
-      {% endfor %}
+    <div class="view">
+      <div class="events" id="events">
+        {% for event_info in event_infos -%}
+          <span class="event" secondsFromStart="{{ event_info['secondsFromStart'] }}"> </span>
+        {% endfor %}
+      </div>
+      <div class="legend" id="legend">
+        {% for hour in legend_hours -%}
+          <span hour="{{ loop.index0 }}">
+            {%- if hour % 12 == 0 %}12 {% else %}{{ hour % 12 }} {% endif %} 
+            {%- if hour < 12 %}am{% else %}pm{% endif %}</span>
+        {% endfor %}
+      </div>
     </div>
-    <div class="legend" id="legend">
-      {% for hour in legend_hours -%}
-        <span id="{{ loop.index0 }}">
-          {%- if hour % 12 == 0 %}12 {% else %}{{ hour % 12 }} {% endif %} 
-          {%- if hour < 12 %}am{% else %}pm{% endif %}</span>
-      {% endfor %}
+    <div class="controls">
+      <div>
+        <input type="checkbox" id="should_group" name="should_group" checked />
+        <label for="should_group">Group max space:</label>
+        <input type="number" id="group_space" name="group_space" min="0" max="300" value="5"/>
+        <label for="group_space">min</label>
+      </div>
+      <p class="button" onclick="UpdateTimeline()">Update</p>
     </div>
+  </div>
+  <h3>Statistics</h3>
+  <div class="statistics">
+    <table>
+      <tr>
+        <td>Events:</td><td id="stat_events"></td>
+      </tr>
+    </table>
   </div>
   <br>
   <p class="button" onclick="ToggleEventList()">Event List</p>
   <div id="event_list">
-    <ul>
+    <table>
+      <tr>
+        <th>#</th>
+        <th>Date</th>
+        <th>Time</th>
+        <th>Event</th>
+      </tr>
       {% for event_info in event_infos -%}
-        <li>{{ "{:04d}-{:02d}-{:02d} {:02d}:{:02d}:{:02d}".format(event_info['year'], event_info['month'], event_info['day'], event_info['hour'] % 12, event_info['minute'], event_info['second']) }}
-          {%- if event_info['hour'] < 12 %} am{% else %} pm{% endif %} - {{ event_info['event'] }}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td>{{ "{:04d}-{:02d}-{:02d}".format(event_info['year'], event_info['month'], event_info['day']) }}</td>
+          <td>{{ "{:02d}:{:02d}:{:02d}".format(12 if event_info['hour'] % 12 == 0 else event_info['hour'] % 12, event_info['minute'], event_info['second']) }}
+          {%- if event_info['hour'] < 12 %} am{% else %} pm{% endif %}</td>
+          <td>{{ event_info['event'] }}</td>
+        </tr>
       {% endfor %}
-    </ul>
+    </table>
   </div>
   <script>
     // This is used to toggle the display of the event list.
@@ -66,7 +96,8 @@
       for (let eventIndex = 0; eventIndex < eventElements.length; eventIndex++)
       {
         // The percentage of the view width that this event should be offset.
-        const eventOffset = (100 * parseInt(eventElements[eventIndex].id)) / viewSecondCount;
+        const secondsFromStart = eventElements[eventIndex].getAttribute("secondsFromStart");
+        const eventOffset = (100 * parseInt(secondsFromStart)) / viewSecondCount;
         eventElements[eventIndex].style.left = (startOffset + eventOffset) + "%";
       }
 
@@ -82,6 +113,17 @@
       }
     }
 
+    // This handles updating the stats view.
+    function UpdateStats()
+    { 
+      const eventsElement = document.getElementById("events");
+      const eventElements = eventsElement.getElementsByClassName("event");
+
+      const statEventsElement = document.getElementById("stat_events");
+      statEventsElement.innerHTML = eventElements.length;
+    }
+
     UpdateTimeline();
+    UpdateStats();
   </script>
 {% endblock %}

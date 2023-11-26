@@ -3,17 +3,23 @@
 .timeline {
    color: black;
    background-color: white;
-   display: block;
-   position: relative;
    width: 95%;
-   height: 20rem;
    padding: 0;
    margin: auto;
+}
+
+.timeline .view {
+   display: block;
+   position: relative;
+   width: 100%;
+   height: 20rem;
+   padding: 0;
+   margin: 0;
    border: 0.2rem solid black;
    border-radius: 0.5rem;
 }
 
-.timeline .events {
+.timeline .view .events {
    position: absolute;
    width: 100%;
    height: 18rem;
@@ -22,7 +28,7 @@
    top: 0%;
 }
 
-.timeline .events .event {
+.timeline .view .events .event {
    background-color: black;
    position: absolute;
    width: 0.1rem;
@@ -33,7 +39,7 @@
    transform: translateX(-50%);
 }
 
-.timeline .legend {
+.timeline .view .legend {
    position: absolute;
    width: 100%;
    height: 2rem;
@@ -43,7 +49,7 @@
    border-top: 0.15rem solid black;
 }
 
-.timeline .legend span {
+.timeline .view .legend span {
    position: absolute;
    padding: 0;
    margin: 0;
@@ -51,7 +57,7 @@
    text-align: center;
 }
 
-.timeline .legend span::after {
+.timeline .view .legend span::after {
    content: " ";
    background-color: black;
    position: absolute;
@@ -62,6 +68,34 @@
    transform: translateX(-50%);
 }
 
+.timeline .controls {
+   display: flex;
+   position: relative;
+   width: 100%;
+   padding: 0;
+   margin-top: 0.2rem;
+   border: 0.2rem solid black;
+   border-radius: 0.5rem;
+   align-items: center;
+}
+
 #event_list {
-   display: none;
+   display: block;
+}
+
+#event_list table {
+   width: 98%;
+   margin: auto;
+   padding: 0;
+   border-collapse: collapse;
+}
+
+#event_list th {
+   color: white;
+   background-color: blue;
+   text-align: left;
+}
+
+#event_list tr:nth-child(odd) {
+   background-color: lightgray;
 }

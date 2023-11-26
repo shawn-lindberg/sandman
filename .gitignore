@@ -27,3 +27,5 @@ sandman/config.h*
 sandman/configure.scan
 sandman/build/
 sandman/source/sandman
+.venv/
+__pycache__/
