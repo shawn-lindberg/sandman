@@ -39,6 +39,17 @@
    transform: translateX(-50%);
 }
 
+.timeline .view .events .group {
+   background-color: blue;
+   position: absolute;
+   width: 0.1rem;
+   height: 3%;
+   padding: 0;
+   margin: 0;
+   bottom: 55%;
+   transform: translateX(-50%);
+}
+
 .timeline .view .legend {
    position: absolute;
    width: 100%;
@@ -79,6 +90,31 @@
    align-items: center;
 }
 
+#stats table {
+   width: 98%;
+   margin: auto;
+   padding: 0;
+   border-collapse: collapse;
+}
+
+#stats th {
+   color: white;
+   background-color: blue;
+   text-align: left;
+}
+
+#stats .stat_column {
+   width: 25%;
+}
+
+#stats tr:nth-child(odd) {
+   background-color: lightgray;
+}
+
+#stats tr:hover {
+   background-color: lightblue;
+}
+
 #event_list {
    display: block;
 }
@@ -98,4 +134,8 @@
 
 #event_list tr:nth-child(odd) {
    background-color: lightgray;
+}
+
+#event_list tr:hover {
+   background-color: lightblue;
 }

@@ -31,14 +31,39 @@
         <input type="number" id="group_space" name="group_space" min="0" max="300" value="5"/>
         <label for="group_space">min</label>
       </div>
-      <p class="button" onclick="UpdateTimeline()">Update</p>
+      <p class="button" onclick="UpdateView()">Update</p>
     </div>
   </div>
+  <p id="debug"></p>
   <h3>Statistics</h3>
-  <div class="statistics">
+  <div id="stats">
     <table>
       <tr>
-        <td>Events:</td><td id="stat_events"></td>
+        <th colspan="2">Events</th><th colspan="2">Groups</th>
+      </tr>
+      <tr>
+        <td class="stat_column">Total:</td><td class="stat_column" id="stat_events"></td>
+        <td class="stat_column">Total:</td><td class="stat_column" id="stat_groups"></td>
+      </tr>
+      <tr>
+        <td>Min. Interval:</td><td id="stat_event_interval_min"></td>
+        <td>Min. Interval:</td><td id="stat_group_interval_min"></td>
+      </tr>
+      <tr>
+        <td>Avg. Interval:</td><td id="stat_event_interval_average"></td>
+        <td>Avg. Interval:</td><td id="stat_group_interval_average"></td>
+      </tr>
+      <tr>
+        <td>Max. Interval:</td><td id="stat_event_interval_max"></td>
+        <td>Max. Interval:</td><td id="stat_group_interval_max"></td>
+      <tr>
+        <td></td><td></td><td>Min. Duration:</td><td id="stat_group_duration_min"></td>
+      </tr>
+      <tr>
+        <td></td><td></td><td>Avg. Duration:</td><td id="stat_group_duration_average"></td>
+      </tr>
+      <tr>
+        <td></td><td></td><td>Max. Duration:</td><td id="stat_group_duration_max"></td>
       </tr>
     </table>
   </div>
@@ -79,8 +104,233 @@
       }
     }
 
-    // This handles updating the timeline view.
-    function UpdateTimeline()
+    // A helper for calculating the timeline width corresponding to a certain moment in time.
+    function CalculateTimelineWidthPercent(secondsFromStart, startOffset, viewSecondCount)
+    {
+      const timeOffset = (100 * secondsFromStart) / viewSecondCount;
+      return startOffset + timeOffset;
+    }
+
+    // For groups of events.
+    class EventGroup
+    {
+      constructor(startOffsetSec, endOffsetSec)
+      {
+        this.startOffsetSec = startOffsetSec;
+        this.endOffsetSec = endOffsetSec;
+      }
+
+      durationSec()
+      {
+        return this.endOffsetSec - this.startOffsetSec;
+      }
+
+      // The time since this group ended to the start of the provided group.
+      timeSinceSec(nextGroup)
+      {
+        return nextGroup.startOffsetSec - this.endOffsetSec;
+      }
+    }
+
+    let groupElements = [];
+
+    // Creates the necessary HTML elements for the provided groupings, and deletes the old elements.
+    function UpdateGroupElements(groups, startOffset, viewSecondCount)
+    {
+      const eventsElement = document.getElementById("events");
+
+      // Clean up the current elements.
+      while (groupElements.length > 0)
+      {
+        const groupElement = groupElements.pop();
+        eventsElement.removeChild(groupElement);
+      }
+
+      for (let group of groups)
+      {
+        // Make a new element of class group.
+        let groupElement = document.createElement("span");
+        groupElement.setAttribute("class", "group");
+
+        // Size and positioning.
+        const startPercentage = CalculateTimelineWidthPercent(group["startOffsetSec"], startOffset, 
+          viewSecondCount);
+        const endPercentage = CalculateTimelineWidthPercent(group["endOffsetSec"], startOffset, 
+          viewSecondCount);
+        const centerPercentage = (startPercentage + endPercentage) / 2;
+        groupElement.style.left = centerPercentage + "%";
+        
+        const widthPercentage = endPercentage - startPercentage;
+        if (widthPercentage > 0)
+        {
+          groupElement.style.width = widthPercentage + "%";
+        }
+
+        // Actually add the element.
+        groupElements.push(groupElement);
+        eventsElement.appendChild(groupElement);
+      }
+    }
+
+    // Make durations into prettier strings.
+    function ConvertDurationToString(durationSec)
+    {
+      let string = (Math.round((durationSec % 60) * 100) / 100) + " s";
+
+      if (durationSec < 60)
+      {
+        return string;
+      }
+
+      const durationMin = Math.trunc(durationSec / 60);
+      string = (durationMin % 60) + " m " + string;
+
+      if (durationMin < 60)
+      {
+        return string;
+      }
+
+      const durationHour = Math.trunc(durationMin / 60);
+      string = durationHour + " h " + string;
+
+      return string;
+    }
+
+    // This handles updating the stats view.
+    function UpdateStats(groups)
+    { 
+      const eventsElement = document.getElementById("events");
+      const eventElements = eventsElement.getElementsByClassName("event");
+
+      const statEventsElement = document.getElementById("stat_events");
+      statEventsElement.innerHTML = eventElements.length;
+
+      let eventIntervalMinSec = Number.POSITIVE_INFINITY;
+      let eventIntervalMaxSec = 0;
+      let eventIntervalAverageSec = 0;
+
+      let lastSecondsFromStart = null;
+      
+      for (let eventElement of eventElements)
+      {
+        const secondsFromStart = parseInt(eventElement.getAttribute("secondsFromStart"));
+
+        if (lastSecondsFromStart === null)
+        {
+          lastSecondsFromStart = secondsFromStart;
+          continue;
+        }
+
+        const intervalSec = secondsFromStart - lastSecondsFromStart;
+        lastSecondsFromStart = secondsFromStart;
+        
+        if (intervalSec < eventIntervalMinSec)
+        {
+          eventIntervalMinSec = intervalSec;
+        }
+
+        if (intervalSec > eventIntervalMaxSec)
+        {
+          eventIntervalMaxSec = intervalSec;
+        }
+
+        eventIntervalAverageSec += intervalSec;
+      }
+
+      if (eventElements.length > 1)
+      {
+        eventIntervalAverageSec /= (eventElements.length - 1);
+      }
+
+      if (eventIntervalMinSec === Number.POSITIVE_INFINITY)
+      {
+        eventIntervalMinSec = 0;
+      }
+
+      document.getElementById("stat_event_interval_min").innerHTML = 
+        ConvertDurationToString(eventIntervalMinSec);
+      document.getElementById("stat_event_interval_max").innerHTML = 
+        ConvertDurationToString(eventIntervalMaxSec);
+      document.getElementById("stat_event_interval_average").innerHTML = 
+        ConvertDurationToString(eventIntervalAverageSec);
+      
+      const statGroupsElement = document.getElementById("stat_groups");
+      statGroupsElement.innerHTML = groups.length;
+
+      if (groups.length == 0)
+      {
+        return;
+      }
+
+      let durationMinSec = groups[0].durationSec();
+      let durationMaxSec = groups[0].durationSec();
+      let durationAverageSec = groups[0].durationSec();
+      let groupIntervalMinSec = Number.POSITIVE_INFINITY;
+      let groupIntervalMaxSec = 0;
+      let groupIntervalAverageSec = 0;
+
+      for (let groupIndex = 1; groupIndex < groups.length; groupIndex++)
+      {
+        const group = groups[groupIndex];
+        const durationSec = group.durationSec();
+
+        if (durationSec < durationMinSec)
+        {
+          durationMinSec = durationSec;
+        }
+
+        if (durationSec > durationMaxSec)
+        {
+          durationMaxSec = durationSec;
+        }
+
+        durationAverageSec += durationSec;
+
+        // Now get the interval between the last event in this one.
+        const intervalSec = groups[groupIndex - 1].timeSinceSec(group);
+
+        if (intervalSec < groupIntervalMinSec)
+        {
+          groupIntervalMinSec = intervalSec;
+        }
+
+        if (intervalSec > groupIntervalMaxSec)
+        {
+          groupIntervalMaxSec = intervalSec;
+        }
+
+        groupIntervalAverageSec += intervalSec;
+      }
+
+      durationAverageSec /= groups.length;
+
+      if (groups.length > 1)
+      {
+        groupIntervalAverageSec /= (groups.length - 1);
+      }
+
+      if (groupIntervalMinSec === Number.POSITIVE_INFINITY)
+      {
+        groupIntervalMinSec = 0;
+      }
+
+      document.getElementById("stat_group_duration_min").innerHTML = 
+        ConvertDurationToString(durationMinSec);
+      document.getElementById("stat_group_duration_max").innerHTML = 
+        ConvertDurationToString(durationMaxSec);
+      document.getElementById("stat_group_duration_average").innerHTML = 
+        ConvertDurationToString(durationAverageSec);
+
+      document.getElementById("stat_group_interval_min").innerHTML = 
+        ConvertDurationToString(groupIntervalMinSec);
+      document.getElementById("stat_group_interval_max").innerHTML = 
+        ConvertDurationToString(groupIntervalMaxSec);
+      document.getElementById("stat_group_interval_average").innerHTML = 
+        ConvertDurationToString(groupIntervalAverageSec);
+    }
+
+    // This handles updating the view.
+    function UpdateView()
     {
       // We are going to position all of the events based on how far they are from the start.
       const viewHourCount = 25;
@@ -90,15 +340,69 @@
       // hour.
       const startOffset = 50 / viewHourCount;
       
+      // Before we go through and position the events, figure out whether we are going to be doing 
+      // grouping.
+      const shouldGroupElement = document.getElementById("should_group");
+      const shouldGroup = shouldGroupElement.checked;
+
+      const groupSpaceElement = document.getElementById("group_space");
+      const groupSpaceSec = groupSpaceElement.valueAsNumber * 60;
+      
+      const groups = [];
+      let group = null;
+
       const eventsElement = document.getElementById("events");
       const eventElements = eventsElement.getElementsByClassName("event");
       
-      for (let eventIndex = 0; eventIndex < eventElements.length; eventIndex++)
+      for (let eventElement of eventElements)
       {
         // The percentage of the view width that this event should be offset.
-        const secondsFromStart = eventElements[eventIndex].getAttribute("secondsFromStart");
-        const eventOffset = (100 * parseInt(secondsFromStart)) / viewSecondCount;
-        eventElements[eventIndex].style.left = (startOffset + eventOffset) + "%";
+        const secondsFromStart = parseInt(eventElement.getAttribute("secondsFromStart"));
+        const eventOffset = (100 * secondsFromStart) / viewSecondCount;
+        eventElement.style.left = (startOffset + eventOffset) + "%";
+
+        if (shouldGroup == false)
+        {
+          continue;
+        }
+
+        // Start a new group if needed.
+        if (group === null)
+        {
+          group = new EventGroup(secondsFromStart, secondsFromStart);
+          continue;
+        }
+
+        // If the current event is too much later than the last one, finish the group and start a 
+        // new one.
+        const secondsElapsed = secondsFromStart - group["endOffsetSec"];
+        if (secondsElapsed > groupSpaceSec)
+        {
+          groups.push(group);
+          group = new EventGroup(secondsFromStart, secondsFromStart);
+          continue;
+        }
+
+        // Otherwise include this event at the end.
+        group["endOffsetSec"] = secondsFromStart;
+      }
+
+      // Add any trailing loops to the list.
+      if (group !== null)
+      {
+        groups.push(group);
+      }
+
+      let groupsString = "";
+      for (let group of groups)
+      {
+        groupsString += JSON.stringify(group) + " | ";
+      }
+      //document.getElementById("debug").innerHTML = groupsString;
+
+      if (shouldGroup == true)
+      {
+        UpdateGroupElements(groups, startOffset, viewSecondCount);
       }
 
       // Now we are going to programmatically line up and size the legend times.
@@ -111,19 +415,11 @@
         legendTimeElements[legendIndex].style.width = timeWidth + "%";
         legendTimeElements[legendIndex].style.left = (legendIndex * timeWidth) + "%";
       }
+
+      UpdateStats(groups);
     }
 
-    // This handles updating the stats view.
-    function UpdateStats()
-    { 
-      const eventsElement = document.getElementById("events");
-      const eventElements = eventsElement.getElementsByClassName("event");
-
-      const statEventsElement = document.getElementById("stat_events");
-      statEventsElement.innerHTML = eventElements.length;
-    }
-
-    UpdateTimeline();
-    UpdateStats();
+    UpdateView();
+    
   </script>
 {% endblock %}
