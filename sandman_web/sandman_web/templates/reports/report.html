@@ -393,13 +393,6 @@
         groups.push(group);
       }
 
-      let groupsString = "";
-      for (let group of groups)
-      {
-        groupsString += JSON.stringify(group) + " | ";
-      }
-      //document.getElementById("debug").innerHTML = groupsString;
-
       if (shouldGroup == true)
       {
         UpdateGroupElements(groups, startOffset, viewSecondCount);
