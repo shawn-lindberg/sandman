@@ -1,6 +1,8 @@
 # Sandman
 
-Sandman is a device that is intended to assist people, particularly those with disabilities, in using hospital style beds. Therefore, it is not just software, but a combination of both software and hardware. The software is primarily designed to enable controlling a bed by voice. However, work is also underway on providing analytics of usage through a web interface. Currently the software is intended to be run on a Raspberry Pi, and is primarily developed on a Raspberry Pi 4.
+Sandman is a device that is intended to assist people, particularly those with disabilities, in using hospital style beds. Therefore, it is not just software, but a combination of both software and hardware. The software is primarily designed to enable controlling a bed by voice. However, work is also underway on providing analytics of usage through a web interface. Currently the software is intended to be run on a Raspberry Pi, and is primarily developed on a Raspberry Pi 4. 
+
+Sandman has a Discord server to support our community. You can join it here: [Sandman Discord](https://discord.gg/XBYtSAXK2B)
 
 ## Installation
 
@@ -151,7 +153,7 @@ sudo update-rc.d sandman.sh defaults
 
 ## Contributing
 
-Sandman was been in development privately for many years before going public. As things are getting off the ground, please open an issue to see how you can get involved. Advice on running an open source project is also welcome.
+Sandman was in development privately for many years before going public. If you would like to get involved, please join the [Sandman Discord](https://discord.gg/XBYtSAXK2B).
 
 ## License
 
