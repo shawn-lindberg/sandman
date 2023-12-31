@@ -4,7 +4,46 @@ Sandman is a device that is intended to assist people, particularly those with d
 
 Sandman has a Discord server to support our community. You can join it here: [Sandman Discord](https://discord.gg/XBYtSAXK2B)
 
-## Installation
+## Disclaimer
+
+The current methods of using Sandman to control a bed involve either modifying the electronics of the bed hand control or electrically interfacing with the bed through its controller connector. It is possible that either one of these techniques may void the warranty on the bed. If you choose to do this, you do so at your own risk. We hope that in the future we will be able to develop another technique that avoids these issues.
+
+## Hardware Setup
+
+Although there is more than one way for the Sandman software to control a bed, this explanation will focus on just one. The control flow is illustrated below.
+
+Sandman > Raspberry Pi GPIO > Pull Up/Down HAT > Relays > Bed Hand Control
+
+We have been running Sandman on a Raspberry Pi 4B with 2 GB of RAM. We typically use at least 32 GB SD cards, but this may not be strictly necessary because we need more memory for development purposes. 
+
+### GPIO
+
+Sandman assigns a specific GPIO to each bed function. This is configurable, but by default has the following mapping:
+
+| Function | Pin |
+| --- | --- |
+| Back Up | 20 |
+| Back Down | 16 |
+| Legs Up | 13 |
+| Legs Down | 26 |
+| Elevation Up | 5 |
+| Elevation Down | 19 |
+
+### Pull Up/Down HAT
+
+Especially when booting, the state of the GPIO pins can fluctuate and to mitigate this we have been using pull up and pull down resistor pairs. We typically use a 
+[ModMyPi PUD HAT](https://thepihut.com/blogs/raspberry-pi-tutorials/how-to-use-modmypis-pud-hat) for this purpose because it's convenient, but if you prefer to make your own circuit board and that should work as well.
+
+### Relays
+
+In order to support the six bed functions, at least six relays are required. However, it's pretty common to find eight relay boards. In actuality, a relay is overkill for what we intend to do, which is close a circuit on the intended button of the bed hand control. A Darlington pair transistor can replace each relay and accomplish the same job. It would also take less space. However, for convenience we have just been using an eight relay board. The specific wiring is up to you, as long as you are lining up the correct bed function with the relay corresponding to the same button on the hand control.
+
+### Hand Control
+
+You can solder wires from each relay directly to the pads of each hand control button, but we like using a cable like this 
+[DIN-12 Male-Female Cable](https://www.digikey.com/en/products/detail/amphenol-ltw/M12A12ML-12AFL-SB002/9932279) instead. The cable can be cut in half and then one half can be connected to the relays and the other soldered into the hand control. This makes it much easier to disconnect and reconnect if needed and since the cable assembly we have been using can screw together it can be very secure.
+
+## Software Installation
 
 ### Rhasspy
 
@@ -46,6 +85,8 @@ If you would like to change the wake sounds, you can use the provided sounds or 
 
 ```bash
 sudo mkdir ~/.config/rhasspy/profiles/en/wav
+```
+```bash
 sudo cp ~/sandman/rhasspy/wav/* ~/.config/rhasspy/profiles/en/wav/
 ```
 
@@ -71,11 +112,24 @@ Currently, building Sandman from source requires the following libraries:
 sudo apt-get install bison autoconf automake libtool libncurses-dev libxml2-dev libmosquitto-dev
 ```
 
+You can download and extract the source or clone the repository using a command like this:
+
+```bash
+git clone https://github.com/shawn-lindberg/sandman.git
+```
+
 Then, it can be built and installed with the following commands:
 
 ```bash
+cd sandman/sandman
+```
+```bash
 autoreconf --install
+``````
+```bash
 ./configure
+``````
+```bash
 make
 sudo make install
 ```
@@ -137,7 +191,11 @@ If you would like to run Sandman at boot, an init script is provided. You can st
 
 ```bash
 sudo cp sandman.sh /etc/init.d/
+```
+```bash
 sudo chmod +x /etc/init.d/sandman.sh
+```
+```bash
 sudo update-rc.d sandman.sh defaults
 ```
 
@@ -148,7 +206,9 @@ sudo update-rc.d sandman.sh defaults
 * Implement a web interface for viewing recorded reports using Flask.
 * Convert the schedule to JSON.
 * Implement a web interface for modifying the schedule.
-* Simplify setup?
+* Implement a web interface for modifying the configuration.
+* Add control over whether notifications are played.
+* Simplify setup - Docker?
 * Switch to systemd?
 
 ## Contributing
