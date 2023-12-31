@@ -1,0 +1,22 @@
+[project]
+name = "sandman_web"
+version = "0.1.0"
+description = "The web interface for the Sandman bed controller."
+authors = [
+  { name="Shawn Lindberg", email="shawn.lindberg@gmail.com" },
+]
+requires-python = ">=3.8"
+dependencies = [
+    "flask",
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+]
+
+[project.urls]
+Homepage = "https://github.com/shawn-lindberg/sandman"
+
+[build-system]
+requires = ["flit_core<4"]
+build-backend = "flit_core.buildapi"
