@@ -14,7 +14,7 @@ Although there is more than one way for the Sandman software to control a bed, t
 
 Sandman > Raspberry Pi GPIO > Pull Up/Down HAT > Relays > Bed Hand Control
 
-We have been running Sandman on a Raspberry Pi 4B with 2 GB of RAM. We typically use at least 32 GB SD cards, but this may not be strictly necessary because we need more memory for development purposes. 
+It should be noted that if the hand control is modified in such a way that the cover remains intact and can be put back on, the addition of Sandman will not prevent the hand control from being used as it was originally. We have been running Sandman on a Raspberry Pi 4B with 2 GB of RAM. We typically use at least 32 GB SD cards, but this may not be strictly necessary because we need more memory for development purposes. 
 
 ### GPIO
 
@@ -32,7 +32,10 @@ Sandman assigns a specific GPIO to each bed function. This is configurable, but 
 ### Pull Up/Down HAT
 
 Especially when booting, the state of the GPIO pins can fluctuate and to mitigate this we have been using pull up and pull down resistor pairs. We typically use a 
-[ModMyPi PUD HAT](https://thepihut.com/blogs/raspberry-pi-tutorials/how-to-use-modmypis-pud-hat) for this purpose because it's convenient, but if you prefer to make your own circuit board and that should work as well.
+[ModMyPi PUD HAT](https://thepihut.com/blogs/raspberry-pi-tutorials/how-to-use-modmypis-pud-hat) for this purpose because it's convenient, but if you prefer to make your own circuit board that should work as well. Here is a picture showing how we have set up our PUD hat:
+
+![Sandman PUD hat wiring](documentation/images/sandman_pud_hat_wiring.jpg)
+(Jumper positions to come later.)
 
 ### Relays
 
@@ -41,7 +44,7 @@ In order to support the six bed functions, at least six relays are required. How
 ### Hand Control
 
 You can solder wires from each relay directly to the pads of each hand control button, but we like using a cable like this 
-[DIN-12 Male-Female Cable](https://www.digikey.com/en/products/detail/amphenol-ltw/M12A12ML-12AFL-SB002/9932279) instead. The cable can be cut in half and then one half can be connected to the relays and the other soldered into the hand control. This makes it much easier to disconnect and reconnect if needed and since the cable assembly we have been using can screw together it can be very secure.
+[DIN-12 Male-Female Cable](https://www.digikey.com/en/products/detail/amphenol-ltw/M12A12ML-12AFL-SB002/9932279) instead. The cable can be cut in half and then one half can be connected to the relays and the other soldered into the hand control. This makes it much easier to disconnect and reconnect if needed and since the cable assembly we have been using can screw together it can be very secure. By modifying the hand control in this way, we are essentially simulating button presses and controlling the bed through the hand control. This has the advantage that it works with controllers that have more complicated logic built in, but is not necessary for all types of beds.
 
 ## Software Installation
 
