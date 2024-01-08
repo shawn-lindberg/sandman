@@ -26,6 +26,41 @@
     </div>
     <div class="controls">
       <div>
+        <label for="should_restrict">Restrict view:</label>
+        <input type="checkbox" id="should_restrict" name="should_restrict" checked />
+        <select name="restrict_start_date" id="restrict_start_date">
+          <option value="{{ start_date_string }}" selected>{{ start_date_string }}</option>
+          <option value="{{ end_date_string }}">{{ end_date_string }}</option>
+        </select>
+        <select name="restrict_start_hour" id="restrict_start_hour">
+          {% for hour in range(24) -%}
+            <option value={{ "{:02d}".format(hour) }}>           
+              {%- if hour % 12 == 0 %}12 {% else %}{{ hour % 12 }} {% endif %} 
+              {%- if hour < 12 %}am{% else %}pm{% endif %}</option>
+          {% endfor %}
+        </select>
+        <select name="restrict_start_minute" id="restrict_start_minute">
+          {% for minute in range(60) -%}
+            <option value={{ "{:02d}".format(minute) }}>{{ "{:02d}".format(minute) }}</option>
+          {% endfor %}
+        </select>
+        <label for="restrict_end_date"> to </label>
+        <select name="restrict_end_date" id="restrict_end_date">
+          <option value="{{ start_date_string }}">{{ start_date_string }}</option>
+          <option value="{{ end_date_string }}" selected>{{ end_date_string }}</option>
+        </select>
+        <select name="restrict_end_hour" id="restrict_end_hour">
+          {% for hour in range(24) -%}
+            <option value={{ "{:02d}".format(hour) }}>           
+              {%- if hour % 12 == 0 %}12 {% else %}{{ hour % 12 }} {% endif %} 
+              {%- if hour < 12 %}am{% else %}pm{% endif %}</option>
+          {% endfor %}
+        </select>
+        <select name="restrict_end_minute" id="restrict_end_minute">
+          {% for minute in range(60) -%}
+            <option value={{ "{:02d}".format(minute) }}>{{ "{:02d}".format(minute) }}</option>
+          {% endfor %}
+        </select>
         <input type="checkbox" id="should_group" name="should_group" checked />
         <label for="should_group">Group max space:</label>
         <input type="number" id="group_space" name="group_space" min="0" max="300" value="5"/>
@@ -57,7 +92,8 @@
         <td>Max. Interval:</td><td id="stat_event_interval_max"></td>
         <td>Max. Interval:</td><td id="stat_group_interval_max"></td>
       <tr>
-        <td></td><td></td><td>Min. Duration:</td><td id="stat_group_duration_min"></td>
+        <td>Duration:</td><td id="stat_event_duration"></td>
+        <td>Min. Duration:</td><td id="stat_group_duration_min"></td>
       </tr>
       <tr>
         <td></td><td></td><td>Avg. Duration:</td><td id="stat_group_duration_average"></td>
@@ -89,6 +125,9 @@
     </table>
   </div>
   <script>
+
+    const reportStartDateString = "{{ start_date_string }}";
+    
     // This is used to toggle the display of the event list.
     function ToggleEventList()
     {
@@ -237,9 +276,17 @@
         eventIntervalAverageSec += intervalSec;
       }
 
+      let eventsDurationSec = 0;
+
       if (eventElements.length > 1)
       {
         eventIntervalAverageSec /= (eventElements.length - 1);
+
+        const firstSecondsFromStart = parseInt(eventElements[0].getAttribute("secondsFromStart"));
+        const lastSecondsFromStart = 
+          parseInt(eventElements[eventElements.length - 1].getAttribute("secondsFromStart"));
+
+        eventsDurationSec = lastSecondsFromStart - firstSecondsFromStart;
       }
 
       if (eventIntervalMinSec === Number.POSITIVE_INFINITY)
@@ -253,6 +300,9 @@
         ConvertDurationToString(eventIntervalMaxSec);
       document.getElementById("stat_event_interval_average").innerHTML = 
         ConvertDurationToString(eventIntervalAverageSec);
+
+      document.getElementById("stat_event_duration").innerHTML = 
+        ConvertDurationToString(eventsDurationSec);
       
       const statGroupsElement = document.getElementById("stat_groups");
       statGroupsElement.innerHTML = groups.length;
@@ -329,9 +379,35 @@
         ConvertDurationToString(groupIntervalAverageSec);
     }
 
+    // Produces a data object from choices selected in the given element IDs.
+    function DateFromChoices(dateId, hourId, minuteId)
+    {
+      const dateString = document.getElementById(dateId).value;
+      const hour = document.getElementById(hourId).value;
+      const minute = document.getElementById(minuteId).value;
+
+      return new Date(dateString + "T" + hour + ":" + minute + ":00Z");
+    }
+
     // This handles updating the view.
     function UpdateView()
     {
+      
+      const reportStartHour = 17;
+      const reportStartDate = new Date(reportStartDateString + "T" + reportStartHour + ":00:00Z");
+
+      const shouldRestrictView = document.getElementById("should_restrict").checked;
+
+      let restrictStartDate = DateFromChoices("restrict_start_date", "restrict_start_hour", 
+        "restrict_start_minute");
+
+      let restrictEndDate = DateFromChoices("restrict_end_date", "restrict_end_hour", 
+        "restrict_end_minute");
+      
+      // DEBUG
+      document.getElementById("debug").innerHTML = reportStartDate.toUTCString() + "  " + 
+        restrictStartDate.toUTCString() + " " + restrictEndDate.toUTCString();
+
       // We are going to position all of the events based on how far they are from the start.
       const viewHourCount = 25;
       const viewSecondCount = viewHourCount * 60 * 60;
@@ -342,8 +418,7 @@
       
       // Before we go through and position the events, figure out whether we are going to be doing 
       // grouping.
-      const shouldGroupElement = document.getElementById("should_group");
-      const shouldGroup = shouldGroupElement.checked;
+      const shouldGroup = document.getElementById("should_group").checked;
 
       const groupSpaceElement = document.getElementById("group_space");
       const groupSpaceSec = groupSpaceElement.valueAsNumber * 60;
