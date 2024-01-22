@@ -4,6 +4,8 @@ Sandman is a device that is intended to assist people, particularly those with d
 
 Sandman has a Discord server to support our community. You can join it here: [Sandman Discord](https://discord.gg/XBYtSAXK2B)
 
+Sandman also has a YouTube channel: [Sandman YouTube](https://www.youtube.com/@project-sandman)
+
 ## Disclaimer
 
 The current methods of using Sandman to control a bed involve either modifying the electronics of the bed hand control or electrically interfacing with the bed through its controller connector. It is possible that either one of these techniques may void the warranty on the bed. If you choose to do this, you do so at your own risk. We hope that in the future we will be able to develop another technique that avoids these issues.
@@ -35,7 +37,12 @@ Especially when booting, the state of the GPIO pins can fluctuate and to mitigat
 [ModMyPi PUD HAT](https://thepihut.com/blogs/raspberry-pi-tutorials/how-to-use-modmypis-pud-hat) for this purpose because it's convenient, but if you prefer to make your own circuit board that should work as well. Here is a picture showing how we have set up our PUD hat:
 
 ![Sandman PUD hat wiring](documentation/images/sandman_pud_hat_wiring.jpg)
-(Jumper positions to come later.)
+
+Here is a diagram indicating the configuration:
+
+![Sandman PUD hat diagram](documentation/images/pid_pud_guide.png)
+
+The rainbow colored markers go to the relay board.
 
 ### Relays
 
