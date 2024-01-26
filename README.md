@@ -79,7 +79,17 @@ If you click on the icon which looks like a set of gears, you should see an inte
 
 ![Rhasspy settings](rhasspy/images/Rhasspy_settings.PNG)
 
-It is recommended that you set all of the settings to the same thing as pictured above, but you may use whichever text to speech option you like. You will also have to fill out the device information underneath the Audio Recording and Audio Playing settings. You can also choose whichever wake word you prefer under Wake Word. When you're done, click on the Save Settings button. Please note that you may have to do this iteratively, and you may be asked to download data for some of the settings. You can test the audio recording and playback by clicking on the icon that looks like a house.
+It is recommended that you set all of the settings to the same thing as pictured above, but you may use whichever text to speech option you like. You can also choose whichever wake word you prefer under Wake Word. When you're done, click on the Save Settings button. Please note that you may have to do this iteratively, and you may be asked to download data for some of the settings. A download button should appear at the top of the page like below if aditional data is needed.
+
+![image](https://github.com/wyattschool/sandman/assets/77877259/505852bd-9a8d-4181-b9b4-bb2e95cb26bb)
+
+You will also have to fill out the device information underneath the Audio Recording and Audio Playing settings. Clcik the green colored area with the carret to the left to expose the microphone/Audio Recording or speaker/Audio Playing settings. Once expanded you will need to select the correct available devices. For instance the audio recording device might be "Default Audio Device (sysdefault:CARD=Device_1)" and the audio playing device might be "Default Audio Device (sysdefault:CARD=Device)". It might be helpful to plug in one device at a time and review which device has been added to the list. The list is long so this may take some trial and error. 
+
+![image](https://github.com/wyattschool/sandman/assets/77877259/df1a6414-691f-4806-9e08-ae1efc74d92b)
+
+You can test the audio recording and playback on home page for Rhasspy aka the house button on the left navigation bar. On the home page use the speak button and text box to test the speaker. Click the Wake Up button then speak into the microphone to see if commands are recognized like "Lower back". This should activate a relay for a few seconds as well as provide verbal feedback. You may also want to set the volume at this point. 1 is the max volume.
+
+![image](https://github.com/wyattschool/sandman/assets/77877259/638ee4fd-2b8a-404b-a95b-92e6021b7d22)
 
 #### Sentences
 
@@ -87,7 +97,7 @@ Sentences are the grammar which dictates the conversations you can have. If you 
 
 ![Rhasspy sentences](rhasspy/images/Rhasspy_sentences.PNG)
 
-No need to type all of this out! You can copy the sentences from [here](rhasspy/sandman_rhasspy_sentences.txt). Then you will need to click the button that says Save Sentences. This should cause the grammar to be generated.
+No need to type all of this out! You can copy the sentences from [here](rhasspy/sandman_rhasspy_sentences.txt) and replace the default sentances. Then you will need to click the button that says Save Sentences. This should cause the grammar to be generated.
 
 #### Wake Sounds
 
@@ -119,7 +129,7 @@ Click Save Settings and it should start using the new sounds.
 Currently, building Sandman from source requires the following libraries:
 
 ```bash
-sudo apt-get install bison autoconf automake libtool libncurses-dev libxml2-dev libmosquitto-dev
+sudo apt install bison autoconf automake libtool libncurses-dev libxml2-dev libmosquitto-dev -y
 ```
 
 You can download and extract the source or clone the repository using a command like this:
@@ -200,7 +210,7 @@ sudo /usr/local/bin/sandman --shutdown
 If you would like to run Sandman at boot, an init script is provided. You can start using it with the following commands:
 
 ```bash
-sudo cp sandman.sh /etc/init.d/
+sudo cp ~/sandman/sandman.sh /etc/init.d/
 ```
 ```bash
 sudo chmod +x /etc/init.d/sandman.sh
