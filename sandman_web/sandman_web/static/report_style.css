@@ -71,16 +71,16 @@
    border-top: 0.15rem solid black;
 }
 
-.timeline .view .legend span {
+.timeline .view .legend .marker_hour, .timeline .view .legend .marker_quarter {
    position: absolute;
    padding: 0;
    margin: 0;
+   height: 1.5rem;
    bottom: 0%;
-   text-align: center;
    transform: translateX(-50%);
 }
 
-.timeline .view .legend span::after {
+.timeline .view .legend .marker_hour::after {
    content: " ";
    background-color: black;
    position: absolute;
@@ -88,6 +88,28 @@
    height: 0.5rem;
    left: 50%;
    bottom: 100%;
+   transform: translateX(-50%);
+}
+
+.timeline .view .legend .marker_quarter::after {
+   content: " ";
+   background-color: black;
+   position: absolute;
+   width: 0.15rem;
+   height: 0.25rem;
+   left: 50%;
+   top: -0.5rem;
+   transform: translateX(-50%);
+}
+
+.timeline .view .legend .marker_hour .label, .timeline .view .legend .marker_quarter .label {
+   position: absolute;
+   padding: 0;
+   margin: 0;
+   width: 100%;
+   left: 50%;
+   bottom: 0%;
+   text-align: center;
    transform: translateX(-50%);
 }
 

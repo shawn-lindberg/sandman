@@ -22,12 +22,16 @@
         {% for hour_index in range(25) -%}
           {% set hour_value = 12 if ((start_hour + hour_index) % 12) == 0 else (start_hour + hour_index) % 12 -%}
           {% set am = ((start_hour + hour_index) % 24) < 12 -%}
-          <span hour="{{ hour_index }}" quarter="0">
-            {{ "{:d} {}".format(hour_value, "am" if am == True else "pm") }}</span>
+          <div class="marker_hour" hour="{{ hour_index }}" quarter="0">
+            <span class="label">
+              {{ "{:d} {}".format(hour_value, "am" if am == True else "pm") }}</span>
+          </div>
           {% for quarter_index in range(1, 1 if loop.last else 4) -%}
             {% set quarter_value = 15 * quarter_index -%}
-            <span hour="{{ hour_index }}" quarter="{{ quarter_index }}">
-              {{ "{:d}:{:02d}".format(hour_value, quarter_value) }}</span>
+            <div class="marker_quarter" hour="{{ hour_index }}" quarter="{{ quarter_index }}">
+              <span class="label">
+                {{ "{:d}:{:02d}".format(hour_value, quarter_value) }}</span>
+            </div>
           {% endfor %}
         {% endfor %}
       </div>
@@ -75,7 +79,7 @@
         <input type="number" id="group_space" name="group_space" min="0" max="300" value="5"/>
         <label for="group_space">min</label>
       </div>
-      <p class="button" onclick="UpdateView()">Update</p>
+      <a class="button" onclick="UpdateView()" href="javascript:void();">Update</a>
     </div>
   </div>
   <p id="debug"></p>
@@ -105,7 +109,8 @@
         <td>Min. Duration:</td><td id="stat_group_duration_min"></td>
       </tr>
       <tr>
-        <td></td><td></td><td>Avg. Duration:</td><td id="stat_group_duration_average"></td>
+        <td>Restricted Duration:</td><td id="stat_event_restrict_duration"></td>
+        <td>Avg. Duration:</td><td id="stat_group_duration_average"></td>
       </tr>
       <tr>
         <td></td><td></td><td>Max. Duration:</td><td id="stat_group_duration_max"></td>
@@ -136,6 +141,7 @@
   <script>
 
     const reportStartDateString = "{{ start_date_string }}";
+    const fullDaySec = 24 * 60 * 60;
     
     // This is used to toggle the display of the event list.
     function ToggleEventList()
@@ -256,7 +262,7 @@
     }
 
     // This handles updating the stats view.
-    function UpdateStats(events, groups)
+    function UpdateStats(events, groups, restrictSecondCount)
     { 
       document.getElementById("stat_events").innerHTML = events.length;
 
@@ -319,6 +325,17 @@
       document.getElementById("stat_event_duration").innerHTML = 
         ConvertDurationToString(eventsDurationSec);
       
+      const restrictDurationElement = document.getElementById("stat_event_restrict_duration");
+
+      if (restrictSecondCount < fullDaySec)
+      {
+        restrictDurationElement.innerHTML = ConvertDurationToString(restrictSecondCount);
+      }
+      else
+      {
+        restrictDurationElement.innerHTML = "-";
+      }
+
       const statGroupsElement = document.getElementById("stat_groups");
       statGroupsElement.innerHTML = groups.length;
 
@@ -413,7 +430,6 @@
             
       const reportStartTimeSec = Math.trunc(reportStartDate.getTime() / 1000);
   
-      const fullDaySec = 24 * 60 * 60;
       const reportEndTimeSec = reportStartTimeSec + fullDaySec;
 
       let shouldRestrictView = document.getElementById("should_restrict").checked;
@@ -591,44 +607,54 @@
       const labelWidthPercent = 4;
 
       const legendElement = document.getElementById("legend");
-      const legendTimeElements = legendElement.getElementsByTagName("span");
       
-      for (let legendTimeElement of legendTimeElements)
+      for (let legendTimeElement of legendElement.children)
       {
         const hourIndex = parseInt(legendTimeElement.getAttribute("hour"));
         const quarterIndex = parseInt(legendTimeElement.getAttribute("quarter"));
 
         const markerIndex = (4 * hourIndex) + quarterIndex;
 
-        const shouldHide = (markerIndex % (skipAmount + 1)) != 0;
+        const offsetSec = markerIndex * quarterHourSec;
 
-        if (shouldHide == true)
+        // Always display the marker if it's in view.
+        const markerPercent = CalculateTimelineWidthPercent(offsetSec, viewStartOffsetSec, 
+          viewEndOffsetSec);
+
+        if ((markerPercent < 0) || (markerPercent > 100))
         {
           legendTimeElement.style.display = "none";
           continue;
         }
-
-        const offsetSec = (hourIndex * 60 * 60) + (quarterIndex * quarterHourSec);
-
-        const markerPercent = CalculateTimelineWidthPercent(offsetSec, viewStartOffsetSec, 
-          viewEndOffsetSec);
 
         const previousPercent = markerPercent - (0.5 * labelWidthPercent);        
         const nextPercent = markerPercent + (0.5 * labelWidthPercent);
 
-        if ((previousPercent < 0) || (nextPercent > 100))
-        {
-          legendTimeElement.style.display = "none";
-          continue;
-        }
-
         legendTimeElement.style.display = "block";
-
         legendTimeElement.style.width = (nextPercent - previousPercent) + "%";
         legendTimeElement.style.left = markerPercent + "%";
+
+        // Only display the label based on resolution and its width.
+        let labelDisplay = "block";
+
+        const shouldHide = (markerIndex % (skipAmount + 1)) != 0;
+
+        if (shouldHide == true)
+        {
+          labelDisplay = "none";
+        }
+        if ((previousPercent < 0) || (nextPercent > 100))
+        {
+          labelDisplay = "none";
+        }
+
+        for (let labelElement of legendTimeElement.children)
+        {
+          labelElement.style.display = labelDisplay;
+        }
       }
 
-      UpdateStats(events, groups);
+      UpdateStats(events, groups, restrictSecondCount);
     }
 
     UpdateView();
