@@ -153,7 +153,6 @@ def report(year, month, day):
     # Either generate these from the start time or based on the actual data set in the future.
     start_hour = 17
     hour_range = 24
-    legend_hours = [(start_hour + hour_index) % hour_range for hour_index in range(hour_range + 1)]
 
     return render_template('reports/report.html', start_date_string = report_start_date_string, 
-        end_date_string = report_name, legend_hours = legend_hours, event_infos = event_infos)
+        end_date_string = report_name, start_hour = start_hour, event_infos = event_infos)
