@@ -81,11 +81,11 @@ If you click on the icon which looks like a set of gears, you should see an inte
 
 It is recommended that you set all of the settings to the same thing as pictured above, but you may use whichever text to speech option you like. You can also choose whichever wake word you prefer under Wake Word. When you're done, click on the Save Settings button. Please note that you may have to do this iteratively, and you may be asked to download data for some of the settings. A download button should appear at the top of the page like below if additional data is needed.
 
-![Rhasspy download prompt](documentation/images/Rhasspy_download_prompt.PNG)
+![Rhasspy download prompt](documentation/images/Rhasspy_download_prompt.png)
 
 You will also have to fill out the device information underneath the Audio Recording and Audio Playing settings. Click the green colored area with the caret to the left to expose the microphone/Audio Recording or speaker/Audio Playing settings. Once expanded you will want to click the refresh button on the right side of the page then you'll need to select the correct available device for the microphone and speaker from the dropdown. For instance the audio recording device might be "Default Audio Device (sysdefault:CARD=Device_1)" and the audio playing device might be "Default Audio Device (sysdefault:CARD=Device)". It might be helpful to plug in one device at a time and review which device has been added to the list. The list is long so this may take some trial and error.
 
-![Rhasspy audio settings](documentation/images/Rhasspy_audio_settings.PNG)
+![Rhasspy audio settings](documentation/images/Rhasspy_audio_settings.png)
 
 You can test the audio recording and playback on home page for Rhasspy aka the house button on the left navigation bar. On the home page put some test text into the text field next to the Speak button and then press the Speak button to test the speaker. Click the yellow Wake Up button then speak into the microphone. Now you can click the green Play Recording button to hear what was captured by the microphone. You may also want to adjust the volume at this point. 1 is the max volume.
 
