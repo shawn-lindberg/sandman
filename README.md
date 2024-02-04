@@ -79,7 +79,17 @@ If you click on the icon which looks like a set of gears, you should see an inte
 
 ![Rhasspy settings](rhasspy/images/Rhasspy_settings.PNG)
 
-It is recommended that you set all of the settings to the same thing as pictured above, but you may use whichever text to speech option you like. You will also have to fill out the device information underneath the Audio Recording and Audio Playing settings. You can also choose whichever wake word you prefer under Wake Word. When you're done, click on the Save Settings button. Please note that you may have to do this iteratively, and you may be asked to download data for some of the settings. You can test the audio recording and playback by clicking on the icon that looks like a house.
+It is recommended that you set all of the settings to the same thing as pictured above, but you may use whichever text to speech option you like. You can also choose whichever wake word you prefer under Wake Word. When you're done, click on the Save Settings button. Please note that you may have to do this iteratively, and you may be asked to download data for some of the settings. A download button should appear at the top of the page like below if additional data is needed.
+
+![Rhasspy download prompt](documentation/images/Rhasspy_download_prompt.png)
+
+You will also have to fill out the device information underneath the Audio Recording and Audio Playing settings. Click the green colored area with the caret to the left to expose the microphone/Audio Recording or speaker/Audio Playing settings. Once expanded you will want to click the refresh button on the right side of the page then you'll need to select the correct available device for the microphone and speaker from the dropdown. For instance the audio recording device might be "Default Audio Device (sysdefault:CARD=Device_1)" and the audio playing device might be "Default Audio Device (sysdefault:CARD=Device)". It might be helpful to plug in one device at a time, refresh the device list, then review which device(s) have been added to the list. The device list may be long so this may take some trial and error while testing as described below.
+
+![Rhasspy audio settings](documentation/images/Rhasspy_audio_settings.png)
+
+You can test the audio recording and playback on home page for Rhasspy aka the house button on the left navigation bar. On the home page put some test text into the text field next to the Speak button and then press the Speak button to test the speaker. If this doesn't produce any sound or if an except/error pops up return to the previous settings page and try selecting a different playback device until successful. You may also want to adjust the volume at this point. 1 is the max volume. With the speaker working click the yellow Wake Up button on the home page then speak into the microphone. Now you can click the green Play Recording button to hear what was captured by the microphone. If the microphone isn't working then you likely will see a message in red saying "No intent recognized" appear after the "Listening for command" popup closes. You'll need to select a different device under the Audio Recording setting and repeat the test.
+
+![Rhasspy speaker test](documentation/images/Rhasspy_speaker_test.jpg)
 
 #### Sentences
 
@@ -87,7 +97,7 @@ Sentences are the grammar which dictates the conversations you can have. If you 
 
 ![Rhasspy sentences](rhasspy/images/Rhasspy_sentences.PNG)
 
-No need to type all of this out! You can copy the sentences from [here](rhasspy/sandman_rhasspy_sentences.txt). Then you will need to click the button that says Save Sentences. This should cause the grammar to be generated.
+No need to type all of this out! You can copy the sentences from [here](rhasspy/sandman_rhasspy_sentences.txt) and replace the default sentences. Then you will need to click the button that says Save Sentences. This should cause the grammar to be generated.
 
 #### Wake Sounds
 
@@ -119,7 +129,7 @@ Click Save Settings and it should start using the new sounds.
 Currently, building Sandman from source requires the following libraries:
 
 ```bash
-sudo apt-get install bison autoconf automake libtool libncurses-dev libxml2-dev libmosquitto-dev
+sudo apt install bison autoconf automake libtool libncurses-dev libxml2-dev libmosquitto-dev -y
 ```
 
 You can download and extract the source or clone the repository using a command like this:
@@ -200,7 +210,7 @@ sudo /usr/local/bin/sandman --shutdown
 If you would like to run Sandman at boot, an init script is provided. You can start using it with the following commands:
 
 ```bash
-sudo cp sandman.sh /etc/init.d/
+sudo cp ~/sandman/sandman.sh /etc/init.d/
 ```
 ```bash
 sudo chmod +x /etc/init.d/sandman.sh
