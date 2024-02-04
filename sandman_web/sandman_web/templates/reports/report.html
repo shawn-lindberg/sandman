@@ -12,8 +12,8 @@
   <div class="timeline">
     <div class="view">
       <div class="events" id="events">
-        {% for event_info in event_infos -%}
-          <span class="event" secondsFromStart="{{ event_info['secondsFromStart'] }}"> </span>
+        {% for event_index in range(event_infos | length) %}
+          <span class="event" eventIndex="{{ event_index }}"> </span>
         {% endfor %}
         <span class="restrict_marker" id="restrict_marker_start"> </span>
         <span class="restrict_marker" id="restrict_marker_end"> </span>
@@ -143,6 +143,8 @@
     const reportStartDateString = "{{ start_date_string }}";
     const fullDaySec = 24 * 60 * 60;
     
+    const reportEvents = {{ event_infos | tojson }};
+
     // This is used to toggle the display of the event list.
     function ToggleEventList()
     {
@@ -170,9 +172,14 @@
     // An event.
     class ReportEvent
     {
-      constructor(offsetSec)
+      constructor(eventIndex)
       {
-        this.offsetSec = offsetSec;
+        this.eventIndex = eventIndex;
+      }
+
+      getSecondsFromStart()
+      {
+        return reportEvents[this.eventIndex]["secondsFromStart"];
       }
     }
 
@@ -274,7 +281,7 @@
       
       for (let event of events)
       {
-        const secondsFromStart = event["offsetSec"];
+        const secondsFromStart = event.getSecondsFromStart();
 
         if (lastSecondsFromStart === null)
         {
@@ -304,8 +311,8 @@
       {
         eventIntervalAverageSec /= (events.length - 1);
 
-        const firstSecondsFromStart = events[0]["offsetSec"];
-        const lastSecondsFromStart = events[events.length - 1]["offsetSec"];
+        const firstSecondsFromStart = events[0].getSecondsFromStart();
+        const lastSecondsFromStart = events[events.length - 1].getSecondsFromStart();
 
         eventsDurationSec = lastSecondsFromStart - firstSecondsFromStart;
       }
@@ -501,11 +508,8 @@
         restrictMarkerEndElement.style.display = "none";
       }
 
-      // DEBUG
-      //document.getElementById("debug").innerHTML = ;
-
       // We are going to position all of the events based on how far they are from the start.
-      const events = [];
+      const viewEvents = [];
 
       // Before we go through and position the events, figure out whether we are going to be doing 
       // grouping.
@@ -522,8 +526,17 @@
       
       for (let eventElement of eventElements)
       {
+        const eventIndex = parseInt(eventElement.getAttribute("eventIndex"));
+
+        if ((eventIndex < 0) || (eventIndex >= reportEvents.length))
+        {
+          continue;
+        }
+
+        const eventInfo = new ReportEvent(eventIndex);
+
         // The percentage of the view width that this event should be offset.
-        const secondsFromStart = parseInt(eventElement.getAttribute("secondsFromStart"));
+        const secondsFromStart = eventInfo.getSecondsFromStart();
         const viewPercent = CalculateTimelineWidthPercent(secondsFromStart, viewStartOffsetSec, 
           viewEndOffsetSec);
 
@@ -545,7 +558,7 @@
           continue;
         }
 
-        events.push(new ReportEvent(secondsFromStart));
+        viewEvents.push(eventInfo);
 
         if (shouldGroup == false)
         {
@@ -654,7 +667,7 @@
         }
       }
 
-      UpdateStats(events, groups, restrictSecondCount);
+      UpdateStats(viewEvents, groups, restrictSecondCount);
     }
 
     UpdateView();
