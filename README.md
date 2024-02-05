@@ -154,6 +154,39 @@ make
 sudo make install
 ```
 
+### Web interface with Flask
+
+Sandman has a web interface implemented with Flask. These instructions cover what you need to do in order to run this web interface in development mode. In the future there will be a way to run this web interface in a more production friendly environment.
+
+Installation instructions can be found here: [Flask Installation](https://flask.palletsprojects.com/en/3.0.x/installation/). However, they are not complicated and we can skip a step, so they will be provided here. Assuming that your Sandman repository is stored in the home directory, it is recommended to switch to the Sandman web directory in order to set up the virtual Python environment. This is not strictly required, but is recommended by Flask.
+
+```bash
+cd ~/sandman/sandman_web
+```
+```bash
+python3 -m venv .venv
+```
+
+Once the virtual environment is made, you will activate it with the following command. This must be done in this directory every time you want to start up the web server.
+
+```bash
+. .venv/bin/activate
+```
+
+Then you can install Flask in the virtual environment with pip.
+
+```bash
+pip install Flask
+```
+
+To run the web server in development mode use the following command. This must be done after activating the virtual environment with the command given earlier.
+
+```bash
+flask --app sandman_web run --debug --host 0.0.0.0
+```
+
+Then in your web browser enter the following URL: YOUR_SANDMAN_IP_ADDRESS:5000/reports. Currently you must provide the report suffix, because index redirection is not working at the moment.
+
 ### ha-bridge
 
 Although the speech recognition provided by Rhasspy is a decent offline option, you may want to use Sandman with Alexa enabled devices. Although there is no direct integration at the moment, you can use [ha-bridge](https://github.com/bwssytems/ha-bridge) as a way of controlling a bed as though it is a series of light switches.
@@ -223,7 +256,6 @@ sudo update-rc.d sandman.sh defaults
 
 ### Software
 
-* Implement a web interface for viewing recorded reports using Flask.
 * Convert the schedule to JSON.
 * Implement a web interface for modifying the schedule.
 * Implement a web interface for modifying the configuration.
