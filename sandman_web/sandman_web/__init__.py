@@ -1,6 +1,6 @@
 import os
 
-from flask import Flask
+from flask import Flask,request,redirect
 
 def create_app(test_config = None):
     """Creates and configures the app.
@@ -30,6 +30,12 @@ def create_app(test_config = None):
     @app.route('/')
     def home():
         return reports.index()
+
+    # A path to redirect to the rhasspy admin home page.
+    @app.route('/rhasspy')
+    def rhasspy():
+        server_ip = request.host.split(':')[0]
+        return redirect("http://" + server_ip + ':12101')
 
     from . import reports
     app.register_blueprint(reports.blueprint)
