@@ -26,10 +26,10 @@ def create_app(test_config = None):
     except OSError:
         pass
 
-    # A simple page that says hello.
-    @app.route('/hello')
-    def hello():
-        return 'Hello, World!'
+    # Sandman Reports Home Page
+    @app.route('/')
+    def home():
+        return reports.index()
 
     from . import reports
     app.register_blueprint(reports.blueprint)
