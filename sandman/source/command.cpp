@@ -7,6 +7,7 @@
 #include "input.h"
 #include "logger.h"
 #include "notification.h"
+#include "reports.h"
 #include "schedule.h"
 
 #define DATADIR		AM_DATADIR
@@ -275,6 +276,8 @@ CommandParseTokensReturnTypes CommandParseTokens(char const*& p_ConfirmationText
 				
 				
 				l_Control->SetDesiredAction(l_Action, Control::MODE_TIMED, l_DurationPercent);
+
+				ReportsAddControlItem(l_Control->GetName(), l_Action, "command");
 				return CommandParseTokensReturnTypes::SUCCESS;
 			}
 			
@@ -282,6 +285,8 @@ CommandParseTokensReturnTypes CommandParseTokens(char const*& p_ConfirmationText
 			{
 				// Stop controls.
 				ControlsStopAll();			
+
+				ReportsAddControlItem("all", Control::ACTION_STOPPED, "command");
 				return CommandParseTokensReturnTypes::SUCCESS;
 			}
 			
@@ -324,6 +329,7 @@ CommandParseTokensReturnTypes CommandParseTokens(char const*& p_ConfirmationText
 					NotificationPlay("control_connected");
 				}
 
+				ReportsAddStatusItem();
 				return CommandParseTokensReturnTypes::SUCCESS;
 			}
 
