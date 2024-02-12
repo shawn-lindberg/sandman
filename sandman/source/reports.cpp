@@ -2,7 +2,6 @@
 
 #include <mutex>
 #include <stdio.h>
-#include <string.h>
 #include <time.h>
 #include <vector>
 
@@ -14,9 +13,10 @@
 
 #define TEMPDIR	AM_TEMPDIR
 
-#define REPORT_VERSION	2
+#define REPORT_VERSION	3
 //	1					Initial version.
 // 2	2023/08/29	Adding the report start time to the header, for use when analyzing the data.
+// 3	2024/02/04	Adding support for schedule items and distinguishing the source of movement items.
 
 // Eventually this should be configurable.
 #define REPORT_STARTING_HOUR	17
@@ -31,8 +31,8 @@ struct PendingItem
 	// The time the item was added.
 	time_t m_RawTime;
 
-	// The description of the item to put into the report.
-	std::string	m_Description;
+	// The string version of the JSON description of the item to put into the report.
+	std::string	m_EventString;
 };
 
 // Locals
@@ -49,6 +49,14 @@ static std::string s_ReportDateString;
 
 // A list of items to add to the report when we are able to.
 static std::vector<PendingItem> s_PendingItemList;
+
+// The names of the actions.
+static char const* const s_ControlActionNames[] =
+{
+	"stop",			// ACTION_STOPPED
+	"move up",		// ACTION_MOVING_UP
+	"move down",	// ACTION_MOVING_DOWN
+};
 
 // Functions
 //
@@ -258,6 +266,17 @@ static void ReportsWriteItem(PendingItem const& p_Item)
 	// Force terminate.
 	l_TimeStringBuffer[l_TimeStringBufferCapacity - 1] = '\0';
 
+	// Parse the event string back into JSON.
+	rapidjson::Document l_EventDocument;
+	l_EventDocument.Parse(p_Item.m_EventString.c_str());
+
+	if (l_EventDocument.HasParseError() == true)
+	{
+		LoggerAddMessage("Failed to convert report event string back into JSON \"%s\".", 
+			p_Item.m_EventString.c_str());
+		return;
+	}
+
 	// Make a JSON representation of this item.
 	rapidjson::Document l_ItemDocument;
 	l_ItemDocument.SetObject();
@@ -269,14 +288,14 @@ static void ReportsWriteItem(PendingItem const& p_Item)
 	l_ItemDocument.AddMember("dateTime", 
 		rapidjson::Value(rapidjson::StringRef(l_TimeStringBuffer)), l_ItemAllocator);
 
-	l_ItemDocument.AddMember("event", 
-		rapidjson::Value(rapidjson::StringRef(p_Item.m_Description.c_str())), l_ItemAllocator);
+	// Add the event object.
+	l_ItemDocument.AddMember("event", l_EventDocument.GetObject(), l_ItemAllocator);
 	
 	// Write this into a string.
 	rapidjson::StringBuffer l_ItemBuffer;
 	rapidjson::Writer<rapidjson::StringBuffer> l_ItemWriter(l_ItemBuffer);
 	l_ItemDocument.Accept(l_ItemWriter);
- 
+ 	
 	// Write the whole thing.
 	fputs(l_ItemBuffer.GetString(), s_ReportFile);
 
@@ -310,56 +329,113 @@ void ReportsProcess()
 }
 
 // Add an item to the report.
+// 
+// p_EventString:	The string version of the JSON for the event.
 //
-// p_Format:	Standard printf format string.
-// ...:			Standard printf arguments.
-//
-// returns:		True if successful, false otherwise.
-//
-bool ReportsAddItem(char const* p_Format, ...)
-{	
-	va_list l_Arguments;
-	va_start(l_Arguments, p_Format);
+static void ReportsAddItem(std::string const& p_EventString)
+{
+	// Acquire a lock for the rest of the function.
+	const std::lock_guard<std::mutex> l_ReportGuard(s_ReportMutex);
 
-	auto const l_Result = ReportsAddItem(p_Format, l_Arguments);
+	PendingItem l_PendingItem;
+	l_PendingItem.m_RawTime = time(nullptr);
+	l_PendingItem.m_EventString = p_EventString;
 
-	va_end(l_Arguments);
-	
-	return l_Result;
+	s_PendingItemList.push_back(l_PendingItem);
 }
 
-// Add an item to the report (va_list version).
+// Add an item to the report corresponding to a control event.
 // 
-// p_Format:		Standard printf format string.
-// p_Arguments:	Standard printf arguments.
-//
-// returns:		True if successful, false otherwise.
-//
-bool ReportsAddItem(char const* p_Format, va_list& p_Arguments)
+// p_ControlName:	The name of the control.
+// p_Action:		The action performed on the control.
+// p_SourceName:	An identifier for where this item comes from.
+// 
+void ReportsAddControlItem(std::string const& p_ControlName, Control::Actions const p_Action,
+	std::string const& p_SourceName)
 {
-	// Convert the description formatted string into an ordinary string.
-	static unsigned int const l_DescriptionBufferCapacity = 2048;
-	char l_DescriptionBuffer[l_DescriptionBufferCapacity];
-
-	if (vsnprintf(l_DescriptionBuffer, l_DescriptionBufferCapacity, p_Format, p_Arguments) < 0)
+	if ((p_Action < 0) || (p_Action >= Control::NUM_ACTIONS))
 	{
-		return false;
+		LoggerAddMessage("Could not add control item to the report because it contains an invalid "
+			"action %d!", p_Action);
+		return;
 	}
 
-	// Force terminate.
-	l_DescriptionBuffer[l_DescriptionBufferCapacity - 1] = '\0';
+	// Make a JSON representation of this item.
+	rapidjson::Document l_ItemDocument;
+	l_ItemDocument.SetObject();
 
-	// Now that we have the description, add it to the report.
-	{
-		// Acquire a lock for the rest of the function.
-		const std::lock_guard<std::mutex> l_ReportGuard(s_ReportMutex);
+	auto l_ItemAllocator = l_ItemDocument.GetAllocator();
 
-		PendingItem l_PendingItem;
-		l_PendingItem.m_RawTime = time(nullptr);
-		l_PendingItem.m_Description = l_DescriptionBuffer;
+	l_ItemDocument.AddMember("type", 
+		rapidjson::Value(rapidjson::StringRef("control")), l_ItemAllocator);	
 
-		s_PendingItemList.push_back(l_PendingItem);
-	}
+	// It is safe to use a string reference here because this document will not live outside of this 
+	// scope.
+	l_ItemDocument.AddMember("control", 
+		rapidjson::Value(rapidjson::StringRef(p_ControlName.c_str())), l_ItemAllocator);
 
-	return true;
+	l_ItemDocument.AddMember("action", 
+		rapidjson::Value(rapidjson::StringRef(s_ControlActionNames[p_Action])), l_ItemAllocator);
+
+	l_ItemDocument.AddMember("source", 
+		rapidjson::Value(rapidjson::StringRef(p_SourceName.c_str())), l_ItemAllocator);
+	
+	// Write this into a string.
+	rapidjson::StringBuffer l_ItemBuffer;
+	rapidjson::Writer<rapidjson::StringBuffer> l_ItemWriter(l_ItemBuffer);
+	l_ItemDocument.Accept(l_ItemWriter);
+
+	// Handle the rest.
+	ReportsAddItem(l_ItemBuffer.GetString());
+}
+
+// Add an item to the report corresponding to a schedule event.
+// 
+// p_ActionName:	The name of the schedule action.
+// 
+void ReportsAddScheduleItem(std::string const& p_ActionName)
+{
+	// Make a JSON representation of this item.
+	rapidjson::Document l_ItemDocument;
+	l_ItemDocument.SetObject();
+
+	auto l_ItemAllocator = l_ItemDocument.GetAllocator();
+
+	l_ItemDocument.AddMember("type", 
+		rapidjson::Value(rapidjson::StringRef("schedule")), l_ItemAllocator);	
+
+	// It is safe to use a string reference here because this document will not live outside of this 
+	// scope.
+	l_ItemDocument.AddMember("action", 
+		rapidjson::Value(rapidjson::StringRef(p_ActionName.c_str())), l_ItemAllocator);
+	
+	// Write this into a string.
+	rapidjson::StringBuffer l_ItemBuffer;
+	rapidjson::Writer<rapidjson::StringBuffer> l_ItemWriter(l_ItemBuffer);
+	l_ItemDocument.Accept(l_ItemWriter);
+
+	// Handle the rest.
+	ReportsAddItem(l_ItemBuffer.GetString());
+}
+
+// Add an item to the report corresponding to a status event.
+// 
+void ReportsAddStatusItem()
+{
+	// Make a JSON representation of this item.
+	rapidjson::Document l_ItemDocument;
+	l_ItemDocument.SetObject();
+
+	auto l_ItemAllocator = l_ItemDocument.GetAllocator();
+
+	l_ItemDocument.AddMember("type", 
+		rapidjson::Value(rapidjson::StringRef("status")), l_ItemAllocator);	
+	
+	// Write this into a string.
+	rapidjson::StringBuffer l_ItemBuffer;
+	rapidjson::Writer<rapidjson::StringBuffer> l_ItemWriter(l_ItemBuffer);
+	l_ItemDocument.Accept(l_ItemWriter);
+
+	// Handle the rest.
+	ReportsAddItem(l_ItemBuffer.GetString());
 }

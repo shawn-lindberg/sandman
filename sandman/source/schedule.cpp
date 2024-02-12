@@ -10,6 +10,7 @@
 #include "control.h"
 #include "logger.h"
 #include "notification.h"
+#include "reports.h"
 #include "timer.h"
 #include "xml.h"
 
@@ -224,6 +225,9 @@ void ScheduleUninitialize()
 //
 void ScheduleStart()
 {
+	// Add the report item prior to checks, because we want to record the intent.
+	ReportsAddScheduleItem("start");
+
 	// Make sure it's initialized.
 	if (s_ScheduleInitialized == false)
 	{
@@ -249,6 +253,9 @@ void ScheduleStart()
 //
 void ScheduleStop()
 {
+	// Add the report item prior to checks, because we want to record the intent.
+	ReportsAddScheduleItem("stop");
+
 	// Make sure it's initialized.
 	if (s_ScheduleInitialized == false)
 	{
@@ -334,5 +341,7 @@ void ScheduleProcess()
 	// Perform the action.
 	l_Control->SetDesiredAction(l_Event.m_ControlAction.m_Action, Control::MODE_TIMED);
 	
+	ReportsAddControlItem(l_Control->GetName(), l_Event.m_ControlAction.m_Action, "schedule");
+
 	LoggerAddMessage("Schedule moving to event %i.", s_ScheduleIndex);
 }
