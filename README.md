@@ -17,7 +17,6 @@ Although there is more than one way for the Sandman software to control a bed, t
 
 Sandman > Raspberry Pi [GPIO](#gpio) > [Pull Up/Down HAT](#pull-updown-hat) > [Relays](#relays) > Bed [Hand Control](#hand-control)
 
----> this seems an awkward place to talk about hand control cover, as it wasn't mentioned yet.  Maybe this should be part of the disclaimer?
 It should be noted that if the hand control is modified in such a way that the cover remains intact and can be put back on, the addition of Sandman will not prevent the hand control from being used as it was originally. We have been running Sandman on a Raspberry Pi 4B with 2 GB of RAM. We typically use at least 32 GB SD cards, but this may not be strictly necessary because we need more memory for development purposes. 
 
 ### GPIO
