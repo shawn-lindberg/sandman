@@ -1,12 +1,11 @@
 # Sandman
 
-----> what beds are supported?  Is this common or specific to your bed manufacturer?
-Sandman is a device that is intended to assist people, particularly those with disabilities, in using hospital style beds. Therefore, it is not just software, but a combination of both software and hardware. The software is primarily designed to enable controlling a bed by voice. However, work is also underway on providing analytics of usage through a web interface. 
+Sandman is a device that is intended to assist people, particularly those with disabilities, in using hospital style beds. Therefore, it is not just software, but a combination of both software and hardware. The software is primarily designed to enable controlling a bed by voice. However, work is also underway on providing analytics of usage through a web interface. The current method of controlling the bed will work with any motorized bed that uses a hand control.
 
 Sandman has a Discord server to support our community. You can join it here: [Sandman Discord](https://discord.gg/XBYtSAXK2B)
 
-----> this link does not work.  Indicate there is a video demoing the bed control by voice using Sandman
-Sandman also has a YouTube channel: [Sandman YouTube](https://www.youtube.com/@project-sandman)
+Sandman also has a YouTube channel: [Sandman YouTube](https://www.youtube.com/@project-sandman).  Check out the channel to see a video demo of a 
+bed being controlled by voice.
 
 ## Disclaimer
 
@@ -34,14 +33,11 @@ Sandman assigns a specific Raspberry Pi GPIO to each bed function. This is confi
 | Elevation Up | 5 |
 | Elevation Down | 19 |
 
----> I'm not familiar with the Pi GPIO pinout, would be good to link a diagram....
-
----> What is this acronym?  
-### Pull Up/Down HAT
+### Pull Up/Down HAT (Hardware Attached on Top)
 
 When booting the Raspberry Pi, the state of the GPIO pins can fluctuate. To mitigate this we have been using pull up and pull down resistor pairs. We typically use a 
 [ModMyPi PUD HAT](https://thepihut.com/blogs/raspberry-pi-tutorials/how-to-use-modmypis-pud-hat) for this purpose because it's convenient, but if you prefer to make your own circuit board that should work as well. Here is a picture showing how we have set up our PUD hat:
-and 
+
 ![Sandman PUD hat wiring](documentation/images/sandman_pud_hat_wiring.jpg)
 
 Here is a diagram indicating the configuration:
@@ -56,7 +52,6 @@ In order to support the six bed functions, at least six relays are required. How
 
 ### Hand Control
 
----> I think a photo showing the cable connected from relay to hand control would be useful, especially for hardware ignorant people.
 You can solder wires from each relay directly to the pads of each hand control button, but we like using a cable like this 
 [DIN-12 Male-Female Cable](https://www.digikey.com/en/products/detail/amphenol-ltw/M12A12ML-12AFL-SB002/9932279) instead. The cable can be cut in half and then one half can be connected to the relays and the other soldered into the hand control. This makes it much easier to disconnect and reconnect if needed and since the cable assembly we have been using can screw together it can be very secure. By modifying the hand control in this way, we are essentially simulating button presses and controlling the bed through the hand control. This has the advantage that it works with controllers that have more complicated logic built in, but is not necessary for all types of beds.
 
@@ -64,7 +59,7 @@ You can solder wires from each relay directly to the pads of each hand control b
 
 ### Rhasspy
 
-Sandman relies on [Rhasspy](https://rhasspy.readthedocs.io) to provide voice control and auditory feedback. Follow these [instructions](https://rhasspy.readthedocs.io/en/latest/installation/) in order to install Rhasspy. However, use the following command to start the Docker image rather than the one in the instructions, because we need to expose an additional port.
+Sandman relies on [Rhasspy](https://rhasspy.readthedocs.io) to provide voice control and auditory feedback. Follow these [instructions](https://rhasspy.readthedocs.io/en/latest/installation/) in order to install Rhasspy on your Raspberry Pi. However, use the following command to start the Docker image rather than the one in the instructions, because we need to expose an additional port.
 
 ```bash
 docker run -d -p 12101:12101 -p 12183:12183 \
