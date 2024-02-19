@@ -1,19 +1,5 @@
-<?xml version="1.0"?>
-<Schedule>
-	
-	<!-- At the moment, the events must be listed in sequence. -->
-	<!-- <Event> -->
-				
-		<!-- The delay after the previous schedule event before this one occurs. -->
-		<!-- <DelaySec>1800</DelaySec> -->
-		<!-- The control action to trigger for the event. -->
-		<!-- <ControlAction> -->
-					
-			<!-- The name of the control to manipulate. -->
-			<!-- <ControlName>legs</ControlName> -->
-			<!-- The action to perform on the control. -->
-			<!-- <Action>down</Action>	-->
-		<!-- </ControlAction> -->
-	<!-- </Event> -->
-
-</Schedule>
+{
+	"version" : 1,
+	"events" : [
+	]
+}

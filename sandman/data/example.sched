@@ -1,0 +1,19 @@
+{
+	"version" : 1,
+	"events" : [
+		{
+			"delaySec" : 20, 
+			"controlAction" : {
+				"control" : "legs",
+				"action" : "up"
+			}
+		}, 
+		{
+			"delaySec" : 25, 
+			"controlAction" : {
+				"control" : "legs",
+				"action" : "down"
+			}
+		}
+	]
+}

@@ -499,6 +499,43 @@ ControlAction::ControlAction(char const* p_ControlName, Control::Actions p_Actio
 	m_ControlName[ms_ControlNameCapacity - 1] = '\0';
 }
 
+// Try to find a control action that matches the input text.
+//
+// p_Action:		(Output) The action that was found.
+// p_InputText:	The name of the action to look for. 
+//
+// Returns:		True if the action was found, false otherwise.
+//
+auto GetControlActionFromString(Control::Actions& p_Action, char const* p_InputText)
+{
+	// The names of the actions.
+	static char const* const s_ActionNames[] =
+	{
+		"stop",	// ACTION_STOPPED
+		"up",		// ACTION_MOVING_UP
+		"down",	// ACTION_MOVING_DOWN
+	};
+
+	// Try to find a control action that matches this text.
+	auto const l_ActionCount = Control::Actions::NUM_ACTIONS;
+	for (unsigned int l_ActionIndex = 0; l_ActionIndex < l_ActionCount; l_ActionIndex++)
+	{
+		// Compare the text to the action name.
+		auto const* l_ActionName = s_ActionNames[l_ActionIndex];
+			
+		if (strncmp(p_InputText, l_ActionName, strlen(l_ActionName)) != 0)			
+		{
+			continue;
+		}
+			
+		// We found the action, so return it.
+		p_Action = static_cast<Control::Actions>(l_ActionIndex);
+		return true;
+	}
+		
+	return false;
+}
+
 // Read a control action from XML. 
 //
 // p_Document:	The XML document that the node belongs to.
@@ -541,40 +578,57 @@ bool ControlAction::ReadFromXML(xmlDocPtr p_Document, xmlNodePtr p_Node)
 		return false;
 	}
 	
-	// The names of the actions.
-	static char const* const s_ActionNames[] =
-	{
-		"stop",	// ACTION_STOPPED
-		"up",	// ACTION_MOVING_UP
-		"down",	// ACTION_MOVING_DOWN
-	};
-	
-	// Try to find a control action that matches this text.
-	auto l_GetActionFromString = [&](Control::Actions& p_Action, char const* p_InputText)
-	{
-		auto const l_ActionCount = Control::Actions::NUM_ACTIONS;
-		for (unsigned int l_ActionIndex = 0; l_ActionIndex < l_ActionCount; l_ActionIndex++)
-		{
-			// Compare the text to the action name.
-			auto const* l_ActionName = s_ActionNames[l_ActionIndex];
-			
-			if (strncmp(p_InputText, l_ActionName, strlen(l_ActionName)) != 0)			
-			{
-				continue;
-			}
-			
-			// We found the action, so return it.
-			p_Action = static_cast<Control::Actions>(l_ActionIndex);
-			return true;
-		}
-		
-		return false;
-	};
-	
-	if (l_GetActionFromString(m_Action, l_ActionText) == false) {
+	if (GetControlActionFromString(m_Action, l_ActionText) == false) {
 		return false;
 	}
 	
+	return true;
+}
+
+// Read a control action from JSON. 
+//
+// p_Object:	The JSON object representing a control action.
+//
+// Returns:		True if the action was read successfully, false otherwise.
+//
+bool ControlAction::ReadFromJSON(rapidjson::Value::ConstObject const& p_Object)
+{
+	// We must have a control name.
+	auto const l_ControlIterator = p_Object.FindMember("control");
+
+	if (l_ControlIterator == p_Object.MemberEnd())
+	{
+		return false;
+	}
+
+	if (l_ControlIterator->value.IsString() == false)
+	{
+		return false;
+	}
+	
+	// Copy no more than the amount of text the buffer can hold.
+	strncpy(m_ControlName, l_ControlIterator->value.GetString(), sizeof(m_ControlName) - 1);
+	m_ControlName[sizeof(m_ControlName) - 1] = '\0';
+
+	// We must also have an action.
+	auto const l_ActionIterator = p_Object.FindMember("action");
+
+	if (l_ActionIterator == p_Object.MemberEnd())
+	{
+		return false;
+	}
+
+	if (l_ActionIterator->value.IsString() == false)
+	{
+		return false;
+	}
+
+	// Try to get the corresponding action.
+	if (GetControlActionFromString(m_Action, l_ActionIterator->value.GetString()) == false)
+	{
+		return false;
+	}
+
 	return true;
 }
 
