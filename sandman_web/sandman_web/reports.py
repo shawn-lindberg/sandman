@@ -119,6 +119,23 @@ def report(year, month, day):
                 if line_event is None:
                     line_event = 'None'
 
+                if report_version == 2:
+                    # Convert the event into the most likely sort of control event.
+                    control_action_parts = line_event.split(': ')
+                    control_name = control_action_parts[0]
+
+                    control_action = 'stop'
+                    if control_action_parts[1] == 'moving up':
+                        control_action = 'move up'
+                    elif control_action_parts[1] == 'moving down':
+                        control_action = 'move down'
+
+                    line_event = {'type' : 'control',
+                                  'control' : control_name,
+                                  'action' : control_action, 
+                                  'source' : 'command'
+                                  }
+
                 report_infos.append((info_date_time, line_event))
 
         report_file.close()

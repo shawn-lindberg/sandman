@@ -7,12 +7,14 @@
 #include <string.h>
 #include <vector>
 
+#include "rapidjson/document.h"
+#include "rapidjson/filereadstream.h"
+
 #include "control.h"
 #include "logger.h"
 #include "notification.h"
 #include "reports.h"
 #include "timer.h"
-#include "xml.h"
 
 #define DATADIR	AM_DATADIR
 #define CONFIGDIR	AM_CONFIGDIR
@@ -27,14 +29,13 @@
 // A schedule event.
 struct ScheduleEvent
 {
-	// Read a schedule event from XML. 
+	// Read a schedule event from JSON. 
 	//
-	// p_Document:	The XML document that the node belongs to.
-	// p_Node:		The XML node to read the event from.
+	// p_EventObject:	The JSON object representing the event.
 	//	
 	// Returns:		True if the event was read successfully, false otherwise.
 	//
-	bool ReadFromXML(xmlDocPtr p_Document, xmlNodePtr p_Node);
+	bool ReadFromJSON(rapidjson::Value::ConstObject const& p_EventObject);
 	
 	// Delay in seconds before this entry occurs (since the last).
 	unsigned int	m_DelaySec;
@@ -64,38 +65,43 @@ static Time s_ScheduleDelayStartTime;
 
 // ScheduleEvent members
 
-// Read a schedule event from XML. 
-//
-// p_Document:	The XML document that the node belongs to.
-// p_Node:		The XML node to read the event from.
+// Read a schedule event from JSON. 
 //	
+// p_Object:	The JSON object representing the event.
+//
 // Returns:		True if the event was read successfully, false otherwise.
 //
-bool ScheduleEvent::ReadFromXML(xmlDocPtr p_Document, xmlNodePtr p_Node)
+bool ScheduleEvent::ReadFromJSON(rapidjson::Value::ConstObject const& p_Object)
 {
 	// We must have a delay.
-	static auto const* s_DelayNodeName = "DelaySec";
-	auto* l_DelayNode = XMLFindNextNodeByName(p_Node->xmlChildrenNode, s_DelayNodeName);
-	
-	if (l_DelayNode == nullptr) 
+	auto const l_DelayIterator = p_Object.FindMember("delaySec");
+
+	if (l_DelayIterator == p_Object.MemberEnd())
 	{
 		return false;
 	}
-	
-	// Read the delay from the node.
-	m_DelaySec = XMLGetNodeTextAsInteger(p_Document, l_DelayNode);
-	
+
+	if (l_DelayIterator->value.IsInt() == false)
+	{
+		return false;
+	}
+
+	m_DelaySec = l_DelayIterator->value.GetInt();
+
 	// We must also have a control action.
-	static auto const* s_ControlActionNodeName = "ControlAction";
-	auto* l_ControlActionNode = XMLFindNextNodeByName(p_Node->xmlChildrenNode, s_ControlActionNodeName);
-	
-	if (l_ControlActionNode == nullptr)
+	auto const l_ControlActionIterator = p_Object.FindMember("controlAction");
+
+	if (l_ControlActionIterator == p_Object.MemberEnd())
+	{
+		return false;
+	}
+
+	if (l_ControlActionIterator->value.IsObject() == false)
 	{
 		return false;
 	}
 	
-	// Read the control action from the node.
-	if (m_ControlAction.ReadFromXML(p_Document, l_ControlActionNode) == false) 
+	if (m_ControlAction.ReadFromJSON(l_ControlActionIterator->value.GetObject()) == false) 
 	{
 		return false;
 	}
@@ -112,43 +118,65 @@ static bool ScheduleLoad()
 {
 	// Open the schedule file.
 	static auto const* const s_ScheduleFileName = CONFIGDIR "sandman.sched";
-			
-	auto* l_ScheduleDocument = xmlParseFile(s_ScheduleFileName);
-	
-	if (l_ScheduleDocument == nullptr) {		
-		
+
+	auto* l_ScheduleFile = fopen(s_ScheduleFileName, "r");
+
+	if (l_ScheduleFile == nullptr)
+	{
 		LoggerAddMessage("Failed to open the schedule file.\n");
 		return false;
 	}
-	
-	// Get the root element of the tree.
-	auto const* l_RootNode = xmlDocGetRootElement(l_ScheduleDocument);
-	
-	if (l_RootNode == nullptr) {
-		
-		xmlFreeDoc(l_ScheduleDocument);
-		LoggerAddMessage("Failed to get the root node of the schedule file. Maybe it is corrupt?\n");
+
+	static constexpr unsigned int l_ReadBufferCapacity = 65536;
+	char l_ReadBuffer[l_ReadBufferCapacity];
+	rapidjson::FileReadStream l_ScheduleFileStream(l_ScheduleFile, l_ReadBuffer, 
+		sizeof(l_ReadBuffer));
+
+	rapidjson::Document l_ScheduleDocument;
+	l_ScheduleDocument.ParseStream(l_ScheduleFileStream);
+
+	if (l_ScheduleDocument.HasParseError() == true)
+	{
+		LoggerAddMessage("Failed to parse the schedule file.\n");
+		fclose(l_ScheduleFile);
 		return false;
 	}
-	
-	// Loop through all of the event nodes.
-	static auto const* s_EventNodeName = "Event";
-	XMLForEachNodeNamed(l_RootNode->xmlChildrenNode, s_EventNodeName, [&](xmlNodePtr p_Node)
-	{								
+
+	// Find the list of events.
+	auto const l_EventsIterator = l_ScheduleDocument.FindMember("events");
+
+	if (l_EventsIterator == l_ScheduleDocument.MemberEnd())
+	{
+		fclose(l_ScheduleFile);
+		return false;		
+	}
+
+	if (l_EventsIterator->value.IsArray() == false)
+	{
+		fclose(l_ScheduleFile);
+		return false;
+	}
+
+	// Try to load each event in turn.
+	for (auto const& l_EventObject : l_EventsIterator->value.GetArray())
+	{
+		if (l_EventObject.IsObject() == false)
+		{
+			continue;
+		}
+
 		// Try to read the event.
 		ScheduleEvent l_Event;
-		if (l_Event.ReadFromXML(l_ScheduleDocument, p_Node) == false)
+		if (l_Event.ReadFromJSON(l_EventObject.GetObject()) == false)
 		{
-			return;
+			continue;
 		}
 					
 		// If we successfully read the event, add it to the list.
 		s_ScheduleEvents.push_back(l_Event);
-	});
-	
-	// Close the file.
-	xmlFreeDoc(l_ScheduleDocument);
-		
+	}
+							
+	fclose(l_ScheduleFile);
 	return true;
 }
 
@@ -159,6 +187,13 @@ static void ScheduleLogLoaded()
 	// Now write out the schedule.
 	LoggerAddMessage("The following schedule is loaded:");
 	
+	if (s_ScheduleEvents.size() == 0)
+	{
+		LoggerAddMessage("\t<empty>");
+		LoggerAddMessage("");
+		return;
+	}
+
 	for (auto const& l_Event : s_ScheduleEvents)
 	{
 		// Split the delay into multiple units.
@@ -299,12 +334,19 @@ void ScheduleProcess()
 		return;
 	}
 
+	// No need to do anything for schedules with zero events.
+	auto const l_ScheduleEventCount = static_cast<unsigned int>(s_ScheduleEvents.size());
+	if (l_ScheduleEventCount == 0)
+	{
+		return;
+	}
+
 	// Get elapsed time since delay start.
 	Time l_CurrentTime;
 	TimerGetCurrent(l_CurrentTime);
 
-	auto const l_ElapsedTimeSec = TimerGetElapsedMilliseconds(s_ScheduleDelayStartTime, l_CurrentTime) / 
-		1000.0f;
+	auto const l_ElapsedTimeSec = 
+		TimerGetElapsedMilliseconds(s_ScheduleDelayStartTime, l_CurrentTime) / 1000.0f;
 
 	// Time up?
 	auto& l_Event = s_ScheduleEvents[s_ScheduleIndex];
@@ -315,7 +357,6 @@ void ScheduleProcess()
 	}
 	
 	// Move to the next event.
-	auto const l_ScheduleEventCount = static_cast<unsigned int>(s_ScheduleEvents.size());
 	s_ScheduleIndex = (s_ScheduleIndex + 1) % l_ScheduleEventCount;
 	
 	// Set the new delay start time.

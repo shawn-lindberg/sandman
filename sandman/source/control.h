@@ -3,6 +3,7 @@
 #include <vector>
 
 #include <libxml/parser.h>
+#include "rapidjson/document.h"
 
 #include "timer.h"
 
@@ -214,6 +215,14 @@ struct ControlAction
 	//
 	bool ReadFromXML(xmlDocPtr p_Document, xmlNodePtr p_Node);
 	
+	// Read a control action from JSON. 
+	//
+	// p_Object:	The JSON object representing a control action.
+	//
+	// Returns:		True if the action was read successfully, false otherwise.
+	//
+	bool ReadFromJSON(rapidjson::Value::ConstObject const& p_Object);
+
 	// Attempt to get the control corresponding to the control action.
 	//
 	// Returns:	The control if successful, null otherwise.
