@@ -1,26 +1,27 @@
 # Sandman
 
-Sandman is a device that is intended to assist people, particularly those with disabilities, in using hospital style beds. Therefore, it is not just software, but a combination of both software and hardware. The software is primarily designed to enable controlling a bed by voice. However, work is also underway on providing analytics of usage through a web interface. Currently the software is intended to be run on a Raspberry Pi, and is primarily developed on a Raspberry Pi 4. 
+Sandman is a device that is intended to assist people, particularly those with disabilities, in using hospital style beds. Therefore, it is not just software, but a combination of both software and hardware. The software is primarily designed to enable controlling a bed by voice. However, work is also underway on providing analytics of usage through a web interface. The current method of controlling the bed will work with any motorized bed that uses a hand control.
 
 Sandman has a Discord server to support our community. You can join it here: [Sandman Discord](https://discord.gg/XBYtSAXK2B)
 
-Sandman also has a YouTube channel: [Sandman YouTube](https://www.youtube.com/@project-sandman)
+Sandman also has a YouTube channel: [Sandman YouTube](https://www.youtube.com/@project-sandman).  Check out the channel to see a video demo of a 
+bed being controlled by voice.
 
 ## Disclaimer
 
-The current methods of using Sandman to control a bed involve either modifying the electronics of the bed hand control or electrically interfacing with the bed through its controller connector. It is possible that either one of these techniques may void the warranty on the bed. If you choose to do this, you do so at your own risk. We hope that in the future we will be able to develop another technique that avoids these issues.
+The current methods of using Sandman to control a bed involve either modifying the electronics of the bed's hand control or electrically interfacing with the bed through its controller connector. It is likely that either one of these techniques may void the warranty on the bed. If you choose to do this, you do so at your own risk. We hope that in the future we will be able to develop another technique that avoids these issues.
 
 ## Hardware Setup
 
 Although there is more than one way for the Sandman software to control a bed, this explanation will focus on just one. The control flow is illustrated below.
 
-Sandman > Raspberry Pi GPIO > Pull Up/Down HAT > Relays > Bed Hand Control
+Sandman > Raspberry Pi [GPIO](#gpio) > [Pull Up/Down HAT](#pull-updown-hat) > [Relays](#relays) > Bed [Hand Control](#hand-control)
 
 It should be noted that if the hand control is modified in such a way that the cover remains intact and can be put back on, the addition of Sandman will not prevent the hand control from being used as it was originally. We have been running Sandman on a Raspberry Pi 4B with 2 GB of RAM. We typically use at least 32 GB SD cards, but this may not be strictly necessary because we need more memory for development purposes. 
 
 ### GPIO
 
-Sandman assigns a specific GPIO to each bed function. This is configurable, but by default has the following mapping:
+Sandman assigns a specific Raspberry Pi GPIO to each bed function. This is configurable, but by default has the following mapping:
 
 | Function | Pin |
 | --- | --- |
@@ -31,9 +32,9 @@ Sandman assigns a specific GPIO to each bed function. This is configurable, but 
 | Elevation Up | 5 |
 | Elevation Down | 19 |
 
-### Pull Up/Down HAT
+### Pull Up/Down HAT (Hardware Attached on Top)
 
-Especially when booting, the state of the GPIO pins can fluctuate and to mitigate this we have been using pull up and pull down resistor pairs. We typically use a 
+When booting the Raspberry Pi, the state of the GPIO pins can fluctuate. To mitigate this we have been using pull up and pull down resistor pairs. We typically use a 
 [ModMyPi PUD HAT](https://thepihut.com/blogs/raspberry-pi-tutorials/how-to-use-modmypis-pud-hat) for this purpose because it's convenient, but if you prefer to make your own circuit board that should work as well. Here is a picture showing how we have set up our PUD hat:
 
 ![Sandman PUD hat wiring](documentation/images/sandman_pud_hat_wiring.jpg)
@@ -57,7 +58,7 @@ You can solder wires from each relay directly to the pads of each hand control b
 
 ### Rhasspy
 
-Sandman relies on [Rhasspy](https://rhasspy.readthedocs.io) to provide voice control and auditory feedback. Follow these [instructions](https://rhasspy.readthedocs.io/en/latest/installation/) in order to install Rhasspy. However, use the following command to start the Docker image rather than the one in the instructions, because we need to expose an additional port.
+Sandman relies on [Rhasspy](https://rhasspy.readthedocs.io) to provide voice control and auditory feedback. Follow these [instructions](https://rhasspy.readthedocs.io/en/latest/installation/) in order to install Rhasspy on your Raspberry Pi. However, use the following command to start the Docker image rather than the one in the instructions, because we need to expose an additional port.
 
 ```bash
 docker run -d -p 12101:12101 -p 12183:12183 \
