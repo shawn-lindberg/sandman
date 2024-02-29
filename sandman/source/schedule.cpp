@@ -5,12 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <vector>
 
-#include "rapidjson/document.h"
-#include "rapidjson/filereadstream.h"
-
-#include "control.h"
 #include "logger.h"
 #include "notification.h"
 #include "reports.h"
@@ -26,32 +21,11 @@
 // Types
 //
 
-// A schedule event.
-struct ScheduleEvent
-{
-	// Read a schedule event from JSON. 
-	//
-	// p_EventObject:	The JSON object representing the event.
-	//	
-	// Returns:		True if the event was read successfully, false otherwise.
-	//
-	bool ReadFromJSON(rapidjson::Value::ConstObject const& p_EventObject);
-	
-	// Delay in seconds before this entry occurs (since the last).
-	unsigned int	m_DelaySec;
-	
-	// The control action to perform at the scheduled time.
-	ControlAction	m_ControlAction;
-};
-
 // Locals
 //
 
 // Whether the system is initialized.
 static bool s_ScheduleInitialized = false;
-
-// This will contain the schedule once it has been parsed in.
-static std::vector<ScheduleEvent> s_ScheduleEvents;
 
 // The current spot in the schedule.
 static unsigned int s_ScheduleIndex = UINT_MAX;
@@ -59,9 +33,104 @@ static unsigned int s_ScheduleIndex = UINT_MAX;
 // The time the delay for the next event began.
 static Time s_ScheduleDelayStartTime;
 
+static Schedule *s_Schedule = NULL;
+
 // Functions
 //
 
+// Schedule members
+
+Schedule::Schedule() {
+}
+
+void Schedule::AddEvent(ScheduleEvent event)
+{
+	m_ScheduleEvents.push_back(event);
+}
+
+bool Schedule::IsEmpty()
+{
+	return (m_ScheduleEvents.size() == 0);
+}
+
+size_t Schedule::GetNumEvents() 
+{
+	return m_ScheduleEvents.size();
+}
+
+std::vector<ScheduleEvent> Schedule::GetEvents()
+{
+	return m_ScheduleEvents;
+}
+
+Schedule *Schedule::CreateSchedule(const char *jsonFileName)
+{
+	Schedule *l_Schedule = NULL;
+
+	auto* l_ScheduleFile = fopen(jsonFileName, "r");
+
+	if (l_ScheduleFile == nullptr)
+	{
+		LoggerAddMessage("Failed to open the schedule file %s.\n", jsonFileName);
+		return NULL;
+	}
+
+	static constexpr unsigned int l_ReadBufferCapacity = 65536;
+	char l_ReadBuffer[l_ReadBufferCapacity];
+	rapidjson::FileReadStream l_ScheduleFileStream(l_ScheduleFile, l_ReadBuffer, 
+		sizeof(l_ReadBuffer));
+
+	rapidjson::Document l_ScheduleDocument;
+	l_ScheduleDocument.ParseStream(l_ScheduleFileStream);
+
+	if (l_ScheduleDocument.HasParseError() == true)
+	{
+		LoggerAddMessage("Failed to parse the schedule file %s.\n", jsonFileName);
+		fclose(l_ScheduleFile);
+		return NULL;
+	}
+
+	// Find the list of events.
+	auto const l_EventsIterator = l_ScheduleDocument.FindMember("events");
+
+	if (l_EventsIterator == l_ScheduleDocument.MemberEnd())
+	{
+		LoggerAddMessage("No schedule events in %s.\n", jsonFileName);
+		fclose(l_ScheduleFile);
+		return NULL;		
+	}
+
+	if (l_EventsIterator->value.IsArray() == false)
+	{
+		fclose(l_ScheduleFile);
+		LoggerAddMessage("No event array in %s.\n", jsonFileName);
+		return NULL;
+	}
+
+	l_Schedule = new Schedule();
+
+	// Try to load each event in turn.
+	for (auto const& l_EventObject : l_EventsIterator->value.GetArray())
+	{
+		if (l_EventObject.IsObject() == false)
+		{
+			continue;
+		}
+
+		// Try to read the event.
+		ScheduleEvent l_Event;
+		if (l_Event.ReadFromJSON(l_EventObject.GetObject()) == false)
+		{
+			continue;
+		}
+					
+		// If we successfully read the event, add it to the list.
+		l_Schedule->AddEvent(l_Event);
+	}
+							
+	fclose(l_ScheduleFile);
+	return l_Schedule;
+}
 
 // ScheduleEvent members
 
@@ -119,65 +188,19 @@ static bool ScheduleLoad()
 	// Open the schedule file.
 	static auto const* const s_ScheduleFileName = CONFIGDIR "sandman.sched";
 
-	auto* l_ScheduleFile = fopen(s_ScheduleFileName, "r");
+	// validate invalid fails parsing and missing does not exist
+	//Schedule *l_Schedule = Schedule::CreateSchedule(CONFIGDIR "invalidJson.sched");
+	//l_Schedule = Schedule::CreateSchedule(CONFIGDIR "missing.sched");
 
-	if (l_ScheduleFile == nullptr)
+	s_Schedule = Schedule::CreateSchedule(s_ScheduleFileName);
+	if (s_Schedule == NULL)
 	{
-		LoggerAddMessage("Failed to open the schedule file.\n");
 		return false;
-	}
-
-	static constexpr unsigned int l_ReadBufferCapacity = 65536;
-	char l_ReadBuffer[l_ReadBufferCapacity];
-	rapidjson::FileReadStream l_ScheduleFileStream(l_ScheduleFile, l_ReadBuffer, 
-		sizeof(l_ReadBuffer));
-
-	rapidjson::Document l_ScheduleDocument;
-	l_ScheduleDocument.ParseStream(l_ScheduleFileStream);
-
-	if (l_ScheduleDocument.HasParseError() == true)
+	} 
+	else 
 	{
-		LoggerAddMessage("Failed to parse the schedule file.\n");
-		fclose(l_ScheduleFile);
-		return false;
+		return true;
 	}
-
-	// Find the list of events.
-	auto const l_EventsIterator = l_ScheduleDocument.FindMember("events");
-
-	if (l_EventsIterator == l_ScheduleDocument.MemberEnd())
-	{
-		fclose(l_ScheduleFile);
-		return false;		
-	}
-
-	if (l_EventsIterator->value.IsArray() == false)
-	{
-		fclose(l_ScheduleFile);
-		return false;
-	}
-
-	// Try to load each event in turn.
-	for (auto const& l_EventObject : l_EventsIterator->value.GetArray())
-	{
-		if (l_EventObject.IsObject() == false)
-		{
-			continue;
-		}
-
-		// Try to read the event.
-		ScheduleEvent l_Event;
-		if (l_Event.ReadFromJSON(l_EventObject.GetObject()) == false)
-		{
-			continue;
-		}
-					
-		// If we successfully read the event, add it to the list.
-		s_ScheduleEvents.push_back(l_Event);
-	}
-							
-	fclose(l_ScheduleFile);
-	return true;
 }
 
 // Write the loaded schedule to the logger.
@@ -187,14 +210,14 @@ static void ScheduleLogLoaded()
 	// Now write out the schedule.
 	LoggerAddMessage("The following schedule is loaded:");
 	
-	if (s_ScheduleEvents.size() == 0)
+	if (s_Schedule->IsEmpty())
 	{
 		LoggerAddMessage("\t<empty>");
 		LoggerAddMessage("");
 		return;
 	}
 
-	for (auto const& l_Event : s_ScheduleEvents)
+	for (auto const& l_Event : s_Schedule->GetEvents())
 	{
 		// Split the delay into multiple units.
 		auto l_DelaySec = l_Event.m_DelaySec;
@@ -221,8 +244,7 @@ static void ScheduleLogLoaded()
 void ScheduleInitialize()
 {	
 	s_ScheduleIndex = UINT_MAX;
-	
-	s_ScheduleEvents.clear();
+	delete(s_Schedule);
 	
 	LoggerAddMessage("Initializing the schedule...");
 
@@ -253,7 +275,7 @@ void ScheduleUninitialize()
 	
 	s_ScheduleInitialized = false;
 	
-	s_ScheduleEvents.clear();
+	delete(s_Schedule);
 }
 
 // Start the schedule.
@@ -335,7 +357,7 @@ void ScheduleProcess()
 	}
 
 	// No need to do anything for schedules with zero events.
-	auto const l_ScheduleEventCount = static_cast<unsigned int>(s_ScheduleEvents.size());
+	auto const l_ScheduleEventCount = static_cast<unsigned int>(s_Schedule->GetNumEvents());
 	if (l_ScheduleEventCount == 0)
 	{
 		return;
@@ -349,7 +371,7 @@ void ScheduleProcess()
 		TimerGetElapsedMilliseconds(s_ScheduleDelayStartTime, l_CurrentTime) / 1000.0f;
 
 	// Time up?
-	auto& l_Event = s_ScheduleEvents[s_ScheduleIndex];
+	auto& l_Event = s_Schedule->GetEvents()[s_ScheduleIndex];
 	
 	if (l_ElapsedTimeSec < l_Event.m_DelaySec)
 	{
