@@ -9,6 +9,13 @@
       <li><a href="{{ url_for('reports.index') }}">Reports</a>
   </ul>
   <ul>
+    {% if health_issue is sameas true %}
+    <li><a class="blink-bg" href="{{ url_for('status.status_home') }}">💓Status</a></li>
+    {% else %}
+    <li><a href="{{ url_for('status.status_home') }}">💓Status</a></li>
+    {% endif %}
+  </ul>
+  <ul>
     <li><a href="{{ url_for('rhasspy') }}" target="blank">Rhasspy</a></li>
   </ul>
 </nav>
