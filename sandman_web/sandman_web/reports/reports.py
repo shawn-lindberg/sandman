@@ -17,7 +17,7 @@ report_extension = '.rpt'
 # The date and time format for report events.
 report_date_time_format = '%Y/%m/%d %H:%M:%S %Z'
 
-blueprint = Blueprint('reports', __name__, url_prefix = '/reports')
+blueprint = Blueprint('reports', __name__, url_prefix = '/reports', template_folder='templates')
 
 @blueprint.route('/')
 def index():
@@ -54,7 +54,7 @@ def index():
     # Sort them in descending order.
     sorted_reports = sorted(reports, key = itemgetter('year', 'month', 'day'), reverse = True)
 
-    return render_template('reports/reports.html', reports = sorted_reports)
+    return render_template('reports.html', reports = sorted_reports)
 
 @blueprint.route('/<int:year>/<int:month>/<int:day>/report')
 def report(year, month, day):
@@ -171,5 +171,5 @@ def report(year, month, day):
     start_hour = 17
     hour_range = 24
 
-    return render_template('reports/report.html', start_date_string = report_start_date_string, 
+    return render_template('report.html', start_date_string = report_start_date_string, 
         end_date_string = report_name, start_hour = start_hour, event_infos = event_infos)
