@@ -101,7 +101,7 @@ bool ScheduleEvent::ReadFromJSON(rapidjson::Value::ConstObject const& p_Object)
 		return false;
 	}
 	
-	if (m_ControlAction.ReadFromJSON(l_ControlActionIterator->value.GetObject()) == false) 
+	if (m_ControlAction.ReadFromJSON(l_ControlActionIterator->value) == false) 
 	{
 		return false;
 	}

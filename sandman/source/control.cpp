@@ -665,8 +665,13 @@ bool ControlAction::ReadFromXML(xmlDocPtr p_Document, xmlNodePtr p_Node)
 //
 // Returns:		True if the action was read successfully, false otherwise.
 //
-bool ControlAction::ReadFromJSON(rapidjson::Value::ConstObject const& p_Object)
+bool ControlAction::ReadFromJSON(rapidjson::Value const& p_Object)
 {
+	if (p_Object.IsObject() == false)
+	{
+		return false;
+	}
+	
 	// We must have a control name.
 	auto const l_ControlIterator = p_Object.FindMember("control");
 

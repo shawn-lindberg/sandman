@@ -229,7 +229,7 @@ struct ControlAction
 	//
 	// Returns:		True if the action was read successfully, false otherwise.
 	//
-	bool ReadFromJSON(rapidjson::Value::ConstObject const& p_Object);
+	bool ReadFromJSON(rapidjson::Value const& p_Object);
 
 	// Attempt to get the control corresponding to the control action.
 	//
