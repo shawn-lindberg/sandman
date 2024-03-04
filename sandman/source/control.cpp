@@ -179,6 +179,7 @@ bool ControlConfig::ReadFromJSON(rapidjson::Value const& p_Object)
 {
 	if (p_Object.IsObject() == false)
 	{
+		LoggerAddMessage("Control config cannot be parsed because it is not an object.");
 		return false;
 	}
 
@@ -187,11 +188,13 @@ bool ControlConfig::ReadFromJSON(rapidjson::Value const& p_Object)
 
 	if (l_NameIterator == p_Object.MemberEnd())
 	{
+		LoggerAddMessage("Control config is missing a name.");
 		return false;
 	}
 
 	if (l_NameIterator->value.IsString() == false)
 	{
+		LoggerAddMessage("Control config has a name but it is not a string.");
 		return false;
 	}
 	
@@ -204,11 +207,13 @@ bool ControlConfig::ReadFromJSON(rapidjson::Value const& p_Object)
 
 	if (l_UpPinIterator == p_Object.MemberEnd())
 	{
+		LoggerAddMessage("Control config is missing an up pin.");
 		return false;
 	}
 
 	if (l_UpPinIterator->value.IsInt() == false)
 	{
+		LoggerAddMessage("Control config has an up pin, but it is not an integer.");
 		return false;
 	}
 
@@ -219,11 +224,13 @@ bool ControlConfig::ReadFromJSON(rapidjson::Value const& p_Object)
 
 	if (l_DownPinIterator == p_Object.MemberEnd())
 	{
+		LoggerAddMessage("Control config is missing a down pin.");
 		return false;
 	}
 
 	if (l_DownPinIterator->value.IsInt() == false)
 	{
+		LoggerAddMessage("Control config has a down pin, but it is not an integer.");
 		return false;
 	}
 
@@ -669,19 +676,22 @@ bool ControlAction::ReadFromJSON(rapidjson::Value const& p_Object)
 {
 	if (p_Object.IsObject() == false)
 	{
+		LoggerAddMessage("Control action cannot be parsed because it is not an object.");
 		return false;
 	}
-	
+
 	// We must have a control name.
 	auto const l_ControlIterator = p_Object.FindMember("control");
 
 	if (l_ControlIterator == p_Object.MemberEnd())
 	{
+		LoggerAddMessage("Control action is missing a control name.");
 		return false;
 	}
 
 	if (l_ControlIterator->value.IsString() == false)
 	{
+		LoggerAddMessage("Control action has a control name, but it is not a string.");
 		return false;
 	}
 	
@@ -694,17 +704,20 @@ bool ControlAction::ReadFromJSON(rapidjson::Value const& p_Object)
 
 	if (l_ActionIterator == p_Object.MemberEnd())
 	{
+		LoggerAddMessage("Control action does not have an action.");
 		return false;
 	}
 
 	if (l_ActionIterator->value.IsString() == false)
 	{
+		LoggerAddMessage("Control action has an action, but it is not a string.");
 		return false;
 	}
 
 	// Try to get the corresponding action.
 	if (GetControlActionFromString(m_Action, l_ActionIterator->value.GetString()) == false)
 	{
+		LoggerAddMessage("Control action has an unrecognized action.");
 		return false;
 	}
 
