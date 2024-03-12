@@ -27,19 +27,6 @@ struct ScheduleEvent
 	ControlAction	m_ControlAction;
 };
 
-class Schedule {
-    public:
-        Schedule();
-        void AddEvent(ScheduleEvent event);
-        bool IsEmpty();
-        size_t GetNumEvents();
-        std::vector<ScheduleEvent> GetEvents();
-        static Schedule *CreateSchedule(const char *jsonFileName);
-
-    private:
-        std::vector<ScheduleEvent> m_ScheduleEvents;
-};
-
 
 // Functions
 //
