@@ -1,0 +1,6 @@
+# These are the reqirements for the Sandman Flask server to run
+
+docker
+flask
+psutil
+requests

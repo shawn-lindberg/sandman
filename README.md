@@ -176,7 +176,7 @@ Once the virtual environment is made, you will activate it with the following co
 Then you can install Flask in the virtual environment with pip.
 
 ```bash
-pip install Flask
+pip install -r requirements.txt
 ```
 
 To run the web server in development mode use the following command. This must be done after activating the virtual environment with the command given earlier.
