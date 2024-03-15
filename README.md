@@ -173,7 +173,7 @@ Once the virtual environment is made, you will activate it with the following co
 . .venv/bin/activate
 ```
 
-Then you can install Flask in the virtual environment with pip.
+Then you can install Flask and other dependencies in the virtual environment with pip.
 
 ```bash
 pip install -r requirements.txt
