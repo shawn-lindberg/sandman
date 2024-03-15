@@ -38,7 +38,7 @@ def create_app(test_config = None):
         return redirect("http://" + server_ip + ':12101')
 
     # Register blueprints 
-    from . import reports
+    from .reports import reports
     app.register_blueprint(reports.blueprint)
 
     from .status import status
