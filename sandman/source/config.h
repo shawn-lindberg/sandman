@@ -50,6 +50,22 @@ class Config
 		
 	private:
 	
+		// Read control settings from JSON. 
+		//
+		// p_Object:	The JSON object representing the control settings.
+		//
+		// Returns:		True if the settings were read successfully, false otherwise.
+		//
+		bool ReadControlSettingsFromJSON(rapidjson::Value const& p_Object);
+
+		// Read input settings from JSON. 
+		//
+		// p_Object:	The JSON object representing the input settings.
+		//
+		// Returns:		True if the settings were read successfully, false otherwise.
+		//
+		bool ReadInputSettingsFromJSON(rapidjson::Value const& p_Object);
+
 		// Constants.
 		static constexpr unsigned int ms_InputDeviceNameCapacity = 64;
 		

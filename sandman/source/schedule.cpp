@@ -31,11 +31,11 @@ struct ScheduleEvent
 {
 	// Read a schedule event from JSON. 
 	//
-	// p_EventObject:	The JSON object representing the event.
+	// p_Object:	The JSON object representing the event.
 	//	
 	// Returns:		True if the event was read successfully, false otherwise.
 	//
-	bool ReadFromJSON(rapidjson::Value::ConstObject const& p_EventObject);
+	bool ReadFromJSON(rapidjson::Value const& p_Object);
 	
 	// Delay in seconds before this entry occurs (since the last).
 	unsigned int	m_DelaySec;
@@ -71,18 +71,26 @@ static Time s_ScheduleDelayStartTime;
 //
 // Returns:		True if the event was read successfully, false otherwise.
 //
-bool ScheduleEvent::ReadFromJSON(rapidjson::Value::ConstObject const& p_Object)
+bool ScheduleEvent::ReadFromJSON(rapidjson::Value const& p_Object)
 {
+	if (p_Object.IsObject() == false)
+	{
+		LoggerAddMessage("Schedule event could not be parsed because it is not an object.");
+		return false;
+	}
+
 	// We must have a delay.
 	auto const l_DelayIterator = p_Object.FindMember("delaySec");
 
 	if (l_DelayIterator == p_Object.MemberEnd())
 	{
+		LoggerAddMessage("Schedule event is missing the delay time.");
 		return false;
 	}
 
 	if (l_DelayIterator->value.IsInt() == false)
 	{
+		LoggerAddMessage("Schedule event has a delay time, but it's not an integer.");
 		return false;
 	}
 
@@ -93,16 +101,13 @@ bool ScheduleEvent::ReadFromJSON(rapidjson::Value::ConstObject const& p_Object)
 
 	if (l_ControlActionIterator == p_Object.MemberEnd())
 	{
-		return false;
-	}
-
-	if (l_ControlActionIterator->value.IsObject() == false)
-	{
+		LoggerAddMessage("Schedule event is missing a control action.");
 		return false;
 	}
 	
-	if (m_ControlAction.ReadFromJSON(l_ControlActionIterator->value.GetObject()) == false) 
+	if (m_ControlAction.ReadFromJSON(l_ControlActionIterator->value) == false) 
 	{
+		LoggerAddMessage("Schedule event control action could not be parsed.");
 		return false;
 	}
 	
@@ -147,12 +152,14 @@ static bool ScheduleLoad()
 
 	if (l_EventsIterator == l_ScheduleDocument.MemberEnd())
 	{
+		LoggerAddMessage("Schedule is missing events.");
 		fclose(l_ScheduleFile);
 		return false;		
 	}
 
 	if (l_EventsIterator->value.IsArray() == false)
 	{
+		LoggerAddMessage("Schedule has events, but it is not an array.");
 		fclose(l_ScheduleFile);
 		return false;
 	}
@@ -160,14 +167,9 @@ static bool ScheduleLoad()
 	// Try to load each event in turn.
 	for (auto const& l_EventObject : l_EventsIterator->value.GetArray())
 	{
-		if (l_EventObject.IsObject() == false)
-		{
-			continue;
-		}
-
 		// Try to read the event.
 		ScheduleEvent l_Event;
-		if (l_Event.ReadFromJSON(l_EventObject.GetObject()) == false)
+		if (l_Event.ReadFromJSON(l_EventObject) == false)
 		{
 			continue;
 		}
