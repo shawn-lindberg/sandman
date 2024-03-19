@@ -5,7 +5,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <vector>
 
+#include "rapidjson/document.h"
 #include "logger.h"
 #include "notification.h"
 #include "reports.h"
@@ -21,15 +23,33 @@
 // Types
 //
 
+// A schedule event.
+struct ScheduleEvent
+{
+	// Read a schedule event from JSON. 
+	//
+	// p_EventObject:	The JSON object representing the event.
+	//	
+	// Returns:		True if the event was read successfully, false otherwise.
+	//
+	bool ReadFromJSON(rapidjson::Value::ConstObject const& p_EventObject);
+	
+	// Delay in seconds before this entry occurs (since the last).
+	unsigned int	m_DelaySec;
+	
+	// The control action to perform at the scheduled time.
+	ControlAction	m_ControlAction;
+};
+
 class Schedule 
 {
     public:
         Schedule() = default;
-        void AddEvent(const ScheduleEvent& p_event);
-        bool IsEmpty();
+        void AddEvent(const ScheduleEvent& p_Event);
+        bool IsEmpty() const;
         size_t GetNumEvents() const;
         std::vector<ScheduleEvent> GetEvents() const;
-        bool LoadFromFile(const char* p_jsonFileName);
+        bool LoadFromFile(const char* p_FileName);
 
     private:
         std::vector<ScheduleEvent> m_ScheduleEvents;
@@ -54,12 +74,12 @@ static Schedule s_Schedule;
 
 // Schedule members
 
-void Schedule::AddEvent(const ScheduleEvent& p_event)
+void Schedule::AddEvent(const ScheduleEvent& p_Event)
 {
-	m_ScheduleEvents.push_back(p_event);
+	m_ScheduleEvents.push_back(p_Event);
 }
 
-bool Schedule::IsEmpty()
+bool Schedule::IsEmpty() const
 {
 	return (m_ScheduleEvents.size() == 0);
 }
@@ -74,15 +94,15 @@ std::vector<ScheduleEvent> Schedule::GetEvents() const
 	return m_ScheduleEvents;
 }
 
-bool Schedule::LoadFromFile(const char* p_jsonFileName)
+bool Schedule::LoadFromFile(const char* p_FileName)
 {
 	m_ScheduleEvents.clear();
 
-	auto* l_ScheduleFile = fopen(p_jsonFileName, "r");
+	auto* l_ScheduleFile = fopen(p_FileName, "r");
 
 	if (l_ScheduleFile == nullptr)
 	{
-		LoggerAddMessage("Failed to open the schedule file %s.\n", p_jsonFileName);
+		LoggerAddMessage("Failed to open the schedule file %s.\n", p_FileName);
 		return false;
 	}
 
@@ -96,7 +116,7 @@ bool Schedule::LoadFromFile(const char* p_jsonFileName)
 
 	if (l_ScheduleDocument.HasParseError() == true)
 	{
-		LoggerAddMessage("Failed to parse the schedule file %s.\n", p_jsonFileName);
+		LoggerAddMessage("Failed to parse the schedule file %s.\n", p_FileName);
 		fclose(l_ScheduleFile);
 		return false;
 	}
@@ -106,7 +126,7 @@ bool Schedule::LoadFromFile(const char* p_jsonFileName)
 
 	if (l_EventsIterator == l_ScheduleDocument.MemberEnd())
 	{
-		LoggerAddMessage("No schedule events in %s.\n", p_jsonFileName);
+		LoggerAddMessage("No schedule events in %s.\n", p_FileName);
 		fclose(l_ScheduleFile);
 		return false;		
 	}
@@ -114,7 +134,7 @@ bool Schedule::LoadFromFile(const char* p_jsonFileName)
 	if (l_EventsIterator->value.IsArray() == false)
 	{
 		fclose(l_ScheduleFile);
-		LoggerAddMessage("No event array in %s.\n", p_jsonFileName);
+		LoggerAddMessage("No event array in %s.\n", p_FileName);
 		return false;
 	}
 
