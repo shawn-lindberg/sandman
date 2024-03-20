@@ -65,14 +65,14 @@ def check_ha_bridge_health() -> int | str:
     except:
         ha_bridge_web_status = False
 
-    #Check that the ha-bridge container is running and the web response is OK
+    #Check that the ha-bridge container is running or the web response is OK
     try:
-        if ha_bridge_container_status["Status"] == "running" and ha_bridge_web_status == 200:
+        if ha_bridge_container_status["Status"] == "running" or ha_bridge_web_status == 200:
             return 0
         else:
             return 1
     except:
-        #The container may not exist
+        #ha-bridge may not be installed on host
         return "Failed check"
 
 status_bp = Blueprint('status', __name__,template_folder='templates')
@@ -105,7 +105,7 @@ def status_home():
         ha_bridge_status = "ha-bridge is running. ✔️"
     elif ha_bridge_status_check == "Failed check":
         ha_bridge_status = "ha-bridge is not running. ❌"
-        ha_bridge_status += "The ha-bridge container may not exist."
+        ha_bridge_status += "The ha-bridge container may not exist or ha-bridge isn't otherwise installed."
     else:
         ha_bridge_status = "ha-bridge is not running. ❌"
     
