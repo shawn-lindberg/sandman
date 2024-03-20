@@ -105,7 +105,7 @@ def status_home():
         ha_bridge_status = "ha-bridge is running. ✔️"
     elif ha_bridge_status_check == "Failed check":
         ha_bridge_status = "ha-bridge is not running. ❌"
-        ha_bridge_status += "The ha-bridge container may not exist or ha-bridge isn't otherwise installed."
+        ha_bridge_status += "ha-bridge may not be installed on the host as a container and or is otherwise unresponsive."
     else:
         ha_bridge_status = "ha-bridge is not running. ❌"
     
