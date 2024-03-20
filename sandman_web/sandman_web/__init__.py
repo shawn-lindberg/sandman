@@ -47,7 +47,7 @@ def create_app(test_config = None):
     # Create global status variable
     @app.context_processor
     def status_processor():
-        if status.check_sandman_health() == True and status.check_rhasspy_health() == True:
+        if status.check_sandman_health() == 0 and status.check_rhasspy_health() == 0:
             health_issue = False
         else:
             health_issue = True

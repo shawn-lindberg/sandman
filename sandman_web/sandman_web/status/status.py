@@ -6,23 +6,26 @@ from flask import (
 from werkzeug.exceptions import abort
 
 #Check whether a Linux process is running based on process name
-def is_process_running(process_name: str):
+def is_process_running(process_name: str) -> bool:
+    """Returns bool based on whether named process is running."""
     for process in psutil.process_iter(['pid', 'name']):
         if process.info['name'] == process_name:
             return True
     return False
 
 #Check that Sandman is running
-def check_sandman_health():
+def check_sandman_health() -> int:
+        """Returns a status code based on whether process is running."""
         process_name = "sandman"
         if is_process_running(process_name):
-            return True
+            return 0
         else:
-            return False
+            return 1
 
 #Check that Rhasspy is running and responding
 #Get the Rhasspy contatiner status
-def check_rhasspy_health():
+def check_rhasspy_health() -> int | str:
+    """Returns a status code or string based on container status and http request response."""
     client = docker.DockerClient(base_url='unix://var/run/docker.sock')
     rhasspy_container = client.containers.get("rhasspy")
     rhasspy_container_status = rhasspy_container.attrs["State"]
@@ -37,16 +40,17 @@ def check_rhasspy_health():
     #Check that the Rhasspy container is running and the web response is OK
     try:
         if rhasspy_container_status["Status"] == "running" and rhasspy_web_status == 200:
-            return True
+            return 0
         else:
-            return False
+            return 1
     except:
         #The container may not exist
         return "Failed check"
 
 #Check that ha-bridge is running and responding
 #Get the ha-bridge contatiner status
-def check_ha_bridge_health():
+def check_ha_bridge_health() -> int | str:
+    """Returns a status code or string based on container status and http request response."""
     client = docker.DockerClient(base_url='unix://var/run/docker.sock')
     try:
         ha_bridge_container = client.containers.get("ha-bridge")
@@ -64,9 +68,9 @@ def check_ha_bridge_health():
     #Check that the ha-bridge container is running and the web response is OK
     try:
         if ha_bridge_container_status["Status"] == "running" and ha_bridge_web_status == 200:
-            return True
+            return 0
         else:
-            return False
+            return 1
     except:
         #The container may not exist
         return "Failed check"
@@ -82,13 +86,13 @@ def status_home():
     ha_bridge_status_check = check_ha_bridge_health()
 
     #Check that Sandman is in good health
-    if sandman_status_check:
+    if sandman_status_check == 0:
         sandman_status = "Sandman process is running. ✔️"
     else:
         sandman_status = "Sandman process is not running. ❌"
 
     #Check that Rhasspy is in good health
-    if rhasspy_status_check:
+    if rhasspy_status_check == 0:
         rhasspy_status = "Rhasspy is running. ✔️"
     elif rhasspy_status_check == "Failed check":
         rhasspy_status = "Rhasspy is not running. ❌"
@@ -97,7 +101,7 @@ def status_home():
         rhasspy_status = "Rhasspy is not running. ❌"
 
     #Check that ha-bridge is in good health
-    if ha_bridge_status_check == True:
+    if ha_bridge_status_check == 0:
         ha_bridge_status = "ha-bridge is running. ✔️"
     elif ha_bridge_status_check == "Failed check":
         ha_bridge_status = "ha-bridge is not running. ❌"
