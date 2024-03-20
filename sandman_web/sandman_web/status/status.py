@@ -5,7 +5,8 @@ from flask import (
 )
 from werkzeug.exceptions import abort
 
-def process_status(process_name):
+#Check whether a Linux process is running based on process name
+def is_process_running(process_name: str):
     for process in psutil.process_iter(['pid', 'name']):
         if process.info['name'] == process_name:
             return True
@@ -14,7 +15,7 @@ def process_status(process_name):
 #Check that Sandman is running
 def check_sandman_health():
         process_name = "sandman"
-        if process_status(process_name):
+        if is_process_running(process_name):
             return True
         else:
             return False
@@ -74,25 +75,31 @@ status_bp = Blueprint('status', __name__,template_folder='templates')
 
 @status_bp.route('/status')
 def status_home():
+
+    #Perform the Sandman related health checks
+    sandman_status_check = check_sandman_health()
+    rhasspy_status_check = check_rhasspy_health()
+    ha_bridge_status_check = check_ha_bridge_health()
+
     #Check that Sandman is in good health
-    if check_sandman_health():
+    if sandman_status_check:
         sandman_status = "Sandman process is running. ✔️"
     else:
         sandman_status = "Sandman process is not running. ❌"
 
     #Check that Rhasspy is in good health
-    if check_rhasspy_health():
+    if rhasspy_status_check:
         rhasspy_status = "Rhasspy is running. ✔️"
-    elif check_ha_bridge_health() == "Failed check":
+    elif rhasspy_status_check == "Failed check":
         rhasspy_status = "Rhasspy is not running. ❌"
         rhasspy_status += "The Rhasspy container may not exist."
     else:
         rhasspy_status = "Rhasspy is not running. ❌"
 
     #Check that ha-bridge is in good health
-    if check_ha_bridge_health() == True:
+    if ha_bridge_status_check == True:
         ha_bridge_status = "ha-bridge is running. ✔️"
-    elif check_ha_bridge_health() == "Failed check":
+    elif ha_bridge_status_check == "Failed check":
         ha_bridge_status = "ha-bridge is not running. ❌"
         ha_bridge_status += "The ha-bridge container may not exist."
     else:
