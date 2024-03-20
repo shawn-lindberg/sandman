@@ -168,7 +168,88 @@ bool ControlConfig::ReadFromXML(xmlDocPtr p_Document, xmlNodePtr p_Node)
 		
 	return true;
 }
+
+// Read a control config from JSON. 
+//
+// p_Object:	The JSON object representing a control config.
+//
+// Returns:		True if the config was read successfully, false otherwise.
+//
+bool ControlConfig::ReadFromJSON(rapidjson::Value const& p_Object)
+{
+	if (p_Object.IsObject() == false)
+	{
+		LoggerAddMessage("Control config cannot be parsed because it is not an object.");
+		return false;
+	}
+
+	// We must have a control name.
+	auto const l_NameIterator = p_Object.FindMember("name");
+
+	if (l_NameIterator == p_Object.MemberEnd())
+	{
+		LoggerAddMessage("Control config is missing a name.");
+		return false;
+	}
+
+	if (l_NameIterator->value.IsString() == false)
+	{
+		LoggerAddMessage("Control config has a name but it is not a string.");
+		return false;
+	}
 	
+	// Copy no more than the amount of text the buffer can hold.
+	strncpy(m_Name, l_NameIterator->value.GetString(), sizeof(m_Name) - 1);
+	m_Name[sizeof(m_Name) - 1] = '\0';
+
+	// We must have an up pin.
+	auto const l_UpPinIterator = p_Object.FindMember("upPin");
+
+	if (l_UpPinIterator == p_Object.MemberEnd())
+	{
+		LoggerAddMessage("Control config is missing an up pin.");
+		return false;
+	}
+
+	if (l_UpPinIterator->value.IsInt() == false)
+	{
+		LoggerAddMessage("Control config has an up pin, but it is not an integer.");
+		return false;
+	}
+
+	m_UpGPIOPin = l_UpPinIterator->value.GetInt();
+
+	// We must also have a down pin.
+	auto const l_DownPinIterator = p_Object.FindMember("downPin");
+
+	if (l_DownPinIterator == p_Object.MemberEnd())
+	{
+		LoggerAddMessage("Control config is missing a down pin.");
+		return false;
+	}
+
+	if (l_DownPinIterator->value.IsInt() == false)
+	{
+		LoggerAddMessage("Control config has a down pin, but it is not an integer.");
+		return false;
+	}
+
+	m_DownGPIOPin = l_DownPinIterator->value.GetInt();
+
+	// We might also have a moving duration.
+	auto const l_MovingDurationIterator = p_Object.FindMember("movingDurationMS");
+
+	if (l_MovingDurationIterator != p_Object.MemberEnd())
+	{
+		if (l_MovingDurationIterator->value.IsInt() == true)
+		{
+			m_MovingDurationMS = l_MovingDurationIterator->value.GetInt();
+		}
+	}
+
+	return true;
+}
+
 // Control members
 
 // Handle initialization.
@@ -207,7 +288,7 @@ void Control::Uninitialize()
 {
 	// Revert to input.
 	gpioSetMode(m_UpGPIOPin, PI_INPUT);
-	gpioSetMode (m_DownGPIOPin, PI_INPUT);
+	gpioSetMode(m_DownGPIOPin, PI_INPUT);
 }
 
 // Process a tick.
@@ -591,18 +672,26 @@ bool ControlAction::ReadFromXML(xmlDocPtr p_Document, xmlNodePtr p_Node)
 //
 // Returns:		True if the action was read successfully, false otherwise.
 //
-bool ControlAction::ReadFromJSON(rapidjson::Value::ConstObject const& p_Object)
+bool ControlAction::ReadFromJSON(rapidjson::Value const& p_Object)
 {
+	if (p_Object.IsObject() == false)
+	{
+		LoggerAddMessage("Control action cannot be parsed because it is not an object.");
+		return false;
+	}
+
 	// We must have a control name.
 	auto const l_ControlIterator = p_Object.FindMember("control");
 
 	if (l_ControlIterator == p_Object.MemberEnd())
 	{
+		LoggerAddMessage("Control action is missing a control name.");
 		return false;
 	}
 
 	if (l_ControlIterator->value.IsString() == false)
 	{
+		LoggerAddMessage("Control action has a control name, but it is not a string.");
 		return false;
 	}
 	
@@ -615,17 +704,20 @@ bool ControlAction::ReadFromJSON(rapidjson::Value::ConstObject const& p_Object)
 
 	if (l_ActionIterator == p_Object.MemberEnd())
 	{
+		LoggerAddMessage("Control action does not have an action.");
 		return false;
 	}
 
 	if (l_ActionIterator->value.IsString() == false)
 	{
+		LoggerAddMessage("Control action has an action, but it is not a string.");
 		return false;
 	}
 
 	// Try to get the corresponding action.
 	if (GetControlActionFromString(m_Action, l_ActionIterator->value.GetString()) == false)
 	{
+		LoggerAddMessage("Control action has an unrecognized action.");
 		return false;
 	}
 

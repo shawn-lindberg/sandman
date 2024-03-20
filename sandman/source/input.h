@@ -33,6 +33,14 @@ struct InputBinding
 	//
 	bool ReadFromXML(xmlDocPtr p_Document, xmlNodePtr p_Node);
 	
+	// Read an input binding from JSON. 
+	//
+	// p_Object:	The JSON object representing a binding.
+	//	
+	// Returns:		True if the binding was read successfully, false otherwise.
+	//
+	bool ReadFromJSON(rapidjson::Value const& p_Object);	
+
 	// The numeric code of the key that should trigger action.
 	unsigned short		m_KeyCode;
 	

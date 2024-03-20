@@ -37,7 +37,7 @@ def create_app(test_config = None):
         server_ip = request.host.split(':')[0]
         return redirect("http://" + server_ip + ':12101')
 
-    from . import reports
+    from .reports import reports
     app.register_blueprint(reports.blueprint)
 
     return app
