@@ -8,6 +8,8 @@
 #include <vector>
 
 #include "rapidjson/document.h"
+#include "rapidjson/filereadstream.h"
+#include "control.h"
 #include "logger.h"
 #include "notification.h"
 #include "reports.h"
@@ -191,6 +193,9 @@ bool ScheduleEvent::ReadFromJSON(rapidjson::Value const& p_Object)
 
 	m_DelaySec = l_DelayIterator->value.GetInt();
 
+	// We must also have a control action.
+	auto const l_ControlActionIterator = p_Object.FindMember("controlAction");
+
 	if (l_ControlActionIterator == p_Object.MemberEnd())
 	{
 		LoggerAddMessage("Schedule event is missing a control action.");
@@ -206,49 +211,6 @@ bool ScheduleEvent::ReadFromJSON(rapidjson::Value const& p_Object)
 	return true;
 }
 
-// Read a schedule event from JSON. 
-//	
-// p_Object:	The JSON object representing the event.
-//
-// Returns:		True if the event was read successfully, false otherwise.
-//
-bool ScheduleEvent::ReadFromJSON(rapidjson::Value::ConstObject const& p_Object)
-{
-	// We must have a delay.
-	auto const l_DelayIterator = p_Object.FindMember("delaySec");
-
-	if (l_DelayIterator == p_Object.MemberEnd())
-	{
-		return false;
-	}
-
-	if (l_DelayIterator->value.IsInt() == false)
-	{
-		return false;
-	}
-
-	m_DelaySec = l_DelayIterator->value.GetInt();
-
-	// We must also have a control action.
-	auto const l_ControlActionIterator = p_Object.FindMember("controlAction");
-
-	if (l_ControlActionIterator == p_Object.MemberEnd())
-	{
-		return false;
-	}
-
-	if (l_ControlActionIterator->value.IsObject() == false)
-	{
-		return false;
-	}
-	
-	if (m_ControlAction.ReadFromJSON(l_ControlActionIterator->value.GetObject()) == false) 
-	{
-		return false;
-	}
-	
-	return true;
-}
 		
 // Functions
 //
