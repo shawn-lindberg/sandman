@@ -683,6 +683,21 @@ Control* ControlAction::GetControl()
 //
 void ControlsInitialize(std::vector<ControlConfig> const& p_Configs)
 {
+	#if defined PLATFORM_RPI
+	
+		LoggerAddMessage("Initializing GPIO support...");
+	
+		if (gpioInitialise() < 0)
+		{
+			LoggerAddMessage("\tfailed");
+			return;
+		}
+
+		LoggerAddMessage("\tsucceeded");
+		LoggerAddMessage("");
+
+	#endif // defined PLATFORM_RPI
+
 	for (auto const& l_Config : p_Configs)
 	{
 		ControlsCreateControl(l_Config);
@@ -700,6 +715,13 @@ void ControlsUninitialize()
 	
 	// Get rid of all of the controls.
 	s_Controls.clear();
+
+	#if defined PLATFORM_RPI
+	
+		// Uninitialize GPIO support.
+		gpioTerminate();
+	
+	#endif // defined PLATFORM_RPI
 }
 
 // Process all of the controls.
