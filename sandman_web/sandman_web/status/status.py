@@ -23,9 +23,10 @@ def check_sandman_health() -> int:
             return 1
 
 #Check that Rhasspy is running and responding
-#Get the Rhasspy contatiner status
 def check_rhasspy_health() -> int | str:
     """Returns a status code or string based on container status and http request response."""
+
+    #Get the Rhasspy contatiner status
     client = docker.DockerClient(base_url='unix://var/run/docker.sock')
     rhasspy_container = client.containers.get("rhasspy")
     rhasspy_container_status = rhasspy_container.attrs["State"]
@@ -35,7 +36,7 @@ def check_rhasspy_health() -> int | str:
         rhasspy_web_response = requests.get('http://localhost:12101')
         rhasspy_web_status = rhasspy_web_response.status_code
     except:
-        rhasspy_web_status = False
+        rhasspy_web_status = 404
 
     #Check that the Rhasspy container is running and the web response is OK
     try:
@@ -48,9 +49,10 @@ def check_rhasspy_health() -> int | str:
         return "Failed check"
 
 #Check that ha-bridge is running and responding
-#Get the ha-bridge contatiner status
 def check_ha_bridge_health() -> int | str:
     """Returns a status code or string based on container status and http request response."""
+
+    #Get the ha-bridge contatiner status
     client = docker.DockerClient(base_url='unix://var/run/docker.sock')
     try:
         ha_bridge_container = client.containers.get("ha-bridge")
@@ -63,7 +65,7 @@ def check_ha_bridge_health() -> int | str:
         ha_bridge_web_response = requests.get('http://localhost:80')
         ha_bridge_web_status = ha_bridge_web_response.status_code
     except:
-        ha_bridge_web_status = False
+        ha_bridge_web_status = 404
 
     #Check that the ha-bridge container is running or the web response is OK
     try:
