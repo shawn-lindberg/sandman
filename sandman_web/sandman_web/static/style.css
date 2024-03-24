@@ -53,3 +53,18 @@ nav ul li a:hover {
 .button:hover {
    background-color: blueviolet;
 }
+
+.blink-bg{
+   color: #fff;
+   padding: 10px;
+   display: inline-block;
+   border-radius: 5px;
+   animation: blinkingBackground 2s infinite;
+}
+@keyframes blinkingBackground{
+   0%		{ background-color: purple;}
+   25%		{ background-color: purple;}
+   50%		{ background-color: #ff0000;}
+   75%		{ background-color: #ff0000;}
+   100%	        { background-color: #ff0000;}
+}
