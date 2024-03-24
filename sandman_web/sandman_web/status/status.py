@@ -28,9 +28,12 @@ def check_rhasspy_health() -> int | str:
 
     #Get the Rhasspy contatiner status
     client = docker.DockerClient(base_url='unix://var/run/docker.sock')
-    rhasspy_container = client.containers.get("rhasspy")
-    rhasspy_container_status = rhasspy_container.attrs["State"]
-
+    try:
+        rhasspy_container = client.containers.get("rhasspy")
+        rhasspy_container_status = rhasspy_container.attrs["State"]
+    except:
+        rhasspy_container_status = False
+        
     #Get the Rhasspy web response
     try:
         rhasspy_web_response = requests.get('http://localhost:12101')
