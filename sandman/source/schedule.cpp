@@ -50,7 +50,7 @@ class Schedule
         void AddEvent(const ScheduleEvent& p_Event);
         bool IsEmpty() const;
         size_t GetNumEvents() const;
-        std::vector<ScheduleEvent> GetEvents() const;
+        std::vector<ScheduleEvent>& GetEvents();
         bool LoadFromFile(const char* p_FileName);
 
     private:
@@ -90,8 +90,7 @@ size_t Schedule::GetNumEvents() const
 {
 	return m_ScheduleEvents.size();
 }
-
-std::vector<ScheduleEvent> Schedule::GetEvents() const
+std::vector<ScheduleEvent>& Schedule::GetEvents()
 {
 	return m_ScheduleEvents;
 }
@@ -211,7 +210,7 @@ bool ScheduleEvent::ReadFromJSON(rapidjson::Value const& p_Object)
 	return true;
 }
 
-		
+
 // Functions
 //
 
