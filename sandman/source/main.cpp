@@ -9,7 +9,6 @@
 #include <sys/un.h>
 
 #include <ncurses.h>
-#include <pigpio.h>
 
 #include "command.h"
 #include "config.h"
@@ -201,18 +200,6 @@ static bool Initialize()
 		s_ExitCode = 1;
 		return false;
 	}	
-
-	LoggerAddMessage("Initializing GPIO support...");
-	
-	if (gpioInitialise() < 0)
-	{
-		LoggerAddMessage("\tfailed");
-		s_ExitCode = 1;
-		return false;
-	}
-
-	LoggerAddMessage("\tsucceeded");
-	LoggerAddMessage("");
 			
 	// Initialize MQTT.
 	if (MQTTInitialize() == false) 
@@ -285,9 +272,6 @@ static void Uninitialize()
 	// Uninitialize the input.
 	s_Input.Uninitialize();
 		
-	// Uninitialize GPIO support.
-	gpioTerminate();
-	
 	// Uninitialize logging.
 	LoggerUninitialize();
 

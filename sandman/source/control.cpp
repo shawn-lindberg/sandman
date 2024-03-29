@@ -4,7 +4,9 @@
 #include <string.h>
 #include <vector>
 
-#include <pigpio.h>
+#if defined PLATFORM_RPI
+	#include <pigpio.h>
+#endif // defined PLATFORM_RPI
 
 #include "logger.h"
 #include "notification.h"
@@ -85,7 +87,15 @@ unsigned int Control::ms_CoolDownDurationMS = MAX_COOL_DOWN_STATE_DURATION_MS;
 //
 void SetGPIOPinOn(int p_Pin)
 {
-	gpioWrite(p_Pin, CONTROL_ON_GPIO_VALUE);
+	#if defined PLATFORM_RPI
+
+		gpioWrite(p_Pin, CONTROL_ON_GPIO_VALUE);
+
+	#else
+
+		LoggerAddMessage("A Raspberry Pi would have set GPIO %d to on.", p_Pin);
+
+	#endif // defined PLATFORM_RPI
 }
 
 // Set the given GPIO pin to the "off" value.
@@ -94,7 +104,15 @@ void SetGPIOPinOn(int p_Pin)
 //
 void SetGPIOPinOff(int p_Pin)
 {
-	gpioWrite(p_Pin, CONTROL_OFF_GPIO_VALUE);
+	#if defined PLATFORM_RPI
+	
+		gpioWrite(p_Pin, CONTROL_OFF_GPIO_VALUE);
+
+	#else
+
+		LoggerAddMessage("A Raspberry Pi would have set GPIO %d to off.", p_Pin);
+
+	#endif // defined PLATFORM_RPI
 }
 
 // ControlHandle members
@@ -268,12 +286,17 @@ void Control::Initialize(ControlConfig const& p_Config)
 
 	// Setup the pins and set them to off.
 	m_UpGPIOPin = p_Config.m_UpGPIOPin;
-	gpioSetMode(m_UpGPIOPin, PI_OUTPUT);
-	SetGPIOPinOff(m_UpGPIOPin);
-	
 	m_DownGPIOPin = p_Config.m_DownGPIOPin;
-	gpioSetMode(m_DownGPIOPin, PI_OUTPUT);
-	SetGPIOPinOff(m_DownGPIOPin);
+	
+	#if defined PLATFORM_RPI
+	
+		gpioSetMode(m_UpGPIOPin, PI_OUTPUT);
+		SetGPIOPinOff(m_UpGPIOPin);
+	
+		gpioSetMode(m_DownGPIOPin, PI_OUTPUT);
+		SetGPIOPinOff(m_DownGPIOPin);
+
+	#endif // defined PLATFORM_RPI
 	
 	// Set the individual control moving duration.
 	m_StandardMovingDurationMS = p_Config.m_MovingDurationMS;
@@ -286,9 +309,13 @@ void Control::Initialize(ControlConfig const& p_Config)
 //
 void Control::Uninitialize()
 {
-	// Revert to input.
-	gpioSetMode(m_UpGPIOPin, PI_INPUT);
-	gpioSetMode(m_DownGPIOPin, PI_INPUT);
+	#if defined PLATFORM_RPI
+
+		// Revert to input.
+		gpioSetMode(m_UpGPIOPin, PI_INPUT);
+		gpioSetMode(m_DownGPIOPin, PI_INPUT);
+
+	#endif // defined PLATFORM_RPI
 }
 
 // Process a tick.
@@ -748,6 +775,21 @@ Control* ControlAction::GetControl()
 //
 void ControlsInitialize(std::vector<ControlConfig> const& p_Configs)
 {
+	#if defined PLATFORM_RPI
+	
+		LoggerAddMessage("Initializing GPIO support...");
+	
+		if (gpioInitialise() < 0)
+		{
+			LoggerAddMessage("\tfailed");
+			return;
+		}
+
+		LoggerAddMessage("\tsucceeded");
+		LoggerAddMessage("");
+
+	#endif // defined PLATFORM_RPI
+
 	for (auto const& l_Config : p_Configs)
 	{
 		ControlsCreateControl(l_Config);
@@ -765,6 +807,13 @@ void ControlsUninitialize()
 	
 	// Get rid of all of the controls.
 	s_Controls.clear();
+
+	#if defined PLATFORM_RPI
+	
+		// Uninitialize GPIO support.
+		gpioTerminate();
+	
+	#endif // defined PLATFORM_RPI
 }
 
 // Process all of the controls.
