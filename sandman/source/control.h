@@ -50,7 +50,15 @@ struct ControlConfig
 	// Returns:		True if the config was read successfully, false otherwise.
 	//
 	bool ReadFromXML(xmlDocPtr p_Document, xmlNodePtr p_Node);
-	
+		
+	// Read a control config from JSON. 
+	//
+	// p_Object:	The JSON object representing a control config.
+	//
+	// Returns:		True if the config was read successfully, false otherwise.
+	//
+	bool ReadFromJSON(rapidjson::Value const& p_Object);
+
 	// Constants.
 	static constexpr unsigned int ms_ControlNameCapacity = 32;
 	
@@ -221,7 +229,7 @@ struct ControlAction
 	//
 	// Returns:		True if the action was read successfully, false otherwise.
 	//
-	bool ReadFromJSON(rapidjson::Value::ConstObject const& p_Object);
+	bool ReadFromJSON(rapidjson::Value const& p_Object);
 
 	// Attempt to get the control corresponding to the control action.
 	//

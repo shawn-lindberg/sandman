@@ -37,7 +37,20 @@ def create_app(test_config = None):
         server_ip = request.host.split(':')[0]
         return redirect("http://" + server_ip + ':12101')
 
+    # Register blueprints 
     from .reports import reports
     app.register_blueprint(reports.blueprint)
+
+    from .status import status
+    app.register_blueprint(status.status_bp)
+
+    # Create global status variable
+    @app.context_processor
+    def status_processor():
+        if status.check_sandman_health() == 0 and status.check_rhasspy_health() == 0:
+            health_issue = False
+        else:
+            health_issue = True
+        return dict(health_issue = health_issue)
 
     return app

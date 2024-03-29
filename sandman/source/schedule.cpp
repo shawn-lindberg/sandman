@@ -9,7 +9,6 @@
 
 #include "rapidjson/document.h"
 #include "rapidjson/filereadstream.h"
-
 #include "control.h"
 #include "logger.h"
 #include "notification.h"
@@ -31,11 +30,11 @@ struct ScheduleEvent
 {
 	// Read a schedule event from JSON. 
 	//
-	// p_EventObject:	The JSON object representing the event.
+	// p_Object:	The JSON object representing the event.
 	//	
 	// Returns:		True if the event was read successfully, false otherwise.
 	//
-	bool ReadFromJSON(rapidjson::Value::ConstObject const& p_EventObject);
+	bool ReadFromJSON(rapidjson::Value const& p_Object);
 	
 	// Delay in seconds before this entry occurs (since the last).
 	unsigned int	m_DelaySec;
@@ -44,14 +43,25 @@ struct ScheduleEvent
 	ControlAction	m_ControlAction;
 };
 
+class Schedule 
+{
+    public:
+        Schedule() = default;
+        void AddEvent(const ScheduleEvent& p_Event);
+        bool IsEmpty() const;
+        size_t GetNumEvents() const;
+        std::vector<ScheduleEvent>& GetEvents();
+        bool LoadFromFile(const char* p_FileName);
+
+    private:
+        std::vector<ScheduleEvent> m_ScheduleEvents;
+};
+
 // Locals
 //
 
 // Whether the system is initialized.
 static bool s_ScheduleInitialized = false;
-
-// This will contain the schedule once it has been parsed in.
-static std::vector<ScheduleEvent> s_ScheduleEvents;
 
 // The current spot in the schedule.
 static unsigned int s_ScheduleIndex = UINT_MAX;
@@ -59,71 +69,41 @@ static unsigned int s_ScheduleIndex = UINT_MAX;
 // The time the delay for the next event began.
 static Time s_ScheduleDelayStartTime;
 
+static Schedule s_Schedule;
+
 // Functions
 //
 
+// Schedule members
 
-// ScheduleEvent members
-
-// Read a schedule event from JSON. 
-//	
-// p_Object:	The JSON object representing the event.
-//
-// Returns:		True if the event was read successfully, false otherwise.
-//
-bool ScheduleEvent::ReadFromJSON(rapidjson::Value::ConstObject const& p_Object)
+void Schedule::AddEvent(const ScheduleEvent& p_Event)
 {
-	// We must have a delay.
-	auto const l_DelayIterator = p_Object.FindMember("delaySec");
-
-	if (l_DelayIterator == p_Object.MemberEnd())
-	{
-		return false;
-	}
-
-	if (l_DelayIterator->value.IsInt() == false)
-	{
-		return false;
-	}
-
-	m_DelaySec = l_DelayIterator->value.GetInt();
-
-	// We must also have a control action.
-	auto const l_ControlActionIterator = p_Object.FindMember("controlAction");
-
-	if (l_ControlActionIterator == p_Object.MemberEnd())
-	{
-		return false;
-	}
-
-	if (l_ControlActionIterator->value.IsObject() == false)
-	{
-		return false;
-	}
-	
-	if (m_ControlAction.ReadFromJSON(l_ControlActionIterator->value.GetObject()) == false) 
-	{
-		return false;
-	}
-	
-	return true;
+	m_ScheduleEvents.push_back(p_Event);
 }
-		
-// Functions
-//
 
-// Load the schedule from a file.
-// 
-static bool ScheduleLoad()
+bool Schedule::IsEmpty() const
 {
-	// Open the schedule file.
-	static auto const* const s_ScheduleFileName = CONFIGDIR "sandman.sched";
+	return (m_ScheduleEvents.size() == 0);
+}
 
-	auto* l_ScheduleFile = fopen(s_ScheduleFileName, "r");
+size_t Schedule::GetNumEvents() const
+{
+	return m_ScheduleEvents.size();
+}
+std::vector<ScheduleEvent>& Schedule::GetEvents()
+{
+	return m_ScheduleEvents;
+}
+
+bool Schedule::LoadFromFile(const char* p_FileName)
+{
+	m_ScheduleEvents.clear();
+
+	auto* l_ScheduleFile = fopen(p_FileName, "r");
 
 	if (l_ScheduleFile == nullptr)
 	{
-		LoggerAddMessage("Failed to open the schedule file.\n");
+		LoggerAddMessage("Failed to open the schedule file %s.\n", p_FileName);
 		return false;
 	}
 
@@ -137,7 +117,7 @@ static bool ScheduleLoad()
 
 	if (l_ScheduleDocument.HasParseError() == true)
 	{
-		LoggerAddMessage("Failed to parse the schedule file.\n");
+		LoggerAddMessage("Failed to parse the schedule file %s.\n", p_FileName);
 		fclose(l_ScheduleFile);
 		return false;
 	}
@@ -147,37 +127,105 @@ static bool ScheduleLoad()
 
 	if (l_EventsIterator == l_ScheduleDocument.MemberEnd())
 	{
+		LoggerAddMessage("No schedule events in %s.\n", p_FileName);
 		fclose(l_ScheduleFile);
 		return false;		
 	}
 
 	if (l_EventsIterator->value.IsArray() == false)
 	{
+		LoggerAddMessage("Schedule has events, but it is not an array.");
 		fclose(l_ScheduleFile);
+		LoggerAddMessage("No event array in %s.\n", p_FileName);
 		return false;
 	}
 
 	// Try to load each event in turn.
 	for (auto const& l_EventObject : l_EventsIterator->value.GetArray())
 	{
-		if (l_EventObject.IsObject() == false)
-		{
-			continue;
-		}
-
 		// Try to read the event.
 		ScheduleEvent l_Event;
-		if (l_Event.ReadFromJSON(l_EventObject.GetObject()) == false)
+		if (l_Event.ReadFromJSON(l_EventObject) == false)
 		{
 			continue;
 		}
 					
 		// If we successfully read the event, add it to the list.
-		s_ScheduleEvents.push_back(l_Event);
+		AddEvent(l_Event);
 	}
 							
 	fclose(l_ScheduleFile);
 	return true;
+}
+
+
+// ScheduleEvent members
+
+// Read a schedule event from JSON. 
+//	
+// p_Object:	The JSON object representing the event.
+//
+// Returns:		True if the event was read successfully, false otherwise.
+//
+bool ScheduleEvent::ReadFromJSON(rapidjson::Value const& p_Object)
+{
+	if (p_Object.IsObject() == false)
+	{
+		LoggerAddMessage("Schedule event could not be parsed because it is not an object.");
+		return false;
+	}
+
+	// We must have a delay.
+	auto const l_DelayIterator = p_Object.FindMember("delaySec");
+
+	if (l_DelayIterator == p_Object.MemberEnd())
+	{
+		LoggerAddMessage("Schedule event is missing the delay time.");
+		return false;
+	}
+
+	if (l_DelayIterator->value.IsInt() == false)
+	{
+		LoggerAddMessage("Schedule event has a delay time, but it's not an integer.");
+		return false;
+	}
+
+	m_DelaySec = l_DelayIterator->value.GetInt();
+
+	// We must also have a control action.
+	auto const l_ControlActionIterator = p_Object.FindMember("controlAction");
+
+	if (l_ControlActionIterator == p_Object.MemberEnd())
+	{
+		LoggerAddMessage("Schedule event is missing a control action.");
+		return false;
+	}
+	
+	if (m_ControlAction.ReadFromJSON(l_ControlActionIterator->value) == false) 
+	{
+		LoggerAddMessage("Schedule event control action could not be parsed.");
+		return false;
+	}
+	
+	return true;
+}
+
+
+// Functions
+//
+
+// Load the schedule from a file.
+// 
+static bool ScheduleLoad()
+{
+	// Open the schedule file.
+	static auto const* const s_ScheduleFileName = CONFIGDIR "sandman.sched";
+
+	// validate invalid fails parsing and missing does not exist
+	//bool res = s_Schedule.LoadFromFile(CONFIGDIR "invalidJson.sched");
+	//res = s_Schedule.LoadFromFile(CONFIGDIR "missing.sched");
+
+	return s_Schedule.LoadFromFile(s_ScheduleFileName);
 }
 
 // Write the loaded schedule to the logger.
@@ -187,14 +235,14 @@ static void ScheduleLogLoaded()
 	// Now write out the schedule.
 	LoggerAddMessage("The following schedule is loaded:");
 	
-	if (s_ScheduleEvents.size() == 0)
+	if (s_Schedule.IsEmpty())
 	{
 		LoggerAddMessage("\t<empty>");
 		LoggerAddMessage("");
 		return;
 	}
 
-	for (auto const& l_Event : s_ScheduleEvents)
+	for (auto const& l_Event : s_Schedule.GetEvents())
 	{
 		// Split the delay into multiple units.
 		auto l_DelaySec = l_Event.m_DelaySec;
@@ -221,8 +269,6 @@ static void ScheduleLogLoaded()
 void ScheduleInitialize()
 {	
 	s_ScheduleIndex = UINT_MAX;
-	
-	s_ScheduleEvents.clear();
 	
 	LoggerAddMessage("Initializing the schedule...");
 
@@ -252,8 +298,6 @@ void ScheduleUninitialize()
 	}
 	
 	s_ScheduleInitialized = false;
-	
-	s_ScheduleEvents.clear();
 }
 
 // Start the schedule.
@@ -335,7 +379,7 @@ void ScheduleProcess()
 	}
 
 	// No need to do anything for schedules with zero events.
-	auto const l_ScheduleEventCount = static_cast<unsigned int>(s_ScheduleEvents.size());
+	auto const l_ScheduleEventCount = static_cast<unsigned int>(s_Schedule.GetNumEvents());
 	if (l_ScheduleEventCount == 0)
 	{
 		return;
@@ -349,7 +393,7 @@ void ScheduleProcess()
 		TimerGetElapsedMilliseconds(s_ScheduleDelayStartTime, l_CurrentTime) / 1000.0f;
 
 	// Time up?
-	auto& l_Event = s_ScheduleEvents[s_ScheduleIndex];
+	auto& l_Event = s_Schedule.GetEvents()[s_ScheduleIndex];
 	
 	if (l_ElapsedTimeSec < l_Event.m_DelaySec)
 	{

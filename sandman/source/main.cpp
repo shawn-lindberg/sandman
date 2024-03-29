@@ -44,6 +44,8 @@ static bool s_DaemonMode = false;
 // Used to listen for connections.
 static int s_ListeningSocket = -1;
 
+static int s_ExitCode = 0;
+
 // Functions
 //
 
@@ -63,12 +65,14 @@ static bool Initialize()
 		// Legitimate failure.
 		if (l_ProcessID < 0)
 		{
+			s_ExitCode = 1;
 			return false;
 		}
 		
 		// The parent gets the ID of the child and exits.
 		if (l_ProcessID > 0)
 		{
+			s_ExitCode = 1;
 			return false;
 		}
 		
@@ -80,6 +84,7 @@ static bool Initialize()
 		// Initialize logging.
 		if (LoggerInitialize(TEMPDIR "sandman.log") == false)
 		{
+			s_ExitCode = 1;
 			return false;
 		}
 
@@ -89,6 +94,7 @@ static bool Initialize()
 		if (l_SessionID < 0)
 		{
 			LoggerAddMessage("Failed to get new session ID for daemon.");
+			s_ExitCode = 1;
 			return false;
 		}
 	
@@ -96,6 +102,7 @@ static bool Initialize()
 		if (chdir(TEMPDIR) < 0)
 		{
 			LoggerAddMessage("Failed to change working directory to \"%s\" ID for daemon.", TEMPDIR);
+			s_ExitCode = 1;
 			return false;
 		}
 		
@@ -118,6 +125,7 @@ static bool Initialize()
 		if (s_ListeningSocket < 0)
 		{
 			LoggerAddMessage("Failed to create listening socket.");
+			s_ExitCode = 1;
 			return false;
 		}
 		
@@ -125,6 +133,7 @@ static bool Initialize()
 		if (fcntl(s_ListeningSocket, F_SETFL, O_NONBLOCK) < 0)
 		{
 			LoggerAddMessage("Failed to make listening socket non-blocking.");
+			s_ExitCode = 1;
 			return false;
 		}
 		
@@ -143,6 +152,7 @@ static bool Initialize()
 			sizeof(sockaddr_un)) < 0)
 		{
 			LoggerAddMessage("Failed to bind listening socket.");
+			s_ExitCode = 1;
 			return false;
 		}
 		
@@ -150,6 +160,7 @@ static bool Initialize()
 		if (listen(s_ListeningSocket, 5) < 0)
 		{
 			LoggerAddMessage("Failed to mark listening socket to listen.");
+			s_ExitCode = 1;
 			return false;
 		}
 		
@@ -175,6 +186,7 @@ static bool Initialize()
 		// Initialize logging.
 		if (LoggerInitialize(TEMPDIR "sandman.log") == false)
 		{
+			s_ExitCode = 1;
 			return false;
 		}
 		
@@ -185,12 +197,14 @@ static bool Initialize()
 	Config l_Config;
 	if (l_Config.ReadFromFile(CONFIGDIR "sandman.conf") == false)
 	{
+		s_ExitCode = 1;
 		return false;
 	}	
 			
 	// Initialize MQTT.
 	if (MQTTInitialize() == false) 
 	{
+		s_ExitCode = 1;
 		return false;
 	}
 
@@ -503,14 +517,14 @@ int main(int argc, char** argv)
 	// Deal with command line arguments.
 	if (HandleCommandLine(argv, argc) == true) 
 	{
-		return 0;
+		return s_ExitCode;
 	}
 	
 	// Initialization.
 	if (Initialize() == false)
 	{
 		Uninitialize();
-		return 0;
+		return s_ExitCode;
 	}
 
 	// Store a keyboard input here.
@@ -582,5 +596,5 @@ int main(int argc, char** argv)
 	
 	// Cleanup.
 	Uninitialize();
-	return 0;
+	return s_ExitCode;
 }

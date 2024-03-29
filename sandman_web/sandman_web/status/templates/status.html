@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Status{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<h2>Sandman</h2> {{ sandman_status }}
+<h2>Rhasspy</h2> {{ rhasspy_status }}
+<h2>ha-bridge</h2> {{ ha_bridge_status }}
+
+{% endblock %}

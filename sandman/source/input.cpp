@@ -75,7 +75,55 @@ bool InputBinding::ReadFromXML(xmlDocPtr p_Document, xmlNodePtr p_Node)
 	
 	return true;
 }
+
+// Read an input binding from JSON. 
+//
+// p_Object:	The JSON object representing a binding.
+//	
+// Returns:		True if the binding was read successfully, false otherwise.
+//
+bool InputBinding::ReadFromJSON(rapidjson::Value const& p_Object)	
+{
+	if (p_Object.IsObject() == false)
+	{
+		return false;
+	}
+
+	// There must be a keycode.
+	auto const l_KeyCodeIterator = p_Object.FindMember("keyCode");
+
+	if (l_KeyCodeIterator == p_Object.MemberEnd())
+	{
+		LoggerAddMessage("Input binding is missing a key code.");
+		return false;
+	}
+
+	if (l_KeyCodeIterator->value.IsInt() == false)
+	{
+		LoggerAddMessage("Input binding has a key code, but it is not an integer.");
+		return false;
+	}
+
+	m_KeyCode = l_KeyCodeIterator->value.GetInt();
+
+	// We must also have a control action.
+	auto const l_ControlActionIterator = p_Object.FindMember("controlAction");
+
+	if (l_ControlActionIterator == p_Object.MemberEnd())
+	{
+		LoggerAddMessage("Input binding is missing a control action.");
+		return false;
+	}
 	
+	if (m_ControlAction.ReadFromJSON(l_ControlActionIterator->value) == false) 
+	{
+		LoggerAddMessage("Input binding has a control action, but it could not be parsed.");
+		return false;
+	}
+
+	return true;
+}
+
 // Input members
 
 // Handle initialization.
