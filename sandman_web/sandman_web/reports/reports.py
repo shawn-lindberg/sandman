@@ -17,7 +17,7 @@ report_extension = '.rpt'
 # The date and time format for report events.
 report_date_time_format = '%Y/%m/%d %H:%M:%S %Z'
 
-blueprint = Blueprint('reports', __name__, url_prefix = '/reports', template_folder='templates')
+blueprint = Blueprint('reports', __name__, url_prefix = '/reports', template_folder='templates', static_folder='static')
 
 @blueprint.route('/')
 def index():
