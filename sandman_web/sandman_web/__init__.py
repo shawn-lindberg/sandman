@@ -15,8 +15,6 @@ fileHandler.setLevel(logging.WARNING)
 fileHandler.setFormatter(logFormatter)
 logger.addHandler(fileHandler)
 
-from flask import Flask,request,redirect
-
 def create_app(test_config = None):
     """Creates and configures the app.
 
