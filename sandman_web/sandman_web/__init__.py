@@ -1,6 +1,19 @@
 import os
-
+import logging
+from logging.handlers import RotatingFileHandler
 from flask import Flask,request,redirect
+
+# Get the root logger
+logger = logging.getLogger()
+
+# Create a formatter object
+logFormatter = logging.Formatter("[%(asctime)s] %(levelname)s in %(module)s: %(message)s")
+
+# Add file handler to the root logger
+fileHandler = RotatingFileHandler("flask_app.log", backupCount=10, maxBytes=1000000)
+fileHandler.setLevel(logging.WARNING)
+fileHandler.setFormatter(logFormatter)
+logger.addHandler(fileHandler)
 
 def create_app(test_config = None):
     """Creates and configures the app.
