@@ -256,7 +256,6 @@ sudo update-rc.d sandman.sh defaults
 
 ### Software
 
-* Convert the schedule to JSON.
 * Implement a web interface for modifying the schedule.
 * Implement a web interface for modifying the configuration.
 * Add control over whether notifications are played.
