@@ -120,31 +120,31 @@ Wrap after operators, not before.
 ```
 // Right.
 float const l_Average = l_Total / 
-	l_Count;
+								l_Count;
 
 // Wrong.
 float const l_Average = l_Total
-	/ l_Count;
+								/ l_Count;
 ```
 
 Try to fit as many function arguments on each line as possible.
 
 ```
 // Right.
-void MyExtremelyExtremelySuperSuperDuperDuperLongFunctionNameWithArguments(float p_Argument1, 
-	float p_Argument2, float p_Argument3);
+void MyExtremelySuperDuperLongFunctionNameWithArguments(float p_Argument1, float p_Argument2, 
+																		  float p_Argument3);
 
 // Wrong.
-void MyExtremelyExtremelySuperSuperDuperDuperLongFunctionNameWithArguments(float p_Argument1, 
-	float p_Argument2, 
-	float p_Argument3);
+void MyExtremelySuperDuperLongFunctionNameWithArguments(float p_Argument1, 
+																		  float p_Argument2, 
+																		  float p_Argument3);
 ```
 
-Also please notice that the wrapped lines are not aligned, they are simply indented.
+Also please notice that the wrapped lines are aligned.
 
 String literals that are too long to fit on a line should be separated like follows.
 
 ```
 static char const* s_String = "This is a very long and descriptive string which has no other "
-	"purpose than to demonstrate how to wrap a string literal.";
+										"purpose than to demonstrate how to wrap a string literal.";
 ```
