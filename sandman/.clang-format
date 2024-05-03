@@ -21,10 +21,10 @@ AlwaysBreakAfterReturnType: None
 AlwaysBreakTemplateDeclarations: Yes
 BitFieldColonSpacing: Both
 BreakConstructorInitializers: BeforeColon
-AlignArrayOfStructures: Left
+AlignArrayOfStructures: None
 SpaceBeforeParens: ControlStatementsExceptControlMacros
-IndentCaseLabels: false
-IndentCaseBlocks: true
+IndentCaseLabels: true
+IndentCaseBlocks: false
 NamespaceIndentation: All
 BraceWrapping:
   AfterCaseLabel: true
@@ -54,7 +54,7 @@ BreakStringLiterals: true
 CompactNamespaces: false
 ConstructorInitializerIndentWidth: 3
 ContinuationIndentWidth: 3
-Cpp11BracedListStyle: true
+Cpp11BracedListStyle: false
 IncludeBlocks: Preserve
 IndentExternBlock: AfterExternBlock
 KeepEmptyLinesAtTheStartOfBlocks: true
@@ -76,7 +76,7 @@ SpacesInParentheses: false
 SpacesInSquareBrackets: false
 TabWidth: 3
 UseTab: Always
-AccessModifierOffset: 0
+AccessModifierOffset: -3
 AlignConsecutiveAssignments: None
 AllowShortBlocksOnASingleLine: Never
 AlignOperands: DontAlign
@@ -92,3 +92,5 @@ AlignConsecutiveBitFields: AcrossEmptyLinesAndComments
 AlignConsecutiveMacros: AcrossEmptyLinesAndComments
 AlignEscapedNewlines: Right
 AlignTrailingComments: true
+EmptyLineAfterAccessModifier: Leave
+MaxEmptyLinesToKeep: 2
