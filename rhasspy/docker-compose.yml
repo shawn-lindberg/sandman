@@ -8,6 +8,7 @@ services:
         - "/etc/localtime:/etc/localtime:ro"
     ports:
         - "12101:12101"
+        - "12183:12183"
     devices:
         - "/dev/snd:/dev/snd"
     command: --user-profiles /profiles --profile en
