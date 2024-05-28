@@ -21,10 +21,6 @@
 #include "schedule.h"
 #include "timer.h"
 
-#define DATADIR	AM_DATADIR
-#define CONFIGDIR	AM_CONFIGDIR
-#define TEMPDIR	AM_TEMPDIR
-
 // Types
 //
 
@@ -82,7 +78,7 @@ static bool Initialize()
 		umask(0);
 		
 		// Initialize logging.
-		if (LoggerInitialize(TEMPDIR "sandman.log") == false)
+		if (LoggerInitialize(SANDMAN_TEMP_DIR "sandman.log") == false)
 		{
 			s_ExitCode = 1;
 			return false;
@@ -99,9 +95,10 @@ static bool Initialize()
 		}
 	
 		// Change the current working directory.
-		if (chdir(TEMPDIR) < 0)
+		if (chdir(SANDMAN_TEMP_DIR) < 0)
 		{
-			LoggerAddMessage("Failed to change working directory to \"%s\" ID for daemon.", TEMPDIR);
+			LoggerAddMessage("Failed to change working directory to \"%s\" ID for daemon.", 
+				SANDMAN_TEMP_DIR);
 			s_ExitCode = 1;
 			return false;
 		}
@@ -140,7 +137,7 @@ static bool Initialize()
 		sockaddr_un l_ListeningAddress;
 		{
 			l_ListeningAddress.sun_family = AF_UNIX;
-			strncpy(l_ListeningAddress.sun_path, TEMPDIR "sandman.sock", 
+			strncpy(l_ListeningAddress.sun_path, SANDMAN_TEMP_DIR "sandman.sock", 
 				sizeof(l_ListeningAddress.sun_path) - 1);
 		}
 		
@@ -184,7 +181,7 @@ static bool Initialize()
 		nonl();
 			
 		// Initialize logging.
-		if (LoggerInitialize(TEMPDIR "sandman.log") == false)
+		if (LoggerInitialize(SANDMAN_TEMP_DIR "sandman.log") == false)
 		{
 			s_ExitCode = 1;
 			return false;
@@ -195,7 +192,7 @@ static bool Initialize()
 				
 	// Read the config.
 	Config l_Config;
-	if (l_Config.ReadFromFile(CONFIGDIR "sandman.conf") == false)
+	if (l_Config.ReadFromFile(SANDMAN_CONFIG_DIR "sandman.conf") == false)
 	{
 		s_ExitCode = 1;
 		return false;
@@ -420,7 +417,7 @@ static void SendMessageToDaemon(char const* p_Message)
 	sockaddr_un l_SendingAddress;
 	{
 		l_SendingAddress.sun_family = AF_UNIX;
-		strncpy(l_SendingAddress.sun_path, TEMPDIR "sandman.sock", 
+		strncpy(l_SendingAddress.sun_path, SANDMAN_TEMP_DIR "sandman.sock", 
 			sizeof(l_SendingAddress.sun_path) - 1);
 	}
 		
@@ -453,7 +450,7 @@ static void SendMessageToDaemon(char const* p_Message)
 //
 // Returns:	True if the program should exit, false if it should continue.
 //
-static bool HandleCommandLine(char** p_Arguments, int p_ArgumentCount)
+static bool HandleCommandLine(char** p_Arguments, unsigned int p_ArgumentCount)
 {
 	for (unsigned int l_ArgumentIndex = 0; l_ArgumentIndex < p_ArgumentCount; l_ArgumentIndex++)
 	{

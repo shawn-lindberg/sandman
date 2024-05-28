@@ -10,8 +10,6 @@
 #include "reports.h"
 #include "schedule.h"
 
-#define DATADIR		AM_DATADIR
-
 // Constants
 //
 
