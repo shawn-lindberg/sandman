@@ -56,20 +56,21 @@ You can solder wires from each relay directly to the pads of each hand control b
 
 ## Software Installation
 
-### Rhasspy
+### Repository Clone
 
-Sandman relies on [Rhasspy](https://rhasspy.readthedocs.io) to provide voice control and auditory feedback. Follow these [instructions](https://rhasspy.readthedocs.io/en/latest/installation/) in order to install Rhasspy on your Raspberry Pi. However, use the following command to start the Docker image rather than the one in the instructions, because we need to expose an additional port.
+You can download and extract the source or clone the repository using a command like this:
 
 ```bash
-docker run -d -p 12101:12101 -p 12183:12183 \
-      --name rhasspy \
-      --restart unless-stopped \
-      -v "$HOME/.config/rhasspy/profiles:/profiles" \
-      -v "/etc/localtime:/etc/localtime:ro" \
-      --device /dev/snd:/dev/snd \
-      rhasspy/rhasspy \
-      --user-profiles /profiles \
-      --profile en
+git clone https://github.com/shawn-lindberg/sandman.git
+```
+
+### Rhasspy
+
+Sandman relies on [Rhasspy](https://rhasspy.readthedocs.io) to provide voice control and auditory feedback. Follow these [instructions](https://rhasspy.readthedocs.io/en/latest/installation/) in order to install Rhasspy on your Raspberry Pi. However, use the following commands to start the Docker image rather than the one in the instructions, because we need to expose an additional port.
+
+```bash
+cd ~/sandman/rhasspy
+docker compose up -d
 ```
 
 Once Rhasspy is running, it can be configured through its web interface by going to YOUR_SANDMAN_IP_ADDRESS:12101. 
