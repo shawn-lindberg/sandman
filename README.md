@@ -131,10 +131,26 @@ Click Save Settings and it should start using the new sounds.
 Currently, building Sandman from source requires the following libraries:
 
 ```bash
-sudo apt install bison autoconf automake libtool libncurses-dev libxml2-dev libmosquitto-dev -y
+sudo apt install libncurses-dev libxml2-dev libmosquitto-dev -y
 ```
 
-Then, it can be built and installed with the following commands:
+To build with autotools requires the following additional packages:
+
+```bash
+sudo apt install bison autoconf automake libtool -y
+```
+
+Or, it can be built with CMake.
+
+You can download and extract the source or clone the repository using a command like this:
+
+```bash
+git clone https://github.com/shawn-lindberg/sandman.git
+```
+
+#### Autotools
+
+Sandman can be built and installed with autotools using the following commands:
 
 ```bash
 cd sandman/sandman
@@ -148,6 +164,25 @@ autoreconf --install
 ```bash
 make
 sudo make install
+```
+
+#### CMake
+
+Sandman can be built and installed with CMake using the following commands:
+
+```bash
+cd sandman/sandman
+```
+```bash
+mkdir build
+cd build
+``````
+```bash
+cmake ..
+``````
+```bash
+cmake --build .
+sudo cmake --install .
 ```
 
 ### Web interface with Flask

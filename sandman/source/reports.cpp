@@ -11,8 +11,6 @@
 
 #include "logger.h"
 
-#define TEMPDIR	AM_TEMPDIR
-
 #define REPORT_VERSION	3
 //	1					Initial version.
 // 2	2023/08/29	Adding the report start time to the header, for use when analyzing the data.
@@ -142,8 +140,8 @@ static void ReportsOpenFile()
 
 	s_ReportDateString = "";
 
-	std::string const l_ReportFileName = TEMPDIR "reports/sandman" + l_CurrentReportDateString + 
-		".rpt";
+	std::string const l_ReportFileName = SANDMAN_TEMP_DIR "reports/sandman" + 
+		l_CurrentReportDateString + ".rpt";
 
 	// First, see if the file already exists.
 	bool l_ReportAlreadyExisted = false;

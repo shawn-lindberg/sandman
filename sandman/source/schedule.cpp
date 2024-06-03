@@ -15,8 +15,6 @@
 #include "reports.h"
 #include "timer.h"
 
-#define DATADIR	AM_DATADIR
-#define CONFIGDIR	AM_CONFIGDIR
 
 // Constants
 //
@@ -219,7 +217,7 @@ bool ScheduleEvent::ReadFromJSON(rapidjson::Value const& p_Object)
 static bool ScheduleLoad()
 {
 	// Open the schedule file.
-	static auto const* const s_ScheduleFileName = CONFIGDIR "sandman.sched";
+	static auto const* const s_ScheduleFileName = SANDMAN_CONFIG_DIR "sandman.sched";
 
 	// validate invalid fails parsing and missing does not exist
 	//bool res = s_Schedule.LoadFromFile(CONFIGDIR "invalidJson.sched");

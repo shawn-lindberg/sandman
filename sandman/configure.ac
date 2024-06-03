@@ -36,11 +36,11 @@ AC_TYPE_UINT64_T
 # Checks for library functions.
 AC_CHECK_FUNCS([memmove strchr])
 
-# Add an argument that can conditionally enable platform-specific features.
-AC_ARG_WITH([platform], 
-	[AS_HELP_STRING([--with-platform], [Allows specifying platform-specific features.])],
-	[], [with_platform=rpi])
-AM_CONDITIONAL([PLATFORM_RPI], [test "x$with_platform" == xrpi])
+# Add an argument that can conditionally enable GPIO.
+AC_ARG_WITH([gpio], 
+	[AS_HELP_STRING([--with-gpio], [Allows specifying GPIO support.])],
+	[], [with_gpio=yes])
+AM_CONDITIONAL([ENABLE_GPIO], [test "x$with_gpio" != xno])
 
 # Actually output files.
 AC_OUTPUT
