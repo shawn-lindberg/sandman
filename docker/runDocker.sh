@@ -4,6 +4,7 @@
 
 # -it interactive, -d is background
 #docker run --privileged -it \
+#docker run --privileged -d \
 
 docker run --privileged -d \
    --network host \
