@@ -1,7 +1,11 @@
 
 # adding another bind mount for sandman log
 # network host allows use of all ports - https://docs.docker.com/network/drivers/host/
-docker run --privileged -it \
+
+# -it interactive, -d is background
+#docker run --privileged -it \
+
+docker run --privileged -d \
    --network host \
    --expose 12183 \
    --mount type=bind,src=/lib/libpigpio.so.1,target=/lib/libpigpio.so.1 \
