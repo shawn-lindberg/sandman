@@ -134,21 +134,13 @@ Currently, building Sandman from source requires the following libraries:
 sudo apt install libncurses-dev libxml2-dev libmosquitto-dev -y
 ```
 
+#### Autotools
+
 To build with autotools requires the following additional packages:
 
 ```bash
 sudo apt install bison autoconf automake libtool -y
 ```
-
-Or, it can be built with CMake.
-
-You can download and extract the source or clone the repository using a command like this:
-
-```bash
-git clone https://github.com/shawn-lindberg/sandman.git
-```
-
-#### Autotools
 
 Sandman can be built and installed with autotools using the following commands:
 
