@@ -23,9 +23,6 @@ AC_CHECK_LIB([ncurses], [initscr])
 AC_CHECK_LIB([pigpio], [gpioInitialise])
 AC_CHECK_LIB([mosquitto], [mosquitto_lib_init])
 
-# Check for libxml.
-PKG_CHECK_MODULES([XML], [libxml-2.0 >= 2.4])
-
 # Checks for header files.
 AC_CHECK_HEADERS([stdint.h string.h ncurses.h pigpio.h])
 

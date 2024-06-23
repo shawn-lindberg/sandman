@@ -11,7 +11,6 @@
 #include "logger.h"
 #include "notification.h"
 #include "timer.h"
-#include "xml.h"
 
 
 // Constants
@@ -119,71 +118,6 @@ void SetGPIOPinOff(int p_Pin)
 // A private constructor.
 ControlHandle::ControlHandle(unsigned short p_UID) : m_UID(p_UID)
 {
-}
-
-// ControlConfig members
-
-// Read a control config from XML. 
-//
-// p_Document:	The XML document that the node belongs to.
-// p_Node:		The XML node to read the control config from.
-//	
-// Returns:		True if the config was read successfully, false otherwise.
-//
-bool ControlConfig::ReadFromXML(xmlDocPtr p_Document, xmlNodePtr p_Node)
-{
-	// We must have a control name.
-	static auto const* s_ControlNameNodeName = "ControlName";
-	auto* l_ControlNameNode = XMLFindNextNodeByName(p_Node->xmlChildrenNode, s_ControlNameNodeName);
-	
-	if (l_ControlNameNode == nullptr) 
-	{
-		return false;
-	}
-	
-	// Copy the control name.
-	if (XMLCopyNodeText(m_Name, ms_ControlNameCapacity, p_Document, l_ControlNameNode) == false)
-	{
-		return false;
-	}
-	
-	// We must have an up pin.
-	static auto const* s_UpPinNodeName = "UpPin";
-	auto* l_UpPinNode = XMLFindNextNodeByName(p_Node->xmlChildrenNode, s_UpPinNodeName);
-	
-	if (l_UpPinNode == nullptr) 
-	{
-		return false;
-	}
-	
-	// Read the up pin from the node.
-	m_UpGPIOPin = XMLGetNodeTextAsInteger(p_Document, l_UpPinNode);
-			
-	// We must have a down pin.
-	static auto const* s_DownPinNodeName = "DownPin";
-	auto* l_DownPinNode = XMLFindNextNodeByName(p_Node->xmlChildrenNode, s_DownPinNodeName);
-	
-	if (l_DownPinNode == nullptr) 
-	{
-		return false;
-	}
-	
-	// Read the down pin from the node.
-	m_DownGPIOPin = XMLGetNodeTextAsInteger(p_Document, l_DownPinNode);
-		
-	// We must have a moving duration.
-	static auto const* s_MovingDurationNodeName = "MovingDurationMS";
-	auto* l_MovingDurationNode = XMLFindNextNodeByName(p_Node->xmlChildrenNode, s_MovingDurationNodeName);
-	
-	if (l_MovingDurationNode == nullptr) 
-	{
-		return false;
-	}
-	
-	// Read the moving duration from the node.
-	m_MovingDurationMS = XMLGetNodeTextAsInteger(p_Document, l_MovingDurationNode);
-		
-	return true;
 }
 
 // Read a control config from JSON. 
@@ -641,55 +575,6 @@ auto GetControlActionFromString(Control::Actions& p_Action, char const* p_InputT
 	}
 		
 	return false;
-}
-
-// Read a control action from XML. 
-//
-// p_Document:	The XML document that the node belongs to.
-// p_Node:		The XML node to read the control action from.
-//	
-// Returns:		True if the action was read successfully, false otherwise.
-//
-bool ControlAction::ReadFromXML(xmlDocPtr p_Document, xmlNodePtr p_Node)
-{
-	// We must have a control name.
-	static auto const* s_ControlNameNodeName = "ControlName";
-	auto* l_ControlNameNode = XMLFindNextNodeByName(p_Node->xmlChildrenNode, s_ControlNameNodeName);
-	
-	if (l_ControlNameNode == nullptr) 
-	{
-		return false;
-	}
-	
-	// Copy the control name.
-	if (XMLCopyNodeText(m_ControlName, ms_ControlNameCapacity, p_Document, l_ControlNameNode) == false)
-	{
-		return false;
-	}
-	
-	// We must also have an action.
-	static auto const* s_ActionNodeName = "Action";
-	auto* l_ActionNode = XMLFindNextNodeByName(p_Node->xmlChildrenNode, s_ActionNodeName);
-	
-	if (l_ActionNode == nullptr) 
-	{
-		return false;
-	}	
-	
-	// Make a copy of the node text so that we can parse it.
-	static constexpr unsigned int s_ActionTextCapacity = 32;
-	char l_ActionText[s_ActionTextCapacity];
-	
-	if (XMLCopyNodeText(l_ActionText, s_ActionTextCapacity, p_Document, l_ActionNode) == false)
-	{
-		return false;
-	}
-	
-	if (GetControlActionFromString(m_Action, l_ActionText) == false) {
-		return false;
-	}
-	
-	return true;
 }
 
 // Read a control action from JSON. 

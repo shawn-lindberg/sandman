@@ -131,7 +131,7 @@ Click Save Settings and it should start using the new sounds.
 Currently, building Sandman from source requires the following libraries:
 
 ```bash
-sudo apt install libncurses-dev libxml2-dev libmosquitto-dev -y
+sudo apt install libncurses-dev libmosquitto-dev -y
 ```
 
 #### Autotools
