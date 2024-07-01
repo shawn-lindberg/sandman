@@ -1,8 +1,62 @@
 #pragma once
 
+#include <vector>
+#include "rapidjson/document.h"
+
+#include "control.h"
 
 // Types
 //
+
+// A schedule event.
+struct ScheduleEvent
+{
+	// Read a schedule event from JSON. 
+	//
+	// p_Object:	The JSON object representing the event.
+	//	
+	// Returns:		True if the event was read successfully, false otherwise.
+	//
+	bool ReadFromJSON(rapidjson::Value const& p_Object);
+	
+	// Delay in seconds before this entry occurs (since the last).
+	unsigned int	m_DelaySec;
+	
+	// The control action to perform at the scheduled time.
+	ControlAction	m_ControlAction;
+};
+
+// A schedule.
+class Schedule 
+{
+   public:
+      Schedule() = default;
+
+      // Load a schedule from a file.
+      //
+      // p_FileName: The name of a file describing the schedule.
+      //
+      // Returns:    True if the schedule was loaded successfully, false otherwise.
+      //
+      bool LoadFromFile(const char* p_FileName);
+
+      // Determines whether the schedule is empty.
+      //
+      bool IsEmpty() const;
+
+      // Gets the number of events in the schedule.
+      //
+      size_t GetNumEvents() const;
+      
+      // Get the events in the schedule.
+      // NOTE: This is intended to be const, however current ControlActions prevent that.
+      //
+      std::vector<ScheduleEvent>& GetEvents();
+
+   private:
+      // The list of events making up the schedule.
+      std::vector<ScheduleEvent> m_Events;
+};
 
 
 // Functions
