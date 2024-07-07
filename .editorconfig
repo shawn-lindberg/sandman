@@ -1,7 +1,6 @@
 root = true
 
 # Use tab indentation with size 3.
-# See `./CODING-STANDARDS.md#tabs-versus-spaces`.
 [**]
 indent_style = tab
 indent_size = 3
