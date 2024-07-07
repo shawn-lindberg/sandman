@@ -1,6 +1,6 @@
 #pragma once
 
-#include <stdarg.h>
+#include <cstdarg>
 #include <sstream>
 
 // Types
@@ -43,7 +43,7 @@ void LoggerEchoToScreen(bool p_LogToScreen);
 //
 // returns:		True if successful, false otherwise.
 //
-[[gnu::format(printf, 1, 0)]] bool LoggerAddMessage(char const* p_Format, va_list& p_Arguments);
+[[gnu::format(printf, 1, 0)]] bool LoggerAddMessage(char const* p_Format, std::va_list& p_Arguments);
 
 inline bool LoggerAddEmptyLine()
 {
