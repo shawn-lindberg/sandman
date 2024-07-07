@@ -44,7 +44,7 @@ void LoggerEchoToScreen(bool p_LogToScreen);
 //
 [[gnu::format(printf, 1, 0)]] bool LoggerAddMessage(char const* p_Format, va_list& p_Arguments);
 
-inline bool LoggerAddNewLine()
+inline bool LoggerAddEmptyLine()
 {
 	#pragma GCC diagnostic push
 	#pragma GCC diagnostic ignored "-Wformat-zero-length"
