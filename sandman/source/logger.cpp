@@ -59,7 +59,7 @@ bool LoggerInitialize(char const* p_LogFileName)
 void LoggerUninitialize()
 {
 	// Acquire a lock for the rest of the function.
-	const std::lock_guard<std::mutex> l_LogGuard(s_LogMutex);
+	std::lock_guard<std::mutex> const l_LogGuard(s_LogMutex);
 
 	// Close the file.
 	if (s_LogFile != nullptr)
