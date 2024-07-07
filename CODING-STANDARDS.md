@@ -39,7 +39,7 @@ constexpr int MY_INTEGER_CONSTANT = 0;
 
 enum MyEnum
 {
-	MY_VALUE
+   MY_VALUE
 };
 ```
 
@@ -72,14 +72,14 @@ Braces should always go on their own line.
 ```cpp
 if (l_Done == true)
 {
-	// Do stuff.
+   // Do stuff.
 }
 ```
 No omission of braces.
 
 ```cpp
 if (l_Done == true)
-	s_Exit = true; // Wrong.
+   s_Exit = true; // Wrong.
 ```
 
 Regarding spaces, binary and tertiary operators should always have spaces between them like this:
@@ -120,11 +120,11 @@ Wrap after operators, not before.
 ```cpp
 // Right.
 float const l_Average = l_Total /
-								l_Count;
+                        l_Count;
 
 // Wrong.
 float const l_Average = l_Total
-								/ l_Count;
+                        / l_Count;
 ```
 
 Try to fit as many function arguments on each line as possible.
@@ -132,12 +132,12 @@ Try to fit as many function arguments on each line as possible.
 ```cpp
 // Right.
 void MyExtremelySuperDuperLongFunctionNameWithArguments(float p_Argument1, float p_Argument2,
-																		  float p_Argument3);
+                                                        float p_Argument3);
 
 // Wrong.
 void MyExtremelySuperDuperLongFunctionNameWithArguments(float p_Argument1,
-																		  float p_Argument2,
-																		  float p_Argument3);
+                                                        float p_Argument2,
+                                                        float p_Argument3);
 ```
 
 Also please notice that the wrapped lines are aligned.
@@ -146,5 +146,5 @@ String literals that are too long to fit on a line should be separated like foll
 
 ```cpp
 static char const* s_String = "This is a very long and descriptive string which has no other "
-										"purpose than to demonstrate how to wrap a string literal.";
+                              "purpose than to demonstrate how to wrap a string literal.";
 ```
