@@ -81,8 +81,8 @@ class Input
 		// p_Format:		Standard printf format string.
 		// ...:				Standard printf arguments.
 		//
-		void CloseDevice(bool p_WasFailure, char const* p_Format, ...);
-		
+		[[gnu::format(printf, 1+2, 1+3)]] void CloseDevice(bool p_WasFailure, char const* p_Format, ...);
+
 		// The name of the device to get input from.
 		char m_DeviceName[ms_DeviceNameCapacity];
 		
