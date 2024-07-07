@@ -1,7 +1,7 @@
 #include "logger.h"
 
 #if defined (__linux__)
-	#include <ncurses.h>
+	#include "ncurses_context.h"
 #endif // defined (__linux__)
 
 #include <mutex>
@@ -162,9 +162,10 @@ bool LoggerAddMessage(char const* p_Format, va_list& p_Arguments)
 
 			#elif defined (__linux__)
 
-				addstr(l_LogStringBuffer);
-				addch('\n');
-				refresh();
+				WINDOW* const l_window = NCurses::GetLoggingWindow();
+				waddstr(l_window, l_LogStringBuffer);
+				waddch(l_window, '\n');
+				wrefresh(l_window);
 
 			#endif // defined (_WIN32)
 		}
