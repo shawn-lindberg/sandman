@@ -107,11 +107,11 @@ bool LoggerAddMessage(char const* p_Format, ...)
 //
 bool LoggerAddMessage(char const* p_Format, va_list& p_Arguments)
 {
-	static unsigned int const l_LogStringBufferCapacity = 2048;
-	char l_LogStringBuffer[l_LogStringBufferCapacity];
+	static unsigned int constexpr s_LogStringBufferCapacity{2048u};
+	char l_LogStringBuffer[s_LogStringBufferCapacity];
 
 	// Initialize buffer write parameters.
-	auto l_RemainingCapacity = l_LogStringBufferCapacity;
+	auto l_RemainingCapacity = s_LogStringBufferCapacity;
 	auto* l_RemainingBuffer = l_LogStringBuffer;
 
 	// Get the time.
