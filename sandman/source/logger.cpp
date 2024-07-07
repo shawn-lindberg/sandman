@@ -16,7 +16,7 @@
 std::mutex s_LogMutex;
 
 // The file to log messages to.
-static FILE* s_LogFile = nullptr;
+static std::FILE* s_LogFile = nullptr;
 
 // Whether to echo messages to the screen.
 static bool s_LogToScreen = false;
@@ -88,7 +88,7 @@ void LoggerEchoToScreen(bool p_LogToScreen)
 //
 bool LoggerAddMessage(char const* p_Format, ...)
 {	
-	va_list l_Arguments;
+	std::va_list l_Arguments;
 	va_start(l_Arguments, p_Format);
 
 	auto const l_Result = LoggerAddMessage(p_Format, l_Arguments);
