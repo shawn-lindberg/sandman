@@ -1,13 +1,3 @@
-<style>
-	/*
-		Set the tab size for code blocks to 3.
-      See `./CODING-STANDARDS.md#tabs-versus-spaces`.
-	*/
-	pre code {
-		tab-size: 3;
-	}
-</style>
-
 # Coding Standards
 
 What follows is intended to document as clearly as possible the coding standards used by the Sandman project. As Sandman is comprised of multiple programming languages, there will be a section dedicated to each. However, there may be cases where a particular point may not be clear. In that case, please consult with the project leader.
