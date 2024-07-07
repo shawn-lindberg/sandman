@@ -1,0 +1,7 @@
+root = true
+
+# tab indentation with size 3
+# `./CODING-STANDARDS.md#tabs-versus-spaces`
+[**]
+indent_style = tab
+indent_size = 3
