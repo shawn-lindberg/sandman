@@ -102,7 +102,7 @@ MyClass *l_MyPointer = nullptr; // Wrong.
 MyClass * l_MyPointer = nullptr; // Wrong.
 ```
 
-const should always be to the right of the thing that is constant.
+`const` should always be to the right of the thing that is constant.
 
 ```cpp
 // Both the characters and the pointer are constant.
