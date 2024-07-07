@@ -4,7 +4,7 @@ What follows is intended to document as clearly as possible the coding standards
 
 ## C/C++
 
-For C and C++ code there is a .clang-format file which does match the coding standard to the extent that clang-format supports. However, there are aspects of the coding standard that clang-format does not cover, for example naming conventions.
+For C and C++ code there is a [`.clang-format` file](sandman/.clang-format) which does match the coding standard to the extent that clang-format supports. However, there are aspects of the coding standard that clang-format does not cover, for example naming conventions.
 
 ### Column Width
 
