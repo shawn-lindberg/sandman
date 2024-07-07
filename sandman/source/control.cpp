@@ -384,7 +384,7 @@ void Control::Process()
 
 		default:
 		{
-			LoggerAddMessage("Control \"%s\": Unrecognized state %d in Process()", m_State, m_Name);
+			LoggerAddMessage("Control \"%i\": Unrecognized state %s in Process()", m_State, m_Name);
 		}
 		break;
 	}
