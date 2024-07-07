@@ -2,6 +2,7 @@
 
 #include <unistd.h>
 #include <sys/reboot.h>
+#include <charconv>
 
 #include "control.h"
 #include "input.h"
@@ -427,19 +428,16 @@ void CommandTokenizeString(std::vector<CommandToken>& p_CommandTokens,
 		// If we couldn't turn it into a plain old token, see if it is a parameter token.
 		if (l_Token.m_Type == CommandToken::TYPE_INVALID)
 		{
-			// First, determine whether the string is numeric.
-			auto l_IsNumeric = true;
+			std::string_view const l_TokenStringView(l_TokenString);
+			auto const [endPointer, errorCode] = std::from_chars(l_TokenStringView.begin(), l_TokenStringView.end(), l_Token.m_Parameter);
 
-			for (const auto& l_Character : l_TokenString)
-			{
-				l_IsNumeric = l_IsNumeric && std::isdigit(l_Character);
-			}
-			
-			if (l_IsNumeric == true)
-			{
-				l_Token.m_Parameter = std::stoul(l_TokenString);
+			if (
+				/* successfully parsed to number */ errorCode == std::errc{0} and
+				/* matched whole string */ endPointer == l_TokenStringView.end()
+			) {
 				l_Token.m_Type = CommandToken::TYPE_INTEGER;
 			}
+
 		}
 		
 		// Add the token to the list.
