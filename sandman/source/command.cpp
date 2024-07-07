@@ -417,7 +417,7 @@ void CommandTokenizeString(std::vector<CommandToken>& p_CommandTokens,
 		// Make sure the token string is lowercase.
 		for (auto& l_Character : l_TokenString)
 		{
-			l_Character = std::tolower(l_Character);
+			l_Character = std::tolower(l_Character, std::locale::classic());
 		}
 
 		// Match the token string to a token (with no parameter) if possible.
