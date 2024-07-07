@@ -130,7 +130,7 @@ bool LoggerAddMessage(char const* p_Format, va_list& p_Arguments)
 	l_RemainingCapacity -= l_CapacityUsed;
 
 	// Add a separator.
-	if (l_RemainingCapacity < 2)
+	if (l_RemainingCapacity < 2u)
 	{
 		return false;
 	}
