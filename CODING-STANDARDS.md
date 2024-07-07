@@ -85,13 +85,13 @@ if (l_Done == true)
 Regarding spaces, binary and tertiary operators should always have spaces between them like this:
 
 ```cpp
-l_Score = l_Multiplier * (l_Points + l_Bonus);
+int l_Score = l_Multiplier * (l_Points + l_Bonus);
 ```
 
 Unary operators should not have spaces.
 
 ```cpp
-l_Negative = -l_Positive;
+int l_Negative = -l_Positive;
 ```
 
 Pointer and reference specifiers go with the type, not the variable. They also shouldn't float:
