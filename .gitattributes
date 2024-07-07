@@ -1,3 +1,5 @@
+# You can check what attributes are are being applied to a file like this:
+# `git check-attr --all <path_to_file>`
 
 # Using `.h` extension as C++ header files in this project.
-sandman/source/**.h linguist-language=C++
+sandman/source/**/*.h linguist-language=C++
