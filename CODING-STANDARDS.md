@@ -67,7 +67,7 @@ bool l_ShouldContinue = false;
 
 ### Formatting
 
-Braces should always go on their own line. 
+Braces should always go on their own line.
 
 ```cpp
 if (l_Done == true)
@@ -119,7 +119,7 @@ Wrap after operators, not before.
 
 ```cpp
 // Right.
-float const l_Average = l_Total / 
+float const l_Average = l_Total /
 								l_Count;
 
 // Wrong.
@@ -131,12 +131,12 @@ Try to fit as many function arguments on each line as possible.
 
 ```cpp
 // Right.
-void MyExtremelySuperDuperLongFunctionNameWithArguments(float p_Argument1, float p_Argument2, 
+void MyExtremelySuperDuperLongFunctionNameWithArguments(float p_Argument1, float p_Argument2,
 																		  float p_Argument3);
 
 // Wrong.
-void MyExtremelySuperDuperLongFunctionNameWithArguments(float p_Argument1, 
-																		  float p_Argument2, 
+void MyExtremelySuperDuperLongFunctionNameWithArguments(float p_Argument1,
+																		  float p_Argument2,
 																		  float p_Argument3);
 ```
 
