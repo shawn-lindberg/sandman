@@ -38,7 +38,7 @@ struct CommandToken
 	};
 
 	// The type of the token.
-	Types	m_Type = TYPE_INVALID;
+	Types m_Type = TYPE_INVALID;
 	
 	// The value of the integer parameter, if relevant.
 	int   m_Parameter = 0;
