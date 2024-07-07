@@ -670,7 +670,7 @@ void ControlsInitialize(std::vector<ControlConfig> const& p_Configs)
 		}
 
 		LoggerAddMessage("\tsucceeded");
-		LoggerAddMessage("");
+		LoggerAddNewLine();
 
 	#endif // defined ENABLE_GPIO
 

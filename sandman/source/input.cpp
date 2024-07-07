@@ -120,7 +120,7 @@ void Input::Initialize(char const* p_DeviceName, std::vector<InputBinding> const
 			l_Binding.m_ControlAction.m_ControlName, l_ActionText);
 	}
 	
-	LoggerAddMessage("");
+	LoggerAddNewLine();
 }
 
 // Handle uninitialization.

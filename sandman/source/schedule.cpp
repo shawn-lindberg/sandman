@@ -236,7 +236,7 @@ static void ScheduleLogLoaded()
 	if (s_Schedule.IsEmpty())
 	{
 		LoggerAddMessage("\t<empty>");
-		LoggerAddMessage("");
+		LoggerAddNewLine();
 		return;
 	}
 
@@ -259,7 +259,7 @@ static void ScheduleLogLoaded()
 			l_DelaySec, l_Event.m_ControlAction.m_ControlName, l_ActionText);
 	}
 	
-	LoggerAddMessage("");
+	LoggerAddNewLine();
 }
 
 // Initialize the schedule.
@@ -278,7 +278,7 @@ void ScheduleInitialize()
 	}
 	
 	LoggerAddMessage("\tsucceeded");
-	LoggerAddMessage("");
+	LoggerAddNewLine();
 	
 	// Log the schedule that just got loaded.
 	ScheduleLogLoaded();
