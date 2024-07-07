@@ -1,0 +1,3 @@
+
+# Using `.h` extension as C++ header files in this project.
+sandman/source/**.h linguist-language=C++
