@@ -8,7 +8,6 @@
 #include <sys/types.h>
 #include <sys/un.h>
 
-#include <ncurses.h>
 
 #include "command.h"
 #include "config.h"
@@ -16,6 +15,7 @@
 #include "input.h"
 #include "logger.h"
 #include "mqtt.h"
+#include "ncurses_context.h"
 #include "notification.h"
 #include "reports.h"
 #include "schedule.h"
@@ -165,21 +165,8 @@ static bool Initialize()
 	}
 	else
 	{
-		// Initialize ncurses.
-		initscr();
+		NCurses::Initialize();
 
-		// Don't wait for newlines, make getch non-blocking, and don't display input.
-		cbreak();
-		nodelay(stdscr, true);
-		noecho();
-		
-		// Allow the window to scroll.
-		scrollok(stdscr, true);
-		idlok(stdscr, true);
-
-		// Allow new-lines in the input.
-		nonl();
-			
 		// Initialize logging.
 		if (LoggerInitialize(SANDMAN_TEMP_DIR "sandman.log") == false)
 		{
@@ -274,8 +261,7 @@ static void Uninitialize()
 
 	if (s_DaemonMode == false)
 	{
-		// Uninitialize ncurses.
-		endwin();
+		NCurses::Uninitialize();
 	}
 }
 
@@ -291,14 +277,37 @@ static bool ProcessKeyboardInput(char* p_KeyboardInputBuffer, unsigned int& p_Ke
 	unsigned int const p_KeyboardInputBufferCapacity)
 {
 	// Try to get keyboard commands.
-	auto const l_InputKey = getch();
+
+	auto const l_Window = NCurses::GetInputWindow();
+
+	int static constexpr START_Y{1}, START_X{2};
+
+	int static l_OffsetX{0};
+
+	auto const l_InputKey = mvwgetch(l_Window, /* y */ START_Y, /* x */ START_X + l_OffsetX);
 	if ((l_InputKey == ERR) || (isascii(l_InputKey) == false))
 	{
 		return false;
 	}
-	
-	// Get the character.
+
+	l_OffsetX += 1;
+
+	// Get the character. This conversion is safe because we checked if the character is in ASCII.
 	auto const l_NextChar = static_cast<char>(l_InputKey);
+
+	switch (l_NextChar)
+	{
+		case '\r':
+			wmove(l_Window, START_Y, START_X);
+			wclrtoeol(l_Window);
+			box(l_Window, 0/* use default vertical character */, 0/* use default horizontal character */);
+			l_OffsetX = 0;
+			break;
+		case '\n':
+			LoggerAddMessage("Unnexpectedly got a newline character as user input.");
+		default:
+			waddch(l_Window, l_NextChar);
+	}
 
 	// Accumulate characters until we get a terminating character or we run out of space.
 	if ((l_NextChar != '\r') && (p_KeyboardInputBufferSize < (p_KeyboardInputBufferCapacity - 1)))
