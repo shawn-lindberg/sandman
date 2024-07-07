@@ -1,7 +1,7 @@
-#include <ctype.h>
+#include <cctype>
+#include <cstdio>
+#include <ctime>
 #include <fcntl.h>
-#include <stdio.h>
-#include <time.h>
 #include <unistd.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
@@ -53,7 +53,7 @@ static bool Initialize()
 {				
 	if (s_DaemonMode == true)
 	{
-		printf("Initializing as a daemon.\n");
+		std::printf("Initializing as a daemon.\n");
 		
 		// Fork a child off of the parent process.
 		auto const l_ProcessID = fork();
@@ -137,13 +137,13 @@ static bool Initialize()
 		sockaddr_un l_ListeningAddress;
 		{
 			l_ListeningAddress.sun_family = AF_UNIX;
-			strncpy(l_ListeningAddress.sun_path, SANDMAN_TEMP_DIR "sandman.sock", 
+			std::strncpy(l_ListeningAddress.sun_path, SANDMAN_TEMP_DIR "sandman.sock", 
 				sizeof(l_ListeningAddress.sun_path) - 1);
 		}
 		
 		// Unlink the file if needed.
 		unlink(l_ListeningAddress.sun_path);
-		
+
 		// Bind the socket to the file.
 		if (bind(s_ListeningSocket, reinterpret_cast<sockaddr*>(&l_ListeningAddress), 
 			sizeof(sockaddr_un)) < 0)
@@ -335,7 +335,7 @@ static bool ProcessKeyboardInput(char* p_KeyboardInputBuffer, unsigned int& p_Ke
 	// Prepare for a new command.
 	p_KeyboardInputBufferSize = 0;
 
-	if (strcmp(p_KeyboardInputBuffer, "quit") == 0)
+	if (std::strcmp(p_KeyboardInputBuffer, "quit") == 0)
 	{
 		return true;
 	}
@@ -384,7 +384,7 @@ static bool ProcessSocketCommunication()
 	// Handle the message, if necessary.
 	auto l_Done = false;
 	
-	if (strcmp(l_MessageBuffer, "shutdown") == 0)
+	if (std::strcmp(l_MessageBuffer, "shutdown") == 0)
 	{
 		l_Done = true;
 	}
@@ -419,34 +419,34 @@ static void SendMessageToDaemon(char const* p_Message)
 	
 	if (l_SendingSocket < 0)
 	{
-		printf("Failed to create sending socket.\n");
+		std::printf("Failed to create sending socket.\n");
 		return;
 	}
 	
 	sockaddr_un l_SendingAddress;
 	{
 		l_SendingAddress.sun_family = AF_UNIX;
-		strncpy(l_SendingAddress.sun_path, SANDMAN_TEMP_DIR "sandman.sock", 
+		std::strncpy(l_SendingAddress.sun_path, SANDMAN_TEMP_DIR "sandman.sock", 
 			sizeof(l_SendingAddress.sun_path) - 1);
 	}
 		
 	// Attempt to connect to the daemon.
 	if (connect(l_SendingSocket, reinterpret_cast<sockaddr*>(&l_SendingAddress), sizeof(sockaddr_un)) < 0)
 	{
-		printf("Failed to connect to the daemon.\n");
+		std::printf("Failed to connect to the daemon.\n");
 		close(l_SendingSocket);
 		return;
 	}
 
 	// Send the message.
-	if (send(l_SendingSocket, p_Message, strlen(p_Message), 0) < 0)
+	if (send(l_SendingSocket, p_Message, std::strlen(p_Message), 0) < 0)
 	{
-		printf("Failed to send \"%s\" message to the daemon.\n", p_Message);
+		std::printf("Failed to send \"%s\" message to the daemon.\n", p_Message);
 		close(l_SendingSocket);
 		return;	
 	}
 	
-	printf("Sent \"%s\" message to the daemon.\n", p_Message);
+	std::printf("Sent \"%s\" message to the daemon.\n", p_Message);
 	
 	// Close the connection.
 	close(l_SendingSocket);
@@ -466,12 +466,12 @@ static bool HandleCommandLine(char** p_Arguments, unsigned int p_ArgumentCount)
 		auto const* l_Argument = p_Arguments[l_ArgumentIndex];
 		
 		// Start as a daemon?
-		if (strcmp(l_Argument, "--daemon") == 0)
+		if (std::strcmp(l_Argument, "--daemon") == 0)
 		{
 			s_DaemonMode = true;
 			break;
 		}
-		else if (strcmp(l_Argument, "--shutdown") == 0)
+		else if (std::strcmp(l_Argument, "--shutdown") == 0)
 		{
 			SendMessageToDaemon("shutdown");
 			return true;
@@ -481,18 +481,18 @@ static bool HandleCommandLine(char** p_Arguments, unsigned int p_ArgumentCount)
 			// We are going to see if there is a command to send to the daemon.
 			static char const* s_CommandPrefix = "--command=";	
 			
-			auto const* l_CommandStringStart = strstr(l_Argument, s_CommandPrefix);
+			auto const* l_CommandStringStart = std::strstr(l_Argument, s_CommandPrefix);
 			
 			if (l_CommandStringStart != nullptr)
 			{
 				// Skip the command prefix.
-				l_CommandStringStart += strlen(s_CommandPrefix);
+				l_CommandStringStart += std::strlen(s_CommandPrefix);
 				
 				static constexpr unsigned int l_CommandBufferCapacity = 100;
 				char l_CommandBuffer[l_CommandBufferCapacity];
 				
 				// Copy only the actual command.
-				strncpy(l_CommandBuffer, l_CommandStringStart, l_CommandBufferCapacity - 1);
+				std::strncpy(l_CommandBuffer, l_CommandStringStart, l_CommandBufferCapacity - 1);
 				l_CommandBuffer[l_CommandBufferCapacity - 1] = '\0';
 				
 				// Replace '_' with ' '.
