@@ -33,7 +33,7 @@ void LoggerEchoToScreen(bool p_LogToScreen);
 //
 // returns:		True if successful, false otherwise.
 //
-bool LoggerAddMessage(char const* p_Format, ...);
+[[gnu::format(printf, 1, 2)]] bool LoggerAddMessage(char const* p_Format, ...);
 
 // Add a message to the log (va_list version).
 //
@@ -42,7 +42,7 @@ bool LoggerAddMessage(char const* p_Format, ...);
 //
 // returns:		True if successful, false otherwise.
 //
-bool LoggerAddMessage(char const* p_Format, va_list& p_Arguments);
+[[gnu::format(printf, 1, 0)]] bool LoggerAddMessage(char const* p_Format, va_list& p_Arguments);
 
 /**
  * @brief Log a variable amount of arguments. 
