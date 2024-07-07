@@ -44,3 +44,20 @@ bool LoggerAddMessage(char const* p_Format, ...);
 //
 bool LoggerAddMessage(char const* p_Format, va_list& p_Arguments);
 
+/**
+ * @brief Log a variable amount of arguments. 
+ * 
+ * @note This function uses an output string stream `std::ostringstream`
+ * to convert its arguments to a string which is passed to `LoggerAddMessage`.
+ * So, this function can be used as a quick print statement when debugging,
+ * or as shorthand for when you would like to make use of `std::ostringstream`
+ * to format a string and log it.
+ * 
+ * @param p_Arguments 
+ * @return `true` if successfull, otherwise `false`
+ */
+template<typename... ParamsT>
+inline bool LoggerPrintArgs(ParamsT const&... p_Arguments)
+{
+	return LoggerAddMessage("%s", (std::ostringstream() << ... << p_Arguments).str().c_str());
+}
