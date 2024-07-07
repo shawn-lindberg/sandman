@@ -31,7 +31,6 @@ namespace NCurses
 			immedok(p_window, FALSE);
 
 			// Leave the hardware cursor wherever the update happens to leave it, saving time.
-			#pragma message "`leaveok`?"
 			leaveok(p_window, FALSE);
 
 			// Don't scroll when cursor is moved off the edge of the window.
@@ -74,7 +73,6 @@ void NCurses::Initialize()
 		cbreak();
 
 		// Echo the characters typed by the user into the terminal.
-		#pragma message "`echo`?"
 		noecho();
 
 		// No newlines; translate newline characters to carriage return characters.
