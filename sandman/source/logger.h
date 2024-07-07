@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdarg.h>
+#include <sstream>
 
 // Types
 //
