@@ -1,7 +1,7 @@
 include(GNUInstallDirs)
 
 set(SOURCE_FILES main.cpp command.cpp config.cpp control.cpp input.cpp logger.cpp mqtt.cpp 
-    notification.cpp reports.cpp schedule.cpp timer.cpp)
+    ncurses_context.cpp notification.cpp reports.cpp schedule.cpp timer.cpp)
 
 add_executable(sandman ${SOURCE_FILES})
 
