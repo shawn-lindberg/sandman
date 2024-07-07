@@ -5,9 +5,9 @@
 #endif // defined (__linux__)
 
 #include <mutex>
-#include <stdio.h>
-#include <string.h>
-#include <time.h>
+#include <cstdio>
+#include <cstring>
+#include <ctime>
 
 // Locals
 //
@@ -33,7 +33,7 @@ static bool s_LogToScreen = false;
 bool LoggerInitialize(char const* p_LogFileName)
 {
 	// Acquire a lock for the rest of the function.
-	const std::lock_guard<std::mutex> l_LogGuard(s_LogMutex);
+	std::lock_guard<std::mutex> const l_LogGuard(s_LogMutex);
 
 	// Initialize the file.
 	s_LogFile = nullptr;
@@ -44,7 +44,7 @@ bool LoggerInitialize(char const* p_LogFileName)
 	}
 
 	// Try to open (and destroy old log).
-	s_LogFile = fopen(p_LogFileName, "w");
+	s_LogFile = std::fopen(p_LogFileName, "w");
 
 	if (s_LogFile == nullptr)
 	{
@@ -64,7 +64,7 @@ void LoggerUninitialize()
 	// Close the file.
 	if (s_LogFile != nullptr)
 	{
-		fclose(s_LogFile);
+		std::fclose(s_LogFile);
 	}
 
 	s_LogFile = nullptr;
@@ -115,17 +115,17 @@ bool LoggerAddMessage(char const* p_Format, va_list& p_Arguments)
 	auto* l_RemainingBuffer = l_LogStringBuffer;
 
 	// Get the time.
-	auto const l_RawTime = time(nullptr);
-	auto* l_LocalTime = localtime(&l_RawTime);
+	auto const l_RawTime = std::time(nullptr);
+	auto* l_LocalTime = std::localtime(&l_RawTime);
 
 	// Put the date and time in the buffer in 2012/09/23 17:44:05 CDT format.
-	strftime(l_RemainingBuffer, l_RemainingCapacity, "%Y/%m/%d %H:%M:%S %Z", l_LocalTime);
-	
+	std::strftime(l_RemainingBuffer, l_RemainingCapacity, "%Y/%m/%d %H:%M:%S %Z", l_LocalTime);
+
 	// Force terminate.
 	l_RemainingBuffer[l_RemainingCapacity - 1] = '\0';
 
 	// Update buffer write parameters.
-	unsigned int const l_CapacityUsed = strlen(l_RemainingBuffer);
+	unsigned int const l_CapacityUsed = std::strlen(l_RemainingBuffer);
 	l_RemainingBuffer += l_CapacityUsed;
 	l_RemainingCapacity -= l_CapacityUsed;
 
@@ -141,7 +141,7 @@ bool LoggerAddMessage(char const* p_Format, va_list& p_Arguments)
 	l_RemainingCapacity -= 2;
 
 	// Add the log message.
-	if (vsnprintf(l_RemainingBuffer, l_RemainingCapacity, p_Format, p_Arguments) < 0)
+	if (std::vsnprintf(l_RemainingBuffer, l_RemainingCapacity, p_Format, p_Arguments) < 0)
 	{
 		return false;
 	}
@@ -151,14 +151,14 @@ bool LoggerAddMessage(char const* p_Format, va_list& p_Arguments)
 
 	{
 		// Acquire a lock for the rest of the function.
-		const std::lock_guard<std::mutex> l_LogGuard(s_LogMutex);
+		std::lock_guard<std::mutex> const l_LogGuard(s_LogMutex);
 
 		// Print to standard output (and add a newline).
 		if (s_LogToScreen == true)
 		{
 			#if defined (_WIN32)
 
-				puts(l_LogStringBuffer);
+				std::puts(l_LogStringBuffer);
 
 			#elif defined (__linux__)
 
@@ -172,12 +172,12 @@ bool LoggerAddMessage(char const* p_Format, va_list& p_Arguments)
 		// Print to log file.
 		if (s_LogFile != nullptr)
 		{
-			fputs(l_LogStringBuffer, s_LogFile);
+			std::fputs(l_LogStringBuffer, s_LogFile);
 
 			// fputs doesn't add a newline, do it now.
-			fputs("\n", s_LogFile);
+			std::fputs("\n", s_LogFile);
 			
-			fflush(s_LogFile);
+			std::fflush(s_LogFile);
 		}
 	}
 
