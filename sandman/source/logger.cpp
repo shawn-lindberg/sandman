@@ -107,7 +107,7 @@ bool LoggerAddMessage(char const* p_Format, ...)
 //
 bool LoggerAddMessage(char const* p_Format, va_list& p_Arguments)
 {
-	static unsigned int constexpr s_LogStringBufferCapacity{ 2048u };
+	static constexpr unsigned int s_LogStringBufferCapacity{ 2048u };
 	char l_LogStringBuffer[s_LogStringBufferCapacity];
 
 	// Initialize buffer write parameters.
