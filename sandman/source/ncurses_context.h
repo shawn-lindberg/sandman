@@ -54,7 +54,7 @@ namespace NCurses
 	/**
 	 * @brief The starting location of the cursor for the input window.
 	 */
-	inline constexpr int INPUT_WINDOW_START_Y{ 1 }, INPUT_WINDOW_START_X{ 2 };
+	inline constexpr int INPUT_WINDOW_CURSOR_START_Y{ 1 }, INPUT_WINDOW_CURSOR_START_X{ 2 };
 
 	/**
 	 * @brief Initialize NCurses state.

@@ -125,7 +125,7 @@ void NCurses::Initialize()
 			 0 /* use default horizontal character */);
 
 		// Move the cursor to the corner
-		wmove(s_inputWindow, INPUT_WINDOW_START_Y, INPUT_WINDOW_START_X);
+		wmove(s_inputWindow, INPUT_WINDOW_CURSOR_START_Y, INPUT_WINDOW_CURSOR_START_X);
 	}
 
 	// Clear the screen.
