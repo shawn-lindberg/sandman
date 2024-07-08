@@ -3,6 +3,7 @@
 namespace NCurses
 {
 
+	// This window is where messages from the logger are written to.
 	static WINDOW* s_loggingWindow = nullptr;
 
 	WINDOW* GetLoggingWindow()
@@ -10,6 +11,7 @@ namespace NCurses
 		return s_loggingWindow;
 	}
 
+	// This window is where user input is echoed to.
 	static WINDOW* s_inputWindow = nullptr;
 
 	WINDOW* GetInputWindow()
@@ -60,22 +62,28 @@ namespace NCurses
 
 void NCurses::Initialize()
 {
-	// Initialize NCurses.
+	// Initialize NCurses. This function exits the program on error!
+	// This initializes the standard screen `stdscr` window.
 	initscr();
 
-	/* input options that don't take a window pointer: `man 'inopts(3NCURSES)'` */
+	/* input options: `man 'inopts(3NCURSES)'` */
+	// There options in particular do not take a window pointer.
 	{
 		/*
-			Don't have to wait for newlines in order to qget characters.
+			Don't have to wait for newlines in order to get characters.
 			Control characters are treated normally.
 			Control characters on Linux include Ctrl+Z (suspend), Ctrl+C (quit), etc.
 
-			It is not recomended to call `raw` or `noraw` after setting `cbreak` or `nocbreak`
-			according; see "NOTES" section of `man 'inopts(3NCURSES)'`.
+			Note: it is not recomended to call `raw` or `noraw` after setting `cbreak` or `nocbreak`
+			according to "NOTES" section of `man 'inopts(3NCURSES)'`.
 		*/
 		cbreak();
 
-		// Echo the characters typed by the user into the terminal.
+		/*
+			Do not echo the characters typed by the user into the terminal.
+
+			Echo of the user input should be implemented manually for this project.
+		*/
 		noecho();
 
 		// No newlines; translate newline characters to carriage return characters.
@@ -85,6 +93,7 @@ void NCurses::Initialize()
 	// Configure standard screen window.
 	DefaultConfigureWindow(stdscr);
 
+	// The input window will have a height of 3.
 	int static constexpr s_InputWindowRowCount{ 3 };
 
 	/* configure logging window */
@@ -111,10 +120,16 @@ void NCurses::Initialize()
 
 		DefaultConfigureWindow(s_inputWindow);
 
+		// Draw a border on the window.
 		box(s_inputWindow, 0 /* use default vertical character */,
 			 0 /* use default horizontal character */);
-		wmove(s_inputWindow, 1, 2);
+
+		// Move the cursor to the corner
+		wmove(s_inputWindow, INPUT_WINDOW_START_Y, INPUT_WINDOW_START_X);
 	}
+
+	// Clear the screen.
+	clear();
 }
 
 void NCurses::Uninitialize()
