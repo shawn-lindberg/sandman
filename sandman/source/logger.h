@@ -68,7 +68,7 @@ inline bool LoggerAddEmptyLine()
  * or as shorthand for when you would like to make use of `std::ostringstream`
  * to format a string and log it.
  *
- * @param p_Arguments arguments that are logged using the logger
+ * @param p_Arguments arguments that are printed using the logger
  * @return `true` if successfull, otherwise `false`
  *
  * @attention This function constructs and destroys a `std::ostringstream` every call.
