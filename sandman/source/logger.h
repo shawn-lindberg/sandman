@@ -46,6 +46,11 @@ void LoggerEchoToScreen(bool p_LogToScreen);
 [[gnu::format(printf, 1, 0)]] bool LoggerAddMessage(char const* p_Format,
 																	 std::va_list& p_Arguments);
 
+/**
+ * @brief Log an empty line. The logger still logs the time.
+ * @note `LoggerAddMessage("")` triggers a warning `zero-length gnu_printf format string
+ * [-Werror=format-zero-length]`; this function accomplishes the same without triggering a warning.
+ */
 inline bool LoggerAddEmptyLine()
 {
 #pragma GCC diagnostic push
