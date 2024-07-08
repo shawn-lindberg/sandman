@@ -293,7 +293,7 @@ static bool ProcessKeyboardInput(char* p_KeyboardInputBuffer,
 
 	int const l_InputKey{ mvwgetch(l_Window, NCurses::INPUT_WINDOW_CURSOR_START_Y,
 											 NCurses::INPUT_WINDOW_CURSOR_START_X +
-												 s_InputWindowCursorOffsetX) };
+											 s_InputWindowCursorOffsetX) };
 
 	if ((l_InputKey == ERR) || (isascii(l_InputKey) == false))
 	{
