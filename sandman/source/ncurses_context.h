@@ -59,7 +59,7 @@ namespace NCurses
 	/**
 	 * @brief Initialize NCurses state.
 	 *
-	 * @attention Only call this function once. Call this function before
+	 * @attention Only call this function once. Call this function successfully before
 	 * calling any other functions in the `NCurses` namespace.
 	 *
 	 */
