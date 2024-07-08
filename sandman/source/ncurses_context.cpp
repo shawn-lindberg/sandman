@@ -135,6 +135,8 @@ void NCurses::Initialize()
 void NCurses::Uninitialize()
 {
 	delwin(s_loggingWindow);
+	s_loggingWindow = nullptr;
 	delwin(s_inputWindow);
+	s_inputWindow = nullptr;
 	endwin();
 }
