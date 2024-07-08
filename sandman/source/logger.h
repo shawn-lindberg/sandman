@@ -43,14 +43,15 @@ void LoggerEchoToScreen(bool p_LogToScreen);
 //
 // returns:		True if successful, false otherwise.
 //
-[[gnu::format(printf, 1, 0)]] bool LoggerAddMessage(char const* p_Format, std::va_list& p_Arguments);
+[[gnu::format(printf, 1, 0)]] bool LoggerAddMessage(char const* p_Format,
+																	 std::va_list& p_Arguments);
 
 inline bool LoggerAddEmptyLine()
 {
-	#pragma GCC diagnostic push
-	#pragma GCC diagnostic ignored "-Wformat-zero-length"
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-zero-length"
 	return LoggerAddMessage("");
-	#pragma GCC diagnostic pop
+#pragma GCC diagnostic pop
 }
 
 /**
@@ -67,7 +68,7 @@ inline bool LoggerAddEmptyLine()
  *
  * @attention This function constructs and destroys a `std::ostringstream` every call.
  */
-template<typename... ParamsT>
+template <typename... ParamsT>
 inline bool LoggerPrintArgs(ParamsT const&... p_Arguments)
 {
 	return LoggerAddMessage("%s", (std::ostringstream() << ... << p_Arguments).str().c_str());
