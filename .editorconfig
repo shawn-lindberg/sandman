@@ -1,0 +1,6 @@
+root = true
+
+# Use tab indentation with size 3.
+[**]
+indent_style = tab
+indent_size = 3
