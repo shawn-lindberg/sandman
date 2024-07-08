@@ -4,57 +4,57 @@ namespace NCurses
 {
 
 	// This window is where messages from the logger are written to.
-	static WINDOW* s_loggingWindow = nullptr;
+	static WINDOW* s_LoggingWindow = nullptr;
 
 	WINDOW* GetLoggingWindow()
 	{
-		return s_loggingWindow;
+		return s_LoggingWindow;
 	}
 
 	// This window is where user input is echoed to.
-	static WINDOW* s_inputWindow = nullptr;
+	static WINDOW* s_InputWindow = nullptr;
 
 	WINDOW* GetInputWindow()
 	{
-		return s_inputWindow;
+		return s_InputWindow;
 	}
 
-	static void DefaultConfigureWindow(WINDOW* const p_window)
+	static void DefaultConfigureWindow(WINDOW* const p_Window)
 	{
 		/* output options: `man 'outopts(3NCURSES)'` */
 		{
 			// Don't make the next call to `wrefresh` clear and redraw the screen completely.
-			clearok(p_window, FALSE);
+			clearok(p_Window, FALSE);
 
 			// Terminal's insert line & delete line features are okay to use.
-			idlok(p_window, TRUE);
+			idlok(p_Window, TRUE);
 
 			// Terminal's insert character & delete character features are okay to use.
-			idcok(p_window, TRUE);
+			idcok(p_Window, TRUE);
 
 			// Every change to the window will not cause a refresh to the physical screen.
-			immedok(p_window, FALSE);
+			immedok(p_Window, FALSE);
 
 			// Leave the hardware cursor wherever the update happens to leave it, saving time.
-			leaveok(p_window, FALSE);
+			leaveok(p_Window, FALSE);
 
 			// Don't scroll when cursor is moved off the edge of the window.
-			scrollok(p_window, FALSE);
+			scrollok(p_Window, FALSE);
 		}
 
 		/* input options: `man 'inopts(3NCURSES)'` */
 		{
 			// Don't flush everything on interrupts.
-			intrflush(p_window, FALSE);
+			intrflush(p_Window, FALSE);
 
 			// Enable functon keys (F1, F2, ...), arrow keys, etc.
-			keypad(p_window, TRUE);
+			keypad(p_Window, TRUE);
 
 			// Make `getch` non-blocking.
-			nodelay(p_window, TRUE);
+			nodelay(p_Window, TRUE);
 
 			// Don't set a timer to wait for the next character when interpreting an escape sequence.
-			notimeout(p_window, TRUE);
+			notimeout(p_Window, TRUE);
 		}
 	}
 
@@ -98,34 +98,34 @@ void NCurses::Initialize()
 
 	/* configure logging window */
 	{
-		s_loggingWindow = newwin(
+		s_LoggingWindow = newwin(
 			/* height (line count) */ LINES - s_InputWindowRowCount,
 			/* width */ COLS,
 			/* upper corner y */ 0,
 			/* left-hand corner x */ 0);
 
-		DefaultConfigureWindow(s_loggingWindow);
+		DefaultConfigureWindow(s_LoggingWindow);
 
 		// Scroll when cursor is moved off the edge of the window.
-		scrollok(s_loggingWindow, TRUE);
+		scrollok(s_LoggingWindow, TRUE);
 	}
 
 	/* configure input window */
 	{
-		s_inputWindow = newwin(
+		s_InputWindow = newwin(
 			/* height (line count) */ s_InputWindowRowCount,
 			/* width */ COLS,
 			/* upper corner y */ LINES - s_InputWindowRowCount,
 			/* left-hand corner x */ 0);
 
-		DefaultConfigureWindow(s_inputWindow);
+		DefaultConfigureWindow(s_InputWindow);
 
 		// Draw a border on the window.
-		box(s_inputWindow, 0 /* use default vertical character */,
+		box(s_InputWindow, 0 /* use default vertical character */,
 			 0 /* use default horizontal character */);
 
 		// Move the cursor to the corner
-		wmove(s_inputWindow, INPUT_WINDOW_CURSOR_START_Y, INPUT_WINDOW_CURSOR_START_X);
+		wmove(s_InputWindow, INPUT_WINDOW_CURSOR_START_Y, INPUT_WINDOW_CURSOR_START_X);
 	}
 
 	// Clear the screen.
@@ -134,9 +134,9 @@ void NCurses::Initialize()
 
 void NCurses::Uninitialize()
 {
-	delwin(s_loggingWindow);
-	s_loggingWindow = nullptr;
-	delwin(s_inputWindow);
-	s_inputWindow = nullptr;
+	delwin(s_LoggingWindow);
+	s_LoggingWindow = nullptr;
+	delwin(s_InputWindow);
+	s_InputWindow = nullptr;
 	endwin();
 }
