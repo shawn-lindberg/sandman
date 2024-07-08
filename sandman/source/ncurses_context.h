@@ -18,7 +18,7 @@ namespace NCurses
 	/**
 	 * @brief Get the pointer to the logging window.
 	 *
-	 * @attention Do not call this function before calling `NCurses::Initialize`.
+	 * @attention Do not call this function before having called `NCurses::Initialize` successfully.
 	 *
 	 * @return NCurses window pointer
 	 *
@@ -36,12 +36,12 @@ namespace NCurses
 	/**
 	 * @brief Get the pointer to the input window.
 	 *
-	 * @attention Do not call this function before calling `NCurses::Initialize`.
+	 * @attention Do not call this function before having called `NCurses::Initialize` successfully.
 	 *
 	 * @return NCurses window pointer
 	 *
-	 * @warning If `NCurses::Initialize` has not been called successfully, this function returns
-	 * returns `nullptr`. Otherwise, the pointer returned by this function is valid until
+	 * @warning If `NCurses::Initialize` has not been called successfully, this function likely
+	 * returns returns `nullptr`. Otherwise, the pointer returned by this function is valid until
 	 * `NCurses::Uninitialize` is called.
 	 *
 	 * @note The input window is the region on the terminal where the user input is echoed to.
@@ -60,7 +60,7 @@ namespace NCurses
 	 * @brief Initialize NCurses state.
 	 *
 	 * @attention Only call this function once. Call this function before
-	 * calling calling any other functions in the `NCurses` namespace.
+	 * calling any other functions in the `NCurses` namespace.
 	 *
 	 */
 	void Initialize();
