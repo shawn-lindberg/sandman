@@ -1,13 +1,13 @@
 #include "logger.h"
 
-#if defined (__linux__)
+#if defined(__linux__)
 	#include "ncurses_context.h"
 #endif // defined (__linux__)
 
-#include <mutex>
 #include <cstdio>
 #include <cstring>
 #include <ctime>
+#include <mutex>
 
 // Locals
 //
@@ -87,14 +87,14 @@ void LoggerEchoToScreen(bool p_LogToScreen)
 // returns:		True if successful, false otherwise.
 //
 bool LoggerAddMessage(char const* p_Format, ...)
-{	
+{
 	std::va_list l_Arguments;
 	va_start(l_Arguments, p_Format);
 
 	auto const l_Result = LoggerAddMessage(p_Format, l_Arguments);
 
 	va_end(l_Arguments);
-	
+
 	return l_Result;
 }
 
@@ -107,7 +107,7 @@ bool LoggerAddMessage(char const* p_Format, ...)
 //
 bool LoggerAddMessage(char const* p_Format, va_list& p_Arguments)
 {
-	static unsigned int constexpr s_LogStringBufferCapacity{2048u};
+	static unsigned int constexpr s_LogStringBufferCapacity{ 2048u };
 	char l_LogStringBuffer[s_LogStringBufferCapacity];
 
 	// Initialize buffer write parameters.
@@ -156,18 +156,18 @@ bool LoggerAddMessage(char const* p_Format, va_list& p_Arguments)
 		// Print to standard output (and add a newline).
 		if (s_LogToScreen == true)
 		{
-			#if defined (_WIN32)
+#if defined(_WIN32)
 
-				std::puts(l_LogStringBuffer);
+			std::puts(l_LogStringBuffer);
 
-			#elif defined (__linux__)
+#elif defined(__linux__)
 
-				WINDOW* const l_window = NCurses::GetLoggingWindow();
-				waddstr(l_window, l_LogStringBuffer);
-				waddch(l_window, '\n');
-				wrefresh(l_window);
+			WINDOW* const l_window = NCurses::GetLoggingWindow();
+			waddstr(l_window, l_LogStringBuffer);
+			waddch(l_window, '\n');
+			wrefresh(l_window);
 
-			#endif // defined (_WIN32)
+#endif // defined (_WIN32)
 		}
 
 		// Print to log file.
@@ -177,12 +177,10 @@ bool LoggerAddMessage(char const* p_Format, va_list& p_Arguments)
 
 			// fputs doesn't add a newline, do it now.
 			std::fputs("\n", s_LogFile);
-			
+
 			std::fflush(s_LogFile);
 		}
 	}
 
 	return true;
 }
-
-
