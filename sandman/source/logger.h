@@ -47,7 +47,7 @@ void LoggerEchoToScreen(bool p_LogToScreen);
 																	 std::va_list& p_Arguments);
 
 /**
- * @brief Log an empty line. (The logger still prints the time.)
+ * @brief Log an empty line. (The logger still prints the date and time.)
  * @note `LoggerAddMessage("")` triggers a warning `zero-length gnu_printf format string
  * [-Werror=format-zero-length]`; this function accomplishes the same without triggering a warning.
  * @return `true` if successful, otherwise `false`
