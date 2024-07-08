@@ -4,18 +4,21 @@ namespace NCurses
 {
 
 	static WINDOW* s_loggingWindow = nullptr;
+
 	WINDOW* GetLoggingWindow()
 	{
 		return s_loggingWindow;
 	}
 
 	static WINDOW* s_inputWindow = nullptr;
+
 	WINDOW* GetInputWindow()
 	{
 		return s_inputWindow;
 	}
 
-	static void DefaultConfigureWindow(WINDOW* const p_window) {
+	static void DefaultConfigureWindow(WINDOW* const p_window)
+	{
 		/* output options: `man 'outopts(3NCURSES)'` */
 		{
 			// Don't make the next call to `wrefresh` clear and redraw the screen completely.
@@ -53,7 +56,7 @@ namespace NCurses
 		}
 	}
 
-}
+} // namespace NCurses
 
 void NCurses::Initialize()
 {
@@ -82,7 +85,7 @@ void NCurses::Initialize()
 	// Configure standard screen window.
 	DefaultConfigureWindow(stdscr);
 
-	int static constexpr s_InputWindowRowCount{3};
+	int static constexpr s_InputWindowRowCount{ 3 };
 
 	/* configure logging window */
 	{
@@ -90,8 +93,7 @@ void NCurses::Initialize()
 			/* height (line count) */ LINES - s_InputWindowRowCount,
 			/* width */ COLS,
 			/* upper corner y */ 0,
-			/* left-hand corner x */ 0
-		);
+			/* left-hand corner x */ 0);
 
 		DefaultConfigureWindow(s_loggingWindow);
 
@@ -105,12 +107,12 @@ void NCurses::Initialize()
 			/* height (line count) */ s_InputWindowRowCount,
 			/* width */ COLS,
 			/* upper corner y */ LINES - s_InputWindowRowCount,
-			/* left-hand corner x */ 0
-		);
+			/* left-hand corner x */ 0);
 
 		DefaultConfigureWindow(s_inputWindow);
 
-		box(s_inputWindow, 0/* use default vertical character */, 0/* use default horizontal character */);
+		box(s_inputWindow, 0 /* use default vertical character */,
+			 0 /* use default horizontal character */);
 		wmove(s_inputWindow, 1, 2);
 	}
 }

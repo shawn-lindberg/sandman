@@ -19,4 +19,4 @@ namespace NCurses
 
 	void Uninitialize();
 
-}
+} // namespace NCurses
