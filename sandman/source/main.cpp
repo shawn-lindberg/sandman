@@ -273,40 +273,65 @@ static void Uninitialize()
 //
 // returns:		True if the quit command was processed, false otherwise.
 //
-static bool ProcessKeyboardInput(char* p_KeyboardInputBuffer, unsigned int& p_KeyboardInputBufferSize, 
-	unsigned int const p_KeyboardInputBufferCapacity)
+static bool ProcessKeyboardInput(char* p_KeyboardInputBuffer,
+											unsigned int& p_KeyboardInputBufferSize,
+											unsigned int const p_KeyboardInputBufferCapacity)
 {
-	// Try to get keyboard commands.
 
+	// Pointer to the user input window.
 	auto const l_Window = NCurses::GetInputWindow();
 
-	int static constexpr START_Y{1}, START_X{2};
+	/*
+		This is the offset for where to place the cursor after a character is typed.
 
-	int static l_OffsetX{0};
+		As the user types, this increases.
+		When the buffer is flushed or the user presses "enter", this resets to zero.
+	*/
+	static int s_InputWindowCursorOffsetX{ 0 };
 
-	auto const l_InputKey = mvwgetch(l_Window, /* y */ START_Y, /* x */ START_X + l_OffsetX);
+	// Try to get keyboard commands.
+
+	int const l_InputKey{ mvwgetch(l_Window, NCurses::INPUT_WINDOW_CURSOR_START_Y,
+											 NCurses::INPUT_WINDOW_CURSOR_START_X +
+												 s_InputWindowCursorOffsetX) };
+
 	if ((l_InputKey == ERR) || (isascii(l_InputKey) == false))
 	{
 		return false;
 	}
 
-	l_OffsetX += 1;
+	// Increment the offset of the cursor when a valid character is received.
+	s_InputWindowCursorOffsetX += 1;
 
-	// Get the character. This conversion is safe because we checked if the character is in ASCII.
-	auto const l_NextChar = static_cast<char>(l_InputKey);
+	// Get the character. This conversion is safe because we checked if the character is ASCII.
+	char const l_NextChar{ static_cast<char>(l_InputKey) };
 
 	switch (l_NextChar)
 	{
 		case '\r':
-			wmove(l_Window, START_Y, START_X);
+			// Move the cursor back to the start of the input region.
+			wmove(l_Window, NCurses::INPUT_WINDOW_CURSOR_START_Y,
+					NCurses::INPUT_WINDOW_CURSOR_START_X);
+
+			// Clear the line.
 			wclrtoeol(l_Window);
-			box(l_Window, 0/* use default vertical character */, 0/* use default horizontal character */);
-			l_OffsetX = 0;
+
+			// Redraw the border.
+			box(l_Window, 0 /* use default vertical character */,
+				 0 /* use default horizontal character */);
+
+			// Reset the offset.
+			s_InputWindowCursorOffsetX = 0;
 			break;
+
 		case '\n':
 			LoggerAddMessage("Unnexpectedly got a newline character as user input.");
+			return false;
+
 		default:
+			// Echo the character. This is why `noecho` was called; we are echoing manually.
 			waddch(l_Window, l_NextChar);
+			break;
 	}
 
 	// Accumulate characters until we get a terminating character or we run out of space.
