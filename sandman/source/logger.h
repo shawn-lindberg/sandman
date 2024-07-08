@@ -53,10 +53,10 @@ void LoggerEchoToScreen(bool p_LogToScreen);
  */
 inline bool LoggerAddEmptyLine()
 {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat-zero-length"
+	#pragma GCC diagnostic push
+	#pragma GCC diagnostic ignored "-Wformat-zero-length"
 	return LoggerAddMessage("");
-#pragma GCC diagnostic pop
+	#pragma GCC diagnostic pop
 }
 
 /**
