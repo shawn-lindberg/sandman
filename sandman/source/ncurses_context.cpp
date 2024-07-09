@@ -19,6 +19,9 @@ namespace NCurses
 		return s_InputWindow;
 	}
 
+	/*
+		Configure a window with "sensible" defaults.
+	*/
 	static void DefaultConfigureWindow(WINDOW* const p_Window)
 	{
 		/* output options: `man 'outopts(3NCURSES)'` */
