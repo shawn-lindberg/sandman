@@ -8,11 +8,13 @@
 */
 #include <curses.h>
 
+inline namespace Sandman {}
+
 /**
  * @brief This namespace serves to encapsulate state and functionality
  * relevant to the usage of NCurses.
  */
-namespace NCurses
+namespace Sandman::NCurses
 {
 
 	/**
