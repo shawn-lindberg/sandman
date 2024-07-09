@@ -1,6 +1,6 @@
 #include "logger.h"
 
-#if defined(__linux__)
+#if defined (__linux__)
 	#include "ncurses_context.h"
 #endif // defined (__linux__)
 
