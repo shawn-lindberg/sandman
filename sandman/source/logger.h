@@ -70,7 +70,7 @@ inline bool LoggerAddEmptyLine()
  * So, this function can be used as a quick print statement when debugging,
  * or as shorthand for when you would like to make use of `std::ostringstream`
  * to format a string and log it.
- *
+ * 
  * @param p_Arguments arguments that are printed using the logger
  * 
  * @return `true` if successful, `false` otherwise
