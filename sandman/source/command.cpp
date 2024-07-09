@@ -429,17 +429,20 @@ void CommandTokenizeString(std::vector<CommandToken>& p_CommandTokens,
 		if (l_Token.m_Type == CommandToken::TYPE_INVALID)
 		{
 			std::string_view const l_TokenStringView(l_TokenString);
-			auto const [endPointer, errorCode] = std::from_chars(l_TokenStringView.begin(), l_TokenStringView.end(), l_Token.m_Parameter);
 
-			if (
-				/* successfully parsed to number */ errorCode == std::errc{0} and
-				/* matched whole string */ endPointer == l_TokenStringView.end()
-			) {
+			// Attempt to parse the string into a number; save result into `l_Token.m_Parameter`.
+			auto const [endPointer, errorCode] = std::from_chars(l_TokenStringView.begin(),
+																				  l_TokenStringView.end(),
+																				  l_Token.m_Parameter);
+
+			if (/* successfully parsed to number */ errorCode == std::errc{0} and
+				 /* matched whole string */ endPointer == l_TokenStringView.end())
+			{
 				l_Token.m_Type = CommandToken::TYPE_INTEGER;
 			}
 
 		}
-		
+
 		// Add the token to the list.
 		p_CommandTokens.push_back(l_Token);
 
