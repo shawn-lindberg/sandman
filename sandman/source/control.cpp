@@ -403,8 +403,7 @@ void Control::SetDesiredAction(Actions p_DesiredAction, Modes p_Mode, unsigned i
 		std::is_same_v<decltype(p_DurationPercent), decltype(CommandToken::m_Parameter)>,
 		"Assert the type of `p_DurationPercent` is the same as the type of `CommandToken::m_Parameter`. "
 		"Currently, the main purpose of `CommandToken::m_Parameter` is to be used as `p_DurationPercent`, "
-		"so this assertion serves as a notification for if the types become unsynchronized."
-	);
+		"so this assertion serves as a notification for if the types become unsynchronized.");
 
 	m_DesiredAction = p_DesiredAction;
 	m_Mode = p_Mode;
