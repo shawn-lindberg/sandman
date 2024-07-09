@@ -62,12 +62,14 @@ namespace NCurses
 
 void NCurses::Initialize()
 {
-	// Initialize NCurses. This function exits the program on error!
-	// This initializes the standard screen `stdscr` window.
+	/*
+		Initialize NCurses. This function exits the program on error!
+		This initializes the standard screen `stdscr` window.
+	*/
 	initscr();
 
 	/* input options: `man 'inopts(3NCURSES)'` */
-	// There options in particular do not take a window pointer.
+	// These options in particular do not take a window pointer.
 	{
 		/*
 			Don't have to wait for newlines in order to get characters.
@@ -80,8 +82,7 @@ void NCurses::Initialize()
 		cbreak();
 
 		/*
-			Do not echo the characters typed by the user into the terminal.
-
+			Do not echo the characters typed by the user into the terminal by default.
 			Echo of the user input should be implemented manually for this project.
 		*/
 		noecho();
@@ -94,15 +95,14 @@ void NCurses::Initialize()
 	DefaultConfigureWindow(stdscr);
 
 	// The input window will have a height of 3.
-	int static constexpr s_InputWindowRowCount{ 3 };
+	static constexpr int s_InputWindowRowCount{ 3 };
 
 	/* configure logging window */
 	{
-		s_LoggingWindow = newwin(
-			/* height (line count) */ LINES - s_InputWindowRowCount,
-			/* width */ COLS,
-			/* upper corner y */ 0,
-			/* left-hand corner x */ 0);
+		s_LoggingWindow = newwin(/* height (line count) */ LINES - s_InputWindowRowCount,
+										 /* width               */ COLS,
+										 /* upper corner y      */ 0,
+										 /* left-hand corner x  */ 0);
 
 		DefaultConfigureWindow(s_LoggingWindow);
 
@@ -112,11 +112,10 @@ void NCurses::Initialize()
 
 	/* configure input window */
 	{
-		s_InputWindow = newwin(
-			/* height (line count) */ s_InputWindowRowCount,
-			/* width */ COLS,
-			/* upper corner y */ LINES - s_InputWindowRowCount,
-			/* left-hand corner x */ 0);
+		s_InputWindow = newwin(/* height (line count) */ s_InputWindowRowCount,
+									  /* width               */ COLS,
+									  /* upper corner y      */ LINES - s_InputWindowRowCount,
+									  /* left-hand corner x  */ 0);
 
 		DefaultConfigureWindow(s_InputWindow);
 
@@ -136,7 +135,9 @@ void NCurses::Uninitialize()
 {
 	delwin(s_LoggingWindow);
 	s_LoggingWindow = nullptr;
+
 	delwin(s_InputWindow);
 	s_InputWindow = nullptr;
+
 	endwin();
 }
