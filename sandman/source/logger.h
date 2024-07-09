@@ -48,9 +48,11 @@ void LoggerEchoToScreen(bool p_LogToScreen);
 
 /**
  * @brief Log an empty line. (The logger still prints the date and time.)
+ * 
  * @note `LoggerAddMessage("")` triggers a warning `zero-length gnu_printf format string
  * [-Werror=format-zero-length]`; this function accomplishes the same without triggering a warning.
- * @return `true` if successful, otherwise `false`
+ * 
+ * @return `true` if successful, `false` otherwise
  */
 inline bool LoggerAddEmptyLine()
 {
@@ -70,8 +72,9 @@ inline bool LoggerAddEmptyLine()
  * to format a string and log it.
  *
  * @param p_Arguments arguments that are printed using the logger
- * @return `true` if successful, otherwise `false`
- *
+ * 
+ * @return `true` if successful, `false` otherwise
+ * 
  * @attention This function constructs and destroys a `std::ostringstream` every call.
  */
 template <typename... ParamsT>
