@@ -156,18 +156,18 @@ bool LoggerAddMessage(char const* p_Format, va_list& p_Arguments)
 		// Print to standard output (and add a newline).
 		if (s_LogToScreen == true)
 		{
-			#if defined(_WIN32)
+			#if defined (_WIN32)
 
 			std::puts(l_LogStringBuffer);
 
-			#elif defined(__linux__)
+			#elif defined (__linux__)
 
 			WINDOW* const l_Window = NCurses::GetLoggingWindow();
 			waddstr(l_Window, l_LogStringBuffer);
 			waddch(l_Window, '\n');
 			wrefresh(l_Window);
 
-			#endif
+			#endif // defined (_WIN32)
 		}
 
 		// Print to log file.
