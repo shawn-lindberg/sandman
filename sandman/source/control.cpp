@@ -390,19 +390,19 @@ void Control::Process()
 	}
 }
 
-/**
- * @brief Set the desired action.
- * 
- * @param p_DesiredAction The desired action.
- * @param p_Mode The mode of the action.
- * @param p_DurationSeconds The seconds of the normal duration to perform the action for.
- */
-void Control::SetDesiredAction(Actions p_DesiredAction, Modes p_Mode, unsigned int p_DurationSeconds)
+// Set the desired action.
+//
+// p_DesiredAction:		The desired action.
+// p_Mode:					The mode of the action.
+// p_DurationPercent:	(Optional) The percent of the normal duration to perform the action
+//								for.
+//
+void Control::SetDesiredAction(Actions p_DesiredAction, Modes p_Mode, unsigned int p_DurationPercent)
 {
 	static_assert(
-		std::is_same_v<decltype(p_DurationSeconds), decltype(CommandToken::m_Parameter)>,
-		"Assert the type of `p_DurationSeconds` is the same as the type of `CommandToken::m_Parameter`. "
-		"The only purpose of `CommandToken::m_Parameter` is to be used as `p_DurationSeconds`, "
+		std::is_same_v<decltype(p_DurationPercent), decltype(CommandToken::m_Parameter)>,
+		"Assert the type of `p_DurationPercent` is the same as the type of `CommandToken::m_Parameter`. "
+		"Currently, the main purpose of `CommandToken::m_Parameter` is to be used as `p_DurationPercent`, "
 		"so this assertion serves as a notification for if the types become unsynchronized."
 	);
 
@@ -411,7 +411,10 @@ void Control::SetDesiredAction(Actions p_DesiredAction, Modes p_Mode, unsigned i
 
 	if (m_Mode == MODE_TIMED)
 	{
-		m_MovingDurationMS = std::min(/* convert to milliseconds */ p_DurationSeconds * 1'000u, ms_MaxMovingDurationMS);
+		// Set the current moving duration based on the requested percentage of the standard amount.
+		auto const l_DurationFraction = std::min(p_DurationPercent, 100u) / 100.0f;
+		m_MovingDurationMS =
+			static_cast<unsigned int>(m_StandardMovingDurationMS * l_DurationFraction);
 	}
 	else
 	{
