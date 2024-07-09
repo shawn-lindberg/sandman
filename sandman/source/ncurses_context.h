@@ -27,7 +27,7 @@ namespace NCurses
 	 * `NCurses::Uninitialize` is called.
 	 *
 	 * @note The logging window is the region on the terminal where the logger outputs characters to.
-	 * After `NCurses::Initialize` is called sucessfully, this function always returns the same
+	 * After `NCurses::Initialize` is called successfully, this function always returns the same
 	 * pointer.
 	 *
 	 */
@@ -45,7 +45,7 @@ namespace NCurses
 	 * `NCurses::Uninitialize` is called.
 	 *
 	 * @note The input window is the region on the terminal where the user input is echoed to.
-	 * After `NCurses::Initialize` is called sucessfully, this function always returns the same
+	 * After `NCurses::Initialize` is called successfully, this function always returns the same
 	 * pointer.
 	 *
 	 */
