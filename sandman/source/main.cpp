@@ -325,7 +325,7 @@ static bool ProcessKeyboardInput(char* p_KeyboardInputBuffer,
 			break;
 
 		case '\n':
-			LoggerAddMessage("Unexpectedly got a newline character as user input.");
+			LoggerAddMessage("Unexpectedly got a newline character from user input.");
 			return false;
 
 		default:
