@@ -16,14 +16,11 @@ jobs:
       - name: Install Mosquitto
         run: sudo apt-get install --yes libmosquitto-dev
 
-      - name: Install the Pi General Purpose Input Outputs C Library
-        run: sudo apt-get install --yes pigpio
-
       - name: Install CMake
         run: sudo apt-get install --yes cmake
 
       - name: Generate CMake build files
-        run: cmake -S sandman -B sandman/build
+        run: cmake -S sandman -B sandman/build -DENABLE_GPIO=OFF
 
       - name: Build Sandman with CMake
         run: cmake --build sandman/build
