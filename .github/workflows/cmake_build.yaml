@@ -13,5 +13,14 @@ jobs:
       - name: Install CMake
         run: sudo apt-get install cmake
 
+      - name: Echo Working Directory
+        run: echo "Working Directory is $GITHUB_WORKSPACE"
+
+      - name: check surroundings
+        run: ls -a
+
+      - name: Generate CMake build files
+        run: cmake -S sandman -B sandman/build
+
       - name: Build Sandman with CMake
         run: cmake --build sandman/build
