@@ -16,6 +16,9 @@ jobs:
       - name: Install Mosquitto
         run: sudo apt-get install --yes libmosquitto-dev
 
+      - name: Install the Pi General Purpose Input Outputs C Library
+        run: sudo apt-get install --yes pigpio
+
       - name: Install CMake
         run: sudo apt-get install --yes cmake
 
