@@ -1,5 +1,5 @@
 name: CMake Build
-run-name: Build and lint Sandman.
+run-name: Build Sandman
 
 on: [push, pull_request]
 
@@ -13,13 +13,13 @@ jobs:
       - name: Install NCurses
         run: sudo apt-get install --yes libncurses-dev
 
-      - name: Install Mosquitto
+      - name: Install Mosquitto MQTT Broker
         run: sudo apt-get install --yes libmosquitto-dev
 
       - name: Install CMake
         run: sudo apt-get install --yes cmake
 
-      - name: Generate CMake build files
+      - name: Generate CMake Build Files
         run: cmake -S sandman -B sandman/build -DENABLE_GPIO=OFF
 
       - name: Build Sandman with CMake
