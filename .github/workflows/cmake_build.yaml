@@ -10,14 +10,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Install NCurses
+        run: sudo apt-get install --yes libncurses-dev
+
+      - name: Install Mosquitto
+        run: sudo apt-get install --yes libmosquitto-dev
+
       - name: Install CMake
-        run: sudo apt-get install cmake
-
-      - name: Echo Working Directory
-        run: echo "Working Directory is $GITHUB_WORKSPACE"
-
-      - name: check surroundings
-        run: ls -a
+        run: sudo apt-get install --yes cmake
 
       - name: Generate CMake build files
         run: cmake -S sandman -B sandman/build
