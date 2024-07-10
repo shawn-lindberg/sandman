@@ -1,0 +1,17 @@
+name: CMake Build
+run-name: Build and lint Sandman.
+
+on: [push, pull_request]
+
+jobs:
+  build_Sandman_executable:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install CMake
+        run: sudo apt-get install cmake
+
+      - name: Build Sandman with CMake
+        run: cmake --build sandman/build
