@@ -2,16 +2,21 @@ name: CMake Build
 run-name: Build Sandman
 
 on:
+
   push:
+    branches: ["master"]
     paths: ['sandman/**']
+
   pull_request:
+
+  # Can run through GitHub user interface.
   workflow_dispatch:
 
 jobs:
   build_Sandman_executable:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
       - name: Install NCurses
