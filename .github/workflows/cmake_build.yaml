@@ -1,7 +1,11 @@
 name: CMake Build
 run-name: Build Sandman
 
-on: [push, pull_request, workflow_dispatch]
+on: 
+   push:
+      paths: ['sandman/**']
+   pull_request:
+   workflow_dispatch:
 
 jobs:
   build_Sandman_executable:
