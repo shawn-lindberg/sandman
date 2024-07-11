@@ -1,4 +1,4 @@
-name: CMake Build
+name: Build Sandman Executable (without `pigpio.h`)
 run-name: Build Sandman
 
 on:
