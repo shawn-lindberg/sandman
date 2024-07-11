@@ -5,7 +5,7 @@ on:
 
   push:
     # branches: ["master"]
-    paths: ["sandman/**"]
+    # paths: ["sandman/**"]
 
   pull_request:
 
