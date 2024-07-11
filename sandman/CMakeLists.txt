@@ -8,11 +8,6 @@ find_package(Doxygen)
 if(DOXYGEN_FOUND)
 	message(STATUS "Doxygen found: `${DOXYGEN_EXECUTABLE}` version ${DOXYGEN_VERSION}")
 
-	# MESSAGE(
-	# 	STATUS
-	# 	"Source Directory: ${PROJECT_SOURCE_DIR}, Binary Directory: ${CMAKE_CURRENT_BINARY_DIR}, Other Source Directory: ${CMAKE_SOURCE_DIR}"
-	# )
-
 	set(DOXYGEN_PROJECT_NAME Sandman)
 	set(DOXYGEN_PROJECT_BRIEF "A device to allow people to control hospital style beds by voice.")
 	
