@@ -4,7 +4,7 @@ run-name: Build and Deploy Documentation to GitHub Pages
 
 on:
   push:
-    # branches: ["master"]
+    branches: ["master"]
     paths: ["sandman/**"]
 
   # Allows you to run this workflow manually from the Actions tab
