@@ -25,6 +25,6 @@ if(DOXYGEN_FOUND)
 	)
 
 else()
-	message(WARNING "Doxygen not found. Documentation will not be generated.")
+	message(WARNING "Documentation cannot be generated without Doxygen.")
 endif()
 
