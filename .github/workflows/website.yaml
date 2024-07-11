@@ -38,6 +38,9 @@ jobs:
       - name: Install CMake
         run: sudo apt-get install --yes cmake
 
+      - name: Install Doxygen
+        run: sudo apt-get install --yes doxygen
+
       - name: Generate CMake Build Files
         run: cmake -S sandman -Bsandman/build -DDOXYGEN_OUTPUT_DIRECTORY=website -DDOXYGEN_HTML_OUTPUT=documentation
 
