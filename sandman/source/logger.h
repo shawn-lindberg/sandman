@@ -29,8 +29,8 @@ void LoggerEchoToScreen(bool p_LogToScreen);
 
 /// @brief Add a message to the log.
 ///
-/// @param p_Format Standard printf format string.
-/// @param ... Standard printf arguments.
+/// @param p_Format Standard `printf` format string.
+/// @param ... Standard `printf` arguments.
 ///
 /// @returns `true` if successful, `false` otherwise.
 ///
@@ -38,8 +38,8 @@ bool LoggerAddMessage(char const* p_Format, ...);
 
 /// @brief Add a message to the log (`va_list` version).
 ///
-/// @param p_Format Standard printf format string.
-/// @param p_Arguments Standard printf arguments.
+/// @param p_Format Standard `printf` format string.
+/// @param p_Arguments Standard `printf` arguments.
 ///
 /// @returns `true` if successful, `false` otherwise.
 ///
