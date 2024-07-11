@@ -1,5 +1,5 @@
-name: Build Sandman Executable (without `pigpio.h`)
-run-name: Build Sandman
+name: Run Clang-Tidy Checks on Sandman Source Code (without `pigpio.h`)
+run-name: Run Clang-Tidy Checks
 
 on:
 
@@ -29,7 +29,7 @@ jobs:
         run: sudo apt-get install --yes cmake
 
       - name: Generate Compilation Database for Clang-Tidy
-        run: cmake -S sandman -B sandman/build -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE
+        run: cmake -S sandman -B sandman/build -DENABLE_GPIO=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE
 
-      - name: Build Sandman with CMake
+      - name: Run Clan-Tidy Checks
         run: run-clang-tidy -p sandman/build/
