@@ -10,6 +10,8 @@ if(DOXYGEN_FOUND)
 
 	set(DOXYGEN_PROJECT_NAME Sandman)
 	set(DOXYGEN_PROJECT_BRIEF "A device to allow people to control hospital style beds by voice.")
+
+	set(DOXYGEN_TAB_SIZE 3)
 	
 	set(DOXYGEN_EXCLUDE_PATTERNS ${PROJECT_SOURCE_DIR}/source/rapidjson/**)
 
