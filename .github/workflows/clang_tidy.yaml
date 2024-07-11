@@ -1,0 +1,35 @@
+name: Build Sandman Executable (without `pigpio.h`)
+run-name: Build Sandman
+
+on:
+
+  push:
+    # branches: ["master"]
+    paths: ["sandman/**"]
+
+  pull_request:
+
+  # Can run through GitHub user interface.
+  workflow_dispatch:
+
+jobs:
+  build_Sandman_executable:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Mosquitto MQTT Broker (Unused)
+        run: sudo apt-get install --yes libmosquitto-dev
+
+      - name: Install Clang-Tidy
+        run: sudo apt-get install --yes clang-tidy
+
+      - name: Install CMake
+        run: sudo apt-get install --yes cmake
+
+      - name: Generate Compilation Database for Clang-Tidy
+        run: cmake -S sandman -B sandman/build -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE
+
+      - name: Build Sandman with CMake
+        run: run-clang-tidy -p sandman/build/
