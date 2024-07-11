@@ -35,6 +35,9 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
+      - name: Install Mosquitto MQTT Broker (Unused)
+        run: sudo apt-get install --yes libmosquitto-dev
+
       - name: Install CMake
         run: sudo apt-get install --yes cmake
 
