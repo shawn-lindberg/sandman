@@ -1,10 +1,11 @@
 # Simple workflow for deploying static content to GitHub Pages
-name: Build and Deploy Documentation
-run-name: Deploy Documentation to Website
+name: Deploy Documentation to Website
+run-name: Build and Deploy Documentation to GitHub Pages
 
 on:
   push:
     # branches: ["master"]
+    paths: ["sandman/**"]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
