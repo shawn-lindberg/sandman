@@ -1,0 +1,112 @@
+Checks: >
+  readability-identifier-naming,
+
+  readability-braces-around-statements,
+
+  readability-braces-around-operators,
+  readability-braces-around-unary-operators,
+  readability-braces-around-ternary-operators,
+
+  readability-string-literal-alignment,
+
+  modernize-deprecated-headers,
+  modernize-use-nullptr,
+  modernize-use-override,
+
+  bugprone-narrowing-conversions,
+  bugprone-suspicious-missing-comma,
+  bugprone-branch-clone,
+
+  clang-analyzer-*
+
+CheckOptions:
+
+  # Case of things that create new scopes and unscoped Enums.
+  - key: readability-identifier-naming.ClassCase
+    value: CamelCase
+  - key: readability-identifier-naming.StructCase
+    value: CamelCase
+  - key: readability-identifier-naming.FunctionCase
+    value: CamelCase
+  - key: readability-identifier-naming.EnumCase
+    value: CamelCase
+  - key: readability-identifier-naming.NamespaceCase
+    value: CamelCase
+
+    # Case of constants and macros.
+  - key: readability-identifier-naming.ConstexprVariableCase
+    value: UPPER_CASE
+  - key: readability-identifier-naming.EnumConstantCase
+    value: UPPER_CASE
+  - key: readability-identifier-naming.ScopedEnumConstantCase
+    value: UPPER_CASE
+  - key: readability-identifier-naming.MacroDefinitionCase
+    value: UPPER_CASE
+
+    # Global variables.
+  - key: readability-identifier-naming.GlobalVariablePrefix
+    value: "g_"
+  - key: readability-identifier-naming.GlobalVariableCase
+    value: CamelCase
+
+    # Static variables that in in a scope.
+  - key: readability-identifier-naming.StaticVariablePrefix
+    value: s_
+  - key: readability-identifier-naming.StaticVariableCase
+    value: CamelCase
+
+    # Member variables.
+  - key: readability-identifier-naming.MemberPrefix
+    value: m_
+  - key: readability-identifier-naming.MemberCase
+    value: CamelCase
+
+    # Class Member variables.
+  - key: readability-identifier-naming.ClassMemberPrefix
+    value: ms_
+  - key: readability-identifier-naming.ClassMemberCase
+    value: CamelCase
+
+    # Parameters.
+  - key: readability-identifier-naming.ParameterPrefix
+    value: p_
+  - key: readability-identifier-naming.ParameterCase
+    value: CamelCase
+
+    # Local variables.
+  - key: readability-identifier-naming.LocalVariablePrefix
+    value: l_
+  - key: readability-identifier-naming.LocalVariableCase
+    value: CamelCase
+
+  # Braces for control flow statements go on their own line.
+  - key: readability-braces-around-statements.BraceWrapping.AfterControlStatement
+    value: true
+  - key: readability-braces-around-statements.BraceWrapping.BeforeElse
+    value: true
+
+  # Put spaces around binary and ternary operators, but not unary operators.
+  - key: readability-braces-around-operators.OperatorSpacing.BinaryOperators
+    value: "always"
+  - key: readability-braces-around-operators.OperatorSpacing.TernaryOperators
+    value: "always"
+  - key: readability-braces-around-unary-operators.OperatorSpacing.UnaryOperators
+    value: "never"
+
+  # Put pointer star and reference ampersand hugging left with the type.
+  - key: readability-pointer-and-reference-style.PointerStyle
+    value: "left"
+  - key: readability-pointer-and-reference-style.ReferenceStyle
+    value: "left"
+
+  # Use East `const`.
+  - key: readability-easy-to-understand-variables.ConstStyle
+    value: "east"
+
+  # Wrap after operators.
+  - key: readability-braces-around-operators.OperatorWrap.AfterOperator
+    value: true
+
+  # Align string literals.
+  - key: readability-string-literal-alignment.AlignmentStyle
+    value: "aligned"
