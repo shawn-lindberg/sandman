@@ -19,6 +19,8 @@ Checks: >
 
   clang-analyzer-*
 
+WarningsAsErrors: "*"
+
 CheckOptions:
 
   # Case of things that create new scopes and unscoped Enums.
