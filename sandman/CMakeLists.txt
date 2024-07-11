@@ -13,6 +13,7 @@ if(DOXYGEN_FOUND)
 
 	set(DOXYGEN_TAB_SIZE 3)
 	
+	# Do not include third-party libraries in documentation.
 	set(DOXYGEN_EXCLUDE_PATTERNS ${PROJECT_SOURCE_DIR}/source/rapidjson/**)
 
 	set(DOXYGEN_GENERATE_HTML YES)
