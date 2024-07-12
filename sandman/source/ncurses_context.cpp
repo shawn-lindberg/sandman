@@ -22,7 +22,7 @@ namespace NCurses
 	/*
 		Configure a window with "sensible" defaults.
 	*/
-	static void DefaultConfigureWindow(WINDOW* const p_Window)
+	static void ConfigureWindowDefaults(WINDOW* const p_Window)
 	{
 		/* output options: `man 'outopts(3NCURSES)'` */
 		{
@@ -95,7 +95,7 @@ void NCurses::Initialize()
 	}
 
 	// Configure standard screen window.
-	DefaultConfigureWindow(stdscr);
+	ConfigureWindowDefaults(stdscr);
 
 	// The input window will have a height of 3.
 	static constexpr int s_InputWindowRowCount{ 3 };
@@ -107,7 +107,7 @@ void NCurses::Initialize()
 										 /* upper corner y      */ 0,
 										 /* left-hand corner x  */ 0);
 
-		DefaultConfigureWindow(s_LoggingWindow);
+		ConfigureWindowDefaults(s_LoggingWindow);
 
 		// Scroll when cursor is moved off the edge of the window.
 		scrollok(s_LoggingWindow, TRUE);
@@ -120,7 +120,7 @@ void NCurses::Initialize()
 									  /* upper corner y      */ LINES - s_InputWindowRowCount,
 									  /* left-hand corner x  */ 0);
 
-		DefaultConfigureWindow(s_InputWindow);
+		ConfigureWindowDefaults(s_InputWindow);
 
 		// Draw a border on the window.
 		box(s_InputWindow, 0 /* use default vertical character */,
