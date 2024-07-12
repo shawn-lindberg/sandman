@@ -114,14 +114,14 @@ namespace NCurses
 		// Configure input window.
 		{
 			s_InputWindow = newwin(
-										  // height (line count)
-										  s_InputWindowRowCount,
-										  // width
-										  COLS,
-										  // upper corner y
-										  LINES - s_InputWindowRowCount,
-										  // left-hand corner x
-										  0);
+				// height (line count)
+				s_InputWindowRowCount,
+				// width
+				COLS,
+				// upper corner y
+				LINES - s_InputWindowRowCount,
+				// left-hand corner x
+				0);
 
 			ConfigureWindowDefaults(s_InputWindow);
 
