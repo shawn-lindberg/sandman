@@ -1,6 +1,6 @@
 #include "ncurses_context.h"
 
-namespace Sandman::NCurses
+namespace NCurses
 {
 
 	// This window is where messages from the logger are written to.
