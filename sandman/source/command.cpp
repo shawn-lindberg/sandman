@@ -103,7 +103,7 @@ void CommandProcess()
 
 	// I don't really want to make a whole function for this, but will call it from multiple code 
 	// paths.
-	auto l_DoReboot = []()
+	static constexpr auto s_DoReboot = []() -> void
 	{
 		s_Rebooting = false;
 
@@ -119,7 +119,7 @@ void CommandProcess()
 
 	if (l_NotificationFinishedTime > s_RebootDelayStartTime) 
 	{
-		l_DoReboot();
+		s_DoReboot();
 		return;
 	}
 
@@ -136,7 +136,7 @@ void CommandProcess()
 	
 	if (l_DurationSeconds >= l_DelayDurationSeconds)
 	{
-		l_DoReboot();
+		s_DoReboot();
 	}
 }
 
