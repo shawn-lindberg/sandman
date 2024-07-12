@@ -471,12 +471,12 @@ int main(int argc, char** argv)
 		if (s_DaemonMode == false)
 		{
 			// Process keyboard input.
-			NCurses::Result const result(NCurses::ProcessKeyboardInput(
+			NCurses::Result const l_Result(NCurses::ProcessKeyboardInput(
 				l_KeyboardInputBuffer, l_KeyboardInputBufferSize, l_KeyboardInputBufferCapacity));
 
-			l_Done = result & NCurses::Result::SHOULD_QUIT;
+			l_Done = l_Result & NCurses::Result::SHOULD_QUIT;
 
-			if (result & NCurses::Result::SHOULD_PARSE_COMMAND_TOKENS)
+			if (l_Result & NCurses::Result::SHOULD_PARSE_COMMAND_TOKENS)
 			{
 				// Parse a command.
 
