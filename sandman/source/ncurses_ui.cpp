@@ -42,8 +42,8 @@ namespace NCurses
 			// Every change to the window will not cause a refresh to the physical screen.
 			immedok(p_Window, FALSE);
 
-			// Leave the hardware cursor wherever the update happens to leave it, saving time.
-			leaveok(p_Window, FALSE);
+			// The UI seems to be less glitchy when this is set to true.
+			leaveok(p_Window, TRUE);
 
 			// Don't scroll when cursor is moved off the edge of the window.
 			scrollok(p_Window, FALSE);
