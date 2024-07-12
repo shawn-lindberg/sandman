@@ -20,8 +20,8 @@ namespace NCurses
 	/// returns `nullptr`. Otherwise, the pointer returned by this function is valid until
 	/// `NCurses::Uninitialize` is called.
 	///
-	/// @note The logging window is the region on the terminal where the logger outputs characters to.
-	/// After `NCurses::Initialize` is called successfully, this function always returns the same
+	/// @note The logging window is the region on the terminal where the logger outputs characters
+	/// to. After `NCurses::Initialize` is called successfully, this function always returns the same
 	/// pointer.
 	///
 	WINDOW* GetLoggingWindow();
