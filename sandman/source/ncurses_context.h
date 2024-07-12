@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 // This is the standard include directive for NCurses
 // as noted in the "SYNOPSIS" section of the manual page `man 3NCURSES ncurses`.
 #include <curses.h>
