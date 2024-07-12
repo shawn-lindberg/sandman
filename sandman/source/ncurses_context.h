@@ -66,6 +66,18 @@ namespace NCurses
 	///
 	void Uninitialize();
 
+	// Bitset.
+	struct Result
+	{
+		using IntT = std::uint_least8_t; IntT m_Value;
+		constexpr Result(IntT const p_Value) : m_Value{p_Value} { return; }
+		constexpr operator IntT() const { return m_Value; }
+
+		static constexpr IntT NONE                        {    0u    },
+									 SHOULD_QUIT                 { 1u << 0u },
+									 SHOULD_PARSE_COMMAND_TOKENS { 1u << 1u };
+	};
+
 	/// @brief Get keyboard input.
 	/// 
 	/// @param p_KeyboardInputBuffer (input/output) The input buffer.
