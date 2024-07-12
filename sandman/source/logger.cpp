@@ -1,7 +1,7 @@
 #include "logger.h"
 
 #if defined (__linux__)
-	#include "ncurses_context.h"
+	#include "ncurses_ui.h"
 #endif // defined (__linux__)
 
 #include <cstdio>

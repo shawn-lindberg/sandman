@@ -1,4 +1,4 @@
-#include "ncurses_context.h"
+#include "ncurses_ui.h"
 
 #include "logger.h"
 #include <cstring>

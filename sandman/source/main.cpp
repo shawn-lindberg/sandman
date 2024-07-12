@@ -15,7 +15,7 @@
 #include "input.h"
 #include "logger.h"
 #include "mqtt.h"
-#include "ncurses_context.h"
+#include "ncurses_ui.h"
 #include "notification.h"
 #include "reports.h"
 #include "schedule.h"
