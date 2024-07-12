@@ -19,12 +19,10 @@ namespace NCurses
 		return s_InputWindow;
 	}
 
-	/*
-		Configure a window with "sensible" defaults.
-	*/
+	// Configure a window with "sensible" defaults.
 	static void ConfigureWindowDefaults(WINDOW* const p_Window)
 	{
-		/* output options: `man 'outopts(3NCURSES)'` */
+		// output options: `man 'outopts(3NCURSES)'`
 		{
 			// Don't make the next call to `wrefresh` clear and redraw the screen completely.
 			clearok(p_Window, FALSE);
@@ -45,7 +43,7 @@ namespace NCurses
 			scrollok(p_Window, FALSE);
 		}
 
-		/* input options: `man 'inopts(3NCURSES)'` */
+		// input options: `man 'inopts(3NCURSES)'`
 		{
 			// Don't flush everything on interrupts.
 			intrflush(p_Window, FALSE);
@@ -71,7 +69,7 @@ void NCurses::Initialize()
 	*/
 	initscr();
 
-	/* input options: `man 'inopts(3NCURSES)'` */
+	// input options: `man 'inopts(3NCURSES)'`
 	// These options in particular do not take a window pointer.
 	{
 		/*
@@ -100,7 +98,7 @@ void NCurses::Initialize()
 	// The input window will have a height of 3.
 	static constexpr int s_InputWindowRowCount{ 3 };
 
-	/* configure logging window */
+	// configure logging window
 	{
 		s_LoggingWindow = newwin(/* height (line count) */ LINES - s_InputWindowRowCount,
 										 /* width               */ COLS,
@@ -113,7 +111,7 @@ void NCurses::Initialize()
 		scrollok(s_LoggingWindow, TRUE);
 	}
 
-	/* configure input window */
+	// configure input window
 	{
 		s_InputWindow = newwin(/* height (line count) */ s_InputWindowRowCount,
 									  /* width               */ COLS,
