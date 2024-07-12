@@ -53,7 +53,7 @@ void LoggerEchoToScreen(bool p_LogToScreen);
 /// 
 /// @return `true` if successful, `false` otherwise
 ///
-inline bool LoggerAddEmptyLine()
+[[gnu::always_inline]] inline bool LoggerAddEmptyLine()
 {
 	return LoggerAddMessage("%s", "");
 }
@@ -73,7 +73,7 @@ inline bool LoggerAddEmptyLine()
 /// @attention This function constructs and destroys a `std::ostringstream` every call.
 ///
 template <typename... ParamsT>
-inline bool LoggerPrintArgs(ParamsT const&... p_Arguments)
+[[gnu::always_inline]] inline bool LoggerPrintArgs(ParamsT const&... p_Arguments)
 {
 	return LoggerAddMessage("%s", (std::ostringstream() << ... << p_Arguments).str().c_str());
 }
