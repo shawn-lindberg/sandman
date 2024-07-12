@@ -471,8 +471,22 @@ int main(int argc, char** argv)
 		if (s_DaemonMode == false)
 		{
 			// Process keyboard input.
-			l_Done = ProcessKeyboardInput(l_KeyboardInputBuffer, l_KeyboardInputBufferSize,
-													l_KeyboardInputBufferCapacity);
+			auto const result{ NCurses::ProcessKeyboardInput(
+				l_KeyboardInputBuffer, l_KeyboardInputBufferSize, l_KeyboardInputBufferCapacity) };
+
+			l_Done = result & NCurses::Result::SHOULD_QUIT;
+
+			if (result & NCurses::Result::SHOULD_PARSE_COMMAND_TOKENS)
+			{
+				// Parse a command.
+
+				// Tokenize the string.
+				std::vector<CommandToken> l_CommandTokens;
+				CommandTokenizeString(l_CommandTokens, l_KeyboardInputBuffer);
+
+				// Parse command tokens.
+				CommandParseTokens(l_CommandTokens);
+			}
 		}
 
 		// Process command.

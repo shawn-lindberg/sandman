@@ -151,9 +151,8 @@ namespace NCurses
 		endwin();
 	}
 
-	bool ProcessKeyboardInput(char* p_KeyboardInputBuffer,
-									  unsigned int& p_KeyboardInputBufferSize,
-									  unsigned int const p_KeyboardInputBufferCapacity)
+	Result ProcessKeyboardInput(char* p_KeyboardInputBuffer, unsigned int& p_KeyboardInputBufferSize,
+										 unsigned int const p_KeyboardInputBufferCapacity)
 	{
 
 		// Pointer to the user input window.
@@ -173,7 +172,7 @@ namespace NCurses
 
 		if ((l_InputKey == ERR) || (isascii(l_InputKey) == false))
 		{
-			return false;
+			return Result::NONE;
 		}
 
 		// Increment the offset of the cursor when a valid character is received.
@@ -205,7 +204,7 @@ namespace NCurses
 
 			case '\n':
 				LoggerAddMessage("Unexpectedly got a newline character from user input.");
-				return false;
+				return Result::NONE;
 
 			default:
 				// Echo the character. This is why `noecho` was called; we are echoing manually.
@@ -218,7 +217,7 @@ namespace NCurses
 		{
 			p_KeyboardInputBuffer[p_KeyboardInputBufferSize] = l_NextChar;
 			p_KeyboardInputBufferSize++;
-			return false;
+			return Result::NONE;
 		}
 
 		// Terminate the command.
@@ -227,24 +226,17 @@ namespace NCurses
 		// Echo the command back.
 		LoggerAddMessage("Keyboard command input: \"%s\"", p_KeyboardInputBuffer);
 
-		// Parse a command.
-
-		// Tokenize the string.
-		std::vector<CommandToken> l_CommandTokens;
-		CommandTokenizeString(l_CommandTokens, p_KeyboardInputBuffer);
-
-		// Parse command tokens.
-		CommandParseTokens(l_CommandTokens);
+		// (Should parse a command.)
 
 		// Prepare for a new command.
 		p_KeyboardInputBufferSize = 0;
 
 		if (std::strcmp(p_KeyboardInputBuffer, "quit") == 0)
 		{
-			return true;
+			return Result::SHOULD_QUIT | Result::SHOULD_PARSE_COMMAND_TOKENS;
 		}
 
-		return false;
+		return Result::SHOULD_PARSE_COMMAND_TOKENS;
 	}
 
 } // namespace NCurses

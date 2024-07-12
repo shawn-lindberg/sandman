@@ -79,15 +79,16 @@ namespace NCurses
 	};
 
 	/// @brief Get keyboard input.
-	/// 
+	///
 	/// @param p_KeyboardInputBuffer (input/output) The input buffer.
 	/// @param p_KeyboardInputBufferSize (input/output) How much of the input buffer is in use.
 	/// @param p_KeyboardInputBufferCapacity The capacity of the input buffer.
-	/// 
-	/// @returns `true` if the `"quit"` command was processed, `false` otherwise.
-	/// 
-	bool ProcessKeyboardInput(char* p_KeyboardInputBuffer,
-									  unsigned int& p_KeyboardInputBufferSize,
-									  unsigned int const p_KeyboardInputBufferCapacity);
+	///
+	/// @returns `Result` bitset. The `Result::SHOULD_QUIT` bit flag is set if the "quit"
+	/// command was processed. The `Result::SHOULD_PARSE_COMMAND_TOKENS` bit flag is set if received
+	/// an end-of-line character or the input buffer was flushed.
+	///
+	Result ProcessKeyboardInput(char* p_KeyboardInputBuffer, unsigned int& p_KeyboardInputBufferSize,
+										 unsigned int const p_KeyboardInputBufferCapacity);
 
 } // namespace NCurses
