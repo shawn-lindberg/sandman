@@ -61,29 +61,23 @@ namespace NCurses
 
 	void Initialize()
 	{
-		/*
-			Initialize NCurses. This function exits the program on error!
-			This initializes the standard screen `stdscr` window.
-		*/
+		// Initialize NCurses. This function exits the program on error!
+		// This initializes the standard screen `stdscr` window.
 		initscr();
 
-		// input options: `man 'inopts(3NCURSES)'`
+		// Input options: `man 'inopts(3NCURSES)'`.
 		// These options in particular do not take a window pointer.
 		{
-			/*
-				Don't have to wait for newlines in order to get characters.
-				Control characters are treated normally.
-				Control characters on Linux include Ctrl+Z (suspend), Ctrl+C (quit), etc.
-
-				Note: it is not recomended to call `raw` or `noraw` after setting `cbreak` or `nocbreak`
-				according to "NOTES" section of `man 'inopts(3NCURSES)'`.
-			*/
+			// Don't have to wait for newlines in order to get characters.
+			// Control characters are treated normally.
+			// Control characters on Linux include Ctrl+Z (suspend), Ctrl+C (quit), etc.
+			//
+			// Note: it is not recomended to call `raw` or `noraw` after setting `cbreak` or `nocbreak`
+			// according to "NOTES" section of `man 'inopts(3NCURSES)'`.
 			cbreak();
 
-			/*
-				Do not echo the characters typed by the user into the terminal by default.
-				Echo of the user input should be implemented manually for this project.
-			*/
+			// Do not echo the characters typed by the user into the terminal by default.
+			// Echo of the user input should be implemented manually for this project.
 			noecho();
 
 			// No newlines; translate newline characters to carriage return characters.
@@ -96,7 +90,7 @@ namespace NCurses
 		// The input window will have a height of 3.
 		static constexpr int s_InputWindowRowCount{ 3 };
 
-		// configure logging window
+		// Configure logging window.
 		{
 			s_LoggingWindow = newwin(/* height (line count) */ LINES - s_InputWindowRowCount,
 											 /* width               */ COLS,
@@ -109,7 +103,7 @@ namespace NCurses
 			scrollok(s_LoggingWindow, TRUE);
 		}
 
-		// configure input window
+		// Configure input window.
 		{
 			s_InputWindow = newwin(/* height (line count) */ s_InputWindowRowCount,
 										  /* width               */ COLS,
@@ -122,7 +116,7 @@ namespace NCurses
 			box(s_InputWindow, 0 /* use default vertical character */,
 				 0 /* use default horizontal character */);
 
-			// Move the cursor to the corner
+			// Move the cursor to the corner.
 			wmove(s_InputWindow, INPUT_WINDOW_CURSOR_START_Y, INPUT_WINDOW_CURSOR_START_X);
 		}
 

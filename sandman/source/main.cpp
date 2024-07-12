@@ -281,12 +281,10 @@ static bool ProcessKeyboardInput(char* p_KeyboardInputBuffer,
 	// Pointer to the user input window.
 	auto const l_Window = NCurses::GetInputWindow();
 
-	/*
-		This is the offset for where to place the cursor after a character is typed.
-
-		As the user types, this increases.
-		When the buffer is flushed or the user presses "enter", this resets to zero.
-	*/
+	// This is the offset for where to place the cursor after a character is typed.
+	//
+	// As the user types, this increases.
+	// When the buffer is flushed or the user presses "enter", this resets to zero.
 	static int s_InputWindowCursorOffsetX{ 0 };
 
 	// Try to get keyboard commands.
