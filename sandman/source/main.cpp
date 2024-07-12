@@ -475,18 +475,6 @@ int main(int argc, char** argv)
 				l_KeyboardInputBuffer, l_KeyboardInputBufferSize, l_KeyboardInputBufferCapacity));
 
 			l_Done = l_Result & NCurses::Result::SHOULD_QUIT;
-
-			if (l_Result & NCurses::Result::SHOULD_PARSE_COMMAND_TOKENS)
-			{
-				// Parse a command.
-
-				// Tokenize the string.
-				std::vector<CommandToken> l_CommandTokens;
-				CommandTokenizeString(l_CommandTokens, l_KeyboardInputBuffer);
-
-				// Parse command tokens.
-				CommandParseTokens(l_CommandTokens);
-			}
 		}
 
 		// Process command.

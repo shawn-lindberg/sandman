@@ -1,7 +1,10 @@
 #include "ncurses_ui.h"
 
+#include "command.h"
 #include "logger.h"
+
 #include <cstring>
+#include <vector>
 
 namespace NCurses
 {
@@ -226,7 +229,14 @@ namespace NCurses
 		// Echo the command back.
 		LoggerAddMessage("Keyboard command input: \"%s\"", p_KeyboardInputBuffer);
 
-		// (Should parse a command.)
+		// Parse a command.
+
+		// Tokenize the string.
+		std::vector<CommandToken> l_CommandTokens;
+		CommandTokenizeString(l_CommandTokens, p_KeyboardInputBuffer);
+
+		// Parse command tokens.
+		CommandParseTokens(l_CommandTokens);
 
 		// Prepare for a new command.
 		p_KeyboardInputBufferSize = 0;
