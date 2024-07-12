@@ -26,7 +26,7 @@ namespace NCurses
 	/// to. After `NCurses::Initialize` is called successfully, this function always returns the same
 	/// pointer.
 	///
-	WINDOW* GetLoggingWindow();
+	[[nodiscard]] WINDOW* GetLoggingWindow();
 
 	/// @brief Get the pointer to the input window.
 	///
@@ -42,7 +42,7 @@ namespace NCurses
 	/// After `NCurses::Initialize` is called successfully, this function always returns the same
 	/// pointer.
 	///
-	WINDOW* GetInputWindow();
+	[[nodiscard]] WINDOW* GetInputWindow();
 
 	/// @brief The starting location of the cursor for the input window.
 	///
