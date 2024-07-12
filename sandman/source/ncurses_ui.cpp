@@ -156,7 +156,7 @@ namespace NCurses
 	{
 
 		// Pointer to the user input window.
-		auto const l_Window = NCurses::GetInputWindow();
+		auto const l_Window = GetInputWindow();
 
 		// This is the offset for where to place the cursor after a character is typed.
 		//
@@ -166,8 +166,8 @@ namespace NCurses
 
 		// Try to get keyboard commands.
 
-		int const l_InputKey{ mvwgetch(l_Window, NCurses::INPUT_WINDOW_CURSOR_START_Y,
-												 NCurses::INPUT_WINDOW_CURSOR_START_X +
+		int const l_InputKey{ mvwgetch(l_Window, INPUT_WINDOW_CURSOR_START_Y,
+												 INPUT_WINDOW_CURSOR_START_X +
 												 s_InputWindowCursorOffsetX) };
 
 		if ((l_InputKey == ERR) || (isascii(l_InputKey) == false))
@@ -185,8 +185,8 @@ namespace NCurses
 		{
 			case '\r':
 				// Move the cursor back to the start of the input region.
-				wmove(l_Window, NCurses::INPUT_WINDOW_CURSOR_START_Y,
-						NCurses::INPUT_WINDOW_CURSOR_START_X);
+				wmove(l_Window, INPUT_WINDOW_CURSOR_START_Y,
+						INPUT_WINDOW_CURSOR_START_X);
 
 				// Clear the line.
 				wclrtoeol(l_Window);
