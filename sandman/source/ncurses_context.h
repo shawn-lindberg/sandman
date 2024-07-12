@@ -64,4 +64,16 @@ namespace NCurses
 	///
 	void Uninitialize();
 
+	/// @brief Get keyboard input.
+	/// 
+	/// @param p_KeyboardInputBuffer (input/output) The input buffer.
+	/// @param p_KeyboardInputBufferSize (input/output) How much of the input buffer is in use.
+	/// @param p_KeyboardInputBufferCapacity The capacity of the input buffer.
+	/// 
+	/// @returns `true` if the `"quit"` command was processed, `false` otherwise.
+	/// 
+	bool ProcessKeyboardInput(char* p_KeyboardInputBuffer,
+									  unsigned int& p_KeyboardInputBufferSize,
+									  unsigned int const p_KeyboardInputBufferCapacity);
+
 } // namespace NCurses

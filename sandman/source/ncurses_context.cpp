@@ -1,5 +1,8 @@
 #include "ncurses_context.h"
 
+#include "logger.h"
+#include <cstring>
+
 namespace NCurses
 {
 
@@ -20,7 +23,7 @@ namespace NCurses
 	}
 
 	// Configure a window with "sensible" defaults.
-	static void ConfigureWindowDefaults(WINDOW* const p_Window)
+	[[gnu::nonnull]] static void ConfigureWindowDefaults(WINDOW* const p_Window)
 	{
 		// output options: `man 'outopts(3NCURSES)'`
 		{
@@ -146,6 +149,102 @@ namespace NCurses
 		s_InputWindow = nullptr;
 
 		endwin();
+	}
+
+	bool ProcessKeyboardInput(char* p_KeyboardInputBuffer,
+									  unsigned int& p_KeyboardInputBufferSize,
+									  unsigned int const p_KeyboardInputBufferCapacity)
+	{
+
+		// Pointer to the user input window.
+		auto const l_Window = NCurses::GetInputWindow();
+
+		// This is the offset for where to place the cursor after a character is typed.
+		//
+		// As the user types, this increases.
+		// When the buffer is flushed or the user presses "enter", this resets to zero.
+		static int s_InputWindowCursorOffsetX{ 0 };
+
+		// Try to get keyboard commands.
+
+		int const l_InputKey{ mvwgetch(l_Window, NCurses::INPUT_WINDOW_CURSOR_START_Y,
+												 NCurses::INPUT_WINDOW_CURSOR_START_X +
+												 s_InputWindowCursorOffsetX) };
+
+		if ((l_InputKey == ERR) || (isascii(l_InputKey) == false))
+		{
+			return false;
+		}
+
+		// Increment the offset of the cursor when a valid character is received.
+		s_InputWindowCursorOffsetX += 1;
+
+		// Get the character. This conversion is safe because we checked if the character is ASCII.
+		char const l_NextChar{ static_cast<char>(l_InputKey) };
+
+		switch (l_NextChar)
+		{
+			case '\r':
+				// Move the cursor back to the start of the input region.
+				wmove(l_Window, NCurses::INPUT_WINDOW_CURSOR_START_Y,
+						NCurses::INPUT_WINDOW_CURSOR_START_X);
+
+				// Clear the line.
+				wclrtoeol(l_Window);
+
+				// Redraw the border.
+				box(l_Window,
+					// Use default vertical character.
+					0,
+					// Use default horizontal character.
+					0);
+
+				// Reset the offset.
+				s_InputWindowCursorOffsetX = 0;
+				break;
+
+			case '\n':
+				LoggerAddMessage("Unexpectedly got a newline character from user input.");
+				return false;
+
+			default:
+				// Echo the character. This is why `noecho` was called; we are echoing manually.
+				waddch(l_Window, l_NextChar);
+				break;
+		}
+
+		// Accumulate characters until we get a terminating character or we run out of space.
+		if ((l_NextChar != '\r') && (p_KeyboardInputBufferSize < (p_KeyboardInputBufferCapacity - 1)))
+		{
+			p_KeyboardInputBuffer[p_KeyboardInputBufferSize] = l_NextChar;
+			p_KeyboardInputBufferSize++;
+			return false;
+		}
+
+		// Terminate the command.
+		p_KeyboardInputBuffer[p_KeyboardInputBufferSize] = '\0';
+
+		// Echo the command back.
+		LoggerAddMessage("Keyboard command input: \"%s\"", p_KeyboardInputBuffer);
+
+		// Parse a command.
+
+		// Tokenize the string.
+		std::vector<CommandToken> l_CommandTokens;
+		CommandTokenizeString(l_CommandTokens, p_KeyboardInputBuffer);
+
+		// Parse command tokens.
+		CommandParseTokens(l_CommandTokens);
+
+		// Prepare for a new command.
+		p_KeyboardInputBufferSize = 0;
+
+		if (std::strcmp(p_KeyboardInputBuffer, "quit") == 0)
+		{
+			return true;
+		}
+
+		return false;
 	}
 
 } // namespace NCurses
