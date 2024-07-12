@@ -57,7 +57,7 @@ namespace NCurses
 	/// @brief Uninitialize NCurses state.
 	///
 	/// @attention Only call this function once.
-	/// Only call this function after a sucessfull call to `NCurses::Initialize`.
+	/// Only call this function after a successfull call to `NCurses::Initialize`.
 	/// This does not necessarily clear the screen.
 	///
 	/// @note This frees the windows used by NCurses.
