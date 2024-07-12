@@ -1,6 +1,16 @@
 root = true
 
-# Use tab indentation with size 3.
+# Use tab indentation with size 3 by default.
 [**]
 indent_style = tab
 indent_size = 3
+
+# YAML Ain't Markup Language
+[**.{yml,yaml}]
+indent_style = space
+indent_size = 2
+
+# Python
+[**.py]
+indent_style = space
+indent_size = 4
