@@ -92,10 +92,15 @@ namespace NCurses
 
 		// Configure logging window.
 		{
-			s_LoggingWindow = newwin(/* height (line count) */ LINES - s_InputWindowRowCount,
-											 /* width               */ COLS,
-											 /* upper corner y      */ 0,
-											 /* left-hand corner x  */ 0);
+			s_LoggingWindow = newwin(
+											 // height (line count)
+											 LINES - s_InputWindowRowCount,
+											 // width
+											 COLS,
+											 // upper corner y
+											 0,
+											 // left-hand corner x
+											 0);
 
 			ConfigureWindowDefaults(s_LoggingWindow);
 
@@ -105,16 +110,24 @@ namespace NCurses
 
 		// Configure input window.
 		{
-			s_InputWindow = newwin(/* height (line count) */ s_InputWindowRowCount,
-										  /* width               */ COLS,
-										  /* upper corner y      */ LINES - s_InputWindowRowCount,
-										  /* left-hand corner x  */ 0);
+			s_InputWindow = newwin(
+										  // height (line count)
+										  s_InputWindowRowCount,
+										  // width
+										  COLS,
+										  // upper corner y
+										  LINES - s_InputWindowRowCount,
+										  // left-hand corner x
+										  0);
 
 			ConfigureWindowDefaults(s_InputWindow);
 
 			// Draw a border on the window.
-			box(s_InputWindow, 0 /* use default vertical character */,
-				 0 /* use default horizontal character */);
+			box(s_InputWindow,
+				 // use default vertical character
+				 0,
+				 // use default horizontal character
+				 0);
 
 			// Move the cursor to the corner.
 			wmove(s_InputWindow, INPUT_WINDOW_CURSOR_START_Y, INPUT_WINDOW_CURSOR_START_X);

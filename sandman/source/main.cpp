@@ -315,8 +315,11 @@ static bool ProcessKeyboardInput(char* p_KeyboardInputBuffer,
 			wclrtoeol(l_Window);
 
 			// Redraw the border.
-			box(l_Window, 0 /* use default vertical character */,
-				 0 /* use default horizontal character */);
+			box(l_Window,
+				 // Use default vertical character.
+				 0,
+				 // Use default horizontal character.
+				 0);
 
 			// Reset the offset.
 			s_InputWindowCursorOffsetX = 0;

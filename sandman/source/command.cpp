@@ -435,8 +435,8 @@ void CommandTokenizeString(std::vector<CommandToken>& p_CommandTokens,
 																				  l_TokenStringView.end(),
 																				  l_Token.m_Parameter);
 
-			if (/* successfully parsed to number */ errorCode == std::errc{0} and
-				 /* matched whole string */ endPointer == l_TokenStringView.end())
+			// Check if successfully parsed to number and matched whole string.
+			if (errorCode == std::errc{0} and endPointer == l_TokenStringView.end())
 			{
 				l_Token.m_Type = CommandToken::TYPE_INTEGER;
 			}
