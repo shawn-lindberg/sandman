@@ -66,29 +66,15 @@ namespace NCurses
 	///
 	void Uninitialize();
 
-	// Bitset.
-	struct Result
-	{
-		using IntT = std::uint_least8_t; IntT m_Value;
-		constexpr Result(IntT const p_Value) : m_Value{p_Value} { return; }
-		constexpr operator IntT() const { return m_Value; }
-
-		static constexpr IntT NONE                        {    0u    },
-									 SHOULD_QUIT                 { 1u << 0u },
-									 SHOULD_PARSE_COMMAND_TOKENS { 1u << 1u };
-	};
-
 	/// @brief Get keyboard input.
 	///
 	/// @param p_KeyboardInputBuffer (input/output) The input buffer.
 	/// @param p_KeyboardInputBufferSize (input/output) How much of the input buffer is in use.
 	/// @param p_KeyboardInputBufferCapacity The capacity of the input buffer.
 	///
-	/// @returns `Result` bitset. The `Result::SHOULD_QUIT` bit flag is set if the "quit"
-	/// command was processed. The `Result::SHOULD_PARSE_COMMAND_TOKENS` bit flag is set if received
-	/// an end-of-line character or the input buffer was flushed.
+	/// @returns `true` if the "quit" command was processed, `false` otherwise.
 	///
-	Result ProcessKeyboardInput(char* p_KeyboardInputBuffer, unsigned int& p_KeyboardInputBufferSize,
-										 unsigned int const p_KeyboardInputBufferCapacity);
+	bool ProcessKeyboardInput(char* p_KeyboardInputBuffer, unsigned int& p_KeyboardInputBufferSize,
+									  unsigned int const p_KeyboardInputBufferCapacity);
 
 } // namespace NCurses

@@ -154,8 +154,8 @@ namespace NCurses
 		endwin();
 	}
 
-	Result ProcessKeyboardInput(char* p_KeyboardInputBuffer, unsigned int& p_KeyboardInputBufferSize,
-										 unsigned int const p_KeyboardInputBufferCapacity)
+	bool ProcessKeyboardInput(char* p_KeyboardInputBuffer, unsigned int& p_KeyboardInputBufferSize,
+									  unsigned int const p_KeyboardInputBufferCapacity)
 	{
 
 		// Pointer to the user input window.
@@ -170,12 +170,11 @@ namespace NCurses
 		// Try to get keyboard commands.
 
 		int const l_InputKey{ mvwgetch(l_Window, INPUT_WINDOW_CURSOR_START_Y,
-												 INPUT_WINDOW_CURSOR_START_X +
-												 s_InputWindowCursorOffsetX) };
+												 INPUT_WINDOW_CURSOR_START_X + s_InputWindowCursorOffsetX) };
 
 		if ((l_InputKey == ERR) || (isascii(l_InputKey) == false))
 		{
-			return Result::NONE;
+			return false;
 		}
 
 		// Increment the offset of the cursor when a valid character is received.
@@ -188,8 +187,7 @@ namespace NCurses
 		{
 			case '\r':
 				// Move the cursor back to the start of the input region.
-				wmove(l_Window, INPUT_WINDOW_CURSOR_START_Y,
-						INPUT_WINDOW_CURSOR_START_X);
+				wmove(l_Window, INPUT_WINDOW_CURSOR_START_Y, INPUT_WINDOW_CURSOR_START_X);
 
 				// Clear the line.
 				wclrtoeol(l_Window);
@@ -207,7 +205,7 @@ namespace NCurses
 
 			case '\n':
 				LoggerAddMessage("Unexpectedly got a newline character from user input.");
-				return Result::NONE;
+				return false;
 
 			default:
 				// Echo the character. This is why `noecho` was called; we are echoing manually.
@@ -220,7 +218,7 @@ namespace NCurses
 		{
 			p_KeyboardInputBuffer[p_KeyboardInputBufferSize] = l_NextChar;
 			p_KeyboardInputBufferSize++;
-			return Result::NONE;
+			return false;
 		}
 
 		// Terminate the command.
@@ -243,10 +241,10 @@ namespace NCurses
 
 		if (std::strcmp(p_KeyboardInputBuffer, "quit") == 0)
 		{
-			return Result::SHOULD_QUIT | Result::SHOULD_PARSE_COMMAND_TOKENS;
+			return true;
 		}
 
-		return Result::SHOULD_PARSE_COMMAND_TOKENS;
+		return false;
 	}
 
 } // namespace NCurses
