@@ -96,14 +96,14 @@ namespace NCurses
 		// Configure logging window.
 		{
 			s_LoggingWindow = newwin(
-											 // height (line count)
-											 LINES - s_InputWindowRowCount,
-											 // width
-											 COLS,
-											 // upper corner y
-											 0,
-											 // left-hand corner x
-											 0);
+				// height (line count)
+				LINES - s_InputWindowRowCount,
+				// width
+				COLS,
+				// upper corner y
+				0,
+				// left-hand corner x
+				0);
 
 			ConfigureWindowDefaults(s_LoggingWindow);
 
