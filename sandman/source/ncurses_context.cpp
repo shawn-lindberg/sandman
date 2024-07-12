@@ -194,10 +194,10 @@ namespace NCurses
 
 				// Redraw the border.
 				box(l_Window,
-					// Use default vertical character.
-					0,
-					// Use default horizontal character.
-					0);
+					 // Use default vertical character.
+					 0,
+					 // Use default horizontal character.
+					 0);
 
 				// Reset the offset.
 				s_InputWindowCursorOffsetX = 0;
