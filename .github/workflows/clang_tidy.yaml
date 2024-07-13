@@ -8,6 +8,7 @@ on:
     paths: ["sandman/**"]
 
   pull_request:
+    types: [opened, synchronize, reopened]
 
   # Can run through GitHub user interface.
   workflow_dispatch:
