@@ -172,7 +172,7 @@ namespace NCurses
 		int const l_InputKey{ mvwgetch(l_Window, INPUT_WINDOW_CURSOR_START_Y,
 												 INPUT_WINDOW_CURSOR_START_X + s_InputWindowCursorOffsetX) };
 
-		if ((l_InputKey == ERR) || (isascii(l_InputKey) == false))
+		if ((l_InputKey == ERR) || (IsASCII(l_InputKey) == false))
 		{
 			return false;
 		}

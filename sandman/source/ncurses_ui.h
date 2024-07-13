@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <type_traits>
 
 // This is the standard include directive for NCurses
 // as noted in the "SYNOPSIS" section of the manual page `man 3NCURSES ncurses`.
@@ -76,5 +77,31 @@ namespace NCurses
 	///
 	bool ProcessKeyboardInput(char* p_KeyboardInputBuffer, unsigned int& p_KeyboardInputBufferSize,
 									  unsigned int const p_KeyboardInputBufferCapacity);
+
+	inline constexpr std::uint_least8_t ASCII_MIN{ 0u }, ASCII_MAX{ 127u };
+
+	/// @returns `true` if `p_Character` is a value that fits into the ASCII character set, `false`
+	/// otherwise.
+	///
+	/// @note This is an alternative to the POSIX function `isascii`, because `isascii` is deprecated
+	/// and depends on the locale. See `STANDARDS` section of `man 'isalpha(3)'`: "POSIX.1-2008 marks `isascii` as
+	/// obsolete, noting that it cannot be used portably in a localized application." Furthermore,
+	/// `isascii` is part of the POSIX standard, but is not part of the C or C++ standard library.
+	///
+	template <typename IntT>
+	[[gnu::always_inline]] [[nodiscard]] constexpr std::enable_if_t<std::is_integral_v<IntT>, bool>
+		IsASCII(IntT const p_Character)
+	{
+
+		if constexpr (std::is_signed_v<IntT>)
+		{
+			return p_Character >= ASCII_MIN and p_Character <= ASCII_MAX;
+		}
+		else
+		{
+			static_assert(std::is_unsigned_v<IntT>);
+			return p_Character <= ASCII_MAX;
+		}
+	}
 
 } // namespace NCurses
