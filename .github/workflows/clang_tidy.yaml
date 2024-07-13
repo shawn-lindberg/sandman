@@ -4,8 +4,8 @@ run-name: Run Clang-Tidy Checks
 on:
 
   push:
-    branches: ["master"]
-    paths: ["sandman/**"]
+    # branches: ["master"]
+    # paths: ["sandman/**"]
 
   pull_request:
 
@@ -31,5 +31,5 @@ jobs:
       - name: Generate Compilation Database for Clang-Tidy
         run: cmake -S sandman -B sandman/build -DENABLE_GPIO=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE
 
-      - name: Run Clan-Tidy Checks
-        run: run-clang-tidy -p sandman/build/
+      - name: Run Clang-Tidy Checks
+        run: run-clang-tidy -p sandman/build/ 2>/dev/null
