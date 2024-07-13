@@ -13,7 +13,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build_Sandman_executable:
+  run_Clang_Tidy_checks:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
