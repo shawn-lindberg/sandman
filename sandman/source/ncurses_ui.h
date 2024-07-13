@@ -84,9 +84,10 @@ namespace NCurses
 	/// otherwise.
 	///
 	/// @note This is an alternative to the POSIX function `isascii`, because `isascii` is deprecated
-	/// and depends on the locale. See `STANDARDS` section of `man 'isalpha(3)'`: "POSIX.1-2008 marks `isascii` as
-	/// obsolete, noting that it cannot be used portably in a localized application." Furthermore,
-	/// `isascii` is part of the POSIX standard, but is not part of the C or C++ standard library.
+	/// and depends on the locale. See `STANDARDS` section of `man 'isalpha(3)'`: "POSIX.1-2008 marks
+	/// `isascii` as obsolete, noting that it cannot be used portably in a localized application."
+	/// Furthermore, `isascii` is part of the POSIX standard, but is not part of the C or C++
+	/// standard library.
 	///
 	template <typename IntT>
 	[[gnu::always_inline]] [[nodiscard]] constexpr std::enable_if_t<std::is_integral_v<IntT>, bool>
