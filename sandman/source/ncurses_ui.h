@@ -93,7 +93,6 @@ namespace NCurses
 	[[gnu::always_inline]] [[nodiscard]] constexpr std::enable_if_t<std::is_integral_v<IntT>, bool>
 		IsASCII(IntT const p_Character)
 	{
-
 		if constexpr (std::is_signed_v<IntT>)
 		{
 			return p_Character >= ASCII_MIN and p_Character <= ASCII_MAX;
