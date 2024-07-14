@@ -2,6 +2,7 @@
 
 #include <unistd.h>
 #include <sys/reboot.h>
+#include <charconv>
 
 #include "control.h"
 #include "input.h"
@@ -102,7 +103,7 @@ void CommandProcess()
 
 	// I don't really want to make a whole function for this, but will call it from multiple code 
 	// paths.
-	auto l_DoReboot = []()
+	static constexpr auto s_DoReboot = []() -> void
 	{
 		s_Rebooting = false;
 
@@ -118,7 +119,7 @@ void CommandProcess()
 
 	if (l_NotificationFinishedTime > s_RebootDelayStartTime) 
 	{
-		l_DoReboot();
+		s_DoReboot();
 		return;
 	}
 
@@ -135,7 +136,7 @@ void CommandProcess()
 	
 	if (l_DurationSeconds >= l_DelayDurationSeconds)
 	{
-		l_DoReboot();
+		s_DoReboot();
 	}
 }
 
@@ -417,7 +418,7 @@ void CommandTokenizeString(std::vector<CommandToken>& p_CommandTokens,
 		// Make sure the token string is lowercase.
 		for (auto& l_Character : l_TokenString)
 		{
-			l_Character = std::tolower(l_Character);
+			l_Character = std::tolower(l_Character, std::locale::classic());
 		}
 
 		// Match the token string to a token (with no parameter) if possible.
@@ -427,21 +428,21 @@ void CommandTokenizeString(std::vector<CommandToken>& p_CommandTokens,
 		// If we couldn't turn it into a plain old token, see if it is a parameter token.
 		if (l_Token.m_Type == CommandToken::TYPE_INVALID)
 		{
-			// First, determine whether the string is numeric.
-			auto l_IsNumeric = true;
+			std::string_view const l_TokenStringView(l_TokenString);
 
-			for (const auto& l_Character : l_TokenString)
+			// Attempt to parse the string into a number; save result into `l_Token.m_Parameter`.
+			auto const [endPointer, errorCode] = std::from_chars(l_TokenStringView.begin(),
+																				  l_TokenStringView.end(),
+																				  l_Token.m_Parameter);
+
+			// Check if successfully parsed to number and matched whole string.
+			if (errorCode == std::errc() and endPointer == l_TokenStringView.end())
 			{
-				l_IsNumeric = l_IsNumeric && std::isdigit(l_Character);
-			}
-			
-			if (l_IsNumeric == true)
-			{
-				l_Token.m_Parameter = std::stoul(l_TokenString);
 				l_Token.m_Type = CommandToken::TYPE_INTEGER;
 			}
+
 		}
-		
+
 		// Add the token to the list.
 		p_CommandTokens.push_back(l_Token);
 

@@ -54,7 +54,7 @@ struct ControlConfig
 	
 	// The name of the control.
 	char m_Name[ms_ControlNameCapacity];
-		
+
 	// The GPIO pins to use.
 	int m_UpGPIOPin;
 	int m_DownGPIOPin;
