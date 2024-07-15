@@ -3,8 +3,6 @@
 #include <map>
 #include <vector>
 
-#include <libxml/parser.h>
-
 #include "control.h"
 #include "timer.h"
 
@@ -23,15 +21,6 @@ struct InputBinding
 		m_ControlAction(std::move(p_ControlAction))
 	{
 	}
-		
-	// Read an input binding from XML. 
-	//
-	// p_Document:	The XML document that the node belongs to.
-	// p_Node:		The XML node to read the input binding from.
-	//	
-	// Returns:		True if the binding was read successfully, false otherwise.
-	//
-	bool ReadFromXML(xmlDocPtr p_Document, xmlNodePtr p_Node);
 	
 	// Read an input binding from JSON. 
 	//
@@ -92,8 +81,8 @@ class Input
 		// p_Format:		Standard printf format string.
 		// ...:				Standard printf arguments.
 		//
-		void CloseDevice(bool p_WasFailure, char const* p_Format, ...);
-		
+		[[gnu::format(printf, 1+2, 1+3)]] void CloseDevice(bool p_WasFailure, char const* p_Format, ...);
+
 		// The name of the device to get input from.
 		char m_DeviceName[ms_DeviceNameCapacity];
 		

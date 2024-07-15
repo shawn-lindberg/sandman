@@ -2,7 +2,6 @@
 
 #include <vector>
 
-#include <libxml/parser.h>
 #include "rapidjson/document.h"
 
 #include "timer.h"
@@ -42,15 +41,6 @@ class ControlHandle
 // Configuration parameters to initialize a control.
 struct ControlConfig
 {
-	// Read a control config from XML. 
-	//
-	// p_Document:	The XML document that the node belongs to.
-	// p_Node:		The XML node to read the control config from.
-	//	
-	// Returns:		True if the config was read successfully, false otherwise.
-	//
-	bool ReadFromXML(xmlDocPtr p_Document, xmlNodePtr p_Node);
-		
 	// Read a control config from JSON. 
 	//
 	// p_Object:	The JSON object representing a control config.
@@ -64,7 +54,7 @@ struct ControlConfig
 	
 	// The name of the control.
 	char m_Name[ms_ControlNameCapacity];
-		
+
 	// The GPIO pins to use.
 	int m_UpGPIOPin;
 	int m_DownGPIOPin;
@@ -214,15 +204,6 @@ struct ControlAction
 	// 
 	ControlAction(char const* p_ControlName, Control::Actions p_Action);
 
-	// Read a control action from XML. 
-	//
-	// p_Document:	The XML document that the node belongs to.
-	// p_Node:		The XML node to read the control action from.
-	//	
-	// Returns:		True if the action was read successfully, false otherwise.
-	//
-	bool ReadFromXML(xmlDocPtr p_Document, xmlNodePtr p_Node);
-	
 	// Read a control action from JSON. 
 	//
 	// p_Object:	The JSON object representing a control action.

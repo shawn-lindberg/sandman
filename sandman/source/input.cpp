@@ -15,7 +15,6 @@
 #include "logger.h"
 #include "notification.h"
 #include "timer.h"
-#include "xml.h"
 
 #define DATADIR		AM_DATADIR
 
@@ -36,45 +35,6 @@
 
 
 // InputBinding members
-
-// Read an input binding from XML. 
-//
-// p_Document:	The XML document that the node belongs to.
-// p_Node:		The XML node to read the input binding from.
-//	
-// Returns:		True if the binding was read successfully, false otherwise.
-//
-bool InputBinding::ReadFromXML(xmlDocPtr p_Document, xmlNodePtr p_Node)
-{
-	// We must have a key code.
-	static auto const* s_KeyCodeNodeName = "KeyCode";
-	auto* l_KeyCodeNode = XMLFindNextNodeByName(p_Node->xmlChildrenNode, s_KeyCodeNodeName);
-	
-	if (l_KeyCodeNode == nullptr) 
-	{
-		return false;
-	}
-	
-	// Read the key code from the node.
-	m_KeyCode = XMLGetNodeTextAsInteger(p_Document, l_KeyCodeNode);
-	
-	// We must also have a control action.
-	static auto const* s_ControlActionNodeName = "ControlAction";
-	auto* l_ControlActionNode = XMLFindNextNodeByName(p_Node->xmlChildrenNode, s_ControlActionNodeName);
-	
-	if (l_ControlActionNode == nullptr)
-	{
-		return false;
-	}
-	
-	// Read the control action from the node.
-	if (m_ControlAction.ReadFromXML(p_Document, l_ControlActionNode) == false) 
-	{
-		return false;
-	}
-	
-	return true;
-}
 
 // Read an input binding from JSON. 
 //
@@ -160,7 +120,7 @@ void Input::Initialize(char const* p_DeviceName, std::vector<InputBinding> const
 			l_Binding.m_ControlAction.m_ControlName, l_ActionText);
 	}
 	
-	LoggerAddMessage("");
+	LoggerAddEmptyLine();
 }
 
 // Handle uninitialization.
