@@ -177,7 +177,7 @@ bool MQTTInitialize()
 	}
 		
 	LoggerAddMessage("\tsucceeded");
-	LoggerAddMessage("");
+	LoggerAddEmptyLine();
 
 	int l_MajorVersion = 0;
 	int l_MinorVersion = 0;
@@ -198,7 +198,7 @@ bool MQTTInitialize()
 	}
 	
 	LoggerAddMessage("\tsucceeded");
-	LoggerAddMessage("");
+	LoggerAddEmptyLine();
 
 	// Set some necessary callbacks.
 	mosquitto_connect_callback_set(s_MosquittoClient, OnConnectCallback);
@@ -255,7 +255,7 @@ bool MQTTInitialize()
 	}
 	
 	LoggerAddMessage("\tsucceeded");
-	LoggerAddMessage("");
+	LoggerAddEmptyLine();
 
 	// Start processing in another thread.
 	mosquitto_loop_start(s_MosquittoClient);

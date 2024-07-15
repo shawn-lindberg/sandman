@@ -11,6 +11,7 @@
 #include "logger.h"
 #include "notification.h"
 #include "timer.h"
+#include "command.h"
 
 
 // Constants
@@ -383,7 +384,7 @@ void Control::Process()
 
 		default:
 		{
-			LoggerAddMessage("Control \"%s\": Unrecognized state %d in Process()", m_State, m_Name);
+			LoggerAddMessage("Control \"%d\": Unrecognized state %s in Process()", m_State, m_Name);
 		}
 		break;
 	}
@@ -393,21 +394,26 @@ void Control::Process()
 //
 // p_DesiredAction:		The desired action.
 // p_Mode:					The mode of the action.
-// p_DurationPercent:	(Optional) The percent of the normal duration to perform the action 
+// p_DurationPercent:	(Optional) The percent of the normal duration to perform the action
 //								for.
 //
-void Control::SetDesiredAction(Actions p_DesiredAction, Modes p_Mode, 
-	unsigned int p_DurationPercent /* = 100 */)
+void Control::SetDesiredAction(Actions p_DesiredAction, Modes p_Mode, unsigned int p_DurationPercent)
 {
+	static_assert(
+		std::is_same_v<decltype(p_DurationPercent), decltype(CommandToken::m_Parameter)>,
+		"Assert the type of `p_DurationPercent` is the same as the type of `CommandToken::m_Parameter`. "
+		"Currently, the main purpose of `CommandToken::m_Parameter` is to be used as `p_DurationPercent`, "
+		"so this assertion serves as a notification for if the types become unsynchronized.");
+
 	m_DesiredAction = p_DesiredAction;
 	m_Mode = p_Mode;
-	
-	if (m_Mode == MODE_TIMED) 
+
+	if (m_Mode == MODE_TIMED)
 	{
 		// Set the current moving duration based on the requested percentage of the standard amount.
 		auto const l_DurationFraction = std::min(p_DurationPercent, 100u) / 100.0f;
-		m_MovingDurationMS = static_cast<unsigned int>(m_StandardMovingDurationMS * 
-			l_DurationFraction);
+		m_MovingDurationMS =
+			static_cast<unsigned int>(m_StandardMovingDurationMS * l_DurationFraction);
 	}
 	else
 	{
@@ -670,7 +676,7 @@ void ControlsInitialize(std::vector<ControlConfig> const& p_Configs)
 		}
 
 		LoggerAddMessage("\tsucceeded");
-		LoggerAddMessage("");
+		LoggerAddEmptyLine();
 
 	#endif // defined ENABLE_GPIO
 
