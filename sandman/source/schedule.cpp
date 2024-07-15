@@ -5,11 +5,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <vector>
 
-#include "rapidjson/document.h"
 #include "rapidjson/filereadstream.h"
-#include "control.h"
 #include "logger.h"
 #include "notification.h"
 #include "reports.h"
@@ -22,38 +19,6 @@
 
 // Types
 //
-
-// A schedule event.
-struct ScheduleEvent
-{
-	// Read a schedule event from JSON. 
-	//
-	// p_Object:	The JSON object representing the event.
-	//	
-	// Returns:		True if the event was read successfully, false otherwise.
-	//
-	bool ReadFromJSON(rapidjson::Value const& p_Object);
-	
-	// Delay in seconds before this entry occurs (since the last).
-	unsigned int	m_DelaySec;
-	
-	// The control action to perform at the scheduled time.
-	ControlAction	m_ControlAction;
-};
-
-class Schedule 
-{
-    public:
-        Schedule() = default;
-        void AddEvent(const ScheduleEvent& p_Event);
-        bool IsEmpty() const;
-        size_t GetNumEvents() const;
-        std::vector<ScheduleEvent>& GetEvents();
-        bool LoadFromFile(const char* p_FileName);
-
-    private:
-        std::vector<ScheduleEvent> m_ScheduleEvents;
-};
 
 // Locals
 //
@@ -72,30 +37,68 @@ static Schedule s_Schedule;
 // Functions
 //
 
+// ScheduleEvent members
+
+// Read a schedule event from JSON. 
+//	
+// p_Object:	The JSON object representing the event.
+//
+// Returns:		True if the event was read successfully, false otherwise.
+//
+bool ScheduleEvent::ReadFromJSON(rapidjson::Value const& p_Object)
+{
+	if (p_Object.IsObject() == false)
+	{
+		LoggerAddMessage("Schedule event could not be parsed because it is not an object.");
+		return false;
+	}
+
+	// We must have a delay.
+	auto const l_DelayIterator = p_Object.FindMember("delaySec");
+
+	if (l_DelayIterator == p_Object.MemberEnd())
+	{
+		LoggerAddMessage("Schedule event is missing the delay time.");
+		return false;
+	}
+
+	if (l_DelayIterator->value.IsInt() == false)
+	{
+		LoggerAddMessage("Schedule event has a delay time, but it's not an integer.");
+		return false;
+	}
+
+	m_DelaySec = l_DelayIterator->value.GetInt();
+
+	// We must also have a control action.
+	auto const l_ControlActionIterator = p_Object.FindMember("controlAction");
+
+	if (l_ControlActionIterator == p_Object.MemberEnd())
+	{
+		LoggerAddMessage("Schedule event is missing a control action.");
+		return false;
+	}
+	
+	if (m_ControlAction.ReadFromJSON(l_ControlActionIterator->value) == false) 
+	{
+		LoggerAddMessage("Schedule event control action could not be parsed.");
+		return false;
+	}
+	
+	return true;
+}
+
 // Schedule members
 
-void Schedule::AddEvent(const ScheduleEvent& p_Event)
-{
-	m_ScheduleEvents.push_back(p_Event);
-}
-
-bool Schedule::IsEmpty() const
-{
-	return (m_ScheduleEvents.size() == 0);
-}
-
-size_t Schedule::GetNumEvents() const
-{
-	return m_ScheduleEvents.size();
-}
-std::vector<ScheduleEvent>& Schedule::GetEvents()
-{
-	return m_ScheduleEvents;
-}
-
+// Load a schedule from a file.
+//
+// p_FileName: The name of a file describing the schedule.
+//
+// Returns:    True if the schedule was loaded successfully, false otherwise.
+//
 bool Schedule::LoadFromFile(const char* p_FileName)
 {
-	m_ScheduleEvents.clear();
+	m_Events.clear();
 
 	auto* l_ScheduleFile = fopen(p_FileName, "r");
 
@@ -149,65 +152,34 @@ bool Schedule::LoadFromFile(const char* p_FileName)
 		}
 					
 		// If we successfully read the event, add it to the list.
-		AddEvent(l_Event);
+		m_Events.push_back(l_Event);
 	}
 							
 	fclose(l_ScheduleFile);
 	return true;
 }
 
-
-// ScheduleEvent members
-
-// Read a schedule event from JSON. 
-//	
-// p_Object:	The JSON object representing the event.
+// Determines whether the schedule is empty.
 //
-// Returns:		True if the event was read successfully, false otherwise.
-//
-bool ScheduleEvent::ReadFromJSON(rapidjson::Value const& p_Object)
+bool Schedule::IsEmpty() const
 {
-	if (p_Object.IsObject() == false)
-	{
-		LoggerAddMessage("Schedule event could not be parsed because it is not an object.");
-		return false;
-	}
-
-	// We must have a delay.
-	auto const l_DelayIterator = p_Object.FindMember("delaySec");
-
-	if (l_DelayIterator == p_Object.MemberEnd())
-	{
-		LoggerAddMessage("Schedule event is missing the delay time.");
-		return false;
-	}
-
-	if (l_DelayIterator->value.IsInt() == false)
-	{
-		LoggerAddMessage("Schedule event has a delay time, but it's not an integer.");
-		return false;
-	}
-
-	m_DelaySec = l_DelayIterator->value.GetInt();
-
-	// We must also have a control action.
-	auto const l_ControlActionIterator = p_Object.FindMember("controlAction");
-
-	if (l_ControlActionIterator == p_Object.MemberEnd())
-	{
-		LoggerAddMessage("Schedule event is missing a control action.");
-		return false;
-	}
-	
-	if (m_ControlAction.ReadFromJSON(l_ControlActionIterator->value) == false) 
-	{
-		LoggerAddMessage("Schedule event control action could not be parsed.");
-		return false;
-	}
-	
-	return true;
+	return (m_Events.size() == 0);
 }
 
+// Gets the number of events in the schedule.
+//
+size_t Schedule::GetNumEvents() const
+{
+	return m_Events.size();
+}
+
+// Get the events in the schedule.
+// NOTE: This is intended to be const, however current ControlActions prevent that.
+//
+std::vector<ScheduleEvent>& Schedule::GetEvents()
+{
+	return m_Events;
+}
 
 // Functions
 //
