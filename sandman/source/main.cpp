@@ -456,11 +456,6 @@ int main(int argc, char** argv)
 		return s_ExitCode;
 	}
 
-	// Store a keyboard input here.
-	static constexpr unsigned int l_KeyboardInputBufferCapacity = 128;
-	char l_KeyboardInputBuffer[l_KeyboardInputBufferCapacity];
-	unsigned int l_KeyboardInputBufferSize = 0;
-
 	auto l_Done = false;
 	while (l_Done == false)
 	{
@@ -471,8 +466,7 @@ int main(int argc, char** argv)
 		if (s_DaemonMode == false)
 		{
 			// Process keyboard input.
-			l_Done = NCurses::ProcessKeyboardInput(l_KeyboardInputBuffer, l_KeyboardInputBufferSize,
-																l_KeyboardInputBufferCapacity);
+			l_Done = NCurses::ProcessKeyboardInput();
 		}
 
 		// Process command.

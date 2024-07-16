@@ -162,10 +162,7 @@ bool LoggerAddMessage(char const* p_Format, va_list& p_Arguments)
 
 			#elif defined (__linux__)
 
-			WINDOW* const l_Window = NCurses::GetLoggingWindow();
-			waddstr(l_Window, l_LogStringBuffer);
-			waddch(l_Window, '\n');
-			wrefresh(l_Window);
+			NCurses::LoggingWindow::WriteLine(l_LogStringBuffer);
 
 			#endif // defined (_WIN32)
 		}

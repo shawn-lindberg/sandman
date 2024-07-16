@@ -1,5 +1,8 @@
 #pragma once
 
+#include "char_buffer.h"
+
+#include <array>
 #include <cstdint>
 #include <type_traits>
 
@@ -13,21 +16,30 @@
 namespace NCurses
 {
 
-	/// @brief Get the pointer to the logging window.
-	///
-	/// @attention Do not call this function before having called `NCurses::Initialize` successfully.
-	///
-	/// @return NCurses window pointer
-	///
-	/// @warning If `NCurses::Initialize` has not been called successfully, this function likely
-	/// returns `nullptr`. Otherwise, the pointer returned by this function is valid until
-	/// `NCurses::Uninitialize` is called.
-	///
-	/// @note The logging window is the region on the terminal where the logger outputs characters
-	/// to. After `NCurses::Initialize` is called successfully, this function always returns the same
-	/// pointer.
-	///
-	[[nodiscard]] WINDOW* GetLoggingWindow();
+	namespace LoggingWindow {
+		void WriteLine(char const* const string="");
+
+		/// @brief Get the pointer to the logging window.
+		///
+		/// @attention Do not call this function before having called `NCurses::Initialize` successfully.
+		///
+		/// @return NCurses window pointer
+		///
+		/// @warning If `NCurses::Initialize` has not been called successfully, this function likely
+		/// returns `nullptr`. Otherwise, the pointer returned by this function is valid until
+		/// `NCurses::Uninitialize` is called.
+		///
+		/// @note The logging window is the region on the terminal where the logger outputs characters
+		/// to. After `NCurses::Initialize` is called successfully, this function always returns the same
+		/// pointer.
+		///
+		[[deprecated("Prefer using `WriteLine` to write to this window.")]] [[nodiscard]] WINDOW* Get();
+	}
+
+	namespace Key {
+		template <char t_Name, typename CharT=int>
+		inline constexpr CharT Ctrl{ t_Name bitand 0x1F };
+	}
 
 	/// @brief Get the pointer to the input window.
 	///
@@ -43,7 +55,7 @@ namespace NCurses
 	/// After `NCurses::Initialize` is called successfully, this function always returns the same
 	/// pointer.
 	///
-	[[nodiscard]] WINDOW* GetInputWindow();
+	[[deprecated]] [[nodiscard]] WINDOW* GetInputWindow();
 
 	/// @brief The starting location of the cursor for the input window.
 	///
@@ -67,6 +79,8 @@ namespace NCurses
 	///
 	void Uninitialize();
 
+	CharBuffer<char, 128u> const& GetInputBuffer();
+
 	/// @brief Get keyboard input.
 	///
 	/// @param p_KeyboardInputBuffer (input/output) The input buffer.
@@ -75,8 +89,7 @@ namespace NCurses
 	///
 	/// @returns `true` if the "quit" command was processed, `false` otherwise.
 	///
-	bool ProcessKeyboardInput(char* p_KeyboardInputBuffer, unsigned int& p_KeyboardInputBufferSize,
-									  unsigned int const p_KeyboardInputBufferCapacity);
+	bool ProcessKeyboardInput();
 
 	inline constexpr std::uint_least8_t ASCII_MIN{ 0u }, ASCII_MAX{ 127u };
 
@@ -89,17 +102,17 @@ namespace NCurses
 	/// Furthermore, `isascii` is part of the POSIX standard, but is not part of the C or C++
 	/// standard library.
 	///
-	template <typename IntT>
-	[[gnu::always_inline]] [[nodiscard]] constexpr std::enable_if_t<std::is_integral_v<IntT>, bool>
-		IsASCII(IntT const p_Character)
+	template <typename CharT>
+	[[gnu::always_inline]] [[nodiscard]] constexpr std::enable_if_t<std::is_integral_v<CharT>, bool>
+		IsASCII(CharT const p_Character)
 	{
-		if constexpr (std::is_signed_v<IntT>)
+		if constexpr (std::is_signed_v<CharT>)
 		{
 			return p_Character >= ASCII_MIN and p_Character <= ASCII_MAX;
 		}
 		else
 		{
-			static_assert(std::is_unsigned_v<IntT>);
+			static_assert(std::is_unsigned_v<CharT>);
 			return p_Character <= ASCII_MAX;
 		}
 	}
