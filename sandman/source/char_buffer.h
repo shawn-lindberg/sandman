@@ -5,7 +5,7 @@
 #include <type_traits>
 
 template <typename CharT, std::size_t t_Capacity>
-class StringBuffer
+class CharBuffer
 {
 	static_assert(std::is_integral_v<CharT>);
 
@@ -33,7 +33,7 @@ class StringBuffer
 			return m_StringLength;
 		}
 
-		[[gnu::always_inline]] constexpr StringBuffer(Data p_Data = {}): m_Data(std::move(p_Data)), m_StringLength{ 0u } {}
+		[[gnu::always_inline]] constexpr CharBuffer(Data p_Data = {}): m_Data(std::move(p_Data)), m_StringLength{ 0u } {}
 
 		constexpr bool Insert(typename Data::size_type const p_Index,
 									typename Data::value_type const p_Character)
