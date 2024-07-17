@@ -287,12 +287,12 @@ namespace NCurses
 				return false;
 		}
 
-		LoggerAddMessage("KEY (%d)", l_InputKey);
-
 		bool const l_InputKeyIsPrintable{ IsASCII(l_InputKey) and std::isprint<char>(l_InputKey, std::locale::classic()) };
 
 		// If successfully inserted into the buffer, move the cursor to the right.
 		if (l_InputKeyIsPrintable and s_InputBuffer.Insert(s_BufferCursor, l_InputKey)) ++s_BufferCursor;
+
+		LoggerAddMessage("KEY (%d)", l_InputKey);
 
 		return false;
 	}
