@@ -66,7 +66,6 @@ namespace NCurses
 	/// @attention Only call this function once. Call this function successfully before
 	/// calling any other functions in the `NCurses` namespace.
 	///
-	///
 	void Initialize();
 
 	/// @brief Uninitialize NCurses state.
@@ -79,7 +78,8 @@ namespace NCurses
 	///
 	void Uninitialize();
 
-	CharBuffer<char, 128u> const& GetInputBuffer();
+	using InputBuffer = CharBuffer<char, 128u>;
+	InputBuffer const& GetInputBuffer();
 
 	/// @brief Get keyboard input.
 	///
