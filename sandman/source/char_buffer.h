@@ -96,9 +96,11 @@ class CharBuffer
 
 		constexpr bool Remove(typename Data::size_type const p_Index)
 		{
-			// Can only remove if the index is a valid position in the string.
-			// The index cannot be equal to the string length, because
-			// that is where the null character currently is and it should not be removed.
+			// Can only remove if the index is a valid position in the string; 
+			// the index must be strictly less than the string length.
+			// The index cannot be equal to the string length because the string length is the
+			// the position where the null character currently is,
+			// and the null character should not be removed.
 			if (p_Index < m_StringLength)
 			{
 				// Starting from the index of the character to remove,
@@ -109,9 +111,6 @@ class CharBuffer
 				// So, this operation maintains a null terminated string.
 				for (typename Data::size_type l_Index{ p_Index }; l_Index < m_StringLength; ++l_Index)
 				{
-					std::cout << "Replace \'" << m_Data.at(l_Index) << "\' at index " << l_Index
-								 << " with \'" << m_Data.at(l_Index + 1u) << "\'.\n";
-
 					// Replace the character at the current index with the
 					// character to the right;
 					m_OnCharWrite(l_Index, m_Data[l_Index] = m_Data[l_Index + 1u]);
