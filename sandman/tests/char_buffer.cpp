@@ -28,36 +28,36 @@ namespace Require
 
 	template <typename CharT, std::size_t t_Capacity>
 	static void ReplaceString(CharBuffer<CharT, t_Capacity>& p_Buffer,
-									  typename CharBuffer<CharT, t_Capacity>::Data::size_type const index,
+									  typename CharBuffer<CharT, t_Capacity>::Data::size_type const p_Index,
 									  std::string_view const string)
 	{
-		INFO("Attempt to replace position " << index << " with \"" << string << "\".");
+		INFO("Attempt to replace position " << p_Index << " with \"" << string << "\".");
 		auto const l_OriginalStringLength{ p_Buffer.GetStringLength() };
 		for (std::string_view::size_type count{ 0u }; count < string.length(); ++count)
 		{
-			auto const l_CharacterToRemove{ p_Buffer.GetData().at(index) };
-			auto const l_CharacterToCopyShiftLeft{ p_Buffer.GetData().at(index + 1u) };
+			auto const l_CharacterToRemove{ p_Buffer.GetData().at(p_Index) };
+			auto const l_CharacterToCopyShiftLeft{ p_Buffer.GetData().at(p_Index + 1u) };
 			INFO("On attempt to remove single character.");
 			INFO("Characters removed successfully: " << count);
 			INFO("Character to remove: \'" << l_CharacterToRemove << '\'');
 			INFO("Character to copy shift left: \'" << l_CharacterToCopyShiftLeft << '\'');
 			{
 				INFO("Failed to remove character.");
-				REQUIRE(p_Buffer.Remove(index));
+				REQUIRE(p_Buffer.Remove(p_Index));
 			}
 			INFO("String: \"" << p_Buffer.GetData().data() << '\"');
 			{
 				INFO("The character to the right of the position to remove "
 					  "was not copy shifted left correctly.");
-				INFO("The character to the right of this position is \'" << p_Buffer.GetData().at(index + 1u)
+				INFO("The character to the right of this position is \'" << p_Buffer.GetData().at(p_Index + 1u)
 																		  << "\'.");
 				INFO("The character to the left of this position is " <<
-					  (index > 0u ?
-							std::string({ '\'', p_Buffer.GetData().at(index - 1u), '\''}) :
+					  (p_Index > 0u ?
+							std::string({ '\'', p_Buffer.GetData().at(p_Index - 1u), '\''}) :
 							std::string("(none)")) <<
 					  ".");
 
-				REQUIRE(p_Buffer.GetData().at(index) == l_CharacterToCopyShiftLeft);
+				REQUIRE(p_Buffer.GetData().at(p_Index) == l_CharacterToCopyShiftLeft);
 			}
 			{
 				INFO("The string length was not correctly updated.");
@@ -79,10 +79,10 @@ namespace Require
 			Require::StringNullTerminated(p_Buffer);
 		}
 
-		for (char const l_Character : string)
+		for (std::string_view::size_type l_Offset{ 0u }; l_Offset < string.size(); ++l_Offset)
 		{
 			INFO("Failed to insert character.");
-			p_Buffer.Insert(index, l_Character);
+			REQUIRE(p_Buffer.Insert(p_Index + l_Offset, string[l_Offset]));
 		}
 
 		{
@@ -180,7 +180,7 @@ TEST_CASE("`CharBuffer`", "[.CharBuffer]")
 		{
 			Require::ReplaceString(l_Buffer, 4u, "green"sv);
 
-			Require::ReplaceString(l_Buffer, 15u, "hopped"sv);
+			Require::ReplaceString(l_Buffer, 14u, "hopped"sv);
 
 			Require::ReplaceString(l_Buffer, 35u, "cat"sv);
 
