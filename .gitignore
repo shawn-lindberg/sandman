@@ -29,3 +29,6 @@ sandman/build/
 sandman/source/sandman
 .venv/
 __pycache__/
+
+# log file created from running Catch2 tests
+tests.log
