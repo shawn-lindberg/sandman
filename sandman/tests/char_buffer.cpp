@@ -75,7 +75,7 @@ namespace Require
 		}
 
 		{
-			INFO("Adter inserted characters, the string length of the buffer is not correct.");
+			INFO("After inserted characters, the string length of the buffer is not correct.");
 			REQUIRE(p_Buffer.GetStringLength() == l_OriginalStringLength);
 		}
 
