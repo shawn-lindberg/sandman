@@ -28,14 +28,14 @@ class CharBuffer
 		// Can certainly use `CharT` as an alias for `typename Data::value_type`.
 		static_assert(std::is_same_v<CharT, typename Data::value_type>);
 		
-		using OnCharWriteListener = void (*)(typename Data::size_type const p_Index, CharT const p_Character);
+		using OnStringUpdateListener = void (*)(typename Data::size_type const p_Index, CharT const p_Character);
 
 		using OnClearListener = void (*)();
 
 	private:
 		Data m_Data{};
 		typename Data::size_type m_StringLength{0u};
-		OnCharWriteListener m_OnCharWrite{Dummy<OnCharWriteListener>::Function};
+		OnStringUpdateListener m_OnStringUpdate{Dummy<OnStringUpdateListener>::Function};
 		OnClearListener m_OnClear{Dummy<OnClearListener>::Function};
 
 	public:
@@ -56,9 +56,9 @@ class CharBuffer
 
 		constexpr CharBuffer() = default;
 
-		explicit constexpr CharBuffer(OnCharWriteListener const p_OnCharWriteListener,
+		explicit constexpr CharBuffer(OnStringUpdateListener const p_OnStringUpdateListener,
 												OnClearListener const p_OnClearListener)
-			: m_OnCharWrite{ NonNull(p_OnCharWriteListener) },
+			: m_OnStringUpdate{ NonNull(p_OnStringUpdateListener) },
 			  m_OnClear{ NonNull(p_OnClearListener) } {};
 
 		constexpr bool Insert(typename Data::size_type const p_Index, CharT const p_Character)
@@ -67,10 +67,10 @@ class CharBuffer
 			{
 				for (typename Data::size_type index{ m_StringLength }; index > p_Index; --index)
 				{
-					m_OnCharWrite(index, m_Data[index] = m_Data[index - 1u]);
+					m_OnStringUpdate(index, m_Data[index] = m_Data[index - 1u]);
 				}
 
-				m_OnCharWrite(p_Index,  m_Data[p_Index] = p_Character);
+				m_OnStringUpdate(p_Index,  m_Data[p_Index] = p_Character);
 
 				m_Data[++m_StringLength] = '\0';
 
@@ -84,7 +84,7 @@ class CharBuffer
 		{
 			if (m_StringLength < MAX_STRING_LENGTH)
 			{
-				m_OnCharWrite(m_StringLength, m_Data[m_StringLength] = p_Character);
+				m_OnStringUpdate(m_StringLength, m_Data[m_StringLength] = p_Character);
 
 				m_Data[++m_StringLength] = '\0';
 
@@ -115,7 +115,7 @@ class CharBuffer
 				{
 					// Replace the character at the current index with the
 					// character to the right;
-					m_OnCharWrite(l_Index, m_Data[l_Index] = m_Data[l_Index + 1u]);
+					m_OnStringUpdate(l_Index, m_Data[l_Index] = m_Data[l_Index + 1u]);
 				}
 
 				// One character was removed, so decrement the string length by one.

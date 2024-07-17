@@ -172,7 +172,7 @@ namespace NCurses
 
 	// User keyboard input is stored here.
 	static InputBuffer s_InputBuffer(
-		InputBuffer::OnCharWriteListener{
+		InputBuffer::OnStringUpdateListener{
 			[](std::size_t const p_Index, char const p_Character) -> void
 			{
 				mvwaddch(s_InputWindow, INPUT_WINDOW_CURSOR_START_Y, INPUT_WINDOW_CURSOR_START_X + p_Index, p_Character);
