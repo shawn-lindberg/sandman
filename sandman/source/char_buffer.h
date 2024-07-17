@@ -104,12 +104,14 @@ class CharBuffer
 			if (p_Index < m_StringLength)
 			{
 				// Starting from the index of the character to remove,
-				// will iterate rightward shifting each character to the left by one position
-				// including the null character.
-				// When the index is one position before string length,
-				// that is when the null character at the string length is shifted to the left.
-				// So, this operation maintains a null terminated string.
-				for (typename Data::size_type l_Index{ p_Index }; l_Index < m_StringLength; ++l_Index)
+				// will iterate rightward shifting each character to the left by one position.
+				// 
+				// It's impossible for the string length to be zero here,
+				// because the removal index has to be less than the string length,
+				// and the smallest the removal index can be is zero, so
+				// string length must be at least one here.
+				// So it is okay to subtract one from the string length here.
+				for (typename Data::size_type l_Index{ p_Index }; l_Index < m_StringLength - 1u; ++l_Index)
 				{
 					// Replace the character at the current index with the
 					// character to the right;
@@ -117,7 +119,8 @@ class CharBuffer
 				}
 
 				// One character was removed, so decrement the string length by one.
-				--m_StringLength;
+				// Also, null terminate the string.
+				m_Data[--m_StringLength] = '\0';
 
 				return true;
 			}
