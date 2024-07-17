@@ -184,7 +184,17 @@ TEST_CASE("`CharBuffer`", "[.CharBuffer]")
 
 			Require::ReplaceString(l_Buffer, 35u, "cat"sv);
 
-			REQUIRE(l_Buffer.View() == "The green fox hopped over the lazy cat.");
+			Require::ReplaceString(l_Buffer, 12u, "g"sv);
+
+			Require::ReplaceString(l_Buffer, 30u, "m"sv);
+
+			Require::ReplaceString(l_Buffer, 32u, "d"sv);
+
+			REQUIRE(l_Buffer.Remove(33u));
+
+			REQUIRE(l_Buffer.Insert(11u, 'r'));
+
+			REQUIRE(l_Buffer.View() == "The green frog hopped over the mad cat."sv);
 		}
 	}
 }
