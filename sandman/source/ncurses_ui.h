@@ -38,7 +38,7 @@ namespace NCurses
 
 	namespace Key {
 		template <char t_Name, typename CharT=int>
-		inline constexpr CharT Ctrl{ t_Name bitand 0x1F };
+		inline constexpr std::enable_if_t<std::is_integral_v<CharT>, CharT> Ctrl{ t_Name bitand 0x1F };
 	}
 
 	/// @brief Get the pointer to the input window.
