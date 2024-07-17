@@ -175,13 +175,10 @@ namespace NCurses
 		InputBuffer::OnCharWriteListener{
 			[](std::size_t const p_Index, char const p_Character) -> void
 			{
-				LoggerPrintArgs("Called on write!");
 				mvwaddch(s_InputWindow, INPUT_WINDOW_CURSOR_START_Y, INPUT_WINDOW_CURSOR_START_X + p_Index, p_Character);
 			}},
 			InputBuffer::OnClearListener{[]() -> void
 			{
-				LoggerPrintArgs("Called on clear!");
-
 				// Move the cursor back to the start of the input region.
 				wmove(s_InputWindow, INPUT_WINDOW_CURSOR_START_Y, INPUT_WINDOW_CURSOR_START_X);
 
