@@ -171,7 +171,31 @@ namespace NCurses
 	}
 
 	// User keyboard input is stored here.
-	static std::remove_const_t<std::remove_reference_t<decltype(GetInputBuffer())>> s_InputBuffer;
+	static InputBuffer s_InputBuffer(
+		InputBuffer::OnCharWriteListener{
+			[](std::size_t const p_Index, char const p_Character) -> void
+			{
+				LoggerPrintArgs("Called on write!");
+				mvwaddch(s_InputWindow, INPUT_WINDOW_CURSOR_START_Y, INPUT_WINDOW_CURSOR_START_X + p_Index, p_Character);
+			}},
+			InputBuffer::OnClearListener{[]() -> void
+			{
+				LoggerPrintArgs("Called on clear!");
+
+				// Move the cursor back to the start of the input region.
+				wmove(s_InputWindow, INPUT_WINDOW_CURSOR_START_Y, INPUT_WINDOW_CURSOR_START_X);
+
+				// "Window clear to end of line": clear the line.
+				wclrtoeol(s_InputWindow);
+
+				// Redraw the border.
+				box(s_InputWindow,
+						// Use default vertical character.
+						0,
+						// Use default horizontal character.
+						0);
+			}}
+	);
 
 	decltype(s_InputBuffer) const& GetInputBuffer()
 	{
@@ -180,10 +204,8 @@ namespace NCurses
 
 	bool ProcessKeyboardInput()
 	{
-		using FastBufferCursor = std::uint_fast8_t;
-
 		// The position for where to insert and remove in the input buffer.
-		static FastBufferCursor s_BufferCursor{ 0u };
+		static std::uint_fast8_t s_BufferCursor{ 0u };
 
 		static_assert(
 			std::is_unsigned_v<decltype(s_BufferCursor)> and
@@ -197,13 +219,6 @@ namespace NCurses
 
 		switch (l_InputKey)
 		{
-			// Updates the input window cursor to be relative to the buffer cursor.
-			static constexpr auto s_UpdateWindowCursor = []() -> void
-			{
-				wmove(s_InputWindow, INPUT_WINDOW_CURSOR_START_Y,
-						INPUT_WINDOW_CURSOR_START_X + s_BufferCursor);
-			};
-
 			// No input.
 			case ERR:
 				return false;
@@ -214,45 +229,23 @@ namespace NCurses
 
 			case KEY_LEFT:
 				// If the curser has space to move left, move it left.
-				if (s_BufferCursor > 0u)
-				{
-					s_BufferCursor -= 1u;
-					s_UpdateWindowCursor();
-				}
+				if (s_BufferCursor > 0u) --s_BufferCursor;
 				return false;
 
 			case KEY_RIGHT:
 				// If the cursor has space to move right, including the position of the null character, move right.
-				if (s_BufferCursor < s_InputBuffer.GetStringLength())
-				s_BufferCursor += 1u;
-				s_UpdateWindowCursor();
+				if (s_BufferCursor < s_InputBuffer.GetStringLength()) ++s_BufferCursor;
 				return false;
 
 			case KEY_BACKSPACE:
-				// If sucessfully removed a character, move the cursor left.
-				if (s_InputBuffer.Remove(s_BufferCursor - 1u))
-				{
-					s_BufferCursor -= 1u;
-					waddstr(s_InputWindow, "\b ");
-					s_UpdateWindowCursor();
-				}
+				// If successfully removed a character, move the cursor left.
+				if (s_InputBuffer.Remove(s_BufferCursor - 1u)) LoggerPrintArgs("Removed (TRUE)"), --s_BufferCursor;
+				else
+					LoggerPrintArgs("Removed (FALSE)");
 				break;
 
 			// User is submitting the line.
 			case '\r':
-				// Move the cursor back to the start of the input region.
-				wmove(s_InputWindow, INPUT_WINDOW_CURSOR_START_Y, INPUT_WINDOW_CURSOR_START_X);
-
-				// "Window clear to end of line": clear the line.
-				wclrtoeol(s_InputWindow);
-
-				// Redraw the border.
-				box(s_InputWindow,
-					 // Use default vertical character.
-					 0,
-					 // Use default horizontal character.
-					 0);
-
 				// Echo the command back.
 				LoggerAddMessage("Keyboard command input: \"%s\"", s_InputBuffer.GetData().data());
 
@@ -266,7 +259,8 @@ namespace NCurses
 					CommandParseTokens(l_CommandTokens);
 				}
 
-				static std::unordered_map<std::string_view, bool (*)()> const s_StringDispatch{
+				static std::unordered_map<std::string_view, bool (*)()> const s_StringDispatch
+				{
 					{ "quit"sv, []() constexpr -> bool { return true; } }
 				};
 
@@ -275,7 +269,7 @@ namespace NCurses
 					auto const dispatchHandle(s_StringDispatch.find(std::string_view(
 						s_InputBuffer.GetData().data(), s_InputBuffer.GetStringLength())));
 
-					s_InputBuffer.Clear();
+					s_InputBuffer.Clear(); s_BufferCursor = 0u;
 
 					return dispatchHandle != s_StringDispatch.end() ? dispatchHandle->second() : false;
 				}
@@ -284,26 +278,21 @@ namespace NCurses
 				LoggerAddMessage("Unexpectedly got a newline character from user input.");
 				return false;
 
-			// These "Ctrl" characters are normally handled by the terminal,
+			// These "Ctrl" characters are usually handled by the terminal,
 			// so they are usually not sent to the program.
 			case Key::Ctrl<'C'>:
 			case Key::Ctrl<'Z'>:
+				// (Most likely unreachable.)
+				LoggerAddMessage("Unexpectedly got a `Ctrl` character (%d) from user input", l_InputKey);
 				return false;
 		}
 
 		LoggerAddMessage("KEY (%d)", l_InputKey);
 
-		bool const l_InputKeyIsPrintable{ IsASCII(l_InputKey) and
-													 std::isprint<char>(l_InputKey, std::locale::classic()) };
+		bool const l_InputKeyIsPrintable{ IsASCII(l_InputKey) and std::isprint<char>(l_InputKey, std::locale::classic()) };
 
-		// If sucessfully inserted into the buffer, move the cursor to the right.
-		if (l_InputKeyIsPrintable and s_InputBuffer.Insert(s_BufferCursor, l_InputKey))
-		{
-			s_BufferCursor += 1u;
-
-			// This move the window cursor one character to the right.
-			waddch(s_InputWindow, l_InputKey);
-		}
+		// If successfully inserted into the buffer, move the cursor to the right.
+		if (l_InputKeyIsPrintable and s_InputBuffer.Insert(s_BufferCursor, l_InputKey)) ++s_BufferCursor;
 
 		return false;
 	}
