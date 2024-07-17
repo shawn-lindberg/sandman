@@ -236,9 +236,7 @@ namespace NCurses
 
 			case KEY_BACKSPACE:
 				// If successfully removed a character, move the cursor left.
-				if (s_InputBuffer.Remove(s_BufferCursor - 1u)) LoggerPrintArgs("Removed (TRUE)"), --s_BufferCursor;
-				else
-					LoggerPrintArgs("Removed (FALSE)");
+				if (s_InputBuffer.Remove(s_BufferCursor - 1u)) --s_BufferCursor;
 				break;
 
 			// User is submitting the line.
