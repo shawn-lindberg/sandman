@@ -137,8 +137,7 @@ TEST_CASE("`CharBuffer`", "[.CharBuffer]")
 		for (char const l_Character : s_BackwardSentence) REQUIRE(l_Buffer.Insert(0u, l_Character));
 		Require::StringNullTerminated(l_Buffer);
 
-		static constexpr std::string_view s_ForwardSentence(
-			"The brown fox jumped over the lazy dog."sv);
+		static constexpr std::string_view s_ForwardSentence("The brown fox jumped over the lazy dog."sv);
 
 		// Pushing characters to the front of the buffer should work like pushing to a stack.
 		REQUIRE(l_Buffer.View() == s_ForwardSentence);
@@ -150,8 +149,7 @@ TEST_CASE("`CharBuffer`", "[.CharBuffer]")
 		{
 			// Attempting to insert more characters while the buffer is at the capacity
 			// should not change the contents of the string.
-			for (char const l_Character : "More text."sv)
-				REQUIRE_FALSE(l_Buffer.Insert(0u, l_Character));
+			for (char const l_Character : "More text."sv) REQUIRE_FALSE(l_Buffer.Insert(0u, l_Character));
 			Require::StringNullTerminated(l_Buffer);
 
 			// Remains unchanged.
