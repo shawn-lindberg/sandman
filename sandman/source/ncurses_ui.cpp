@@ -46,6 +46,7 @@ namespace NCurses
 			// Every change to the window will not cause a refresh to the physical screen.
 			immedok(p_Window, FALSE);
 
+			// `leaveok` controls cursor placement after a call to the `wrefresh` subroutine.
 			// Make sure to put the the physical cursor of the terminal
 			// back at the location of the logical window cursor.
 			leaveok(p_Window, TRUE);
