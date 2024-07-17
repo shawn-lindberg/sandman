@@ -2,17 +2,6 @@
 
 #include "catch_amalgamated.hpp"
 
-namespace Debug {
-	template <typename CharT>
-	static constexpr std::enable_if_t<std::is_integral_v<CharT>, std::string> ToString(CharT const p_Character) {
-		switch (p_Character)
-		{
-			case '\0': return "NULL";
-			default: return {p_Character};
-		}
-	}
-}
-
 namespace Require
 {
 	// The next character after the string content should always be the null character.
