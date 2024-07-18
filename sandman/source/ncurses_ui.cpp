@@ -179,7 +179,7 @@ namespace NCurses
 			{
 				mvwaddch(s_InputWindow, INPUT_WINDOW_CURSOR_START_Y, INPUT_WINDOW_CURSOR_START_X + p_Index, p_Character);
 			}},
-			InputBuffer::OnClearListener{[]() -> void
+		InputBuffer::OnClearListener{[]() -> void
 			{
 				// Move the cursor back to the start of the input region.
 				wmove(s_InputWindow, INPUT_WINDOW_CURSOR_START_Y, INPUT_WINDOW_CURSOR_START_X);
@@ -201,18 +201,27 @@ namespace NCurses
 		return s_InputBuffer;
 	}
 
+	// The position for where to insert and remove in the input buffer.
+	static std::uint_fast8_t s_BufferCursor{ 0u };
+
+	static_assert(std::is_unsigned_v<decltype(s_BufferCursor)> and
+					  std::numeric_limits<decltype(s_BufferCursor)>::max() >=
+					  s_InputBuffer.MAX_STRING_LENGTH,
+					  "The input buffer cursor must be able to represent "
+					  "all valid positions in the input buffer string for insertion, "
+					  "including the exclusive end position where the current null character is.");
+
+	[[gnu::always_inline]] inline static void RepositionPhysicalCursor()
+	{
+		// The physical cursor only seems to move when a character is written.
+		mvwaddch(s_InputWindow,
+					INPUT_WINDOW_CURSOR_START_Y,
+					INPUT_WINDOW_CURSOR_START_X + s_BufferCursor,
+					s_InputBuffer.GetData()[s_BufferCursor]);
+	}
+
 	bool ProcessKeyboardInput()
 	{
-		// The position for where to insert and remove in the input buffer.
-		static std::uint_fast8_t s_BufferCursor{ 0u };
-
-		static_assert(
-			std::is_unsigned_v<decltype(s_BufferCursor)> and
-			std::numeric_limits<decltype(s_BufferCursor)>::max() >= s_InputBuffer.MAX_STRING_LENGTH,
-			"The input buffer cursor must be able to represent "
-			"all valid positions in the input buffer string for insertion, "
-			"including the exclusive end position where the current null character is.");
-
 		// Get one input key from the terminal, if any.
 		int const l_InputKey{ wgetch(s_InputWindow) };
 
