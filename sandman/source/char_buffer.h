@@ -5,17 +5,24 @@
 #include <type_traits>
 #include <string_view>
 
-template <typename T>
-struct Dummy;
-
-template <typename ReturnT, typename... ParamsT>
-struct Dummy<ReturnT (*)(ParamsT...)> { static ReturnT Function(ParamsT...) { return ReturnT(); } };
-
-template <typename FunctionPointerT>
-constexpr std::enable_if_t<std::is_pointer_v<FunctionPointerT>, FunctionPointerT> NonNull(FunctionPointerT const pointer=nullptr)
+namespace Common
 {
-	if (pointer != nullptr) return pointer; else return Dummy<FunctionPointerT>::Function;
+	template <typename T>
+	struct Simulacrum;
+
+	template <typename ReturnT, typename... ParamsT>
+	struct Simulacrum<ReturnT (*)(ParamsT...)>
+	{
+		static ReturnT Function(ParamsT...) { return ReturnT(); }
+	};
+
+	template <typename FunctionPointerT>
+	constexpr std::enable_if_t<std::is_pointer_v<FunctionPointerT>, FunctionPointerT> NonNull(FunctionPointerT const pointer=nullptr)
+	{
+		if (pointer != nullptr) return pointer; else return Simulacrum<FunctionPointerT>::Function;
+	}
 }
+
 
 template <typename CharT, std::size_t t_Capacity>
 class CharBuffer
@@ -35,8 +42,8 @@ class CharBuffer
 	private:
 		Data m_Data{};
 		typename Data::size_type m_StringLength{0u};
-		OnStringUpdateListener m_OnStringUpdate{Dummy<OnStringUpdateListener>::Function};
-		OnClearListener m_OnClear{Dummy<OnClearListener>::Function};
+		OnStringUpdateListener m_OnStringUpdate{Common::Simulacrum<OnStringUpdateListener>::Function};
+		OnClearListener m_OnClear{Common::Simulacrum<OnClearListener>::Function};
 
 	public:
 		static_assert(std::tuple_size_v<decltype(m_Data)> > 0u, "Assert can subtract from size without underflow.");
@@ -58,8 +65,8 @@ class CharBuffer
 
 		explicit constexpr CharBuffer(OnStringUpdateListener const p_OnStringUpdateListener,
 												OnClearListener const p_OnClearListener)
-			: m_OnStringUpdate{ NonNull(p_OnStringUpdateListener) },
-			  m_OnClear{ NonNull(p_OnClearListener) } {};
+			: m_OnStringUpdate{ Common::NonNull(p_OnStringUpdateListener) },
+			  m_OnClear{ Common::NonNull(p_OnClearListener) } {};
 
 		constexpr bool Insert(typename Data::size_type const p_Index, CharT const p_Character)
 		{
