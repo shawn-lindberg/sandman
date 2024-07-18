@@ -41,14 +41,14 @@ class CharBuffer
 		static_assert(std::is_same_v<CharT, typename Data::value_type>);
 		using OnStringUpdateListener = void (*)(typename Data::size_type const p_Index, CharT const p_Character);
 		using OnClearListener = void (*)();
-		using OnShrinkListener = void (*)(typename Data::size_type const p_NewStringLength);
+		using OnDecrementStringLengthListener = void (*)(typename Data::size_type const p_NewStringLength);
 
 	private:
 		Data m_Data{};
 		typename Data::size_type m_StringLength{0u};
 		Common::NonNull<OnStringUpdateListener> m_OnStringUpdate;
 		Common::NonNull<OnClearListener> m_OnClear;
-		Common::NonNull<OnShrinkListener> m_OnShrink;
+		Common::NonNull<OnDecrementStringLengthListener> m_OnDecrementStringLength;
 
 	public:
 		static_assert(std::tuple_size_v<decltype(m_Data)> > 0u, "Assert can subtract from size without underflow.");
@@ -68,11 +68,13 @@ class CharBuffer
 
 		constexpr CharBuffer() = default;
 
-		explicit constexpr CharBuffer(OnStringUpdateListener const p_OnStringUpdateListener,
-												OnClearListener        const p_OnClearListener       )
+		explicit constexpr CharBuffer(OnStringUpdateListener          const p_OnStringUpdateListener         ,
+												OnClearListener                 const p_OnClearListener                ,
+												OnDecrementStringLengthListener const p_OnDecrementStringLengthListener)
 												:
-												m_OnStringUpdate (p_OnStringUpdateListener),
-												m_OnClear        (p_OnClearListener       )
+												m_OnStringUpdate                     (p_OnStringUpdateListener         ),
+												m_OnClear                            (p_OnClearListener                ),
+												m_OnDecrementStringLength            (p_OnDecrementStringLengthListener)
 												{};
 
 		constexpr bool Insert(typename Data::size_type const p_Index, CharT const p_Character)
@@ -136,7 +138,7 @@ class CharBuffer
 				// Also, null terminate the string.
 				m_Data[--m_StringLength] = '\0';
 
-				m_OnShrink(m_StringLength);
+				m_OnDecrementStringLength(m_StringLength);
 
 				return true;
 			}
