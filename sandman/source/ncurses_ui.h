@@ -91,6 +91,10 @@ namespace NCurses
 	///
 	bool ProcessKeyboardInput();
 
+} // namespace NCurses
+
+namespace Common
+{
 	inline constexpr std::uint_least8_t ASCII_MIN{ 0u }, ASCII_MAX{ 127u };
 
 	/// @returns `true` if `p_Character` is a value that fits into the ASCII character set, `false`
@@ -117,4 +121,4 @@ namespace NCurses
 		}
 	}
 
-} // namespace NCurses
+} // namespace Common
