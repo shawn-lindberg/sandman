@@ -80,7 +80,7 @@ namespace NCurses
 
 		using Operation = decltype(Add);
 
-	} // namespace CharAttribute
+	}
 
 	namespace LoggingWindow
 	{
