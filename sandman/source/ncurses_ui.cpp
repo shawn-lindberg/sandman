@@ -218,8 +218,7 @@ namespace NCurses
 		static std::uint_fast8_t s_Cursor{ 0u };
 
 		static_assert(std::is_unsigned_v<decltype(s_Cursor)> and
-						  std::numeric_limits<decltype(s_Cursor)>::max() >=
-						  s_Buffer.MAX_STRING_LENGTH,
+						  std::numeric_limits<decltype(s_Cursor)>::max() >= s_Buffer.MAX_STRING_LENGTH,
 						  "The input buffer cursor must be able to represent "
 						  "all valid positions in the input buffer string for insertion, "
 						  "including the exclusive end position where the current null character is.");
