@@ -8,19 +8,26 @@
 namespace Common
 {
 	template <typename T>
-	struct Simulacrum;
+	class NonNull;
 
 	template <typename ReturnT, typename... ParamsT>
-	struct Simulacrum<ReturnT (*)(ParamsT...)>
+	class NonNull<ReturnT (*)(ParamsT...)>
 	{
-		static ReturnT Function(ParamsT...) { return ReturnT(); }
-	};
+		public:
+			using FunctionT = ReturnT (*)(ParamsT...);
+			static ReturnT Simulacrum(ParamsT...) { return ReturnT(); }
 
-	template <typename FunctionPointerT>
-	constexpr std::enable_if_t<std::is_pointer_v<FunctionPointerT>, FunctionPointerT> NonNull(FunctionPointerT const pointer=nullptr)
-	{
-		if (pointer != nullptr) return pointer; else return Simulacrum<FunctionPointerT>::Function;
-	}
+		private:
+			FunctionT m_Function;
+
+		public:
+			constexpr NonNull(): m_Function{Simulacrum} {}
+
+			constexpr NonNull(FunctionT p_FunctionPointer):
+				m_Function{p_FunctionPointer != nullptr ? p_FunctionPointer : Simulacrum} {}
+
+			[[gnu::always_inline]] constexpr operator FunctionT() const { return m_Function; }
+	};
 }
 
 template <typename CharT, std::size_t t_Capacity>
@@ -34,12 +41,14 @@ class CharBuffer
 		static_assert(std::is_same_v<CharT, typename Data::value_type>);
 		using OnStringUpdateListener = void (*)(typename Data::size_type const p_Index, CharT const p_Character);
 		using OnClearListener = void (*)();
+		using OnShrinkListener = void (*)(typename Data::size_type const p_NewStringLength);
 
 	private:
 		Data m_Data{};
 		typename Data::size_type m_StringLength{0u};
-		OnStringUpdateListener m_OnStringUpdate{Common::Simulacrum<OnStringUpdateListener>::Function};
-		OnClearListener m_OnClear{Common::Simulacrum<OnClearListener>::Function};
+		Common::NonNull<OnStringUpdateListener> m_OnStringUpdate;
+		Common::NonNull<OnClearListener> m_OnClear;
+		Common::NonNull<OnShrinkListener> m_OnShrink;
 
 	public:
 		static_assert(std::tuple_size_v<decltype(m_Data)> > 0u, "Assert can subtract from size without underflow.");
@@ -62,8 +71,8 @@ class CharBuffer
 		explicit constexpr CharBuffer(OnStringUpdateListener const p_OnStringUpdateListener,
 												OnClearListener        const p_OnClearListener       )
 												:
-												m_OnStringUpdate { Common::NonNull(p_OnStringUpdateListener) },
-												m_OnClear        { Common::NonNull(p_OnClearListener       ) }
+												m_OnStringUpdate (p_OnStringUpdateListener),
+												m_OnClear        (p_OnClearListener       )
 												{};
 
 		constexpr bool Insert(typename Data::size_type const p_Index, CharT const p_Character)
@@ -126,6 +135,8 @@ class CharBuffer
 				// One character was removed, so decrement the string length by one.
 				// Also, null terminate the string.
 				m_Data[--m_StringLength] = '\0';
+
+				m_OnShrink(m_StringLength);
 
 				return true;
 			}
