@@ -466,7 +466,7 @@ int main(int argc, char** argv)
 		if (s_DaemonMode == false)
 		{
 			// Process keyboard input.
-			l_Done = NCurses::ProcessKeyboardInput();
+			l_Done = NCurses::InputWindow::ProcessKey();
 		}
 
 		// Process command.

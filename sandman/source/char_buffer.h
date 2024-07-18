@@ -23,7 +23,6 @@ namespace Common
 	}
 }
 
-
 template <typename CharT, std::size_t t_Capacity>
 class CharBuffer
 {
@@ -31,12 +30,9 @@ class CharBuffer
 
 	public:
 		using Data = std::array<CharT, t_Capacity>;
-
 		// Can certainly use `CharT` as an alias for `typename Data::value_type`.
 		static_assert(std::is_same_v<CharT, typename Data::value_type>);
-		
 		using OnStringUpdateListener = void (*)(typename Data::size_type const p_Index, CharT const p_Character);
-
 		using OnClearListener = void (*)();
 
 	private:
@@ -64,9 +60,11 @@ class CharBuffer
 		constexpr CharBuffer() = default;
 
 		explicit constexpr CharBuffer(OnStringUpdateListener const p_OnStringUpdateListener,
-												OnClearListener const p_OnClearListener)
-			: m_OnStringUpdate{ Common::NonNull(p_OnStringUpdateListener) },
-			  m_OnClear{ Common::NonNull(p_OnClearListener) } {};
+												OnClearListener        const p_OnClearListener       )
+												:
+												m_OnStringUpdate { Common::NonNull(p_OnStringUpdateListener) },
+												m_OnClear        { Common::NonNull(p_OnClearListener       ) }
+												{};
 
 		constexpr bool Insert(typename Data::size_type const p_Index, CharT const p_Character)
 		{
@@ -77,7 +75,7 @@ class CharBuffer
 					m_OnStringUpdate(index, m_Data[index] = m_Data[index - 1u]);
 				}
 
-				m_OnStringUpdate(p_Index,  m_Data[p_Index] = p_Character);
+				m_OnStringUpdate(p_Index, m_Data[p_Index] = p_Character);
 
 				m_Data[++m_StringLength] = '\0';
 
@@ -139,6 +137,8 @@ class CharBuffer
 		{
 			m_Data[m_StringLength = 0u] = '\0';
 			m_OnClear();
+
+			return static_cast<void>(true);
 		}
 
 		[[gnu::always_inline]] constexpr std::string_view View() const

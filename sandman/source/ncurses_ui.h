@@ -16,6 +16,29 @@
 namespace NCurses
 {
 
+	/// @brief Initialize NCurses state.
+	///
+	/// @attention Only call this function once. Call this function successfully before
+	/// calling any other functions in the `NCurses` namespace.
+	///
+	void Initialize();
+
+	/// @brief Uninitialize NCurses state.
+	///
+	/// @attention Only call this function once.
+	/// Only call this function after a successfull call to `NCurses::Initialize`.
+	/// This does not necessarily clear the screen.
+	///
+	/// @note This frees the windows used by NCurses.
+	///
+	void Uninitialize();
+
+	namespace Key
+	{
+		template <char t_Name, typename CharT=int>
+		inline constexpr std::enable_if_t<std::is_integral_v<CharT>, CharT> Ctrl{ t_Name bitand 0x1F };
+	}
+
 	namespace LoggingWindow {
 		void WriteLine(char const* const string="");
 
@@ -36,60 +59,44 @@ namespace NCurses
 		[[deprecated("Prefer using `WriteLine` to write to this window.")]] [[nodiscard]] WINDOW* Get();
 	}
 
-	namespace Key {
-		template <char t_Name, typename CharT=int>
-		inline constexpr std::enable_if_t<std::is_integral_v<CharT>, CharT> Ctrl{ t_Name bitand 0x1F };
+	namespace InputWindow
+	{
+		/// @brief The starting location of the cursor for the input window.
+		///
+		inline constexpr int CURSOR_START_Y{ 1 }, CURSOR_START_X{ 2 };
+
+		// The input window will have a height of 3.
+		inline constexpr int ROW_COUNT{ 3 };
+
+		/// @brief Get the pointer to the input window.
+		///
+		/// @attention Do not call this function before having called `NCurses::Initialize` successfully.
+		///
+		/// @return NCurses window pointer
+		///
+		/// @warning If `NCurses::Initialize` has not been called successfully, this function likely
+		/// returns returns `nullptr`. Otherwise, the pointer returned by this function is valid until
+		/// `NCurses::Uninitialize` is called.
+		///
+		/// @note The input window is the region on the terminal where the user input is echoed to.
+		/// After `NCurses::Initialize` is called successfully, this function always returns the same
+		/// pointer.
+		///
+		[[deprecated]] [[nodiscard]] WINDOW* Get();
+
+		using Buffer = CharBuffer<char, 128u>;
+		Buffer const& GetBuffer();
+
+		/// @brief Get keyboard input.
+		///
+		/// @param p_KeyboardInputBuffer (input/output) The input buffer.
+		/// @param p_KeyboardInputBufferSize (input/output) How much of the input buffer is in use.
+		/// @param p_KeyboardInputBufferCapacity The capacity of the input buffer.
+		///
+		/// @returns `true` if the "quit" command was processed, `false` otherwise.
+		///
+		bool ProcessKey();
 	}
-
-	/// @brief Get the pointer to the input window.
-	///
-	/// @attention Do not call this function before having called `NCurses::Initialize` successfully.
-	///
-	/// @return NCurses window pointer
-	///
-	/// @warning If `NCurses::Initialize` has not been called successfully, this function likely
-	/// returns returns `nullptr`. Otherwise, the pointer returned by this function is valid until
-	/// `NCurses::Uninitialize` is called.
-	///
-	/// @note The input window is the region on the terminal where the user input is echoed to.
-	/// After `NCurses::Initialize` is called successfully, this function always returns the same
-	/// pointer.
-	///
-	[[deprecated]] [[nodiscard]] WINDOW* GetInputWindow();
-
-	/// @brief The starting location of the cursor for the input window.
-	///
-	inline constexpr int INPUT_WINDOW_CURSOR_START_Y{ 1 }, INPUT_WINDOW_CURSOR_START_X{ 2 };
-
-	/// @brief Initialize NCurses state.
-	///
-	/// @attention Only call this function once. Call this function successfully before
-	/// calling any other functions in the `NCurses` namespace.
-	///
-	void Initialize();
-
-	/// @brief Uninitialize NCurses state.
-	///
-	/// @attention Only call this function once.
-	/// Only call this function after a successfull call to `NCurses::Initialize`.
-	/// This does not necessarily clear the screen.
-	///
-	/// @note This frees the windows used by NCurses.
-	///
-	void Uninitialize();
-
-	using InputBuffer = CharBuffer<char, 128u>;
-	InputBuffer const& GetInputBuffer();
-
-	/// @brief Get keyboard input.
-	///
-	/// @param p_KeyboardInputBuffer (input/output) The input buffer.
-	/// @param p_KeyboardInputBufferSize (input/output) How much of the input buffer is in use.
-	/// @param p_KeyboardInputBufferCapacity The capacity of the input buffer.
-	///
-	/// @returns `true` if the "quit" command was processed, `false` otherwise.
-	///
-	bool ProcessKeyboardInput();
 
 } // namespace NCurses
 
