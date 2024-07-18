@@ -12,6 +12,7 @@
 namespace NCurses
 {
 	using namespace std::string_view_literals;
+	using namespace Common;
 
 	// This window is where messages from the logger are written to.
 	static WINDOW* s_LoggingWindow = nullptr;
