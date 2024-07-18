@@ -107,8 +107,14 @@ namespace NCurses
 			return s_Window;
 		}
 
+		[[gnu::always_inline]] inline static void HighlightChar(int const p_Position)
+		{
+			chtype const l_Character{ mvwinch(s_Window, CURSOR_START_Y, CURSOR_START_X + p_Position) };
+			mvwaddch(s_Window, CURSOR_START_Y, CURSOR_START_X + p_Position, l_Character | A_STANDOUT);
+		}
+
 		static void Initialize() {
-			InputWindow::s_Window = newwin(
+			s_Window = newwin(
 				// height (line count)
 				ROW_COUNT,
 				// width
@@ -129,6 +135,8 @@ namespace NCurses
 
 			// Move the cursor to the corner.
 			wmove(s_Window, CURSOR_START_Y, CURSOR_START_X);
+
+			HighlightChar(0u);
 		}
 	}
 
@@ -227,18 +235,6 @@ namespace NCurses
 						  "NCurses uses `int` for window positions, so the cursor should never be "
 						  "a value that can't be a valid window position.");
 
-		[[gnu::always_inline]] inline static void HighlightChar(int const p_Position)
-		{
-			chtype const l_Character{ mvwinch(s_Window,
-														 CURSOR_START_Y,
-														 CURSOR_START_X + p_Position) };
-
-			mvwaddch(s_Window,
-						CURSOR_START_Y,
-						CURSOR_START_X + p_Position,
-						l_Character | A_STANDOUT);
-		}
-
 		static bool HandleSubmitString()
 		{
 			// Echo the command back.
@@ -263,7 +259,7 @@ namespace NCurses
 			{
 				auto const dispatchHandle(s_StringDispatch.find(s_Buffer.View()));
 
-				s_Buffer.Clear(); s_Cursor = 0u;
+				s_Buffer.Clear(); HighlightChar(s_Cursor = 0u);
 
 				return dispatchHandle != s_StringDispatch.end() ? dispatchHandle->second() : false;
 			}
