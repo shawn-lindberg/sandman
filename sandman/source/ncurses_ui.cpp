@@ -60,6 +60,28 @@ namespace NCurses
 		}
 	}
 
+	namespace ChAttr
+	{
+		[[gnu::always_inline]] inline static void Add(WINDOW* const p_Window,
+																	 int const p_Y, int const p_X,
+																	 chtype const p_Attributes)
+		{
+			chtype const l_Character{ mvwinch(p_Window, p_Y, p_X) };
+			mvwaddch(p_Window, p_Y, p_X, l_Character | p_Attributes);
+		}
+
+		[[gnu::always_inline]] inline static void Remove(WINDOW* const p_Window,
+																		 int const p_Y, int const p_X,
+																		 chtype const p_Attributes)
+		{
+			chtype const l_Character{ mvwinch(p_Window, p_Y, p_X) };
+			mvwaddch(p_Window, p_Y, p_X, l_Character & ~p_Attributes);
+		}
+
+		using Operation = decltype(Add);
+
+	} // namespace CharAttribute
+
 	namespace LoggingWindow
 	{
 		// This window is where messages from the logger are written to.
@@ -107,10 +129,10 @@ namespace NCurses
 			return s_Window;
 		}
 
+		template <ChAttr::Operation t_Operation>
 		[[gnu::always_inline]] inline static void HighlightChar(int const p_Position)
 		{
-			chtype const l_Character{ mvwinch(s_Window, CURSOR_START_Y, CURSOR_START_X + p_Position) };
-			mvwaddch(s_Window, CURSOR_START_Y, CURSOR_START_X + p_Position, l_Character | A_STANDOUT);
+			t_Operation(s_Window, CURSOR_START_Y, CURSOR_START_X + p_Position, A_STANDOUT);
 		}
 
 		static void Initialize() {
@@ -136,7 +158,7 @@ namespace NCurses
 			// Move the cursor to the corner.
 			wmove(s_Window, CURSOR_START_Y, CURSOR_START_X);
 
-			HighlightChar(0u);
+			HighlightChar<ChAttr::Add>(0u);
 		}
 	}
 
@@ -227,17 +249,31 @@ namespace NCurses
 		}
 
 		// The position for where to insert and remove in the input buffer.
-		static std::uint_fast8_t s_Cursor{ 0u };
+		using FastCursor = std::uint_fast8_t;
+		static FastCursor s_Cursor{ 0u };
 
-		static_assert(std::is_unsigned_v<decltype(s_Cursor)> and
-						  std::numeric_limits<decltype(s_Cursor)>::max() >= s_Buffer.MAX_STRING_LENGTH,
+		static_assert(std::is_unsigned_v<FastCursor> and
+						  std::numeric_limits<FastCursor>::max() >= s_Buffer.MAX_STRING_LENGTH,
 						  "The input buffer cursor must be able to represent "
 						  "all valid positions in the input buffer string for insertion, "
 						  "including the exclusive end position where the current null character is.");
 
-		static_assert(std::numeric_limits<decltype(s_Cursor)>::max() <= std::numeric_limits<int>::max(),
+		static_assert(std::numeric_limits<FastCursor>::max() <= std::numeric_limits<int>::max(),
 						  "NCurses uses `int` for window positions, so the cursor should never be "
 						  "a value that can't be a valid window position.");
+
+		using Right = std::plus<FastCursor>;
+		using Left = std::minus<FastCursor>;
+		
+		template <typename DirectionT>
+		[[gnu::always_inline]] inline static
+		std::enable_if_t<std::is_same_v<DirectionT, Left> or std::is_same_v<DirectionT, Right>, void>
+		BumpCursor()
+		{
+			static constexpr DirectionT s_Next{};
+			HighlightChar<ChAttr::Remove>(s_Cursor);
+			HighlightChar<ChAttr::Add>(s_Cursor = s_Next(s_Cursor, static_cast<FastCursor>(1u)));
+		}
 
 		static bool HandleSubmitString()
 		{
@@ -263,7 +299,7 @@ namespace NCurses
 			{
 				auto const dispatchHandle(s_StringDispatch.find(s_Buffer.View()));
 
-				s_Buffer.Clear(); HighlightChar(s_Cursor = 0u);
+				s_Buffer.Clear(); HighlightChar<ChAttr::Add>(s_Cursor = 0u);
 
 				return dispatchHandle != s_StringDispatch.end() ? dispatchHandle->second() : false;
 			}
@@ -288,17 +324,17 @@ namespace NCurses
 
 			case KEY_LEFT:
 				// If the curser has space to move left, move it left.
-				if (s_Cursor > 0u) HighlightChar(--s_Cursor);
+				if (s_Cursor > 0u) BumpCursor<Left>();
 				return false;
 
 			case KEY_RIGHT:
 				// If the cursor has space to move right, including the position of the null character, move right.
-				if (s_Cursor < s_Buffer.GetStringLength()) HighlightChar(++s_Cursor);
+				if (s_Cursor < s_Buffer.GetStringLength()) BumpCursor<Right>();
 				return false;
 
 			case KEY_BACKSPACE:
 				// If successfully removed a character, move the cursor left.
-				if (s_Buffer.Remove(s_Cursor - 1u)) HighlightChar(--s_Cursor);
+				if (s_Buffer.Remove(s_Cursor - 1u)) BumpCursor<Left>();
 				break;
 
 			// User is submitting the line.
@@ -321,7 +357,7 @@ namespace NCurses
 		bool const l_InputKeyIsPrintable{ IsASCII(l_InputKey) and std::isprint<char>(l_InputKey, std::locale::classic()) };
 
 		// If successfully inserted into the buffer, move the cursor to the right.
-		if (l_InputKeyIsPrintable and s_Buffer.Insert(s_Cursor, l_InputKey)) HighlightChar(++s_Cursor);
+		if (l_InputKeyIsPrintable and s_Buffer.Insert(s_Cursor, l_InputKey)) BumpCursor<Right>();
 
 		return false;
 	}
