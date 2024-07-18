@@ -292,7 +292,12 @@ namespace NCurses
 
 			static std::unordered_map<std::string_view, bool (*)()> const s_StringDispatch
 			{
-				{ "quit"sv, []() constexpr -> bool { return true; } }
+				{ "quit"sv, []() constexpr -> bool { return true; } },
+				{ ""sv, []() -> bool {
+					redrawwin(LoggingWindow::s_Window);
+					redrawwin(InputWindow::s_Window);
+					return false;
+				} }
 			};
 
 			// Handle dispatch.
