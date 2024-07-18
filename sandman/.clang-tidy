@@ -1,0 +1,90 @@
+Checks: >
+  bugprone-*,
+  portability-*,
+  performance-*,
+  clang-analyzer-*,
+
+  readability-identifier-naming,
+  readability-braces-around-statements,
+
+  modernize-deprecated-headers,
+  modernize-use-nullptr,
+  modernize-use-override,
+
+  cert-dcl58-cpp,
+  cert-err60-cpp,
+  cert-flp30-c,
+  cert-mem57-cpp,
+  cert-oop57-cpp,
+  cert-oop58-cpp,
+
+WarningsAsErrors: "*"
+
+CheckOptions:
+
+  # Case of things that create new scopes and unscoped Enums.
+  - key: readability-identifier-naming.ClassCase
+    value: CamelCase
+  - key: readability-identifier-naming.StructCase
+    value: CamelCase
+  - key: readability-identifier-naming.FunctionCase
+    value: CamelCase
+  - key: readability-identifier-naming.EnumCase
+    value: CamelCase
+  - key: readability-identifier-naming.NamespaceCase
+    value: CamelCase
+
+    # Case of constants and macros.
+  - key: readability-identifier-naming.ConstexprVariableCase
+    value: UPPER_CASE
+  - key: readability-identifier-naming.EnumConstantCase
+    value: UPPER_CASE
+  - key: readability-identifier-naming.ScopedEnumConstantCase
+    value: UPPER_CASE
+  - key: readability-identifier-naming.MacroDefinitionCase
+    value: UPPER_CASE
+
+    # Static variables that in in a scope.
+  - key: readability-identifier-naming.StaticVariablePrefix
+    value: s_
+  - key: readability-identifier-naming.StaticVariableCase
+    value: CamelCase
+
+    # Global variables.
+  - key: readability-identifier-naming.GlobalVariablePrefix
+    value: "g_"
+  - key: readability-identifier-naming.GlobalVariableCase
+    value: CamelCase
+  - key: readability-identifier-naming.GlobalVariableIgnoredRegexp
+    # Ignore variables prefixed with "s_".
+    # 
+    # "^": Anchors the pattern to the start of the string.
+    # "s_": Matches the exact prefix "s_".
+    # "[A-Z]": Ensures that the first character after the prefix is an uppercase letter.
+    # "[a-zA-Z0-9]*": Matches zero or more alphanumeric characters.
+    # "$": Anchors the pattern to the end of the string.
+    value: ^s_[A-Z][a-zA-Z0-9]*$
+
+    # Member variables.
+  - key: readability-identifier-naming.MemberPrefix
+    value: m_
+  - key: readability-identifier-naming.MemberCase
+    value: CamelCase
+
+    # Class Member variables.
+  - key: readability-identifier-naming.ClassMemberPrefix
+    value: ms_
+  - key: readability-identifier-naming.ClassMemberCase
+    value: CamelCase
+
+    # Parameters.
+  - key: readability-identifier-naming.ParameterPrefix
+    value: p_
+  - key: readability-identifier-naming.ParameterCase
+    value: CamelCase
+
+    # Local variables.
+  - key: readability-identifier-naming.LocalVariablePrefix
+    value: l_
+  - key: readability-identifier-naming.LocalVariableCase
+    value: CamelCase
