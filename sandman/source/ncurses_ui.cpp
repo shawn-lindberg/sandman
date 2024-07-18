@@ -196,7 +196,7 @@ namespace NCurses
 	{
 		// User keyboard input is stored here.
 		static Buffer s_Buffer(
-			Buffer::OnStringUpdateListener{[](std::size_t const p_Index, char const p_Character) -> void
+			Buffer::OnStringUpdateListener{[](Buffer::Data::size_type const p_Index, Buffer::Data::value_type const p_Character) -> void
 			{
 				mvwaddch(s_Window, CURSOR_START_Y, CURSOR_START_X + p_Index, p_Character);
 			}},
@@ -214,6 +214,10 @@ namespace NCurses
 						0,
 						// Use default horizontal character.
 						0);
+			}},
+			Buffer::OnDecrementStringLengthListener{[](Buffer::Data::size_type const p_NewStringLength) -> void
+			{
+				mvwaddch(s_Window, CURSOR_START_Y, CURSOR_START_X + p_NewStringLength, ' ');
 			}}
 		);
 
