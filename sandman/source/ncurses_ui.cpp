@@ -8,12 +8,10 @@
 #include <limits>
 #include <unordered_map>
 #include <vector>
+#include <csignal>
 
 namespace NCurses
 {
-	using namespace std::string_view_literals;
-	using namespace Common;
-
 	// Configure a window with "sensible" defaults.
 	[[gnu::nonnull]] static void ConfigureWindowDefaults(WINDOW* const p_Window)
 	{
@@ -60,7 +58,7 @@ namespace NCurses
 		}
 	}
 
-	namespace ChAttr
+	namespace CharAttribute
 	{
 		[[gnu::always_inline]] inline static void Add(WINDOW* const p_Window,
 																	 int const p_Y, int const p_X,
@@ -86,6 +84,36 @@ namespace NCurses
 	{
 		// This window is where messages from the logger are written to.
 		static WINDOW* s_Window = nullptr;
+
+		void Put(Attr const p_CharacterAttribute)
+		{
+			if (p_CharacterAttribute.m_Flag)
+			{
+				wattron(s_Window, p_CharacterAttribute.m_Value);
+			}
+			else
+			{
+				wattroff(s_Window, p_CharacterAttribute.m_Value);
+			}
+		}
+
+		void Put(WindowAction const p_Action)
+		{
+			switch (p_Action)
+			{
+				case WindowAction::REFRESH: wrefresh(s_Window); return;
+			}
+		}
+
+		void Put(std::string_view const p_String)
+		{
+			for (char const l_Character : p_String) waddch(s_Window, l_Character);
+		}
+
+		void Put(chtype const p_Character)
+		{
+			waddch(s_Window, p_Character);
+		}
 
 		void WriteLine(char const* const string)
 		{
@@ -129,7 +157,7 @@ namespace NCurses
 			return s_Window;
 		}
 
-		template <ChAttr::Operation t_Operation>
+		template <CharAttribute::Operation t_Operation>
 		[[gnu::always_inline]] inline static void HighlightChar(int const p_Position)
 		{
 			t_Operation(s_Window, CURSOR_START_Y, CURSOR_START_X + p_Position, A_STANDOUT);
@@ -158,8 +186,24 @@ namespace NCurses
 			// Move the cursor to the corner.
 			wmove(s_Window, CURSOR_START_Y, CURSOR_START_X);
 
-			HighlightChar<ChAttr::Add>(0u);
+			HighlightChar<CharAttribute::Add>(0u);
 		}
+	}
+
+	namespace
+	{
+		static std::sig_atomic_t volatile s_ShouldResize{false};
+
+		extern "C" void WindowChangeSignalHandler(int const p_Signal)
+		{
+			static_cast<void>(p_Signal);
+			s_ShouldResize = true;
+		}
+	}
+
+	inline static void HandleResize() {
+		endwin();
+		refresh();
 	}
 
 	void Initialize()
@@ -167,6 +211,31 @@ namespace NCurses
 		// Initialize NCurses. This function exits the program on error!
 		// This initializes the standard screen `stdscr` window.
 		initscr();
+
+		if (has_colors() == TRUE)
+		{
+			start_color();
+
+			init_pair(Enum::IntCast(ColorIndex::BLACK  ), COLOR_BLACK  , COLOR_BLACK);
+			init_pair(Enum::IntCast(ColorIndex::RED    ), COLOR_RED    , COLOR_BLACK);
+			init_pair(Enum::IntCast(ColorIndex::GREEN  ), COLOR_GREEN  , COLOR_BLACK);
+			init_pair(Enum::IntCast(ColorIndex::YELLOW ), COLOR_YELLOW , COLOR_BLACK);
+			init_pair(Enum::IntCast(ColorIndex::BLUE   ), COLOR_BLUE   , COLOR_BLACK);
+			init_pair(Enum::IntCast(ColorIndex::MAGENTA), COLOR_MAGENTA, COLOR_BLACK);
+			init_pair(Enum::IntCast(ColorIndex::CYAN   ), COLOR_CYAN   , COLOR_BLACK);
+			init_pair(Enum::IntCast(ColorIndex::WHITE  ), COLOR_WHITE  , COLOR_BLACK);
+		}
+		else
+		{
+			// The terminal does not support color; do something.
+		}
+
+		#ifdef SIGWINCH
+		if (std::signal(SIGWINCH, WindowChangeSignalHandler) == SIG_ERR)
+		{
+			// Failed to register the signal handler; do something.
+		}
+		#endif
 
 		// Input options: `man 'inopts(3NCURSES)'`.
 		// These options in particular do not take a window pointer.
@@ -271,8 +340,8 @@ namespace NCurses
 		BumpCursor()
 		{
 			static constexpr DirectionT s_Next{};
-			HighlightChar<ChAttr::Remove>(s_Cursor);
-			HighlightChar<ChAttr::Add>(s_Cursor = s_Next(s_Cursor, static_cast<FastCursor>(1u)));
+			HighlightChar<CharAttribute::Remove>(s_Cursor);
+			HighlightChar<CharAttribute::Add>(s_Cursor = s_Next(s_Cursor, static_cast<FastCursor>(1u)));
 		}
 
 		static bool HandleSubmitString()
@@ -296,6 +365,13 @@ namespace NCurses
 				{ ""sv, []() -> bool {
 					redrawwin(LoggingWindow::s_Window);
 					redrawwin(InputWindow::s_Window);
+
+					wrefresh(LoggingWindow::s_Window);
+					wrefresh(InputWindow::s_Window);
+
+					// Reset cursor, just to be safe.
+					s_Cursor = 0u;
+
 					return false;
 				} }
 			};
@@ -304,7 +380,7 @@ namespace NCurses
 			{
 				auto const dispatchHandle(s_StringDispatch.find(s_Buffer.View()));
 
-				s_Buffer.Clear(); HighlightChar<ChAttr::Add>(s_Cursor = 0u);
+				s_Buffer.Clear(); HighlightChar<CharAttribute::Add>(s_Cursor = 0u);
 
 				return dispatchHandle != s_StringDispatch.end() ? dispatchHandle->second() : false;
 			}
@@ -314,6 +390,12 @@ namespace NCurses
 
 	bool InputWindow::ProcessKey()
 	{
+		if (s_ShouldResize)
+		{
+			LoggerPrintArgs("[RESIZE]");
+			s_ShouldResize = false;
+		}
+
 		// Get one input key from the terminal, if any.
 		int const l_InputKey{ wgetch(s_Window) };
 

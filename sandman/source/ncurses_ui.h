@@ -10,11 +10,23 @@
 // as noted in the "SYNOPSIS" section of the manual page `man 3NCURSES ncurses`.
 #include <curses.h>
 
+namespace Common::Enum
+{
+	template <typename EnumT>
+	[[gnu::always_inline]] constexpr std::enable_if_t<std::is_enum_v<EnumT>, std::underlying_type_t<EnumT>>
+	IntCast(EnumT const p_Value)
+	{
+		return static_cast<std::underlying_type_t<EnumT>>(p_Value);
+	}
+}
+
 /// @brief This namespace serves to encapsulate state and functionality
 /// relevant to the usage of NCurses.
 ///
 namespace NCurses
 {
+	using namespace std::string_view_literals;
+	using namespace Common;
 
 	/// @brief Initialize NCurses state.
 	///
@@ -39,7 +51,62 @@ namespace NCurses
 		inline constexpr std::enable_if_t<std::is_integral_v<CharT>, CharT> Ctrl{ t_Name bitand 0x1F };
 	}
 
+	// Purposefully unscoped `enum`.
+	enum struct ColorIndex : int
+	{
+		BLACK   = 1,
+		RED     = 2,
+		GREEN   = 3,
+		YELLOW  = 4,
+		BLUE    = 5,
+		MAGENTA = 6,
+		CYAN    = 7,
+		WHITE   = 8,
+	};
+
+	struct Attr { int m_Value; bool m_Flag; };
+
+	template <ColorIndex t_ColorIndex>
+	struct Color
+	{
+		static constexpr int s_AttributeValue{COLOR_PAIR(Enum::IntCast(t_ColorIndex))};
+		static constexpr Attr On{s_AttributeValue, true};
+		static constexpr Attr Off{s_AttributeValue, false};
+	};
+	
+	struct Black   : Color<ColorIndex::BLACK>   {};
+	struct Red     : Color<ColorIndex::RED>     {};
+	struct Green   : Color<ColorIndex::GREEN>   {};
+	struct Yellow  : Color<ColorIndex::YELLOW>  {};
+	struct Blue    : Color<ColorIndex::BLUE>    {};
+	struct Magenta : Color<ColorIndex::MAGENTA> {};
+	struct Cyan    : Color<ColorIndex::CYAN>    {};
+	struct White   : Color<ColorIndex::WHITE>   {};
+
+	enum struct WindowAction : std::uint_least8_t {
+		REFRESH,
+	};
+
+	// Alias for `WindowAction::REFRESH`.
+	static constexpr WindowAction Refresh{WindowAction::REFRESH};
+
 	namespace LoggingWindow {
+
+		void Put(Attr const p_CharacterAttribute);
+
+		void Put(std::string_view const p_String);
+
+		void Put(chtype const p_Character);
+
+		void Put(WindowAction const p_Action);
+
+		template <typename T, typename... ParamsT>
+		[[gnu::always_inline]] inline void Write(T const p_Object, ParamsT const... p_Arguments)
+		{
+			Put(p_Object);
+			if constexpr (sizeof...(p_Arguments) > 0u) Write(p_Arguments...);
+		}
+
 		void WriteLine(char const* const string="");
 
 		/// @brief Get the pointer to the logging window.
