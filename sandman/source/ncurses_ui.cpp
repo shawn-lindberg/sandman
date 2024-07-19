@@ -1,7 +1,6 @@
 #include "ncurses_ui.h"
 
 #include "command.h"
-#include "logger.h"
 
 #include <algorithm>
 #include <cstring>
@@ -9,6 +8,7 @@
 #include <unordered_map>
 #include <vector>
 #include <csignal>
+#include <locale>
 
 namespace NCurses
 {
@@ -17,7 +17,7 @@ namespace NCurses
 		static std::mutex s_Mutex;
 	}
 
-	Lock::Lock(): m_Lock(std::lock_guard(s_Mutex)) {};
+	Lock::Lock(): m_Lock(s_Mutex) {};
 
 	// Configure a window with "sensible" defaults.
 	[[gnu::nonnull]] static void ConfigureWindowDefaults(WINDOW* const p_Window)
@@ -91,6 +91,12 @@ namespace NCurses
 	{
 		// This window is where messages from the logger are written to.
 		static WINDOW* s_Window = nullptr;
+
+		template <typename... ParamsT>
+		[[gnu::always_inline]] inline static void PrintRedLine(ParamsT const... p_Arguments)
+		{
+			Println(Red::On, p_Arguments..., Red::Off);
+		}
 
 		void Put(Attr const p_CharacterAttribute)
 		{
@@ -354,7 +360,7 @@ namespace NCurses
 		static bool HandleSubmitString()
 		{
 			// Echo the command back.
-			LoggerAddMessage("Keyboard command input: \"%s\"", s_Buffer.GetData().data());
+			LoggingWindow::Println("Keyboard command input: \"", s_Buffer.View(), '\"');
 
 			// Parse a command.
 			{
@@ -435,7 +441,7 @@ namespace NCurses
 				return HandleSubmitString();
 
 			case '\n':
-				LoggerAddMessage("Unexpectedly got a newline character from user input.");
+				LoggingWindow::PrintRedLine("Unexpectedly got a newline character from user input.");
 				return false;
 
 			// These "Ctrl" characters are usually handled by the terminal,
@@ -443,7 +449,7 @@ namespace NCurses
 			case Key::Ctrl<'C'>:
 			case Key::Ctrl<'Z'>:
 				// (Most likely unreachable.)
-				LoggerAddMessage("Unexpectedly got a `Ctrl` character (%d) from user input", l_InputKey);
+				LoggingWindow::PrintRedLine("Unexpectedly got a `Ctrl` character (", l_InputKey, ") from user input.");
 				return false;
 		}
 
