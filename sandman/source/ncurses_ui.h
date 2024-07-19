@@ -108,10 +108,17 @@ namespace NCurses
 		void Put(WindowAction const p_Action);
 
 		template <typename T, typename... ParamsT>
-		[[gnu::always_inline]] inline void Write(T const p_Object, ParamsT const... p_Arguments)
+		[[gnu::always_inline]] inline void Print(T const p_Object, ParamsT const... p_Arguments)
 		{
 			Put(p_Object);
-			if constexpr (sizeof...(p_Arguments) > 0u) Write(p_Arguments...);
+			if constexpr (sizeof...(p_Arguments) > 0u) Print(p_Arguments...);
+		}
+
+		template <typename... ParamsT>
+		[[gnu::always_inline]] inline void Println(ParamsT const... p_Arguments)
+		{
+			Print(p_Arguments...);
+			Put('\n');
 		}
 
 		void WriteLine(char const* const string="");
