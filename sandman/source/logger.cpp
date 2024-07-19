@@ -162,11 +162,8 @@ bool LoggerAddMessage(char const* p_Format, va_list& p_Arguments)
 
 			#elif defined (__linux__)
 
-			NCurses::LoggingWindow::Write(NCurses::Cyan::On,
-													std::string_view(l_LogStringBuffer),
-													'\n',
-													NCurses::Cyan::Off,
-													NCurses::Refresh);
+			NCurses::Lock l;
+			NCurses::LoggingWindow::WriteLine(l_LogStringBuffer);
 
 			#endif // defined (_WIN32)
 		}

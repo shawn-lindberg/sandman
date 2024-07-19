@@ -5,6 +5,7 @@
 #include <array>
 #include <cstdint>
 #include <type_traits>
+#include <mutex>
 
 // This is the standard include directive for NCurses
 // as noted in the "SYNOPSIS" section of the manual page `man 3NCURSES ncurses`.
@@ -27,6 +28,12 @@ namespace NCurses
 {
 	using namespace std::string_view_literals;
 	using namespace Common;
+
+	class Lock
+	{
+		private: std::lock_guard<std::mutex> m_Lock;
+		public: [[nodiscard]] explicit Lock();
+	};
 
 	/// @brief Initialize NCurses state.
 	///

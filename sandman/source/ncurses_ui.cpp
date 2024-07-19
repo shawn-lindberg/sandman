@@ -12,6 +12,13 @@
 
 namespace NCurses
 {
+	namespace
+	{
+		static std::mutex s_Mutex;
+	}
+
+	Lock::Lock(): m_Lock(std::lock_guard(s_Mutex)) {};
+
 	// Configure a window with "sensible" defaults.
 	[[gnu::nonnull]] static void ConfigureWindowDefaults(WINDOW* const p_Window)
 	{
@@ -392,7 +399,6 @@ namespace NCurses
 	{
 		if (s_ShouldResize)
 		{
-			LoggerPrintArgs("[RESIZE]");
 			s_ShouldResize = false;
 		}
 
