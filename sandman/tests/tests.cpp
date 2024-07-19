@@ -49,4 +49,14 @@ TEST_CASE("Test example schedule", "[schedules]")
 	const bool l_Loaded = l_Schedule.LoadFromFile("data/example.sched");
 	REQUIRE(l_Loaded == true);
 	REQUIRE(l_Schedule.IsEmpty() == false);
+	REQUIRE(l_Schedule.GetNumEvents() == 2);
+
+	const std::vector<ScheduleEvent>& l_Events = l_Schedule.GetEvents();
+	REQUIRE(l_Events[0].m_DelaySec == 20);
+	REQUIRE(l_Events[1].m_DelaySec == 25);
+
+	REQUIRE(std::string(l_Events[0].m_ControlAction.m_ControlName) == "legs");
+	REQUIRE(l_Events[0].m_ControlAction.m_Action == Control::ACTION_MOVING_UP);
+	REQUIRE(std::string(l_Events[1].m_ControlAction.m_ControlName) == "legs");
+	REQUIRE(l_Events[1].m_ControlAction.m_Action == Control::ACTION_MOVING_DOWN);
 }
