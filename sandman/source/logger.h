@@ -35,11 +35,7 @@ namespace Logger
 			{
 				auto const string(s_Buffer.str());
 
-				if (g_ScreenEcho)
-				{
-					NCurses::LoggingWindow::Write(string);
-					NCurses::LoggingWindow::Refresh();
-				}
+				if (g_ScreenEcho) NCurses::LoggingWindow::Print(string);
 
 				s_File << string;
 				s_Buffer.str("");
