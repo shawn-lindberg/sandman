@@ -116,7 +116,7 @@ namespace Logger
 		);
 	}
 
-	template <typename TogglerT = std::nullptr_t>
+	template <typename TogglerT=std::nullptr_t>
 	[[gnu::format(printf, 1, 0)]] bool FormatWriteLine(char const* p_Format, std::va_list l_ArgumentList)
 	{
 		static constexpr std::size_t s_LogStringBufferCapacity{ 2048u };
