@@ -91,13 +91,22 @@ namespace NCurses
 	struct White   : Color<ColorIndex::WHITE>   {};
 
 	namespace LoggingWindow {
+		
+		void Refresh();
 
 		void Write(Attr const p_CharacterAttribute);
 		void Write(chtype const p_Character);
 		void Write(char const* const p_String);
 		void Write(std::string_view const p_String);
 
-		void Refresh();
+		template <typename BoolT>
+		std::enable_if_t<std::is_same_v<BoolT, bool>, void> Write(BoolT const p_Boolean)
+		{
+			if (p_Boolean == true)
+				Write("true");
+			else
+				Write("false");
+		}
 
 		template <typename T, typename... ParamsT>
 		[[gnu::always_inline]] inline void Print(T const p_Object, ParamsT const... p_Arguments)

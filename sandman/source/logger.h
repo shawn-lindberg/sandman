@@ -27,7 +27,20 @@ namespace Logger
 		template <typename T, typename... ParamsT>
 		[[gnu::always_inline]] static inline void Write(T const& p_FirstArg, ParamsT const&... p_Args)
 		{
-			s_Buffer << p_FirstArg;
+			if constexpr (std::is_same_v<T, NCurses::Attr>)
+			{
+				auto const string(s_Buffer.str());
+				if (g_ScreenEcho) NCurses::LoggingWindow::Write(string);
+				s_File << string;
+
+				if (g_ScreenEcho) NCurses::LoggingWindow::Write(p_FirstArg);
+
+				s_Buffer.str("");
+			}
+			else
+			{
+				s_Buffer << p_FirstArg;
+			}
 
 			if constexpr (sizeof...(p_Args) > 0u)
 			{
@@ -41,7 +54,6 @@ namespace Logger
 
 				s_File << string;
 				s_Buffer.str("");
-				s_Buffer.clear();
 			}
 		}
 
@@ -67,8 +79,10 @@ namespace Logger
 
 		std::lock_guard const l_Lock(Self::s_Mutex);
 		Self::Write(
+			NCurses::Cyan::On,
 			std::put_time(std::localtime(&l_ArithmeticTimeValue), "%Y/%m/%d %H:%M:%S %Z"),
 			" | "sv,
+			NCurses::Cyan::Off,
 			p_Args...,
 			'\n'
 		);
