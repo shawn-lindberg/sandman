@@ -675,7 +675,7 @@ void ControlsInitialize(std::vector<ControlConfig> const& p_Configs)
 			return;
 		}
 
-		Logger::FormatWriteLine("\tsucceeded");
+		Logger::WriteLine<NCurses::Green>("\tsucceeded");
 		Logger::WriteLine();
 
 	#endif // defined ENABLE_GPIO

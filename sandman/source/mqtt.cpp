@@ -176,7 +176,7 @@ bool MQTTInitialize()
 		return false;
 	}
 		
-	Logger::FormatWriteLine("\tsucceeded");
+	Logger::WriteLine<NCurses::Green>("\tsucceeded");
 	Logger::WriteLine();
 
 	int l_MajorVersion = 0;
@@ -197,7 +197,7 @@ bool MQTTInitialize()
 		return false;
 	}
 	
-	Logger::FormatWriteLine("\tsucceeded");
+	Logger::WriteLine<NCurses::Green>("\tsucceeded");
 	Logger::WriteLine();
 
 	// Set some necessary callbacks.
@@ -254,7 +254,7 @@ bool MQTTInitialize()
 		return false;
 	}
 	
-	Logger::FormatWriteLine("\tsucceeded");
+	Logger::WriteLine<NCurses::Green>("\tsucceeded");
 	Logger::WriteLine();
 
 	// Start processing in another thread.
