@@ -107,7 +107,7 @@ void CommandProcess()
 	{
 		s_Rebooting = false;
 
-		LoggerAddMessage("Rebooting!");
+		Logger::FormatWriteLine("Rebooting!");
 
 		sync();
 		reboot(RB_AUTOBOOT);
@@ -218,7 +218,7 @@ CommandParseTokensReturnTypes CommandParseTokens(char const*& p_ConfirmationText
 					
 					default:
 					{
-						LoggerAddMessage("Unrecognized token \"%s\" trying to process a control movement "
+						Logger::FormatWriteLine("Unrecognized token \"%s\" trying to process a control movement "
 							"command.", s_CommandTokenNames[l_Token.m_Type]);
 					}
 					break;
@@ -347,7 +347,7 @@ CommandParseTokensReturnTypes CommandParseTokens(char const*& p_ConfirmationText
 				// Only a positive confirmation is accepted.
 				if (l_Token.m_Type != CommandToken::TYPE_YES)
 				{
-					LoggerAddMessage("Ignoring reboot command because it was not followed by a positive "
+					Logger::FormatWriteLine("Ignoring reboot command because it was not followed by a positive "
 						"confirmation.");
 					NotificationPlay("canceled");
 					break;
@@ -357,7 +357,7 @@ CommandParseTokensReturnTypes CommandParseTokens(char const*& p_ConfirmationText
 				s_Rebooting = true;
 				TimerGetCurrent(s_RebootDelayStartTime);
 
-				LoggerAddMessage("Reboot starting!");
+				Logger::FormatWriteLine("Reboot starting!");
 				NotificationPlay("restarting");
 
 				return CommandParseTokensReturnTypes::SUCCESS;
@@ -566,7 +566,7 @@ void CommandTokenizeJSONDocument(std::vector<CommandToken>& p_CommandTokens,
 		// We can ignore this if we are not waiting for confirmation.
 		if (p_CommandTokens.empty() == true)
 		{
-			LoggerAddMessage("Received a confirmation response, but wasn't waiting for confirmation. "
+			Logger::FormatWriteLine("Received a confirmation response, but wasn't waiting for confirmation. "
 				"Ignoring.");
 			return;
 		}
@@ -593,12 +593,12 @@ void CommandTokenizeJSONDocument(std::vector<CommandToken>& p_CommandTokens,
 			// to process the pending command.
 			p_CommandTokens.clear();
 
-			LoggerAddMessage("Couldn't recognize a %s intent because of invalid parameters.", 
+			Logger::FormatWriteLine("Couldn't recognize a %s intent because of invalid parameters.", 
 				l_IntentName);
 			return;
 		}
 
-		LoggerAddMessage("Recognized a %s intent.", l_IntentName);
+		Logger::FormatWriteLine("Recognized a %s intent.", l_IntentName);
 
 		// Now that we theoretically have a set of valid tokens, add them to the output.
 		p_CommandTokens.push_back(l_ResponseToken);
@@ -609,14 +609,14 @@ void CommandTokenizeJSONDocument(std::vector<CommandToken>& p_CommandTokens,
 		// If we were waiting on confirmation but got something else instead, ignore it.
 		p_CommandTokens.clear();
 
-		LoggerAddMessage("Ignoring intent %s because there was a command pending confirmation.", 
+		Logger::FormatWriteLine("Ignoring intent %s because there was a command pending confirmation.", 
 			l_IntentName);
 		return;
 	}
 
 	if (strcmp(l_IntentName, "GetStatus") == 0)
 	{
-		LoggerAddMessage("Recognized a %s intent.", l_IntentName);
+		Logger::FormatWriteLine("Recognized a %s intent.", l_IntentName);
 
 		// For status, we only have to output the status token.
 		CommandToken l_Token;
@@ -656,12 +656,12 @@ void CommandTokenizeJSONDocument(std::vector<CommandToken>& p_CommandTokens,
 		if ((l_PartToken.m_Type == CommandToken::TYPE_INVALID) || 
 			(l_DirectionToken.m_Type == CommandToken::TYPE_INVALID))
 		{
-			LoggerAddMessage("Couldn't recognize a %s intent because of invalid parameters.", 
+			Logger::FormatWriteLine("Couldn't recognize a %s intent because of invalid parameters.", 
 				l_IntentName);
 			return;
 		}
 
-		LoggerAddMessage("Recognized a %s intent.", l_IntentName);
+		Logger::FormatWriteLine("Recognized a %s intent.", l_IntentName);
 
 		// Now that we theoretically have a set of valid tokens, add them to the output.
 		p_CommandTokens.push_back(l_PartToken);
@@ -693,12 +693,12 @@ void CommandTokenizeJSONDocument(std::vector<CommandToken>& p_CommandTokens,
 
 		if (l_ActionToken.m_Type == CommandToken::TYPE_INVALID)
 		{
-			LoggerAddMessage("Couldn't recognize a %s intent because of invalid parameters.", 
+			Logger::FormatWriteLine("Couldn't recognize a %s intent because of invalid parameters.", 
 				l_IntentName);
 			return;
 		}
 
-		LoggerAddMessage("Recognized a %s intent.", l_IntentName);
+		Logger::FormatWriteLine("Recognized a %s intent.", l_IntentName);
 
 		// Now that we theoretically have a set of valid tokens, add them to the output.
 		p_CommandTokens.push_back(l_ScheduleToken);
@@ -708,7 +708,7 @@ void CommandTokenizeJSONDocument(std::vector<CommandToken>& p_CommandTokens,
 
 	if (strcmp(l_IntentName, "Reboot") == 0)
 	{
-		LoggerAddMessage("Recognized a %s intent.", l_IntentName);
+		Logger::FormatWriteLine("Recognized a %s intent.", l_IntentName);
 
 		// For reboot, we only have to output the reboot token.
 		CommandToken l_Token;
@@ -718,6 +718,6 @@ void CommandTokenizeJSONDocument(std::vector<CommandToken>& p_CommandTokens,
 		return;
 	}
 
-	LoggerAddMessage("Unrecognized intent named %s.", l_IntentName);
+	Logger::FormatWriteLine("Unrecognized intent named %s.", l_IntentName);
 }
 

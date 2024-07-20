@@ -123,9 +123,19 @@ namespace NCurses
 			for (char const l_Character : p_String) waddch(s_Window, l_Character);
 		}
 
+		void Write(std::string_view const p_String)
+		{
+			for (char const l_Character : p_String) waddch(s_Window, l_Character);
+		}
+
 		void Put(chtype const p_Character)
 		{
 			waddch(s_Window, p_Character);
+		}
+
+		void Refresh()
+		{
+			wrefresh(s_Window);
 		}
 
 		void WriteLine(char const* const string)

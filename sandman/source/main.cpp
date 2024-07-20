@@ -78,7 +78,7 @@ static bool Initialize()
 		umask(0);
 
 		// Initialize logging.
-		if (LoggerInitialize(SANDMAN_TEMP_DIR "sandman.log") == false)
+		if (Logger::Initialize(SANDMAN_TEMP_DIR "sandman.log") == false)
 		{
 			s_ExitCode = 1;
 			return false;
@@ -89,7 +89,7 @@ static bool Initialize()
 
 		if (l_SessionID < 0)
 		{
-			LoggerAddMessage("Failed to get new session ID for daemon.");
+			Logger::FormatWriteLine("Failed to get new session ID for daemon.");
 			s_ExitCode = 1;
 			return false;
 		}
@@ -97,7 +97,7 @@ static bool Initialize()
 		// Change the current working directory.
 		if (chdir(SANDMAN_TEMP_DIR) < 0)
 		{
-			LoggerAddMessage("Failed to change working directory to \"%s\" ID for daemon.",
+			Logger::FormatWriteLine("Failed to change working directory to \"%s\" ID for daemon.",
 								  SANDMAN_TEMP_DIR);
 			s_ExitCode = 1;
 			return false;
@@ -121,7 +121,7 @@ static bool Initialize()
 
 		if (s_ListeningSocket < 0)
 		{
-			LoggerAddMessage("Failed to create listening socket.");
+			Logger::FormatWriteLine("Failed to create listening socket.");
 			s_ExitCode = 1;
 			return false;
 		}
@@ -129,7 +129,7 @@ static bool Initialize()
 		// Set to non-blocking.
 		if (fcntl(s_ListeningSocket, F_SETFL, O_NONBLOCK) < 0)
 		{
-			LoggerAddMessage("Failed to make listening socket non-blocking.");
+			Logger::FormatWriteLine("Failed to make listening socket non-blocking.");
 			s_ExitCode = 1;
 			return false;
 		}
@@ -148,7 +148,7 @@ static bool Initialize()
 		if (bind(s_ListeningSocket, reinterpret_cast<sockaddr*>(&l_ListeningAddress),
 					sizeof(sockaddr_un)) < 0)
 		{
-			LoggerAddMessage("Failed to bind listening socket.");
+			Logger::FormatWriteLine("Failed to bind listening socket.");
 			s_ExitCode = 1;
 			return false;
 		}
@@ -156,7 +156,7 @@ static bool Initialize()
 		// Mark the socket for listening.
 		if (listen(s_ListeningSocket, 5) < 0)
 		{
-			LoggerAddMessage("Failed to mark listening socket to listen.");
+			Logger::FormatWriteLine("Failed to mark listening socket to listen.");
 			s_ExitCode = 1;
 			return false;
 		}
@@ -168,13 +168,13 @@ static bool Initialize()
 		NCurses::Initialize();
 
 		// Initialize logging.
-		if (LoggerInitialize(SANDMAN_TEMP_DIR "sandman.log") == false)
+		if (Logger::Initialize(SANDMAN_TEMP_DIR "sandman.log") == false)
 		{
 			s_ExitCode = 1;
 			return false;
 		}
 
-		LoggerEchoToScreen(true);
+		Logger::g_ScreenEcho = true;
 	}
 
 	// Read the config.
@@ -257,7 +257,7 @@ static void Uninitialize()
 	s_Input.Uninitialize();
 
 	// Uninitialize logging.
-	LoggerUninitialize();
+	Logger::Uninitialize();
 
 	if (s_DaemonMode == false)
 	{
@@ -280,7 +280,7 @@ static bool ProcessSocketCommunication()
 	}
 
 	// Got a connection.
-	LoggerAddMessage("Got a new connection.");
+	Logger::FormatWriteLine("Got a new connection.");
 
 	// Try to read data.
 	static constexpr unsigned int l_MessageBufferCapacity = 100;
@@ -291,7 +291,7 @@ static bool ProcessSocketCommunication()
 
 	if (l_NumReceivedBytes <= 0)
 	{
-		LoggerAddMessage("Connection closed, error receiving.");
+		Logger::FormatWriteLine("Connection closed, error receiving.");
 
 		// Close the connection.
 		close(l_ConnectionSocket);
@@ -301,7 +301,7 @@ static bool ProcessSocketCommunication()
 	// Terminate.
 	l_MessageBuffer[l_NumReceivedBytes] = '\0';
 
-	LoggerAddMessage("Received \"%s\".", l_MessageBuffer);
+	Logger::FormatWriteLine("Received \"%s\".", l_MessageBuffer);
 
 	// Handle the message, if necessary.
 	auto l_Done = false;
@@ -322,7 +322,7 @@ static bool ProcessSocketCommunication()
 		CommandParseTokens(l_CommandTokens);
 	}
 
-	LoggerAddMessage("Connection closed.");
+	Logger::FormatWriteLine("Connection closed.");
 
 	// Close the connection.
 	close(l_ConnectionSocket);
@@ -515,7 +515,7 @@ int main(int argc, char** argv)
 		}
 	}
 
-	LoggerAddMessage("Uninitializing.");
+	Logger::FormatWriteLine("Uninitializing.");
 
 	// Cleanup.
 	Uninitialize();

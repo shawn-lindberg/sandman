@@ -92,7 +92,7 @@ void SetGPIOPinOn(int p_Pin)
 
 	#else
 
-		LoggerAddMessage("A Raspberry Pi would have set GPIO %d to on.", p_Pin);
+		Logger::FormatWriteLine("A Raspberry Pi would have set GPIO %d to on.", p_Pin);
 
 	#endif // defined ENABLE_GPIO
 }
@@ -109,7 +109,7 @@ void SetGPIOPinOff(int p_Pin)
 
 	#else
 
-		LoggerAddMessage("A Raspberry Pi would have set GPIO %d to off.", p_Pin);
+		Logger::FormatWriteLine("A Raspberry Pi would have set GPIO %d to off.", p_Pin);
 
 	#endif // defined ENABLE_GPIO
 }
@@ -131,7 +131,7 @@ bool ControlConfig::ReadFromJSON(rapidjson::Value const& p_Object)
 {
 	if (p_Object.IsObject() == false)
 	{
-		LoggerAddMessage("Control config cannot be parsed because it is not an object.");
+		Logger::FormatWriteLine("Control config cannot be parsed because it is not an object.");
 		return false;
 	}
 
@@ -140,13 +140,13 @@ bool ControlConfig::ReadFromJSON(rapidjson::Value const& p_Object)
 
 	if (l_NameIterator == p_Object.MemberEnd())
 	{
-		LoggerAddMessage("Control config is missing a name.");
+		Logger::FormatWriteLine("Control config is missing a name.");
 		return false;
 	}
 
 	if (l_NameIterator->value.IsString() == false)
 	{
-		LoggerAddMessage("Control config has a name but it is not a string.");
+		Logger::FormatWriteLine("Control config has a name but it is not a string.");
 		return false;
 	}
 	
@@ -159,13 +159,13 @@ bool ControlConfig::ReadFromJSON(rapidjson::Value const& p_Object)
 
 	if (l_UpPinIterator == p_Object.MemberEnd())
 	{
-		LoggerAddMessage("Control config is missing an up pin.");
+		Logger::FormatWriteLine("Control config is missing an up pin.");
 		return false;
 	}
 
 	if (l_UpPinIterator->value.IsInt() == false)
 	{
-		LoggerAddMessage("Control config has an up pin, but it is not an integer.");
+		Logger::FormatWriteLine("Control config has an up pin, but it is not an integer.");
 		return false;
 	}
 
@@ -176,13 +176,13 @@ bool ControlConfig::ReadFromJSON(rapidjson::Value const& p_Object)
 
 	if (l_DownPinIterator == p_Object.MemberEnd())
 	{
-		LoggerAddMessage("Control config is missing a down pin.");
+		Logger::FormatWriteLine("Control config is missing a down pin.");
 		return false;
 	}
 
 	if (l_DownPinIterator->value.IsInt() == false)
 	{
-		LoggerAddMessage("Control config has a down pin, but it is not an integer.");
+		Logger::FormatWriteLine("Control config has a down pin, but it is not an integer.");
 		return false;
 	}
 
@@ -235,7 +235,7 @@ void Control::Initialize(ControlConfig const& p_Config)
 	// Set the individual control moving duration.
 	m_StandardMovingDurationMS = p_Config.m_MovingDurationMS;
 	
-	LoggerAddMessage("Initialized control \'%s\' with GPIO pins (up %i, "
+	Logger::FormatWriteLine("Initialized control \'%s\' with GPIO pins (up %i, "
 		"down %i) and duration %i ms.", m_Name, m_UpGPIOPin, m_DownGPIOPin, m_StandardMovingDurationMS);
 }
 
@@ -288,7 +288,7 @@ void Control::Process()
 			// Record when the state transition timer began.
 			TimerGetCurrent(m_StateStartTime);
 
-			LoggerAddMessage("Control \"%s\": State transition from \"%s\" to \"%s\" triggered.", 
+			Logger::FormatWriteLine("Control \"%s\": State transition from \"%s\" to \"%s\" triggered.", 
 				m_Name, s_ControlStateNames[STATE_IDLE], s_ControlStateNames[m_State]);
 		}
 		break;
@@ -348,7 +348,7 @@ void Control::Process()
 			// Record when the state transition timer began.
 			TimerGetCurrent(m_StateStartTime);
 
-			LoggerAddMessage("Control \"%s\": State transition from \"%s\" to \"%s\" triggered.", 
+			Logger::FormatWriteLine("Control \"%s\": State transition from \"%s\" to \"%s\" triggered.", 
 				m_Name, s_ControlStateNames[l_OldState], s_ControlStateNames[m_State]);
 		}
 		break;
@@ -377,14 +377,14 @@ void Control::Process()
 			SetGPIOPinOff(m_UpGPIOPin);
 			SetGPIOPinOff(m_DownGPIOPin);
 
-			LoggerAddMessage("Control \"%s\": State transition from \"%s\" to \"%s\" triggered.", 
+			Logger::FormatWriteLine("Control \"%s\": State transition from \"%s\" to \"%s\" triggered.", 
 				m_Name, s_ControlStateNames[STATE_COOL_DOWN], s_ControlStateNames[m_State]);
 		}
 		break;
 
 		default:
 		{
-			LoggerAddMessage("Control \"%d\": Unrecognized state %s in Process()", m_State, m_Name);
+			Logger::FormatWriteLine("Control \"%d\": Unrecognized state %s in Process()", m_State, m_Name);
 		}
 		break;
 	}
@@ -420,7 +420,7 @@ void Control::SetDesiredAction(Actions p_DesiredAction, Modes p_Mode, unsigned i
 		m_MovingDurationMS = ms_MaxMovingDurationMS;
 	}
 
-	LoggerAddMessage("Control \"%s\": Setting desired action to \"%s\" with mode \"%s\" and "
+	Logger::FormatWriteLine("Control \"%s\": Setting desired action to \"%s\" with mode \"%s\" and "
 		"duration %i ms.", m_Name, s_ControlActionNames[p_DesiredAction], 
 		s_ControlModeNames[p_Mode], m_MovingDurationMS);
 }
@@ -436,7 +436,7 @@ void Control::Enable(bool p_Enable)
 		// Revert to input.
 		//pinMode(ENABLE_GPIO_PIN, INPUT);
 
-		LoggerAddMessage("Controls disabled.");
+		Logger::FormatWriteLine("Controls disabled.");
 	}
 	else
 	{
@@ -444,7 +444,7 @@ void Control::Enable(bool p_Enable)
 		//pinMode(ENABLE_GPIO_PIN, OUTPUT);
 		//SetGPIOPinOff(ENABLE_GPIO_PIN);
 
-		LoggerAddMessage("Controls enabled.");
+		Logger::FormatWriteLine("Controls enabled.");
 	}
 }
 
@@ -458,7 +458,7 @@ void Control::SetDurations(unsigned int p_MovingDurationMS, unsigned int p_CoolD
 	ms_MaxMovingDurationMS = p_MovingDurationMS;
 	ms_CoolDownDurationMS = p_CoolDownDurationMS;
 	
-	LoggerAddMessage("Control durations set to moving - %i ms, cool down - %i ms.", p_MovingDurationMS, p_CoolDownDurationMS);
+	Logger::FormatWriteLine("Control durations set to moving - %i ms, cool down - %i ms.", p_MovingDurationMS, p_CoolDownDurationMS);
 }
 
 // Attempt to get the handle of a control based on its name.
@@ -593,7 +593,7 @@ bool ControlAction::ReadFromJSON(rapidjson::Value const& p_Object)
 {
 	if (p_Object.IsObject() == false)
 	{
-		LoggerAddMessage("Control action cannot be parsed because it is not an object.");
+		Logger::FormatWriteLine("Control action cannot be parsed because it is not an object.");
 		return false;
 	}
 
@@ -602,13 +602,13 @@ bool ControlAction::ReadFromJSON(rapidjson::Value const& p_Object)
 
 	if (l_ControlIterator == p_Object.MemberEnd())
 	{
-		LoggerAddMessage("Control action is missing a control name.");
+		Logger::FormatWriteLine("Control action is missing a control name.");
 		return false;
 	}
 
 	if (l_ControlIterator->value.IsString() == false)
 	{
-		LoggerAddMessage("Control action has a control name, but it is not a string.");
+		Logger::FormatWriteLine("Control action has a control name, but it is not a string.");
 		return false;
 	}
 	
@@ -621,20 +621,20 @@ bool ControlAction::ReadFromJSON(rapidjson::Value const& p_Object)
 
 	if (l_ActionIterator == p_Object.MemberEnd())
 	{
-		LoggerAddMessage("Control action does not have an action.");
+		Logger::FormatWriteLine("Control action does not have an action.");
 		return false;
 	}
 
 	if (l_ActionIterator->value.IsString() == false)
 	{
-		LoggerAddMessage("Control action has an action, but it is not a string.");
+		Logger::FormatWriteLine("Control action has an action, but it is not a string.");
 		return false;
 	}
 
 	// Try to get the corresponding action.
 	if (GetControlActionFromString(m_Action, l_ActionIterator->value.GetString()) == false)
 	{
-		LoggerAddMessage("Control action has an unrecognized action.");
+		Logger::FormatWriteLine("Control action has an unrecognized action.");
 		return false;
 	}
 
@@ -667,16 +667,16 @@ void ControlsInitialize(std::vector<ControlConfig> const& p_Configs)
 {
 	#if defined ENABLE_GPIO
 	
-		LoggerAddMessage("Initializing GPIO support...");
+		Logger::FormatWriteLine("Initializing GPIO support...");
 	
 		if (gpioInitialise() < 0)
 		{
-			LoggerAddMessage("\tfailed");
+			Logger::FormatWriteLine("\tfailed");
 			return;
 		}
 
-		LoggerAddMessage("\tsucceeded");
-		LoggerAddEmptyLine();
+		Logger::FormatWriteLine("\tsucceeded");
+		Logger::WriteLine();
 
 	#endif // defined ENABLE_GPIO
 
@@ -727,7 +727,7 @@ bool ControlsCreateControl(ControlConfig const& p_Config)
 	// Check to see whether a control with this name already exists.
 	if (Control::GetHandle(p_Config.m_Name).IsValid() == true)
 	{		
-		LoggerAddMessage("Control with name \"%s\" already exists.", p_Config.m_Name);
+		Logger::FormatWriteLine("Control with name \"%s\" already exists.", p_Config.m_Name);
 		return false;
 	}
 	

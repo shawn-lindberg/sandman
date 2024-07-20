@@ -8,18 +8,26 @@
 #include <cstring>
 #include <ctime>
 #include <mutex>
+#include <fstream>
+
+
+bool Logger::g_ScreenEcho{ false };
+
+std::mutex Logger::Self::s_Mutex;
+std::ofstream Logger::Self::s_File;
+std::ostringstream Logger::Self::s_Buffer;
 
 // Locals
 //
 
 // Used to enforce serialization of messages.
-std::mutex s_LogMutex;
+// std::mutex s_LogMutex;
 
 // The file to log messages to.
-static std::FILE* s_LogFile = nullptr;
+// static std::FILE* s_LogFile = nullptr;
 
 // Whether to echo messages to the screen.
-static bool s_LogToScreen = false;
+// static bool s_LogToScreen = false;
 
 // Functions
 //
@@ -30,54 +38,83 @@ static bool s_LogToScreen = false;
 //
 // returns:		True if successful, false otherwise.
 //
-bool LoggerInitialize(char const* p_LogFileName)
+// bool LoggerInitialize(char const* p_LogFileName)
+// {
+// 	// Acquire a lock for the rest of the function.
+// 	std::lock_guard<std::mutex> const l_LogGuard(s_LogMutex);
+
+// 	// Initialize the file.
+// 	s_LogFile = nullptr;
+
+// 	if (p_LogFileName == nullptr)
+// 	{
+// 		return false;
+// 	}
+
+// 	// Try to open (and destroy old log).
+// 	s_LogFile = std::fopen(p_LogFileName, "w");
+
+// 	if (s_LogFile == nullptr)
+// 	{
+// 		return false;
+// 	}
+
+// 	return true;
+// }
+
+bool ::Logger::Initialize(char const* const p_LogFileName)
 {
-	// Acquire a lock for the rest of the function.
-	std::lock_guard<std::mutex> const l_LogGuard(s_LogMutex);
-
-	// Initialize the file.
-	s_LogFile = nullptr;
-
-	if (p_LogFileName == nullptr)
-	{
-		return false;
-	}
-
-	// Try to open (and destroy old log).
-	s_LogFile = std::fopen(p_LogFileName, "w");
-
-	if (s_LogFile == nullptr)
-	{
-		return false;
-	}
-
+	if (p_LogFileName == nullptr) return false;
+	std::lock_guard const l_Lock(Self::s_Mutex);
+	Self::s_File = std::ofstream(p_LogFileName);
 	return true;
 }
 
 // Uninitialize the logger.
 //
-void LoggerUninitialize()
+// void LoggerUninitialize()
+// {
+// 	// Acquire a lock for the rest of the function.
+// 	std::lock_guard<std::mutex> const l_LogGuard(s_LogMutex);
+
+// 	// Close the file.
+// 	if (s_LogFile != nullptr)
+// 	{
+// 		std::fclose(s_LogFile);
+// 	}
+
+// 	s_LogFile = nullptr;
+// }
+
+void Logger::Uninitialize()
 {
-	// Acquire a lock for the rest of the function.
-	std::lock_guard<std::mutex> const l_LogGuard(s_LogMutex);
+	std::lock_guard const l_Lock(Self::s_Mutex);
+	Self::s_File.close();
+}
 
-	// Close the file.
-	if (s_LogFile != nullptr)
-	{
-		std::fclose(s_LogFile);
-	}
+[[gnu::format(printf, 1, 2)]] bool Logger::FormatWriteLine(char const* p_Format, ...)
+{
+	static constexpr std::size_t s_LogStringBufferCapacity{ 2048u };
+	char l_LogStringBuffer[s_LogStringBufferCapacity];
 
-	s_LogFile = nullptr;
+	std::va_list l_Arguments;
+	va_start(l_Arguments, p_Format);
+	std::vsnprintf(l_LogStringBuffer, s_LogStringBufferCapacity, p_Format, l_Arguments);
+	va_end(l_Arguments);
+
+	WriteLine(l_LogStringBuffer);
+
+	return true;
 }
 
 // Set whether to echo messages to the screen as well.
 //
 // p_LogToScreen:	Whether to echo messages to the screen.
 //
-void LoggerEchoToScreen(bool p_LogToScreen)
-{
-	s_LogToScreen = p_LogToScreen;
-}
+// void LoggerEchoToScreen(bool p_LogToScreen)
+// {
+// 	s_LogToScreen = p_LogToScreen;
+// }
 
 // Add a message to the log.
 //
@@ -86,17 +123,17 @@ void LoggerEchoToScreen(bool p_LogToScreen)
 //
 // returns:		True if successful, false otherwise.
 //
-bool LoggerAddMessage(char const* p_Format, ...)
-{
-	std::va_list l_Arguments;
-	va_start(l_Arguments, p_Format);
+// bool Logger::FormatWriteLine(char const* p_Format, ...)
+// {
+// 	std::va_list l_Arguments;
+// 	va_start(l_Arguments, p_Format);
 
-	auto const l_Result = LoggerAddMessage(p_Format, l_Arguments);
+// 	auto const l_Result = Logger::FormatWriteLine(p_Format, l_Arguments);
 
-	va_end(l_Arguments);
+// 	va_end(l_Arguments);
 
-	return l_Result;
-}
+// 	return l_Result;
+// }
 
 // Add a message to the log (va_list version).
 //
@@ -105,80 +142,80 @@ bool LoggerAddMessage(char const* p_Format, ...)
 //
 // returns:		True if successful, false otherwise.
 //
-bool LoggerAddMessage(char const* p_Format, va_list& p_Arguments)
-{
-	static constexpr unsigned int s_LogStringBufferCapacity{ 2048u };
-	char l_LogStringBuffer[s_LogStringBufferCapacity];
+// bool Logger::FormatWriteLine(char const* p_Format, va_list& p_Arguments)
+// {
+// 	static constexpr unsigned int s_LogStringBufferCapacity{ 2048u };
+// 	char l_LogStringBuffer[s_LogStringBufferCapacity];
 
-	// Initialize buffer write parameters.
-	auto l_RemainingCapacity = s_LogStringBufferCapacity;
-	auto* l_RemainingBuffer = l_LogStringBuffer;
+// 	// Initialize buffer write parameters.
+// 	auto l_RemainingCapacity = s_LogStringBufferCapacity;
+// 	auto* l_RemainingBuffer = l_LogStringBuffer;
 
-	// Get the time.
-	auto const l_RawTime = std::time(nullptr);
-	auto* l_LocalTime = std::localtime(&l_RawTime);
+// 	// Get the time.
+// 	auto const l_RawTime = std::time(nullptr);
+// 	auto* l_LocalTime = std::localtime(&l_RawTime);
 
-	// Put the date and time in the buffer in 2012/09/23 17:44:05 CDT format.
-	std::strftime(l_RemainingBuffer, l_RemainingCapacity, "%Y/%m/%d %H:%M:%S %Z", l_LocalTime);
+// 	// Put the date and time in the buffer in 2012/09/23 17:44:05 CDT format.
+// 	std::strftime(l_RemainingBuffer, l_RemainingCapacity, "%Y/%m/%d %H:%M:%S %Z", l_LocalTime);
 
-	// Force terminate.
-	l_RemainingBuffer[l_RemainingCapacity - 1] = '\0';
+// 	// Force terminate.
+// 	l_RemainingBuffer[l_RemainingCapacity - 1] = '\0';
 
-	// Update buffer write parameters.
-	unsigned int const l_CapacityUsed = std::strlen(l_RemainingBuffer);
-	l_RemainingBuffer += l_CapacityUsed;
-	l_RemainingCapacity -= l_CapacityUsed;
+// 	// Update buffer write parameters.
+// 	unsigned int const l_CapacityUsed = std::strlen(l_RemainingBuffer);
+// 	l_RemainingBuffer += l_CapacityUsed;
+// 	l_RemainingCapacity -= l_CapacityUsed;
 
-	// Add a separator.
-	if (l_RemainingCapacity < 2u)
-	{
-		return false;
-	}
+// 	// Add a separator.
+// 	if (l_RemainingCapacity < 2u)
+// 	{
+// 		return false;
+// 	}
 
-	l_RemainingBuffer[0] = ']';
-	l_RemainingBuffer[1] = ' ';
-	l_RemainingBuffer += 2;
-	l_RemainingCapacity -= 2;
+// 	l_RemainingBuffer[0] = ']';
+// 	l_RemainingBuffer[1] = ' ';
+// 	l_RemainingBuffer += 2;
+// 	l_RemainingCapacity -= 2;
 
-	// Add the log message.
-	if (std::vsnprintf(l_RemainingBuffer, l_RemainingCapacity, p_Format, p_Arguments) < 0)
-	{
-		return false;
-	}
+// 	// Add the log message.
+// 	if (std::vsnprintf(l_RemainingBuffer, l_RemainingCapacity, p_Format, p_Arguments) < 0)
+// 	{
+// 		return false;
+// 	}
 
-	// Force terminate.
-	l_RemainingBuffer[l_RemainingCapacity - 1] = '\0';
+// 	// Force terminate.
+// 	l_RemainingBuffer[l_RemainingCapacity - 1] = '\0';
 
-	{
-		// Acquire a lock for the rest of the function.
-		std::lock_guard<std::mutex> const l_LogGuard(s_LogMutex);
+// 	{
+// 		// Acquire a lock for the rest of the function.
+// 		std::lock_guard<std::mutex> const l_LogGuard(s_LogMutex);
 
-		// Print to standard output (and add a newline).
-		if (s_LogToScreen == true)
-		{
-			#if defined (_WIN32)
+// 		// Print to standard output (and add a newline).
+// 		if (s_LogToScreen == true)
+// 		{
+// 			#if defined (_WIN32)
 
-			std::puts(l_LogStringBuffer);
+// 			std::puts(l_LogStringBuffer);
 
-			#elif defined (__linux__)
+// 			#elif defined (__linux__)
 
-			NCurses::Lock l;
-			NCurses::LoggingWindow::WriteLine(l_LogStringBuffer);
+// 			NCurses::Lock l;
+// 			NCurses::LoggingWindow::WriteLine(l_LogStringBuffer);
 
-			#endif // defined (_WIN32)
-		}
+// 			#endif // defined (_WIN32)
+// 		}
 
-		// Print to log file.
-		if (s_LogFile != nullptr)
-		{
-			std::fputs(l_LogStringBuffer, s_LogFile);
+// 		// Print to log file.
+// 		if (s_LogFile != nullptr)
+// 		{
+// 			std::fputs(l_LogStringBuffer, s_LogFile);
 
-			// fputs doesn't add a newline, do it now.
-			std::fputs("\n", s_LogFile);
+// 			// fputs doesn't add a newline, do it now.
+// 			std::fputs("\n", s_LogFile);
 
-			std::fflush(s_LogFile);
-		}
-	}
+// 			std::fflush(s_LogFile);
+// 		}
+// 	}
 
-	return true;
-}
+// 	return true;
+// }

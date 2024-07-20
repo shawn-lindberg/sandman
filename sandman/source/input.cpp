@@ -54,13 +54,13 @@ bool InputBinding::ReadFromJSON(rapidjson::Value const& p_Object)
 
 	if (l_KeyCodeIterator == p_Object.MemberEnd())
 	{
-		LoggerAddMessage("Input binding is missing a key code.");
+		Logger::FormatWriteLine("Input binding is missing a key code.");
 		return false;
 	}
 
 	if (l_KeyCodeIterator->value.IsInt() == false)
 	{
-		LoggerAddMessage("Input binding has a key code, but it is not an integer.");
+		Logger::FormatWriteLine("Input binding has a key code, but it is not an integer.");
 		return false;
 	}
 
@@ -71,13 +71,13 @@ bool InputBinding::ReadFromJSON(rapidjson::Value const& p_Object)
 
 	if (l_ControlActionIterator == p_Object.MemberEnd())
 	{
-		LoggerAddMessage("Input binding is missing a control action.");
+		Logger::FormatWriteLine("Input binding is missing a control action.");
 		return false;
 	}
 	
 	if (m_ControlAction.ReadFromJSON(l_ControlActionIterator->value) == false) 
 	{
-		LoggerAddMessage("Input binding has a control action, but it could not be parsed.");
+		Logger::FormatWriteLine("Input binding has a control action, but it could not be parsed.");
 		return false;
 	}
 
@@ -109,18 +109,18 @@ void Input::Initialize(char const* p_DeviceName, std::vector<InputBinding> const
 	}
 	
 	// Display what we initialized.
-	LoggerAddMessage("Initialized input device \'%s\' with input bindings:", m_DeviceName);
+	Logger::FormatWriteLine("Initialized input device \'%s\' with input bindings:", m_DeviceName);
 	
 	for (auto const& l_Binding : m_Bindings) 
 	{
 		auto* const l_ActionText = 
 			(l_Binding.m_ControlAction.m_Action == Control::Actions::ACTION_MOVING_UP) ? "up" : "down";
 		
-		LoggerAddMessage("\tCode %i -> %s, %s", l_Binding.m_KeyCode, 
+		Logger::FormatWriteLine("\tCode %i -> %s, %s", l_Binding.m_KeyCode, 
 			l_Binding.m_ControlAction.m_ControlName, l_ActionText);
 	}
 	
-	LoggerAddEmptyLine();
+	Logger::WriteLine();
 }
 
 // Handle uninitialization.
@@ -177,13 +177,13 @@ void Input::Process()
 			CloseDevice(true, "Failed to get name for input device \'%s\'", m_DeviceName);
 		}
 		
-		LoggerAddMessage("Input device \'%s\' is a \'%s\'", m_DeviceName, l_Name);
+		Logger::FormatWriteLine("Input device \'%s\' is a \'%s\'", m_DeviceName, l_Name);
 		
 		// More device information.
 		unsigned short l_DeviceID[4];
 		ioctl(m_DeviceFileHandle, EVIOCGID, l_DeviceID);
 		
-		LoggerAddMessage("Input device bus 0x%x, vendor 0x%x, product 0x%x, version 0x%x.", 
+		Logger::FormatWriteLine("Input device bus 0x%x, vendor 0x%x, product 0x%x, version 0x%x.", 
 			l_DeviceID[ID_BUS], l_DeviceID[ID_VENDOR], l_DeviceID[ID_PRODUCT], l_DeviceID[ID_VERSION]);
 			
 		// Play controller connected notification.
@@ -226,7 +226,7 @@ void Input::Process()
 			continue;
 		}
 		
-		//LoggerAddMessage("Input event type %i, code %i, value %i", l_Event.type, l_Event.code, 
+		//Logger::FormatWriteLine("Input event type %i, code %i, value %i", l_Event.type, l_Event.code, 
 		//	l_Event.value);
 			
 		// Try to find a control action corresponding to this input.
@@ -245,7 +245,7 @@ void Input::Process()
 		
 		if (l_Control == nullptr) {
 			
-			LoggerAddMessage("Couldn't find control \'%s\' mapped to key code %i.", 
+			Logger::FormatWriteLine("Couldn't find control \'%s\' mapped to key code %i.", 
 				l_ControlAction.m_ControlName, l_Event.code);
 			continue;
 		}
@@ -298,7 +298,7 @@ void Input::CloseDevice(bool p_WasFailure, char const* p_Format, ...)
 	va_list l_Arguments;
 	va_start(l_Arguments, p_Format);
 
-	LoggerAddMessage(p_Format, l_Arguments);	
+	Logger::FormatWriteLine(p_Format, l_Arguments);	
 	
 	va_end(l_Arguments);
 		

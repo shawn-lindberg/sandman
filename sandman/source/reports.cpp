@@ -132,7 +132,7 @@ static void ReportsOpenFile()
 	// If necessary, close the previous file.
 	if (s_ReportFile != nullptr)
 	{
-		LoggerAddMessage("Closing report file for %s.", s_ReportDateString.c_str());
+		Logger::FormatWriteLine("Closing report file for %s.", s_ReportDateString.c_str());
 
 		fclose(s_ReportFile);
 		s_ReportFile = nullptr;
@@ -161,7 +161,7 @@ static void ReportsOpenFile()
 	}
 
 	// Open the file for appending.
-	LoggerAddMessage("%s report file %s...", (l_ReportAlreadyExisted == true) ? "Opening" : 
+	Logger::FormatWriteLine("%s report file %s...", (l_ReportAlreadyExisted == true) ? "Opening" : 
 		"Creating", l_ReportFileName.c_str());
 
 	// This mode works regardless of whether the file exists or not.
@@ -169,11 +169,11 @@ static void ReportsOpenFile()
 
 	if (s_ReportFile == nullptr)
 	{
-		LoggerAddMessage("\tfailed");
+		Logger::FormatWriteLine("\tfailed");
 		return;
 	}
 
-	LoggerAddMessage("\tsucceeded");
+	Logger::FormatWriteLine("\tsucceeded");
 
 	// Now that we have successfully opened the file, update the date string.
 	s_ReportDateString = l_CurrentReportDateString;
@@ -218,7 +218,7 @@ void ReportsInitialize()
 	// Acquire a lock for the rest of the function.
 	const std::lock_guard<std::mutex> l_ReportGuard(s_ReportMutex);
 
-	LoggerAddMessage("Initializing reports...");
+	Logger::FormatWriteLine("Initializing reports...");
 
 	// Initialize the file.
 	s_ReportFile = nullptr;
@@ -270,7 +270,7 @@ static void ReportsWriteItem(PendingItem const& p_Item)
 
 	if (l_EventDocument.HasParseError() == true)
 	{
-		LoggerAddMessage("Failed to convert report event string back into JSON \"%s\".", 
+		Logger::FormatWriteLine("Failed to convert report event string back into JSON \"%s\".", 
 			p_Item.m_EventString.c_str());
 		return;
 	}
@@ -353,7 +353,7 @@ void ReportsAddControlItem(std::string const& p_ControlName, Control::Actions co
 {
 	if ((p_Action < 0) || (p_Action >= Control::NUM_ACTIONS))
 	{
-		LoggerAddMessage("Could not add control item to the report because it contains an invalid "
+		Logger::FormatWriteLine("Could not add control item to the report because it contains an invalid "
 			"action %d!", p_Action);
 		return;
 	}

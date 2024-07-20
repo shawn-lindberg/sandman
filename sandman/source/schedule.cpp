@@ -49,7 +49,7 @@ bool ScheduleEvent::ReadFromJSON(rapidjson::Value const& p_Object)
 {
 	if (p_Object.IsObject() == false)
 	{
-		LoggerAddMessage("Schedule event could not be parsed because it is not an object.");
+		Logger::FormatWriteLine("Schedule event could not be parsed because it is not an object.");
 		return false;
 	}
 
@@ -58,13 +58,13 @@ bool ScheduleEvent::ReadFromJSON(rapidjson::Value const& p_Object)
 
 	if (l_DelayIterator == p_Object.MemberEnd())
 	{
-		LoggerAddMessage("Schedule event is missing the delay time.");
+		Logger::FormatWriteLine("Schedule event is missing the delay time.");
 		return false;
 	}
 
 	if (l_DelayIterator->value.IsInt() == false)
 	{
-		LoggerAddMessage("Schedule event has a delay time, but it's not an integer.");
+		Logger::FormatWriteLine("Schedule event has a delay time, but it's not an integer.");
 		return false;
 	}
 
@@ -75,13 +75,13 @@ bool ScheduleEvent::ReadFromJSON(rapidjson::Value const& p_Object)
 
 	if (l_ControlActionIterator == p_Object.MemberEnd())
 	{
-		LoggerAddMessage("Schedule event is missing a control action.");
+		Logger::FormatWriteLine("Schedule event is missing a control action.");
 		return false;
 	}
 	
 	if (m_ControlAction.ReadFromJSON(l_ControlActionIterator->value) == false) 
 	{
-		LoggerAddMessage("Schedule event control action could not be parsed.");
+		Logger::FormatWriteLine("Schedule event control action could not be parsed.");
 		return false;
 	}
 	
@@ -104,7 +104,7 @@ bool Schedule::LoadFromFile(const char* p_FileName)
 
 	if (l_ScheduleFile == nullptr)
 	{
-		LoggerAddMessage("Failed to open the schedule file %s.\n", p_FileName);
+		Logger::FormatWriteLine("Failed to open the schedule file %s.\n", p_FileName);
 		return false;
 	}
 
@@ -118,7 +118,7 @@ bool Schedule::LoadFromFile(const char* p_FileName)
 
 	if (l_ScheduleDocument.HasParseError() == true)
 	{
-		LoggerAddMessage("Failed to parse the schedule file %s.\n", p_FileName);
+		Logger::FormatWriteLine("Failed to parse the schedule file %s.\n", p_FileName);
 		fclose(l_ScheduleFile);
 		return false;
 	}
@@ -128,16 +128,16 @@ bool Schedule::LoadFromFile(const char* p_FileName)
 
 	if (l_EventsIterator == l_ScheduleDocument.MemberEnd())
 	{
-		LoggerAddMessage("No schedule events in %s.\n", p_FileName);
+		Logger::FormatWriteLine("No schedule events in %s.\n", p_FileName);
 		fclose(l_ScheduleFile);
 		return false;		
 	}
 
 	if (l_EventsIterator->value.IsArray() == false)
 	{
-		LoggerAddMessage("Schedule has events, but it is not an array.");
+		Logger::FormatWriteLine("Schedule has events, but it is not an array.");
 		fclose(l_ScheduleFile);
-		LoggerAddMessage("No event array in %s.\n", p_FileName);
+		Logger::FormatWriteLine("No event array in %s.\n", p_FileName);
 		return false;
 	}
 
@@ -203,12 +203,12 @@ static bool ScheduleLoad()
 static void ScheduleLogLoaded()
 {
 	// Now write out the schedule.
-	LoggerAddMessage("The following schedule is loaded:");
+	Logger::FormatWriteLine("The following schedule is loaded:");
 	
 	if (s_Schedule.IsEmpty())
 	{
-		LoggerAddMessage("\t<empty>");
-		LoggerAddEmptyLine();
+		Logger::FormatWriteLine("\t<empty>");
+		Logger::WriteLine();
 		return;
 	}
 
@@ -227,11 +227,11 @@ static void ScheduleLogLoaded()
 			"up" : "down";
 			
 		// Print the event.
-		LoggerAddMessage("\t+%01ih %02im %02is -> %s, %s", l_DelayHours, l_DelayMin, 
+		Logger::FormatWriteLine("\t+%01ih %02im %02is -> %s, %s", l_DelayHours, l_DelayMin, 
 			l_DelaySec, l_Event.m_ControlAction.m_ControlName, l_ActionText);
 	}
 	
-	LoggerAddEmptyLine();
+	Logger::WriteLine();
 }
 
 // Initialize the schedule.
@@ -240,17 +240,17 @@ void ScheduleInitialize()
 {	
 	s_ScheduleIndex = UINT_MAX;
 	
-	LoggerAddMessage("Initializing the schedule...");
+	Logger::FormatWriteLine("Initializing the schedule...");
 
 	// Parse the schedule.
 	if (ScheduleLoad() == false)
 	{
-		LoggerAddMessage("\tfailed");
+		Logger::FormatWriteLine("\tfailed");
 		return;
 	}
 	
-	LoggerAddMessage("\tsucceeded");
-	LoggerAddEmptyLine();
+	Logger::FormatWriteLine("\tsucceeded");
+	Logger::WriteLine();
 	
 	// Log the schedule that just got loaded.
 	ScheduleLogLoaded();
@@ -295,7 +295,7 @@ void ScheduleStart()
 	// Notify.
 	NotificationPlay("schedule_start");
 	
-	LoggerAddMessage("Schedule started.");
+	Logger::FormatWriteLine("Schedule started.");
 }
 
 // Stop the schedule.
@@ -322,7 +322,7 @@ void ScheduleStop()
 	// Notify.
 	NotificationPlay("schedule_stop");
 	
-	LoggerAddMessage("Schedule stopped.");
+	Logger::FormatWriteLine("Schedule stopped.");
 }
 
 // Determine whether the schedule is running.
@@ -379,7 +379,7 @@ void ScheduleProcess()
 	// Sanity check the event.
 	if (l_Event.m_ControlAction.m_Action >= Control::NUM_ACTIONS)
 	{
-		LoggerAddMessage("Schedule moving to event %i.", s_ScheduleIndex);
+		Logger::FormatWriteLine("Schedule moving to event %i.", s_ScheduleIndex);
 		return;
 	}
 
@@ -388,7 +388,7 @@ void ScheduleProcess()
 	
 	if (l_Control == nullptr) {
 		
-		LoggerAddMessage("Schedule couldn't find control \"%s\". Moving to event %i.", 
+		Logger::FormatWriteLine("Schedule couldn't find control \"%s\". Moving to event %i.", 
 			l_Event.m_ControlAction.m_ControlName, s_ScheduleIndex);
 		return;
 	}
@@ -398,5 +398,5 @@ void ScheduleProcess()
 	
 	ReportsAddControlItem(l_Control->GetName(), l_Event.m_ControlAction.m_Action, "schedule");
 
-	LoggerAddMessage("Schedule moving to event %i.", s_ScheduleIndex);
+	Logger::FormatWriteLine("Schedule moving to event %i.", s_ScheduleIndex);
 }
