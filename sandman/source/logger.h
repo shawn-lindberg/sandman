@@ -12,6 +12,8 @@
 
 namespace Logger
 {
+	using namespace std::string_view_literals;
+
 	extern bool g_ScreenEcho;
 
 	class Self final
@@ -64,8 +66,12 @@ namespace Logger
 		static_assert(std::is_arithmetic_v<decltype(l_ArithmeticTimeValue)>);
 
 		std::lock_guard const l_Lock(Self::s_Mutex);
-		Self::s_Buffer << std::put_time(std::localtime(&l_ArithmeticTimeValue), "%Y/%m/%d %H:%M:%S %Z");
-		Self::Write(' ', p_Args..., '\n');
+		Self::Write(
+			std::put_time(std::localtime(&l_ArithmeticTimeValue), "%Y/%m/%d %H:%M:%S %Z"),
+			" | "sv,
+			p_Args...,
+			'\n'
+		);
 	}
 
 	[[gnu::format(printf, 1, 2)]] bool FormatWriteLine(char const* p_Format, ...);
