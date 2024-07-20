@@ -65,26 +65,29 @@ namespace NCurses
 		}
 	}
 
-	namespace CharAttribute
+	template <bool t_Flag>
+	[[gnu::always_inline]] inline static void SetCharAttr(WINDOW* const p_Window, int const p_Y,
+																			int const p_X, chtype const p_Attributes)
 	{
-		[[gnu::always_inline]] inline static void Add(WINDOW* const p_Window,
-																	 int const p_Y, int const p_X,
-																	 chtype const p_Attributes)
+		if constexpr (t_Flag)
 		{
 			chtype const l_Character{ mvwinch(p_Window, p_Y, p_X) };
 			mvwaddch(p_Window, p_Y, p_X, l_Character | p_Attributes);
 		}
-
-		[[gnu::always_inline]] inline static void Remove(WINDOW* const p_Window,
-																		 int const p_Y, int const p_X,
-																		 chtype const p_Attributes)
+		else
 		{
 			chtype const l_Character{ mvwinch(p_Window, p_Y, p_X) };
 			mvwaddch(p_Window, p_Y, p_X, l_Character & ~p_Attributes);
 		}
+	}
 
-		using Operation = decltype(Add);
-
+	[[gnu::always_inline]] inline static void SetCharAttr(WINDOW* const p_Window, int const p_Y,
+																			int const p_X, Attr const p_Attributes)
+	{
+		if (p_Attributes.m_Flag)
+			SetCharAttr<true>(p_Window, p_Y, p_X, p_Attributes.m_Value);
+		else
+			SetCharAttr<false>(p_Window, p_Y, p_X, p_Attributes.m_Value);
 	}
 
 	namespace LoggingWindow
@@ -98,57 +101,26 @@ namespace NCurses
 			Println(Red::On, p_Arguments..., Red::Off);
 		}
 
-		void Put(Attr const p_CharacterAttribute)
+		void Write(Attr const p_CharacterAttribute)
 		{
 			if (p_CharacterAttribute.m_Flag)
-			{
 				wattron(s_Window, p_CharacterAttribute.m_Value);
-			}
 			else
-			{
 				wattroff(s_Window, p_CharacterAttribute.m_Value);
-			}
 		}
 
-		void Put(WindowAction const p_Action)
-		{
-			switch (p_Action)
-			{
-				case WindowAction::REFRESH: wrefresh(s_Window); return;
-			}
-		}
-
-		void Put(std::string_view const p_String)
-		{
-			for (char const l_Character : p_String) waddch(s_Window, l_Character);
-		}
+		void Write(char const* const p_String) { waddstr(s_Window, p_String); }
 
 		void Write(std::string_view const p_String)
 		{
 			for (char const l_Character : p_String) waddch(s_Window, l_Character);
 		}
 
-		void Put(chtype const p_Character)
-		{
-			waddch(s_Window, p_Character);
-		}
+		void Write(chtype const p_Character) { waddch(s_Window, p_Character); }
 
-		void Refresh()
-		{
-			wrefresh(s_Window);
-		}
+		void Refresh() { wrefresh(s_Window); }
 
-		void WriteLine(char const* const string)
-		{
-			waddstr(s_Window, string);
-			waddch(s_Window, '\n');
-			wrefresh(s_Window);
-		}
-
-		WINDOW* Get()
-		{
-			return s_Window;
-		}
+		WINDOW* Get() { return s_Window; }
 
 		static void Initialize()
 		{
@@ -175,15 +147,12 @@ namespace NCurses
 		// This window is where user input is echoed to.
 		static WINDOW* s_Window = nullptr;
 
-		WINDOW* Get()
-		{
-			return s_Window;
-		}
+		WINDOW* Get() { return s_Window; }
 
-		template <CharAttribute::Operation t_Operation>
-		[[gnu::always_inline]] inline static void HighlightChar(int const p_Position)
+		template <bool t_Flag>
+		[[gnu::always_inline]] inline static void SetCharHighlight(int const p_Position)
 		{
-			t_Operation(s_Window, CURSOR_START_Y, CURSOR_START_X + p_Position, A_STANDOUT);
+			SetCharAttr<t_Flag>(s_Window, CURSOR_START_Y, CURSOR_START_X + p_Position, A_STANDOUT);
 		}
 
 		static void Initialize() {
@@ -209,7 +178,7 @@ namespace NCurses
 			// Move the cursor to the corner.
 			wmove(s_Window, CURSOR_START_Y, CURSOR_START_X);
 
-			HighlightChar<CharAttribute::Add>(0u);
+			SetCharHighlight<true>(0u);
 		}
 	}
 
@@ -219,14 +188,17 @@ namespace NCurses
 
 		extern "C" void WindowChangeSignalHandler(int const p_Signal)
 		{
-			static_cast<void>(p_Signal);
-			s_ShouldResize = true;
+			switch (p_Signal)
+			{
+				case SIGWINCH:
+					s_ShouldResize = true;
+					break;
+			}
 		}
 	}
 
 	inline static void HandleResize() {
-		endwin();
-		refresh();
+		LoggingWindow::PrintRedLine("Window resize is unimplemented.");
 	}
 
 	void Initialize()
@@ -316,18 +288,19 @@ namespace NCurses
 			}},
 			Buffer::OnClearListener{[]() -> void
 			{
-				// Move the cursor back to the start of the input region.
-				wmove(s_Window, CURSOR_START_Y, CURSOR_START_X);
+				// Move the cursor back to the start of the input region,
+				// in fact, to the front of the line to be sure (x = 0).
+				wmove(s_Window, CURSOR_START_Y, 0u);
 
 				// "Window clear to end of line": clear the line.
 				wclrtoeol(s_Window);
 
 				// Redraw the border.
 				box(s_Window,
-						// Use default vertical character.
-						0,
-						// Use default horizontal character.
-						0);
+					 // Use default vertical character.
+					 0,
+					 // Use default horizontal character.
+					 0);
 			}},
 			Buffer::OnDecrementStringLengthListener{[](Buffer::Data::size_type const p_NewStringLength) -> void
 			{
@@ -335,10 +308,7 @@ namespace NCurses
 			}}
 		);
 
-		Buffer const& GetBuffer()
-		{
-			return s_Buffer;
-		}
+		Buffer const& GetBuffer() { return s_Buffer; }
 
 		// The position for where to insert and remove in the input buffer.
 		using FastCursor = std::uint_fast8_t;
@@ -363,14 +333,14 @@ namespace NCurses
 		BumpCursor()
 		{
 			static constexpr DirectionT s_Next{};
-			HighlightChar<CharAttribute::Remove>(s_Cursor);
-			HighlightChar<CharAttribute::Add>(s_Cursor = s_Next(s_Cursor, static_cast<FastCursor>(1u)));
+			SetCharHighlight<false>(s_Cursor);
+			SetCharHighlight<true>(s_Cursor = s_Next(s_Cursor, static_cast<FastCursor>(1u)));
 		}
 
 		static bool HandleSubmitString()
 		{
 			// Echo the command back.
-			LoggingWindow::Println("Keyboard command input: \"", s_Buffer.View(), '\"');
+			LoggingWindow::Println('\"', s_Buffer.View(), '\"');
 
 			// Parse a command.
 			{
@@ -403,7 +373,7 @@ namespace NCurses
 			{
 				auto const dispatchHandle(s_StringDispatch.find(s_Buffer.View()));
 
-				s_Buffer.Clear(); HighlightChar<CharAttribute::Add>(s_Cursor = 0u);
+				s_Buffer.Clear(); SetCharHighlight<true>(s_Cursor = 0u);
 
 				return dispatchHandle != s_StringDispatch.end() ? dispatchHandle->second() : false;
 			}
@@ -416,6 +386,7 @@ namespace NCurses
 		if (s_ShouldResize)
 		{
 			s_ShouldResize = false;
+			HandleResize();
 		}
 
 		// Get one input key from the terminal, if any.
