@@ -12,7 +12,7 @@
 
 namespace Common
 {
-	[[gnu::always_inline]] inline auto GetLocalTime()
+	[[gnu::always_inline]] inline std::tm* GetLocalTime()
 	{
 		auto const l_TimePoint(std::chrono::system_clock::now());
 
