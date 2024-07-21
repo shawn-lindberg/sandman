@@ -76,6 +76,12 @@ namespace Logger
 		template <typename Toggler_T, typename... ParamsT>
 		friend void WriteLine(ParamsT const&...);
 
+		template <char t_InterpolationIndicator, typename T, typename... ParamsT>
+		friend void FormatWriteLine(std::string_view, T const&, ParamsT const&...);
+
+		template <char t_InterpolationIndicator>
+		friend void FormatWriteLine(std::string_view const);
+
 		friend bool Initialize(char const* const);
 
 		friend void Uninitialize();
@@ -111,8 +117,8 @@ namespace Logger
 			NCurses::Cyan::Off,
 			TogglerT::On,
 			p_Args...,
-			'\n',
-			TogglerT::Off
+			TogglerT::Off,
+			'\n'
 		);
 	}
 
@@ -140,5 +146,61 @@ namespace Logger
 		bool const l_Result{ FormatWriteLine<TogglerT>(p_Format, l_ArgumentList) };
 		va_end(l_ArgumentList);
 		return l_Result;
+	}
+
+	template <char t_InterpolationIndicator>
+	void FormatWriteLine(std::string_view const p_FormatString)
+	{
+		bool l_EscapingCharacter{ false };
+		for (char const c : p_FormatString)
+		{
+			switch (c)
+			{
+				case t_InterpolationIndicator:
+					if (l_EscapingCharacter) l_EscapingCharacter = false, Self::Write(c);
+					else Self::Write("`null`"sv);
+					break;
+				case '\0':
+					l_EscapingCharacter = true;
+					break;
+				default:
+					Self::Write(c);
+					break;
+			}
+		}
+		Self::Write('\n');
+	}
+
+	template <char t_InterpolationIndicator, typename T, typename... ParamsT>
+	void FormatWriteLine(std::string_view p_FormatString, T const& p_FirstArg, ParamsT const&... p_Args)
+	{
+		bool l_EscapingCharacter{ false };
+		for (std::string_view::size_type l_Index{0u}; l_Index < p_FormatString.size(); ++l_Index)
+		{
+			char const c{ p_FormatString[l_Index] };
+			switch (c)
+			{
+				case t_InterpolationIndicator:
+					if (l_EscapingCharacter)
+					{
+						l_EscapingCharacter = false;
+						Self::Write(c);
+					}
+					else
+					{
+						Self::Write(p_FirstArg);
+						p_FormatString.remove_prefix(++l_Index);
+						return FormatWriteLine<t_InterpolationIndicator>(p_FormatString, p_Args...);
+					}
+					break;
+				case '\0':
+					l_EscapingCharacter = true;
+					break;
+				default:
+					Self::Write(c);
+					break;
+			}
+		}
+		Self::Write('\n');
 	}
 }
