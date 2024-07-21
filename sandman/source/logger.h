@@ -70,17 +70,70 @@ namespace Logger
 			}
 		}
 
+		template <char t_InterpolationIndicator>
+		static void FormatWrite(std::string_view const p_FormatString)
+		{
+			bool l_EscapingCharacter{ false };
+			for (char const c : p_FormatString)
+			{
+				switch (c)
+				{
+					case t_InterpolationIndicator:
+						if (l_EscapingCharacter)
+							l_EscapingCharacter = false, Self::Write(c);
+						else
+							Self::Write("`null`"sv);
+						break;
+					case '\0':
+						l_EscapingCharacter = true;
+						break;
+					default:
+						Self::Write(c);
+						break;
+				}
+			}
+		}
+
+		template <char t_InterpolationIndicator, typename T, typename... ParamsT>
+		static void FormatWrite(std::string_view p_FormatString, T const& p_FirstArg, ParamsT const&... p_Args)
+		{
+			bool l_EscapingCharacter{ false };
+			for (std::string_view::size_type l_Index{ 0u }; l_Index < p_FormatString.size(); ++l_Index)
+			{
+				char const c{ p_FormatString[l_Index] };
+				switch (c)
+				{
+					case t_InterpolationIndicator:
+						if (l_EscapingCharacter)
+						{
+							l_EscapingCharacter = false;
+							Self::Write(c);
+						}
+						else
+						{
+							Self::Write(p_FirstArg);
+							p_FormatString.remove_prefix(++l_Index);
+							return FormatWrite<t_InterpolationIndicator>(p_FormatString, p_Args...);
+						}
+						break;
+					case '\0':
+						l_EscapingCharacter = true;
+						break;
+					default:
+						Self::Write(c);
+						break;
+				}
+			}
+		}
+
 		template <typename... ParamsT>
 		friend void WriteLine(ParamsT const&...);
 
 		template <typename Toggler_T, typename... ParamsT>
 		friend void WriteLine(ParamsT const&...);
 
-		template <char t_InterpolationIndicator, typename T, typename... ParamsT>
-		friend void FormatWriteLine(std::string_view, T const&, ParamsT const&...);
-
-		template <char t_InterpolationIndicator>
-		friend void FormatWriteLine(std::string_view const);
+		template <char t_InterpolationIndicator, typename... ParamsT>
+		friend void FormatWriteLine(std::string_view, ParamsT const&...);
 
 		friend bool Initialize(char const* const);
 
@@ -148,59 +201,18 @@ namespace Logger
 		return l_Result;
 	}
 
-	template <char t_InterpolationIndicator>
-	void FormatWriteLine(std::string_view const p_FormatString)
+	template <char t_InterpolationIndicator, typename... ParamsT>
+	void FormatWriteLine(std::string_view const p_FormatString, ParamsT const&... p_Args)
 	{
-		bool l_EscapingCharacter{ false };
-		for (char const c : p_FormatString)
-		{
-			switch (c)
-			{
-				case t_InterpolationIndicator:
-					if (l_EscapingCharacter) l_EscapingCharacter = false, Self::Write(c);
-					else Self::Write("`null`"sv);
-					break;
-				case '\0':
-					l_EscapingCharacter = true;
-					break;
-				default:
-					Self::Write(c);
-					break;
-			}
-		}
-		Self::Write('\n');
-	}
+		Self::Write(
+			NCurses::Cyan::On,
+			std::put_time(Common::GetLocalTime(), "%Y/%m/%d %H:%M:%S %Z"),
+			" | "sv,
+			NCurses::Cyan::Off
+		);
 
-	template <char t_InterpolationIndicator, typename T, typename... ParamsT>
-	void FormatWriteLine(std::string_view p_FormatString, T const& p_FirstArg, ParamsT const&... p_Args)
-	{
-		bool l_EscapingCharacter{ false };
-		for (std::string_view::size_type l_Index{0u}; l_Index < p_FormatString.size(); ++l_Index)
-		{
-			char const c{ p_FormatString[l_Index] };
-			switch (c)
-			{
-				case t_InterpolationIndicator:
-					if (l_EscapingCharacter)
-					{
-						l_EscapingCharacter = false;
-						Self::Write(c);
-					}
-					else
-					{
-						Self::Write(p_FirstArg);
-						p_FormatString.remove_prefix(++l_Index);
-						return FormatWriteLine<t_InterpolationIndicator>(p_FormatString, p_Args...);
-					}
-					break;
-				case '\0':
-					l_EscapingCharacter = true;
-					break;
-				default:
-					Self::Write(c);
-					break;
-			}
-		}
-		Self::Write('\n');
+		Self::FormatWrite<t_InterpolationIndicator>(p_FormatString, p_Args...);
+
+		Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Write('\n');
 	}
 }
