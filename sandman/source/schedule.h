@@ -38,7 +38,7 @@ class Schedule
       //
       // Returns:    True if the schedule was loaded successfully, false otherwise.
       //
-      bool LoadFromFile(const char* p_FileName);
+      bool ReadFromFile(const char* p_FileName);
 
       // Determines whether the schedule is empty.
       //
