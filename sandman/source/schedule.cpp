@@ -96,7 +96,7 @@ bool ScheduleEvent::ReadFromJSON(rapidjson::Value const& p_Object)
 //
 // Returns:    True if the schedule was loaded successfully, false otherwise.
 //
-bool Schedule::LoadFromFile(const char* p_FileName)
+bool Schedule::ReadFromFile(const char* p_FileName)
 {
 	m_Events.clear();
 
@@ -191,11 +191,7 @@ static bool ScheduleLoad()
 	// Open the schedule file.
 	static auto const* const s_ScheduleFileName = SANDMAN_CONFIG_DIR "sandman.sched";
 
-	// validate invalid fails parsing and missing does not exist
-	//bool res = s_Schedule.LoadFromFile(CONFIGDIR "invalidJson.sched");
-	//res = s_Schedule.LoadFromFile(CONFIGDIR "missing.sched");
-
-	return s_Schedule.LoadFromFile(s_ScheduleFileName);
+	return s_Schedule.ReadFromFile(s_ScheduleFileName);
 }
 
 // Write the loaded schedule to the logger.
