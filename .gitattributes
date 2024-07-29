@@ -6,3 +6,5 @@ sandman/source/**/*.h linguist-language=C++
 
 # Treat third-party libraries as vendored.
 sandman/source/rapidjson/** linguist-vendored
+sandman/tests/catch_amalgamated.cpp linguist-vendored
+sandman/tests/catch_amalgamated.hpp linguist-vendored
