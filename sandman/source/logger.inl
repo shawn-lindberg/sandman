@@ -8,7 +8,7 @@ template <typename T, typename... ParamsT>
 		std::apply(
 			[this](auto const&... args)
 			{
-				Write(T::On, args..., T::Off);
+				this->Write(T::On, args..., T::Off);
 			},
 			p_FirstArg.objects);
 	}
@@ -19,7 +19,7 @@ template <typename T, typename... ParamsT>
 		{
 			NCurses::LoggingWindow::Write(l_String);
 		}
-		s_File << l_String;
+		m_outputStream << l_String;
 
 		if (m_ScreenEcho)
 		{
@@ -47,7 +47,7 @@ template <typename T, typename... ParamsT>
 			NCurses::LoggingWindow::Print(string);
 		}
 
-		s_File << string;
+		m_outputStream << string;
 		m_Buffer.str("");
 	}
 }
