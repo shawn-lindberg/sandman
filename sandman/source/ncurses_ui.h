@@ -14,7 +14,9 @@
 #include <curses.h>
 
 /// @brief This namespace serves to encapsulate state and functionality
-/// relevant to the usage of NCurses.
+/// relevant to the usage of NCurses. The `NCurses` namespace assumes full control over the Ncurses
+/// library, so it is not recommended to interact with the NCurses library without using this this
+/// `NCurses` namespace.
 ///
 namespace NCurses
 {
