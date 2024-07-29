@@ -107,7 +107,7 @@ void CommandProcess()
 	{
 		s_Rebooting = false;
 
-		Logger::FormatWriteLine("Rebooting!");
+		Logger::WriteLine("Rebooting!");
 
 		sync();
 		reboot(RB_AUTOBOOT);

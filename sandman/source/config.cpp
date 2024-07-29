@@ -64,7 +64,7 @@ bool Config::ReadFromFile(char const* p_ConfigFileName)
 
 	if (l_ControlSettingsIterator == l_ConfigDocument.MemberEnd())
 	{
-		Logger::FormatWriteLine("Config is missing control settings.");
+		Logger::WriteLine(NCurses::Red("Config is missing control settings."));
 		fclose(l_ConfigFile);
 		return false;		
 	}
@@ -72,7 +72,7 @@ bool Config::ReadFromFile(char const* p_ConfigFileName)
 	// Read the control settings.
 	if (ReadControlSettingsFromJSON(l_ControlSettingsIterator->value) == false)
 	{
-		Logger::FormatWriteLine("Encountered error trying to read control settings.");
+		Logger::WriteLine(NCurses::Red("Encountered error trying to read control settings."));
 		fclose(l_ConfigFile);
 		return false;	
 	}
@@ -84,7 +84,7 @@ bool Config::ReadFromFile(char const* p_ConfigFileName)
 	{
 		if (ReadInputSettingsFromJSON(l_InputSettingsIterator->value) == false)
 		{
-			Logger::FormatWriteLine("Encountered error trying to read input settings.");
+			Logger::WriteLine(NCurses::Red("Encountered error trying to read input settings."));
 		}
 	}
 
@@ -102,7 +102,7 @@ bool Config::ReadControlSettingsFromJSON(rapidjson::Value const& p_Object)
 {
 	if (p_Object.IsObject() == false)
 	{
-		Logger::FormatWriteLine("Config has a control settings, but it's not an object.");
+		Logger::WriteLine(NCurses::Red("Config has a control settings, but it's not an object."));
 		return false;
 	}
 
@@ -135,13 +135,14 @@ bool Config::ReadControlSettingsFromJSON(rapidjson::Value const& p_Object)
 
 	if (l_ControlsIterator == p_Object.MemberEnd())
 	{
-		Logger::FormatWriteLine("Config control settings is missing a control array.");
+		Logger::WriteLine(NCurses::Red("Config control settings is missing a control array."));
 		return false;
 	}
 
 	if (l_ControlsIterator->value.IsArray() == false)
 	{
-		Logger::FormatWriteLine("Config control settings has controls but it is not an array.");
+		Logger::WriteLine(
+			NCurses::Red("Config control settings has controls but it is not an array."));
 		return false;
 	}
 
@@ -171,7 +172,8 @@ bool Config::ReadInputSettingsFromJSON(rapidjson::Value const& p_Object)
 {
 	if (p_Object.IsObject() == false)
 	{
-		Logger::FormatWriteLine("Config has in input settings member, but it's not an object.");
+		Logger::WriteLine(
+			NCurses::Red("Config has in input settings member, but it's not an object."));
 		return false;
 	}
 
@@ -180,13 +182,14 @@ bool Config::ReadInputSettingsFromJSON(rapidjson::Value const& p_Object)
 
 	if (l_InputDevicesIterator == p_Object.MemberEnd())
 	{
-		Logger::FormatWriteLine("Config is missing in input devices member.");
+		Logger::WriteLine(NCurses::Red("Config is missing in input devices member."));
 		return false;
 	}
 
 	if (l_InputDevicesIterator->value.IsArray() == false)
 	{
-		Logger::FormatWriteLine("Config has an input devices member, but it is not an array.");
+		Logger::WriteLine(
+			NCurses::Red("Config has an input devices member, but it is not an array."));
 		return false;
 	}
 
@@ -203,7 +206,7 @@ bool Config::ReadInputSettingsFromJSON(rapidjson::Value const& p_Object)
 
 	if (l_InputDevice.IsObject() == false)
 	{
-		Logger::FormatWriteLine("Config has an input device that is not an object.");
+		Logger::WriteLine(NCurses::Red("Config has an input device that is not an object."));
 		return false;
 	}
 
@@ -212,13 +215,13 @@ bool Config::ReadInputSettingsFromJSON(rapidjson::Value const& p_Object)
 
 	if (l_DeviceIterator == p_Object.MemberEnd())
 	{
-		Logger::FormatWriteLine("Config input device is missing the device name.");
+		Logger::WriteLine(NCurses::Red("Config input device is missing the device name."));
 		return false;
 	}
 
 	if (l_DeviceIterator->value.IsString() == false)
 	{
-		Logger::FormatWriteLine("Config input device name is not a string.");
+		Logger::WriteLine(NCurses::Red("Config input device name is not a string."));
 		return false;
 	}
 	
@@ -233,13 +236,14 @@ bool Config::ReadInputSettingsFromJSON(rapidjson::Value const& p_Object)
 
 	if (l_BindingsIterator == l_InputDevice.MemberEnd())
 	{
-		Logger::FormatWriteLine("Config input device is missing a bindings array.");
+		Logger::WriteLine(NCurses::Red("Config input device is missing a bindings array."));
 		return false;
 	}
 
 	if (l_BindingsIterator->value.IsArray() == false)
 	{
-		Logger::FormatWriteLine("Config input device bindings exists, but it is not an array.");
+		Logger::WriteLine(
+			NCurses::Red("Config input device bindings exists, but it is not an array."));
 		return false;
 	}
 

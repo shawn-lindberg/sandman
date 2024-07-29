@@ -250,7 +250,7 @@ bool MQTTInitialize()
 
 	if (l_Connected == false) {
 		
-		Logger::FormatWriteLine("\tfailed");
+		Logger::WriteLine('\t', NCurses::Red("failed"));
 		return false;
 	}
 	
