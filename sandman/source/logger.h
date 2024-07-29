@@ -1,41 +1,26 @@
 #pragma once
 
-#include <chrono>
 #include <cstdarg>
 #include <fstream>
-#include <iomanip>
 #include <mutex>
 #include <sstream>
 #include <string>
 
 #include "ncurses_ui.h"
 
-namespace Common
-{
-	[[gnu::always_inline]] inline std::tm* GetLocalTime()
-	{
-		auto const l_TimePoint(std::chrono::system_clock::now());
 
-		auto const l_ArithmeticTimeValue{ std::chrono::system_clock::to_time_t(l_TimePoint) };
-		static_assert(std::is_arithmetic_v<decltype(l_ArithmeticTimeValue)>);
 
-		return std::localtime(&l_ArithmeticTimeValue);
-	}
-} // namespace Common
 
-namespace Logger
-{
-	using namespace std::string_view_literals;
 
-	extern bool g_ScreenEcho;
 
-	class Self final
-	{
-		static std::mutex s_Mutex;
-		static std::ofstream s_File;
-		static std::ostringstream s_Buffer;
 
-		Self() = delete; ~Self() = delete;
+
+
+
+
+
+
+
 
 		template <typename T, typename... ParamsT>
 		[[gnu::always_inline]] static inline void Write(T const& p_FirstArg, ParamsT const&... p_Args)

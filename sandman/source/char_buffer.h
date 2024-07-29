@@ -5,30 +5,7 @@
 #include <type_traits>
 #include <string_view>
 
-namespace Common
-{
-	template <typename T>
-	class NonNull;
-
-	template <typename ReturnT, typename... ParamsT>
-	class NonNull<ReturnT (*)(ParamsT...)>
-	{
-		public:
-			using FunctionT = ReturnT (*)(ParamsT...);
-			static ReturnT Simulacrum(ParamsT...) { return ReturnT(); }
-
-		private:
-			FunctionT m_Function;
-
-		public:
-			constexpr NonNull(): m_Function{Simulacrum} {}
-
-			constexpr NonNull(FunctionT p_FunctionPointer):
-				m_Function{p_FunctionPointer != nullptr ? p_FunctionPointer : Simulacrum} {}
-
-			[[gnu::always_inline]] constexpr operator FunctionT() const { return m_Function; }
-	};
-}
+#include "common.h"
 
 template <typename CharT, std::size_t t_Capacity>
 class CharBuffer

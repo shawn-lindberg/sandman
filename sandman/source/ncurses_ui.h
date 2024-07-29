@@ -7,19 +7,11 @@
 #include <type_traits>
 #include <mutex>
 
+#include "common.h"
+
 // This is the standard include directive for NCurses
 // as noted in the "SYNOPSIS" section of the manual page `man 3NCURSES ncurses`.
 #include <curses.h>
-
-namespace Common::Enum
-{
-	template <typename EnumT>
-	[[gnu::always_inline]] constexpr std::enable_if_t<std::is_enum_v<EnumT>, std::underlying_type_t<EnumT>>
-	IntCast(EnumT const p_Value)
-	{
-		return static_cast<std::underlying_type_t<EnumT>>(p_Value);
-	}
-}
 
 /// @brief This namespace serves to encapsulate state and functionality
 /// relevant to the usage of NCurses.
@@ -27,7 +19,6 @@ namespace Common::Enum
 namespace NCurses
 {
 	using namespace std::string_view_literals;
-	using namespace Common;
 
 	class Lock
 	{
@@ -78,7 +69,7 @@ namespace NCurses
 	{
 		static_assert(t_ColorIndex != ColorIndex::NONE);
 		static_assert(t_ColorIndex >= ColorIndex{1} and t_ColorIndex <= ColorIndex{8});
-		static constexpr int s_AttributeValue{ COLOR_PAIR(Enum::IntCast(t_ColorIndex)) };
+		static constexpr int s_AttributeValue{ COLOR_PAIR(Common::Enum::IntCast(t_ColorIndex)) };
 		static constexpr Attr On{s_AttributeValue, true};
 		static constexpr Attr Off{s_AttributeValue, false};
 		std::tuple<ParamsT const&...> objects;
@@ -188,33 +179,3 @@ namespace NCurses
 	}
 
 } // namespace NCurses
-
-namespace Common
-{
-	inline constexpr std::uint_least8_t ASCII_MIN{ 0u }, ASCII_MAX{ 127u };
-
-	/// @returns `true` if `p_Character` is a value that fits into the ASCII character set, `false`
-	/// otherwise.
-	///
-	/// @note This is an alternative to the POSIX function `isascii`. `isascii` is deprecated
-	/// and depends on the locale. See `STANDARDS` section of `man 'isalpha(3)'`: "POSIX.1-2008 marks
-	/// `isascii` as obsolete, noting that it cannot be used portably in a localized application."
-	/// Furthermore, `isascii` is part of the POSIX standard, but is not part of the C or C++
-	/// standard library.
-	///
-	template <typename CharT>
-	[[gnu::always_inline]] [[nodiscard]] constexpr std::enable_if_t<std::is_integral_v<CharT>, bool>
-		IsASCII(CharT const p_Character)
-	{
-		if constexpr (std::is_signed_v<CharT>)
-		{
-			return p_Character >= ASCII_MIN and p_Character <= ASCII_MAX;
-		}
-		else
-		{
-			static_assert(std::is_unsigned_v<CharT>);
-			return p_Character <= ASCII_MAX;
-		}
-	}
-
-} // namespace Common

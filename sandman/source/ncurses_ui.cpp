@@ -219,14 +219,14 @@ namespace NCurses
 		{
 			start_color();
 
-			init_pair(Enum::IntCast(ColorIndex::BLACK  ), COLOR_BLACK  , COLOR_BLACK);
-			init_pair(Enum::IntCast(ColorIndex::RED    ), COLOR_RED    , COLOR_BLACK);
-			init_pair(Enum::IntCast(ColorIndex::GREEN  ), COLOR_GREEN  , COLOR_BLACK);
-			init_pair(Enum::IntCast(ColorIndex::YELLOW ), COLOR_YELLOW , COLOR_BLACK);
-			init_pair(Enum::IntCast(ColorIndex::BLUE   ), COLOR_BLUE   , COLOR_BLACK);
-			init_pair(Enum::IntCast(ColorIndex::MAGENTA), COLOR_MAGENTA, COLOR_BLACK);
-			init_pair(Enum::IntCast(ColorIndex::CYAN   ), COLOR_CYAN   , COLOR_BLACK);
-			init_pair(Enum::IntCast(ColorIndex::WHITE  ), COLOR_WHITE  , COLOR_BLACK);
+			init_pair(Common::Enum::IntCast(ColorIndex::BLACK  ), COLOR_BLACK  , COLOR_BLACK);
+			init_pair(Common::Enum::IntCast(ColorIndex::RED    ), COLOR_RED    , COLOR_BLACK);
+			init_pair(Common::Enum::IntCast(ColorIndex::GREEN  ), COLOR_GREEN  , COLOR_BLACK);
+			init_pair(Common::Enum::IntCast(ColorIndex::YELLOW ), COLOR_YELLOW , COLOR_BLACK);
+			init_pair(Common::Enum::IntCast(ColorIndex::BLUE   ), COLOR_BLUE   , COLOR_BLACK);
+			init_pair(Common::Enum::IntCast(ColorIndex::MAGENTA), COLOR_MAGENTA, COLOR_BLACK);
+			init_pair(Common::Enum::IntCast(ColorIndex::CYAN   ), COLOR_CYAN   , COLOR_BLACK);
+			init_pair(Common::Enum::IntCast(ColorIndex::WHITE  ), COLOR_WHITE  , COLOR_BLACK);
 		}
 		else
 		{
@@ -454,7 +454,7 @@ namespace NCurses
 				return false;
 		}
 
-		bool const l_InputKeyIsPrintable{ IsASCII(l_InputKey) and
+		bool const l_InputKeyIsPrintable{ Common::IsASCII(l_InputKey) and
 													 std::isprint<char>(l_InputKey, std::locale::classic()) };
 
 		// If successfully inserted into the buffer, move the cursor to the right.
