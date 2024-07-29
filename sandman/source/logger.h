@@ -40,14 +40,26 @@ namespace Logger
 		template <typename T, typename... ParamsT>
 		[[gnu::always_inline]] static inline void Write(T const& p_FirstArg, ParamsT const&... p_Args)
 		{
-			if constexpr (std::is_same_v<T, NCurses::Attr>)
+			if constexpr (NCurses::IsColor<T>)
 			{
-				auto const string(s_Buffer.str());
-				if (g_ScreenEcho) NCurses::LoggingWindow::Write(string);
-				s_File << string;
+				std::apply(
+					[](auto const&... args) { Write(T::On, args..., T::Off); }, p_FirstArg.objects);
+			}
+			else if constexpr (std::is_same_v<T, NCurses::Attr>)
+			{
+				std::string const l_String(s_Buffer.str());
+				if (g_ScreenEcho)
+				{
+					NCurses::LoggingWindow::Write(l_String);
+				}
+				s_File << l_String;
 
-				if (g_ScreenEcho) NCurses::LoggingWindow::Write(p_FirstArg);
+				if (g_ScreenEcho)
+				{
+					NCurses::LoggingWindow::Write(p_FirstArg);
+				}
 
+				// Clear buffer.
 				s_Buffer.str("");
 			}
 			else
