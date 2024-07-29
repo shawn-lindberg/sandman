@@ -174,7 +174,7 @@ static bool Initialize()
 			return false;
 		}
 
-		Logger::g_ScreenEcho = true;
+		Logger::GetScreenEchoFlag() = true;
 	}
 
 	// Read the config.
