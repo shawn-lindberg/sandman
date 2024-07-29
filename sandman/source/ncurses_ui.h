@@ -60,6 +60,7 @@ namespace NCurses
 
 	enum struct ColorIndex : int
 	{
+		NONE    = 0,
 		BLACK   = 1,
 		RED     = 2,
 		GREEN   = 3,
