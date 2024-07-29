@@ -270,7 +270,8 @@ static void ReportsWriteItem(PendingItem const& p_Item)
 
 	if (l_EventDocument.HasParseError() == true)
 	{
-		Logger::WriteLine<NCurses::Red>("Failed to convert report event string back into JSON \"%s\".", 
+		Logger::FormatWriteLine<NCurses::ColorIndex::RED>(
+			"Failed to convert report event string back into JSON \"%s\".",
 			p_Item.m_EventString.c_str());
 		return;
 	}

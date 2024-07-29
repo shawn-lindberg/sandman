@@ -97,8 +97,8 @@ static bool Initialize()
 		// Change the current working directory.
 		if (chdir(SANDMAN_TEMP_DIR) < 0)
 		{
-			Logger::WriteLine<NCurses::Red>("Failed to change working directory to \"%s\" ID for daemon.",
-								  SANDMAN_TEMP_DIR);
+			Logger::FormatWriteLine<NCurses::ColorIndex::RED>(
+				"Failed to change working directory to \"%s\" ID for daemon.", SANDMAN_TEMP_DIR);
 			s_ExitCode = 1;
 			return false;
 		}
