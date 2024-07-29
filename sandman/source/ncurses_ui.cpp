@@ -98,7 +98,7 @@ namespace NCurses
 		template <typename... ParamsT>
 		[[gnu::always_inline]] inline static void PrintRedLine(ParamsT const... p_Arguments)
 		{
-			Println(Red::On, p_Arguments..., Red::Off);
+			Println(decltype(Red())::On, p_Arguments..., decltype(Red())::Off);
 		}
 
 		void Write(Attr const p_CharacterAttribute)
