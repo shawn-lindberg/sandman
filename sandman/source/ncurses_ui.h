@@ -73,23 +73,31 @@ namespace NCurses
 
 	struct Attr { int m_Value; bool m_Flag; };
 
-	template <ColorIndex t_ColorIndex>
+	template <ColorIndex t_ColorIndex, typename... ParamsT>
 	struct Color
 	{
-		static constexpr int s_AttributeValue{COLOR_PAIR(Enum::IntCast(t_ColorIndex))};
+		static_assert(t_ColorIndex != ColorIndex::NONE);
+		static_assert(t_ColorIndex >= ColorIndex{1} and t_ColorIndex <= ColorIndex{8});
+		static constexpr int s_AttributeValue{ COLOR_PAIR(Enum::IntCast(t_ColorIndex)) };
 		static constexpr Attr On{s_AttributeValue, true};
 		static constexpr Attr Off{s_AttributeValue, false};
-		Color() = delete; ~Color() = delete;
+		std::tuple<ParamsT const&...> objects;
+		[[nodiscard]] explicit Color(ParamsT const&... args): objects(args...) {}
 	};
 
-	struct Black   : Color<ColorIndex::BLACK>   {};
-	struct Red     : Color<ColorIndex::RED>     {};
-	struct Green   : Color<ColorIndex::GREEN>   {};
-	struct Yellow  : Color<ColorIndex::YELLOW>  {};
-	struct Blue    : Color<ColorIndex::BLUE>    {};
-	struct Magenta : Color<ColorIndex::MAGENTA> {};
-	struct Cyan    : Color<ColorIndex::CYAN>    {};
-	struct White   : Color<ColorIndex::WHITE>   {};
+	template <typename T> inline constexpr bool IsColor{false};
+
+	template <ColorIndex t_ColorIndex, typename... ParamsT>
+	inline constexpr bool IsColor<Color<t_ColorIndex, ParamsT...>>{true};
+
+	template <typename... ParamsT> [[gnu::always_inline]] [[nodiscard]] inline auto Black  (ParamsT const&... args) { return Color<ColorIndex::BLACK  , ParamsT...>(args...); }
+	template <typename... ParamsT> [[gnu::always_inline]] [[nodiscard]] inline auto Red    (ParamsT const&... args) { return Color<ColorIndex::RED    , ParamsT...>(args...); }
+	template <typename... ParamsT> [[gnu::always_inline]] [[nodiscard]] inline auto Green  (ParamsT const&... args) { return Color<ColorIndex::GREEN  , ParamsT...>(args...); }
+	template <typename... ParamsT> [[gnu::always_inline]] [[nodiscard]] inline auto Yellow (ParamsT const&... args) { return Color<ColorIndex::YELLOW , ParamsT...>(args...); }
+	template <typename... ParamsT> [[gnu::always_inline]] [[nodiscard]] inline auto Blue   (ParamsT const&... args) { return Color<ColorIndex::BLUE   , ParamsT...>(args...); }
+	template <typename... ParamsT> [[gnu::always_inline]] [[nodiscard]] inline auto Magenta(ParamsT const&... args) { return Color<ColorIndex::MAGENTA, ParamsT...>(args...); }
+	template <typename... ParamsT> [[gnu::always_inline]] [[nodiscard]] inline auto Cyan   (ParamsT const&... args) { return Color<ColorIndex::CYAN   , ParamsT...>(args...); }
+	template <typename... ParamsT> [[gnu::always_inline]] [[nodiscard]] inline auto White  (ParamsT const&... args) { return Color<ColorIndex::WHITE  , ParamsT...>(args...); }
 
 	namespace LoggingWindow {
 		
