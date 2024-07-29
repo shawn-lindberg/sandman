@@ -100,7 +100,7 @@ namespace NCurses
 	template <typename... ParamsT> [[gnu::always_inline]] [[nodiscard]] inline auto White  (ParamsT const&... args) { return Color<ColorIndex::WHITE  , ParamsT...>(args...); }
 
 	namespace LoggingWindow {
-		
+
 		void Refresh();
 
 		void Write(Attr const p_CharacterAttribute);
