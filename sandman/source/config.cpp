@@ -41,7 +41,7 @@ bool Config::ReadFromFile(char const* p_ConfigFileName)
 
 	if (l_ConfigFile == nullptr)
 	{
-		Logger::WriteLine<NCurses::Red>("Failed to open the config file.");
+		Logger::WriteLine(NCurses::Red("Failed to open the config file."));
 		return false;
 	}
 
@@ -54,7 +54,7 @@ bool Config::ReadFromFile(char const* p_ConfigFileName)
 
 	if (l_ConfigDocument.HasParseError() == true)
 	{
-		Logger::WriteLine<NCurses::Red>("Failed to parse the config file.");
+		Logger::WriteLine(NCurses::Red("Failed to parse the config file."));
 		fclose(l_ConfigFile);
 		return false;
 	}

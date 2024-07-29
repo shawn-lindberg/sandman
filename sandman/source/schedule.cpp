@@ -248,8 +248,8 @@ void ScheduleInitialize()
 		Logger::FormatWriteLine("\tfailed");
 		return;
 	}
-	
-	Logger::WriteLine<NCurses::Green>("\tsucceeded");
+
+	Logger::WriteLine('\t', NCurses::Green("succeeded"));
 	Logger::WriteLine();
 	
 	// Log the schedule that just got loaded.

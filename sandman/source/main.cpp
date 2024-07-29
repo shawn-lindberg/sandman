@@ -89,7 +89,7 @@ static bool Initialize()
 
 		if (l_SessionID < 0)
 		{
-			Logger::WriteLine<NCurses::Red>("Failed to get new session ID for daemon.");
+			Logger::WriteLine(NCurses::Red("Failed to get new session ID for daemon."));
 			s_ExitCode = 1;
 			return false;
 		}
@@ -121,7 +121,7 @@ static bool Initialize()
 
 		if (s_ListeningSocket < 0)
 		{
-			Logger::WriteLine<NCurses::Red>("Failed to create listening socket.");
+			Logger::WriteLine(NCurses::Red("Failed to create listening socket."));
 			s_ExitCode = 1;
 			return false;
 		}
@@ -129,7 +129,7 @@ static bool Initialize()
 		// Set to non-blocking.
 		if (fcntl(s_ListeningSocket, F_SETFL, O_NONBLOCK) < 0)
 		{
-			Logger::WriteLine<NCurses::Red>("Failed to make listening socket non-blocking.");
+			Logger::WriteLine(NCurses::Red("Failed to make listening socket non-blocking."));
 			s_ExitCode = 1;
 			return false;
 		}
@@ -148,7 +148,7 @@ static bool Initialize()
 		if (bind(s_ListeningSocket, reinterpret_cast<sockaddr*>(&l_ListeningAddress),
 					sizeof(sockaddr_un)) < 0)
 		{
-			Logger::WriteLine<NCurses::Red>("Failed to bind listening socket.");
+			Logger::WriteLine(NCurses::Red("Failed to bind listening socket."));
 			s_ExitCode = 1;
 			return false;
 		}
@@ -156,7 +156,7 @@ static bool Initialize()
 		// Mark the socket for listening.
 		if (listen(s_ListeningSocket, 5) < 0)
 		{
-			Logger::WriteLine<NCurses::Red>("Failed to mark listening socket to listen.");
+			Logger::WriteLine(NCurses::Red("Failed to mark listening socket to listen."));
 			s_ExitCode = 1;
 			return false;
 		}

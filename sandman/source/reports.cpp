@@ -173,7 +173,7 @@ static void ReportsOpenFile()
 		return;
 	}
 
-	Logger::WriteLine<NCurses::Green>("\tsucceeded");
+	Logger::WriteLine('\t', NCurses::Green("succeeded"));
 
 	// Now that we have successfully opened the file, update the date string.
 	s_ReportDateString = l_CurrentReportDateString;
