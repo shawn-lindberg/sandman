@@ -83,7 +83,7 @@ namespace Logger
 		}
 
 		template <char t_InterpolationIndicator>
-		static void FormatWrite(std::string_view const p_FormatString)
+		static void InterpolateWrite(std::string_view const p_FormatString)
 		{
 			bool l_EscapingCharacter{ false };
 			for (char const c : p_FormatString)
@@ -107,7 +107,8 @@ namespace Logger
 		}
 
 		template <char t_InterpolationIndicator, typename T, typename... ParamsT>
-		static void FormatWrite(std::string_view p_FormatString, T const& p_FirstArg, ParamsT const&... p_Args)
+		static void InterpolateWrite(std::string_view p_FormatString, T const& p_FirstArg,
+										ParamsT const&... p_Args)
 		{
 			bool l_EscapingCharacter{ false };
 			for (std::string_view::size_type l_Index{ 0u }; l_Index < p_FormatString.size(); ++l_Index)
@@ -125,7 +126,7 @@ namespace Logger
 						{
 							Self::Write(p_FirstArg);
 							p_FormatString.remove_prefix(++l_Index);
-							return FormatWrite<t_InterpolationIndicator>(p_FormatString, p_Args...);
+							return InterpolateWrite<t_InterpolationIndicator>(p_FormatString, p_Args...);
 						}
 						break;
 					case '\0':
@@ -144,8 +145,8 @@ namespace Logger
 		template <typename Toggler_T, typename... ParamsT>
 		friend void WriteLine(ParamsT const&...);
 
-		template <char t_InterpolationIndicator, typename... ParamsT>
-		friend void FormatWriteLine(std::string_view, ParamsT const&...);
+		template <typename... ParamsT>
+		friend void InterpolateWriteLine(std::string_view const, ParamsT const&...);
 
 		friend bool Initialize(char const* const);
 
@@ -161,70 +162,53 @@ namespace Logger
 	{
 		std::lock_guard const l_Lock(Self::s_Mutex);
 		Self::Write(
-			NCurses::Cyan::On,
-			std::put_time(Common::GetLocalTime(), "%Y/%m/%d %H:%M:%S %Z"),
-			" | "sv,
-			NCurses::Cyan::Off,
+			NCurses::Cyan(std::put_time(Common::GetLocalTime(), "%Y/%m/%d %H:%M:%S %Z"), " | "sv),
 			p_Args...,
-			'\n'
-		);
+			'\n');
 	}
 
-	template <typename TogglerT, typename... ParamsT>
-	[[gnu::always_inline]] inline void
-	WriteLine(ParamsT const&... p_Args)
+	template <NCurses::ColorIndex t_Color = NCurses::ColorIndex::NONE,
+				 std::size_t t_LogStringBufferCapacity = 2048u>
+	[[gnu::format(printf, 1, 0)]] bool FormatWriteLine(char const* p_Format,
+																		std::va_list l_ArgumentList)
 	{
-		std::lock_guard const l_Lock(Self::s_Mutex);
-		Self::Write(
-			NCurses::Cyan::On,
-			std::put_time(Common::GetLocalTime(), "%Y/%m/%d %H:%M:%S %Z"),
-			" | "sv,
-			NCurses::Cyan::Off,
-			TogglerT::On,
-			p_Args...,
-			TogglerT::Off,
-			'\n'
-		);
-	}
+		char l_LogStringBuffer[t_LogStringBufferCapacity];
 
-	template <typename TogglerT=std::nullptr_t>
-	[[gnu::format(printf, 1, 0)]] bool FormatWriteLine(char const* p_Format, std::va_list l_ArgumentList)
-	{
-		static constexpr std::size_t s_LogStringBufferCapacity{ 2048u };
-		char l_LogStringBuffer[s_LogStringBufferCapacity];
+		std::vsnprintf(l_LogStringBuffer, t_LogStringBufferCapacity, p_Format, l_ArgumentList);
 
-		std::vsnprintf(l_LogStringBuffer, s_LogStringBufferCapacity, p_Format, l_ArgumentList);
-
-		if constexpr (not std::is_null_pointer_v<TogglerT>)
-			WriteLine<TogglerT>(l_LogStringBuffer);
-		else
+		if constexpr (t_Color == NCurses::ColorIndex::NONE)
+		{
 			WriteLine(l_LogStringBuffer);
+		}
+		else
+		{
+			WriteLine(NCurses::Color<t_Color, char const*>(l_LogStringBuffer));
+		}
 
 		return true;
 	}
 
-	template <typename TogglerT=std::nullptr_t>
+	template <NCurses::ColorIndex t_Color = NCurses::ColorIndex::NONE,
+				 std::size_t t_LogStringBufferCapacity = 2048u>
 	[[gnu::format(printf, 1, 2)]] bool FormatWriteLine(char const* p_Format, ...)
 	{
 		std::va_list l_ArgumentList;
 		va_start(l_ArgumentList, p_Format);
-		bool const l_Result{ FormatWriteLine<TogglerT>(p_Format, l_ArgumentList) };
+		bool const l_Result{ FormatWriteLine<t_Color, t_LogStringBufferCapacity>(p_Format,
+																										 l_ArgumentList) };
 		va_end(l_ArgumentList);
 		return l_Result;
 	}
 
-	template <char t_InterpolationIndicator, typename... ParamsT>
-	void FormatWriteLine(std::string_view const p_FormatString, ParamsT const&... p_Args)
+	template <typename... ParamsT>
+	void InterpolateWriteLine(std::string_view const p_FormatString, ParamsT const&... p_Args)
 	{
+		std::lock_guard const l_Lock(Self::s_Mutex);
 		Self::Write(
-			NCurses::Cyan::On,
-			std::put_time(Common::GetLocalTime(), "%Y/%m/%d %H:%M:%S %Z"),
-			" | "sv,
-			NCurses::Cyan::Off
-		);
+			NCurses::Cyan(std::put_time(Common::GetLocalTime(), "%Y/%m/%d %H:%M:%S %Z"), " | "sv));
 
-		Self::FormatWrite<t_InterpolationIndicator>(p_FormatString, p_Args...);
+		Self::InterpolateWrite<'$'>(p_FormatString, p_Args...);
 
-		Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Self::Write('\n');
+		Self::Write('\n');
 	}
 }
