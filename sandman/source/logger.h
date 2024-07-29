@@ -1,11 +1,11 @@
 #pragma once
 
-#include <cstdarg>
-#include <sstream>
 #include <chrono>
+#include <cstdarg>
+#include <fstream>
 #include <iomanip>
 #include <mutex>
-#include <fstream>
+#include <sstream>
 #include <string>
 
 #include "ncurses_ui.h"
