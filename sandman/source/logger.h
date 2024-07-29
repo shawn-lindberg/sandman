@@ -20,8 +20,8 @@ namespace Common
 		static_assert(std::is_arithmetic_v<decltype(l_ArithmeticTimeValue)>);
 
 		return std::localtime(&l_ArithmeticTimeValue);
-	} 
-}
+	}
+} // namespace Common
 
 namespace Logger
 {
@@ -75,7 +75,10 @@ namespace Logger
 			{
 				auto const string(s_Buffer.str());
 
-				if (g_ScreenEcho) NCurses::LoggingWindow::Print(string);
+				if (g_ScreenEcho)
+				{
+					NCurses::LoggingWindow::Print(string);
+				}
 
 				s_File << string;
 				s_Buffer.str("");
@@ -92,9 +95,13 @@ namespace Logger
 				{
 					case t_InterpolationIndicator:
 						if (l_EscapingCharacter)
+						{
 							l_EscapingCharacter = false, Self::Write(c);
+						}
 						else
+						{
 							Self::Write("`null`"sv);
+						}
 						break;
 					case '\0':
 						l_EscapingCharacter = true;
@@ -211,4 +218,5 @@ namespace Logger
 
 		Self::Write('\n');
 	}
-}
+
+} // namespace Logger
