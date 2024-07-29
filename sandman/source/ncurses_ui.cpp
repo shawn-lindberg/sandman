@@ -116,7 +116,10 @@ namespace NCurses
 
 		void Write(std::string_view const p_String)
 		{
-			for (char const l_Character : p_String) waddch(s_Window, l_Character);
+			for (char const l_Character : p_String)
+			{
+				waddch(s_Window, l_Character);
+			}
 		}
 
 		void Write(chtype const p_Character) { waddch(s_Window, p_Character); }
@@ -142,7 +145,7 @@ namespace NCurses
 			// Scroll when cursor is moved off the edge of the window.
 			scrollok(s_Window, TRUE);
 		}
-	}
+	} // namespace LoggingWindow
 
 	namespace InputWindow
 	{
@@ -158,7 +161,8 @@ namespace NCurses
 			SetCharAttr<t_Flag>(s_Window, CURSOR_START_Y, CURSOR_START_X + p_Position, A_STANDOUT);
 		}
 
-		static void Initialize() {
+		static void Initialize()
+		{
 			s_Window = newwin(
 				// height (line count)
 				ROW_COUNT,
@@ -183,11 +187,11 @@ namespace NCurses
 
 			SetCharHighlight<true>(0u);
 		}
-	}
+	} // namespace InputWindow
 
 	namespace
 	{
-		static std::sig_atomic_t volatile s_ShouldResize{false};
+		static std::sig_atomic_t volatile s_ShouldResize{ false };
 
 		extern "C" void WindowChangeSignalHandler(int const p_Signal)
 		{
@@ -198,9 +202,10 @@ namespace NCurses
 					break;
 			}
 		}
-	}
+	} // namespace
 
-	inline static void HandleResize() {
+	inline static void HandleResize()
+	{
 		LoggingWindow::PrintRedLine("Window resize is unimplemented.");
 	}
 
@@ -329,7 +334,7 @@ namespace NCurses
 
 		using Right = std::plus<FastCursor>;
 		using Left = std::minus<FastCursor>;
-		
+
 		template <typename DirectionT>
 		[[gnu::always_inline]] inline static
 		std::enable_if_t<std::is_same_v<DirectionT, Left> or std::is_same_v<DirectionT, Right>, void>
@@ -407,17 +412,28 @@ namespace NCurses
 
 			case KEY_LEFT:
 				// If the curser has space to move left, move it left.
-				if (s_Cursor > 0u) BumpCursor<Left>();
+				if (s_Cursor > 0u)
+				{
+					BumpCursor<Left>();
+				}
 				return false;
 
 			case KEY_RIGHT:
-				// If the cursor has space to move right, including the position of the null character, move right.
-				if (s_Cursor < s_Buffer.GetStringLength()) BumpCursor<Right>();
+				// If the cursor has space to move right, including the position of the null character,
+				// move right.
+				if (s_Cursor < s_Buffer.GetStringLength())
+				{
+					BumpCursor<Right>();
+				}
 				return false;
 
 			case KEY_BACKSPACE:
 				// If successfully removed a character, move the cursor left.
-				if (s_Buffer.Remove(s_Cursor - 1u)) BumpCursor<Left>();
+				// Unsigned `int` underflow is defined to wrap.
+				if (s_Buffer.Remove(s_Cursor - 1u))
+				{
+					BumpCursor<Left>();
+				}
 				break;
 
 			// User is submitting the line.
@@ -433,14 +449,19 @@ namespace NCurses
 			case Key::Ctrl<'C'>:
 			case Key::Ctrl<'Z'>:
 				// (Most likely unreachable.)
-				LoggingWindow::PrintRedLine("Unexpectedly got a `Ctrl` character (", l_InputKey, ") from user input.");
+				LoggingWindow::PrintRedLine("Unexpectedly got a `Ctrl` character (", l_InputKey,
+													 ") from user input.");
 				return false;
 		}
 
-		bool const l_InputKeyIsPrintable{ IsASCII(l_InputKey) and std::isprint<char>(l_InputKey, std::locale::classic()) };
+		bool const l_InputKeyIsPrintable{ IsASCII(l_InputKey) and
+													 std::isprint<char>(l_InputKey, std::locale::classic()) };
 
 		// If successfully inserted into the buffer, move the cursor to the right.
-		if (l_InputKeyIsPrintable and s_Buffer.Insert(s_Cursor, l_InputKey)) BumpCursor<Right>();
+		if (l_InputKeyIsPrintable and s_Buffer.Insert(s_Cursor, l_InputKey))
+		{
+			BumpCursor<Right>();
+		}
 
 		return false;
 	}
