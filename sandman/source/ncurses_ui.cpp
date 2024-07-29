@@ -2,9 +2,12 @@
 
 #include "command.h"
 
+#include "logger.h"
 #include <algorithm>
+#include <csignal>
 #include <cstring>
 #include <limits>
+#include <locale>
 #include <unordered_map>
 #include <vector>
 #include <csignal>
