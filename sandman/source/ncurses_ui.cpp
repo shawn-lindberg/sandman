@@ -10,8 +10,6 @@
 #include <locale>
 #include <unordered_map>
 #include <vector>
-#include <csignal>
-#include <locale>
 
 namespace NCurses
 {
@@ -409,6 +407,14 @@ namespace NCurses
 			// "Ctrl+D", EOT (End of Transmission), should gracefully quit.
 			case Key::Ctrl<'D'>:
 				return true;
+
+			case '`':
+				Logger::InterpolateWriteLine(
+					"Zero is $$. One is. Two is $. Dollar sign is $. True is `$$`. False is `$`. "
+					"Green is $green$. Blue is $blue$. Missing value is $.",
+					std::noboolalpha, false, true, 2, std::boolalpha, true, false, decltype(Green())::On,
+					decltype(Green())::Off, decltype(Blue())::On, decltype(Blue())::Off);
+				return false;
 
 			case KEY_LEFT:
 				// If the curser has space to move left, move it left.
