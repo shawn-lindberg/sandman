@@ -79,7 +79,7 @@ namespace NCurses
 		static constexpr Attr kOn{kAttributeValue, true};
 		static constexpr Attr kOff{kAttributeValue, false};
 		std::tuple<ParamsT const&...> m_Objects;
-		[[nodiscard]] explicit Color(ParamsT const&... args): m_Objects(args...) {}
+		[[nodiscard]] explicit constexpr Color(ParamsT const&... args): m_Objects(args...) {}
 	};
 
 	// Function-like constant.
@@ -97,6 +97,57 @@ namespace NCurses
 	template <typename... ParamsT> [[gnu::always_inline]] [[nodiscard]] inline auto Magenta(ParamsT const&... args) { return Color<ColorIndex::Magenta, ParamsT...>(args...); }
 	template <typename... ParamsT> [[gnu::always_inline]] [[nodiscard]] inline auto Cyan   (ParamsT const&... args) { return Color<ColorIndex::Cyan   , ParamsT...>(args...); }
 	template <typename... ParamsT> [[gnu::always_inline]] [[nodiscard]] inline auto White  (ParamsT const&... args) { return Color<ColorIndex::White  , ParamsT...>(args...); }
+
+	inline namespace ColorStringLiterals
+	{
+		[[gnu::always_inline]] constexpr auto operator""_black(char const* const string,
+																				 std::size_t const)
+		{
+			return Color<ColorIndex::Black, char const*>(string);
+		}
+
+		[[gnu::always_inline]] constexpr auto operator""_red(char const* const string,
+																			  std::size_t const)
+		{
+			return Color<ColorIndex::Red, char const*>(string);
+		}
+
+		[[gnu::always_inline]] constexpr auto operator""_green(char const* const string,
+																				 std::size_t const)
+		{
+			return Color<ColorIndex::Green, char const*>(string);
+		}
+
+		[[gnu::always_inline]] constexpr auto operator""_yellow(char const* const string,
+																				  std::size_t const)
+		{
+			return Color<ColorIndex::Yellow, char const*>(string);
+		}
+
+		[[gnu::always_inline]] constexpr auto operator""_blue(char const* const string,
+																				std::size_t const)
+		{
+			return Color<ColorIndex::Blue, char const*>(string);
+		}
+
+		[[gnu::always_inline]] constexpr auto operator""_magenta(char const* const string,
+																					std::size_t const)
+		{
+			return Color<ColorIndex::Magenta, char const*>(string);
+		}
+
+		[[gnu::always_inline]] constexpr auto operator""_cyan(char const* const string,
+																				std::size_t const)
+		{
+			return Color<ColorIndex::Cyan, char const*>(string);
+		}
+
+		[[gnu::always_inline]] constexpr auto operator""_white(char const* const string,
+																				 std::size_t const)
+		{
+			return Color<ColorIndex::White, char const*>(string);
+		}
+	} // namespace ColorStringLiterals
 
 	namespace LoggingWindow {
 
