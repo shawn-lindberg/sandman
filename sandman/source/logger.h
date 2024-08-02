@@ -24,10 +24,11 @@ public:
 	template <typename T, typename... ParamsT>
 	[[gnu::always_inline]] inline void Write(T const& firstArg, ParamsT const&... args);
 
-	template <char kInterpolationIndicator>
+	static constexpr char kInterpolationIndicator{'$'}, kEscapeIndicator{'\\'};
+
 	void InterpolateWrite(std::string_view const formatString);
 
-	template <char kInterpolationIndicator, typename T, typename... ParamsT>
+	template <typename T, typename... ParamsT>
 	void InterpolateWrite(std::string_view formatString, T const& firstArg, ParamsT const&... args);
 
 private:

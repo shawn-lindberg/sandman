@@ -49,7 +49,7 @@ void ::Logger::InterpolateWriteLine(std::string_view const formatString, ParamsT
 	ms_GlobalLogger.Write(
 		NCurses::Cyan(std::put_time(Common::GetLocalTime(), "%Y/%m/%d %H:%M:%S %Z"), " | "sv));
 
-	ms_GlobalLogger.InterpolateWrite<'$'>(formatString, args...);
+	ms_GlobalLogger.InterpolateWrite(formatString, args...);
 
 	ms_GlobalLogger.Write('\n');
 }

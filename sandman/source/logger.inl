@@ -52,37 +52,7 @@ template <typename T, typename... ParamsT>
 	}
 }
 
-template <char kInterpolationIndicator>
-void ::Logger::InterpolateWrite(std::string_view const formatString)
-{
-	using namespace std::string_view_literals;
-
-	bool escapingCharacter{ false };
-	for (char const c : formatString)
-	{
-		switch (c)
-		{
-			case kInterpolationIndicator:
-				if (escapingCharacter)
-				{
-					escapingCharacter = false, Write(c);
-				}
-				else
-				{
-					Write("`null`"sv);
-				}
-				break;
-			case '\0':
-				escapingCharacter = true;
-				break;
-			default:
-				Write(c);
-				break;
-		}
-	}
-}
-
-template <char kInterpolationIndicator, typename T, typename... ParamsT>
+template <typename T, typename... ParamsT>
 void ::Logger::InterpolateWrite(std::string_view formatString, T const& firstArg,
 										  ParamsT const&... args)
 {
@@ -102,10 +72,10 @@ void ::Logger::InterpolateWrite(std::string_view formatString, T const& firstArg
 				{
 					Write(firstArg);
 					formatString.remove_prefix(++index);
-					return InterpolateWrite<kInterpolationIndicator>(formatString, args...);
+					return InterpolateWrite(formatString, args...);
 				}
 				break;
-			case '\0':
+			case kEscapeIndicator:
 				escapingCharacter = true;
 				break;
 			default:
