@@ -83,7 +83,8 @@ namespace NCurses
 	}
 
 	[[gnu::always_inline]] inline static void SetCharAttr(WINDOW* const window, int const y,
-																			int const x, Attr const attributes)
+																			int const x,
+																			CharacterAttribute const attributes)
 	{
 		if (attributes.m_Flag)
 		{
@@ -106,7 +107,7 @@ namespace NCurses
 			Println(decltype(Red())::kOn, arguments..., decltype(Red())::kOff);
 		}
 
-		void Write(Attr const characterAttribute)
+		void Write(CharacterAttribute const characterAttribute)
 		{
 			if (characterAttribute.m_Flag)
 			{
@@ -415,6 +416,16 @@ namespace NCurses
 			// "Ctrl+D", EOT (End of Transmission), should gracefully quit.
 			case Key::Ctrl<'D'>:
 				return true;
+
+			case '`':
+				using namespace ColorStringLiterals;
+
+				Logger::InterpolateWriteLine(
+					R"(Zero is $$. One is $. Two is $. Dollar sign is "\$". True is `$$`. False is `$`. )"sv
+					"Green is $. Blue is $blue$. Magenta is $. Missing value is $.",
+					std::noboolalpha, false, true, 2, std::boolalpha, true, false, "green"_green,
+					decltype(Blue())::kOn, decltype(Blue())::kOff, Magenta("magenta"sv));
+				return false;
 
 			case KEY_LEFT:
 				// If the curser has space to move left, move it left.

@@ -68,7 +68,7 @@ namespace NCurses
 		White   = 8,
 	};
 
-	struct Attr { int m_Value; bool m_Flag; };
+	struct CharacterAttribute { int m_Value; bool m_Flag; };
 
 	template <ColorIndex kColorIndex, typename... ParamsT>
 	struct Color
@@ -76,8 +76,8 @@ namespace NCurses
 		static_assert(kColorIndex != ColorIndex::None);
 		static_assert(kColorIndex >= ColorIndex{1} and kColorIndex <= ColorIndex{8});
 		static constexpr int kAttributeValue{ COLOR_PAIR(Common::Enum::IntCast(kColorIndex)) };
-		static constexpr Attr kOn{kAttributeValue, true};
-		static constexpr Attr kOff{kAttributeValue, false};
+		static constexpr CharacterAttribute kOn{kAttributeValue, true};
+		static constexpr CharacterAttribute kOff{kAttributeValue, false};
 		std::tuple<ParamsT const&...> m_Objects;
 		[[nodiscard]] explicit constexpr Color(ParamsT const&... args): m_Objects(args...) {}
 	};
@@ -153,7 +153,7 @@ namespace NCurses
 
 		void Refresh();
 
-		void Write(Attr const characterAttribute);
+		void Write(CharacterAttribute const characterAttribute);
 		void Write(chtype const character);
 		void Write(char const* const string);
 		void Write(std::string_view const string);

@@ -12,7 +12,7 @@ template <typename T, typename... ParamsT>
 			},
 			firstArg.m_Objects);
 	}
-	else if constexpr (std::is_same_v<T, NCurses::Attr>)
+	else if constexpr (std::is_same_v<T, NCurses::CharacterAttribute>)
 	{
 		std::string const string(m_Buffer.str());
 		if (m_ScreenEcho)
