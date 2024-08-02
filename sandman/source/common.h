@@ -79,10 +79,7 @@ namespace Common
 		return std::localtime(&arithmeticTimeValue);
 	}
 
-	template <typename CharT, CharT... kChars>
-	inline constexpr CharT kString[]{ kChars..., CharT{'\0'} };
-
-	template <typename CharT, CharT... kChars>
-	inline constexpr char const* kStringPointer{ Common::kString<CharT, kChars...> };
+	template <typename T>
+	using Forward = T&&;
 
 } // namespace Common
