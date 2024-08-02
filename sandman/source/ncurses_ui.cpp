@@ -21,74 +21,78 @@ namespace NCurses
 	Lock::Lock(): m_Lock(s_Mutex) {};
 
 	// Configure a window with "sensible" defaults.
-	[[gnu::nonnull]] static void ConfigureWindowDefaults(WINDOW* const p_Window)
+	[[gnu::nonnull]] static void ConfigureWindowDefaults(WINDOW* const window)
 	{
 		// output options: `man 'outopts(3NCURSES)'`
 		{
 			// Don't make the next call to `wrefresh` clear and redraw the screen completely.
-			clearok(p_Window, FALSE);
+			clearok(window, FALSE);
 
 			// Terminal's insert line & delete line features are okay to use.
-			idlok(p_Window, TRUE);
+			idlok(window, TRUE);
 
 			// Terminal's insert character & delete character features are okay to use.
-			idcok(p_Window, TRUE);
+			idcok(window, TRUE);
 
 			// Every change to the window will not cause a refresh to the physical screen.
-			immedok(p_Window, FALSE);
+			immedok(window, FALSE);
 
 			// `leaveok` controls cursor placement after a call to the `wrefresh` subroutine.
 			// Make sure to put the the physical cursor of the terminal
 			// back at the location of the logical window cursor.
-			leaveok(p_Window, TRUE);
+			leaveok(window, TRUE);
 
 			// Don't scroll when cursor is moved off the edge of the window.
-			scrollok(p_Window, FALSE);
+			scrollok(window, FALSE);
 		}
 
 		// input options: `man 'inopts(3NCURSES)'`
 		{
 			// Don't flush everything on interrupts.
-			intrflush(p_Window, FALSE);
+			intrflush(window, FALSE);
 
 			// Enable functon keys (F1, F2, ...), arrow keys, backspace, etc.
-			keypad(p_Window, TRUE);
+			keypad(window, TRUE);
 
 			// Make `getch` non-blocking.
-			nodelay(p_Window, TRUE);
+			nodelay(window, TRUE);
 
 			// Set to `FALSE` so that the timer can expire after a character
 			// that could be the beginning of a function key is received. Otherwise,
 			// the terminal may hang after pressing the escape key until another key is pressed.
 			//
 			// Source: "Keypad mode" section of `man 'getch(3NCURSES)'`.
-			notimeout(p_Window, FALSE);
+			notimeout(window, FALSE);
 		}
 	}
 
-	template <bool t_Flag>
-	[[gnu::always_inline]] inline static void SetCharAttr(WINDOW* const p_Window, int const p_Y,
-																			int const p_X, chtype const p_Attributes)
+	template <bool kFlag>
+	[[gnu::always_inline]] inline static void SetCharAttr(WINDOW* const window, int const y,
+																			int const x, chtype const attributes)
 	{
-		if constexpr (t_Flag)
+		if constexpr (kFlag)
 		{
-			chtype const l_Character{ mvwinch(p_Window, p_Y, p_X) };
-			mvwaddch(p_Window, p_Y, p_X, l_Character | p_Attributes);
+			chtype const character{ mvwinch(window, y, x) };
+			mvwaddch(window, y, x, character | attributes);
 		}
 		else
 		{
-			chtype const l_Character{ mvwinch(p_Window, p_Y, p_X) };
-			mvwaddch(p_Window, p_Y, p_X, l_Character & ~p_Attributes);
+			chtype const character{ mvwinch(window, y, x) };
+			mvwaddch(window, y, x, character & ~attributes);
 		}
 	}
 
-	[[gnu::always_inline]] inline static void SetCharAttr(WINDOW* const p_Window, int const p_Y,
-																			int const p_X, Attr const p_Attributes)
+	[[gnu::always_inline]] inline static void SetCharAttr(WINDOW* const window, int const y,
+																			int const x, Attr const attributes)
 	{
-		if (p_Attributes.m_Flag)
-			SetCharAttr<true>(p_Window, p_Y, p_X, p_Attributes.m_Value);
+		if (attributes.m_Flag)
+		{
+			SetCharAttr<true>(window, y, x, attributes.m_Value);
+		}
 		else
-			SetCharAttr<false>(p_Window, p_Y, p_X, p_Attributes.m_Value);
+		{
+			SetCharAttr<false>(window, y, x, attributes.m_Value);
+		}
 	}
 
 	namespace LoggingWindow
@@ -97,30 +101,34 @@ namespace NCurses
 		static WINDOW* s_Window = nullptr;
 
 		template <typename... ParamsT>
-		[[gnu::always_inline]] inline static void PrintRedLine(ParamsT const... p_Arguments)
+		[[gnu::always_inline]] inline static void PrintRedLine(ParamsT const... arguments)
 		{
-			Println(decltype(Red())::On, p_Arguments..., decltype(Red())::Off);
+			Println(decltype(Red())::kOn, arguments..., decltype(Red())::kOff);
 		}
 
-		void Write(Attr const p_CharacterAttribute)
+		void Write(Attr const characterAttribute)
 		{
-			if (p_CharacterAttribute.m_Flag)
-				wattron(s_Window, p_CharacterAttribute.m_Value);
-			else
-				wattroff(s_Window, p_CharacterAttribute.m_Value);
-		}
-
-		void Write(char const* const p_String) { waddstr(s_Window, p_String); }
-
-		void Write(std::string_view const p_String)
-		{
-			for (char const l_Character : p_String)
+			if (characterAttribute.m_Flag)
 			{
-				waddch(s_Window, l_Character);
+				wattron(s_Window, characterAttribute.m_Value);
+			}
+			else
+			{
+				wattroff(s_Window, characterAttribute.m_Value);
 			}
 		}
 
-		void Write(chtype const p_Character) { waddch(s_Window, p_Character); }
+		void Write(char const* const string) { waddstr(s_Window, string); }
+
+		void Write(std::string_view const string)
+		{
+			for (char const character : string)
+			{
+				waddch(s_Window, character);
+			}
+		}
+
+		void Write(chtype const character) { waddch(s_Window, character); }
 
 		void Refresh() { wrefresh(s_Window); }
 
@@ -130,7 +138,7 @@ namespace NCurses
 		{
 			s_Window = newwin(
 				// height (line count)
-				LINES - InputWindow::ROW_COUNT,
+				LINES - InputWindow::kRowCount,
 				// width
 				COLS,
 				// upper corner y
@@ -153,21 +161,21 @@ namespace NCurses
 
 		WINDOW* Get() { return s_Window; }
 
-		template <bool t_Flag>
-		[[gnu::always_inline]] inline static void SetCharHighlight(int const p_Position)
+		template <bool kFlag>
+		[[gnu::always_inline]] inline static void SetCharHighlight(int const position)
 		{
-			SetCharAttr<t_Flag>(s_Window, CURSOR_START_Y, CURSOR_START_X + p_Position, A_STANDOUT);
+			SetCharAttr<kFlag>(s_Window, kCursorStartY, kCursorStartX + position, A_STANDOUT);
 		}
 
 		static void Initialize()
 		{
 			s_Window = newwin(
 				// height (line count)
-				ROW_COUNT,
+				kRowCount,
 				// width
 				COLS,
 				// upper corner y
-				LINES - ROW_COUNT,
+				LINES - kRowCount,
 				// left-hand corner x
 				0);
 
@@ -181,7 +189,7 @@ namespace NCurses
 				 0);
 
 			// Move the cursor to the corner.
-			wmove(s_Window, CURSOR_START_Y, CURSOR_START_X);
+			wmove(s_Window, kCursorStartY, kCursorStartX);
 
 			SetCharHighlight<true>(0u);
 		}
@@ -191,9 +199,9 @@ namespace NCurses
 	{
 		static std::sig_atomic_t volatile s_ShouldResize{ false };
 
-		extern "C" void WindowChangeSignalHandler(int const p_Signal)
+		extern "C" void WindowChangeSignalHandler(int const signal)
 		{
-			switch (p_Signal)
+			switch (signal)
 			{
 				case SIGWINCH:
 					s_ShouldResize = true;
@@ -217,14 +225,14 @@ namespace NCurses
 		{
 			start_color();
 
-			init_pair(Common::Enum::IntCast(ColorIndex::BLACK  ), COLOR_BLACK  , COLOR_BLACK);
-			init_pair(Common::Enum::IntCast(ColorIndex::RED    ), COLOR_RED    , COLOR_BLACK);
-			init_pair(Common::Enum::IntCast(ColorIndex::GREEN  ), COLOR_GREEN  , COLOR_BLACK);
-			init_pair(Common::Enum::IntCast(ColorIndex::YELLOW ), COLOR_YELLOW , COLOR_BLACK);
-			init_pair(Common::Enum::IntCast(ColorIndex::BLUE   ), COLOR_BLUE   , COLOR_BLACK);
-			init_pair(Common::Enum::IntCast(ColorIndex::MAGENTA), COLOR_MAGENTA, COLOR_BLACK);
-			init_pair(Common::Enum::IntCast(ColorIndex::CYAN   ), COLOR_CYAN   , COLOR_BLACK);
-			init_pair(Common::Enum::IntCast(ColorIndex::WHITE  ), COLOR_WHITE  , COLOR_BLACK);
+			init_pair(Common::Enum::IntCast(ColorIndex::Black  ), COLOR_BLACK  , COLOR_BLACK);
+			init_pair(Common::Enum::IntCast(ColorIndex::Red    ), COLOR_RED    , COLOR_BLACK);
+			init_pair(Common::Enum::IntCast(ColorIndex::Green  ), COLOR_GREEN  , COLOR_BLACK);
+			init_pair(Common::Enum::IntCast(ColorIndex::Yellow ), COLOR_YELLOW , COLOR_BLACK);
+			init_pair(Common::Enum::IntCast(ColorIndex::Blue   ), COLOR_BLUE   , COLOR_BLACK);
+			init_pair(Common::Enum::IntCast(ColorIndex::Magenta), COLOR_MAGENTA, COLOR_BLACK);
+			init_pair(Common::Enum::IntCast(ColorIndex::Cyan   ), COLOR_CYAN   , COLOR_BLACK);
+			init_pair(Common::Enum::IntCast(ColorIndex::White  ), COLOR_WHITE  , COLOR_BLACK);
 		}
 		else
 		{
@@ -288,15 +296,15 @@ namespace NCurses
 	{
 		// User keyboard input is stored here.
 		static Buffer s_Buffer(
-			Buffer::OnStringUpdateListener{[](Buffer::Data::size_type const p_Index, Buffer::Data::value_type const p_Character) -> void
+			Buffer::OnStringUpdateListener{[](Buffer::Data::size_type const index, Buffer::Data::value_type const character) -> void
 			{
-				mvwaddch(s_Window, CURSOR_START_Y, CURSOR_START_X + p_Index, p_Character);
+				mvwaddch(s_Window, kCursorStartY, kCursorStartX + index, character);
 			}},
 			Buffer::OnClearListener{[]() -> void
 			{
 				// Move the cursor back to the start of the input region,
 				// in fact, to the front of the line to be sure (x = 0).
-				wmove(s_Window, CURSOR_START_Y, 0u);
+				wmove(s_Window, kCursorStartY, 0u);
 
 				// "Window clear to end of line": clear the line.
 				wclrtoeol(s_Window);
@@ -308,9 +316,9 @@ namespace NCurses
 					 // Use default horizontal character.
 					 0);
 			}},
-			Buffer::OnDecrementStringLengthListener{[](Buffer::Data::size_type const p_NewStringLength) -> void
+			Buffer::OnDecrementStringLengthListener{[](Buffer::Data::size_type const newStringLength) -> void
 			{
-				mvwaddch(s_Window, CURSOR_START_Y, CURSOR_START_X + p_NewStringLength, ' ');
+				mvwaddch(s_Window, kCursorStartY, kCursorStartX + newStringLength, ' ');
 			}}
 		);
 
@@ -321,7 +329,7 @@ namespace NCurses
 		static FastCursor s_Cursor{ 0u };
 
 		static_assert(std::is_unsigned_v<FastCursor> and
-						  std::numeric_limits<FastCursor>::max() >= s_Buffer.MAX_STRING_LENGTH,
+						  std::numeric_limits<FastCursor>::max() >= s_Buffer.kMaxStringLength,
 						  "The input buffer cursor must be able to represent "
 						  "all valid positions in the input buffer string for insertion, "
 						  "including the exclusive end position where the current null character is.");
@@ -338,9 +346,9 @@ namespace NCurses
 		std::enable_if_t<std::is_same_v<DirectionT, Left> or std::is_same_v<DirectionT, Right>, void>
 		BumpCursor()
 		{
-			static constexpr DirectionT s_Next{};
+			static constexpr DirectionT kNext{};
 			SetCharHighlight<false>(s_Cursor);
-			SetCharHighlight<true>(s_Cursor = s_Next(s_Cursor, static_cast<FastCursor>(1u)));
+			SetCharHighlight<true>(s_Cursor = kNext(s_Cursor, static_cast<FastCursor>(1u)));
 		}
 
 		static bool HandleSubmitString()
@@ -351,11 +359,11 @@ namespace NCurses
 			// Parse a command.
 			{
 				// Tokenize the string.
-				std::vector<CommandToken> l_CommandTokens;
-				CommandTokenizeString(l_CommandTokens, s_Buffer.GetData().data());
+				std::vector<CommandToken> commandTokens;
+				CommandTokenizeString(commandTokens, s_Buffer.GetData().data());
 
 				// Parse command tokens.
-				CommandParseTokens(l_CommandTokens);
+				CommandParseTokens(commandTokens);
 			}
 
 			static std::unordered_map<std::string_view, bool (*)()> const s_StringDispatch
@@ -387,7 +395,7 @@ namespace NCurses
 
 	} // namespace InputWindow
 
-	bool InputWindow::ProcessKey()
+	bool InputWindow::ProcessSingleUserKey()
 	{
 		if (s_ShouldResize)
 		{
@@ -396,9 +404,9 @@ namespace NCurses
 		}
 
 		// Get one input key from the terminal, if any.
-		int const l_InputKey{ wgetch(s_Window) };
+		int const inputKey{ wgetch(s_Window) };
 
-		switch (l_InputKey)
+		switch (inputKey)
 		{
 			// No input.
 			case ERR:
@@ -407,14 +415,6 @@ namespace NCurses
 			// "Ctrl+D", EOT (End of Transmission), should gracefully quit.
 			case Key::Ctrl<'D'>:
 				return true;
-
-			case '`':
-				Logger::InterpolateWriteLine(
-					"Zero is $$. One is. Two is $. Dollar sign is $. True is `$$`. False is `$`. "
-					"Green is $green$. Blue is $blue$. Missing value is $.",
-					std::noboolalpha, false, true, 2, std::boolalpha, true, false, decltype(Green())::On,
-					decltype(Green())::Off, decltype(Blue())::On, decltype(Blue())::Off);
-				return false;
 
 			case KEY_LEFT:
 				// If the curser has space to move left, move it left.
@@ -455,16 +455,16 @@ namespace NCurses
 			case Key::Ctrl<'C'>:
 			case Key::Ctrl<'Z'>:
 				// (Most likely unreachable.)
-				LoggingWindow::PrintRedLine("Unexpectedly got a `Ctrl` character (", l_InputKey,
+				LoggingWindow::PrintRedLine("Unexpectedly got a `Ctrl` character (", inputKey,
 													 ") from user input.");
 				return false;
 		}
 
-		bool const l_InputKeyIsPrintable{ Common::IsASCII(l_InputKey) and
-													 std::isprint<char>(l_InputKey, std::locale::classic()) };
+		bool const inputKeyIsPrintable{ Common::IsASCII(inputKey) and
+													 std::isprint<char>(inputKey, std::locale::classic()) };
 
 		// If successfully inserted into the buffer, move the cursor to the right.
-		if (l_InputKeyIsPrintable and s_Buffer.Insert(s_Cursor, l_InputKey))
+		if (inputKeyIsPrintable and s_Buffer.Insert(s_Cursor, inputKey))
 		{
 			BumpCursor<Right>();
 		}

@@ -16,19 +16,19 @@ struct InputBinding
 	
 	// A constructor for emplacing.
 	//
-	InputBinding(unsigned short p_KeyCode, ControlAction&& p_ControlAction)
-		: m_KeyCode(p_KeyCode), 
-		m_ControlAction(std::move(p_ControlAction))
+	InputBinding(unsigned short keyCode, ControlAction&& controlAction)
+		: m_KeyCode(keyCode), 
+		m_ControlAction(std::move(controlAction))
 	{
 	}
 	
 	// Read an input binding from JSON. 
 	//
-	// p_Object:	The JSON object representing a binding.
+	// object:	The JSON object representing a binding.
 	//	
 	// Returns:		True if the binding was read successfully, false otherwise.
 	//
-	bool ReadFromJSON(rapidjson::Value const& p_Object);	
+	bool ReadFromJSON(rapidjson::Value const& object);	
 
 	// The numeric code of the key that should trigger action.
 	unsigned short		m_KeyCode;
@@ -45,10 +45,10 @@ class Input
 		
 		// Handle initialization.
 		//
-		// p_DeviceName:	The name of the input device that this will manage.
-		// p_Bindings:		A list of input bindings.
+		// deviceName:	The name of the input device that this will manage.
+		// bindings:		A list of input bindings.
 		//
-		void Initialize(char const* p_DeviceName, std::vector<InputBinding> const& p_Bindings);
+		void Initialize(char const* deviceName, std::vector<InputBinding> const& bindings);
 
 		// Handle uninitialization.
 		//
@@ -67,27 +67,27 @@ class Input
 		// Constants.
 		
 		// The maximum length of the device name.
-		static constexpr unsigned int ms_DeviceNameCapacity = 64;
-		
+		static constexpr unsigned int kDeviceNameCapacity{ 64u };
+
 		// Used to detect when a file handle is invalid.
-		static constexpr int	ms_InvalidFileHandle = -1;
-		
+		static constexpr int	kInvalidFileHandle{ -1 };
+
 		// The amount of time to wait between failing to open the device.
-		static constexpr unsigned int ms_DeviceOpenRetryDelayMS = 1000;
-		
+		static constexpr unsigned int kDeviceOpenRetryDelayMS{ 1'000u };
+
 		// Close the input device.
 		// 
-		// p_WasFailure:	Whether the device is being closed due to a failure or not.
-		// p_Format:		Standard printf format string.
+		// wasFailure:	Whether the device is being closed due to a failure or not.
+		// format:		Standard printf format string.
 		// ...:				Standard printf arguments.
 		//
-		[[gnu::format(printf, 1+2, 1+3)]] void CloseDevice(bool p_WasFailure, char const* p_Format, ...);
+		[[gnu::format(printf, 1+2, 1+3)]] void CloseDevice(bool wasFailure, char const* format, ...);
 
 		// The name of the device to get input from.
-		char m_DeviceName[ms_DeviceNameCapacity];
+		char m_DeviceName[kDeviceNameCapacity];
 		
 		// The device file handle (file descriptor).
-		int m_DeviceFileHandle = ms_InvalidFileHandle;	
+		int m_DeviceFileHandle = kInvalidFileHandle;	
 		
 		// Indicates that the device open has failed before.
 		bool m_DeviceOpenHasFailed = false;

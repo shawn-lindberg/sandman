@@ -57,17 +57,17 @@ static bool Initialize()
 		std::printf("Initializing as a daemon.\n");
 
 		// Fork a child off of the parent process.
-		auto const l_ProcessID = fork();
+		auto const processID = fork();
 
 		// Legitimate failure.
-		if (l_ProcessID < 0)
+		if (processID < 0)
 		{
 			s_ExitCode = 1;
 			return false;
 		}
 
 		// The parent gets the ID of the child and exits.
-		if (l_ProcessID > 0)
+		if (processID > 0)
 		{
 			s_ExitCode = 1;
 			return false;
@@ -86,9 +86,9 @@ static bool Initialize()
 		}
 
 		// Need a new session ID.
-		auto const l_SessionID = setsid();
+		auto const sessionID = setsid();
 
-		if (l_SessionID < 0)
+		if (sessionID < 0)
 		{
 			Logger::WriteLine(NCurses::Red("Failed to get new session ID for daemon."));
 			s_ExitCode = 1;
@@ -98,7 +98,7 @@ static bool Initialize()
 		// Change the current working directory.
 		if (chdir(SANDMAN_TEMP_DIR) < 0)
 		{
-			Logger::FormatWriteLine<NCurses::ColorIndex::RED>(
+			Logger::FormatWriteLine<NCurses::ColorIndex::Red>(
 				"Failed to change working directory to \"%s\" ID for daemon.", SANDMAN_TEMP_DIR);
 			s_ExitCode = 1;
 			return false;
@@ -135,18 +135,18 @@ static bool Initialize()
 			return false;
 		}
 
-		sockaddr_un l_ListeningAddress;
+		sockaddr_un listeningAddress;
 		{
-			l_ListeningAddress.sun_family = AF_UNIX;
-			std::strncpy(l_ListeningAddress.sun_path, SANDMAN_TEMP_DIR "sandman.sock",
-							 sizeof(l_ListeningAddress.sun_path) - 1);
+			listeningAddress.sun_family = AF_UNIX;
+			std::strncpy(listeningAddress.sun_path, SANDMAN_TEMP_DIR "sandman.sock",
+							 sizeof(listeningAddress.sun_path) - 1);
 		}
 
 		// Unlink the file if needed.
-		unlink(l_ListeningAddress.sun_path);
+		unlink(listeningAddress.sun_path);
 
 		// Bind the socket to the file.
-		if (bind(s_ListeningSocket, reinterpret_cast<sockaddr*>(&l_ListeningAddress),
+		if (bind(s_ListeningSocket, reinterpret_cast<sockaddr*>(&listeningAddress),
 					sizeof(sockaddr_un)) < 0)
 		{
 			Logger::WriteLine(NCurses::Red("Failed to bind listening socket."));
@@ -179,8 +179,8 @@ static bool Initialize()
 	}
 
 	// Read the config.
-	Config l_Config;
-	if (l_Config.ReadFromFile(SANDMAN_CONFIG_DIR "sandman.conf") == false)
+	Config config;
+	if (config.ReadFromFile(SANDMAN_CONFIG_DIR "sandman.conf") == false)
 	{
 		s_ExitCode = 1;
 		return false;
@@ -194,11 +194,11 @@ static bool Initialize()
 	}
 
 	// Initialize controls.
-	ControlsInitialize(l_Config.GetControlConfigs());
+	ControlsInitialize(config.GetControlConfigs());
 
 	// Set control durations.
-	Control::SetDurations(l_Config.GetControlMaxMovingDurationMS(),
-								 l_Config.GetControlCoolDownDurationMS());
+	Control::SetDurations(config.GetControlMaxMovingDurationMS(),
+								 config.GetControlCoolDownDurationMS());
 
 	// Enable all controls.
 	Control::Enable(true);
@@ -207,7 +207,7 @@ static bool Initialize()
 	s_ControlsInitialized = true;
 
 	// Initialize the input device.
-	s_Input.Initialize(l_Config.GetInputDeviceName(), l_Config.GetInputBindings());
+	s_Input.Initialize(config.GetInputDeviceName(), config.GetInputBindings());
 
 	// Initialize the schedule.
 	ScheduleInitialize();
@@ -273,9 +273,9 @@ static void Uninitialize()
 static bool ProcessSocketCommunication()
 {
 	// Attempt to accept an incoming connection.
-	auto const l_ConnectionSocket = accept(s_ListeningSocket, nullptr, nullptr);
+	auto const connectionSocket = accept(s_ListeningSocket, nullptr, nullptr);
 
-	if (l_ConnectionSocket < 0)
+	if (connectionSocket < 0)
 	{
 		return false;
 	}
@@ -284,118 +284,121 @@ static bool ProcessSocketCommunication()
 	Logger::FormatWriteLine("Got a new connection.");
 
 	// Try to read data.
-	static constexpr unsigned int l_MessageBufferCapacity = 100;
-	char l_MessageBuffer[l_MessageBufferCapacity];
+	static constexpr std::size_t kMessageBufferCapacity{ 100u };
+	char messageBuffer[kMessageBufferCapacity];
 
-	auto const l_NumReceivedBytes =
-		recv(l_ConnectionSocket, l_MessageBuffer, l_MessageBufferCapacity - 1, 0);
+	// Can subtract one this without underflow.
+	static_assert(kMessageBufferCapacity >= 1u);
 
-	if (l_NumReceivedBytes <= 0)
+	auto const numReceivedBytes = recv(connectionSocket, messageBuffer,
+												  kMessageBufferCapacity - 1u, 0);
+
+	if (numReceivedBytes <= 0)
 	{
 		Logger::FormatWriteLine("Connection closed, error receiving.");
 
 		// Close the connection.
-		close(l_ConnectionSocket);
+		close(connectionSocket);
 		return false;
 	}
 
 	// Terminate.
-	l_MessageBuffer[l_NumReceivedBytes] = '\0';
+	messageBuffer[numReceivedBytes] = '\0';
 
-	Logger::FormatWriteLine("Received \"%s\".", l_MessageBuffer);
+	Logger::FormatWriteLine("Received \"%s\".", messageBuffer);
 
 	// Handle the message, if necessary.
-	auto l_Done = false;
+	auto done = false;
 
-	if (std::strcmp(l_MessageBuffer, "shutdown") == 0)
+	if (std::strcmp(messageBuffer, "shutdown") == 0)
 	{
-		l_Done = true;
+		done = true;
 	}
 	else
 	{
 		// Parse a command.
 
 		// Tokenize the message.
-		std::vector<CommandToken> l_CommandTokens;
-		CommandTokenizeString(l_CommandTokens, l_MessageBuffer);
+		std::vector<CommandToken> commandTokens;
+		CommandTokenizeString(commandTokens, messageBuffer);
 
 		// Parse command tokens.
-		CommandParseTokens(l_CommandTokens);
+		CommandParseTokens(commandTokens);
 	}
 
 	Logger::FormatWriteLine("Connection closed.");
 
 	// Close the connection.
-	close(l_ConnectionSocket);
+	close(connectionSocket);
 
-	return l_Done;
+	return done;
 }
 
 // Send a message to the daemon process.
 //
-// p_Message:	The message to send.
+// message:	The message to send.
 //
-static void SendMessageToDaemon(char const* p_Message)
+static void SendMessageToDaemon(char const* message)
 {
 	// Create a sending socket.
-	auto const l_SendingSocket = socket(AF_UNIX, SOCK_STREAM, 0);
+	auto const sendingSocket = socket(AF_UNIX, SOCK_STREAM, 0);
 
-	if (l_SendingSocket < 0)
+	if (sendingSocket < 0)
 	{
 		std::printf("Failed to create sending socket.\n");
 		return;
 	}
 
-	sockaddr_un l_SendingAddress;
+	sockaddr_un sendingAddress;
 	{
-		l_SendingAddress.sun_family = AF_UNIX;
-		std::strncpy(l_SendingAddress.sun_path, SANDMAN_TEMP_DIR "sandman.sock",
-						 sizeof(l_SendingAddress.sun_path) - 1);
+		sendingAddress.sun_family = AF_UNIX;
+		std::strncpy(sendingAddress.sun_path, SANDMAN_TEMP_DIR "sandman.sock",
+						 sizeof(sendingAddress.sun_path) - 1);
 	}
 
 	// Attempt to connect to the daemon.
-	if (connect(l_SendingSocket, reinterpret_cast<sockaddr*>(&l_SendingAddress),
+	if (connect(sendingSocket, reinterpret_cast<sockaddr*>(&sendingAddress),
 					sizeof(sockaddr_un)) < 0)
 	{
 		std::printf("Failed to connect to the daemon.\n");
-		close(l_SendingSocket);
+		close(sendingSocket);
 		return;
 	}
 
 	// Send the message.
-	if (send(l_SendingSocket, p_Message, std::strlen(p_Message), 0) < 0)
+	if (send(sendingSocket, message, std::strlen(message), 0) < 0)
 	{
-		std::printf("Failed to send \"%s\" message to the daemon.\n", p_Message);
-		close(l_SendingSocket);
+		std::printf("Failed to send \"%s\" message to the daemon.\n", message);
+		close(sendingSocket);
 		return;
 	}
 
-	std::printf("Sent \"%s\" message to the daemon.\n", p_Message);
+	std::printf("Sent \"%s\" message to the daemon.\n", message);
 
 	// Close the connection.
-	close(l_SendingSocket);
+	close(sendingSocket);
 }
 
 // Handle the commandline arguments.
 //
-//	p_Arguments:		The argument list.
-// p_ArgumentCount:	The number of arguments in the list.
+//	arguments:		The argument list.
+// argumentCount:	The number of arguments in the list.
 //
 // Returns:	True if the program should exit, false if it should continue.
 //
-static bool HandleCommandLine(char** p_Arguments, unsigned int p_ArgumentCount)
+static bool HandleCommandLine(char** arguments, unsigned int argumentCount)
 {
-	for (unsigned int l_ArgumentIndex = 0; l_ArgumentIndex < p_ArgumentCount; l_ArgumentIndex++)
+	for (unsigned int argumentIndex = 0; argumentIndex < argumentCount; argumentIndex++)
 	{
-		auto const* l_Argument = p_Arguments[l_ArgumentIndex];
+		auto const* argument = arguments[argumentIndex];
 
 		// Start as a daemon?
-		if (std::strcmp(l_Argument, "--daemon") == 0)
+		if (std::strcmp(argument, "--daemon") == 0)
 		{
 			s_DaemonMode = true;
 			break;
 		}
-		else if (std::strcmp(l_Argument, "--shutdown") == 0)
+		else if (std::strcmp(argument, "--shutdown") == 0)
 		{
 			SendMessageToDaemon("shutdown");
 			return true;
@@ -405,35 +408,37 @@ static bool HandleCommandLine(char** p_Arguments, unsigned int p_ArgumentCount)
 			// We are going to see if there is a command to send to the daemon.
 			static char const* s_CommandPrefix = "--command=";
 
-			auto const* l_CommandStringStart = std::strstr(l_Argument, s_CommandPrefix);
+			auto const* commandStringStart = std::strstr(argument, s_CommandPrefix);
 
-			if (l_CommandStringStart != nullptr)
+			if (commandStringStart != nullptr)
 			{
 				// Skip the command prefix.
-				l_CommandStringStart += std::strlen(s_CommandPrefix);
+				commandStringStart += std::strlen(s_CommandPrefix);
 
-				static constexpr unsigned int l_CommandBufferCapacity = 100;
-				char l_CommandBuffer[l_CommandBufferCapacity];
+				static constexpr std::size_t kCommandBufferCapacity{ 100u };
+				char commandBuffer[kCommandBufferCapacity];
+
+				static_assert(kCommandBufferCapacity >= 1u);
 
 				// Copy only the actual command.
-				std::strncpy(l_CommandBuffer, l_CommandStringStart, l_CommandBufferCapacity - 1);
-				l_CommandBuffer[l_CommandBufferCapacity - 1] = '\0';
+				std::strncpy(commandBuffer, commandStringStart, kCommandBufferCapacity - 1u);
+				commandBuffer[kCommandBufferCapacity - 1] = '\0';
 
 				// Replace '_' with ' '.
-				auto* l_CurrentCharacter = l_CommandBuffer;
+				auto* currentCharacter = commandBuffer;
 
-				while (*l_CurrentCharacter != '\0')
+				while (*currentCharacter != '\0')
 				{
-					if (*l_CurrentCharacter == '_')
+					if (*currentCharacter == '_')
 					{
-						*l_CurrentCharacter = ' ';
+						*currentCharacter = ' ';
 					}
 
-					l_CurrentCharacter++;
+					currentCharacter++;
 				}
 
 				// Send the command to the daemon.
-				SendMessageToDaemon(l_CommandBuffer);
+				SendMessageToDaemon(commandBuffer);
 				return true;
 			}
 		}
@@ -457,17 +462,17 @@ int main(int argc, char** argv)
 		return s_ExitCode;
 	}
 
-	auto l_Done = false;
-	while (l_Done == false)
+	auto done = false;
+	while (done == false)
 	{
 		// We're gonna track the framerate.
-		Time l_FrameStartTime;
-		TimerGetCurrent(l_FrameStartTime);
+		Time frameStartTime;
+		TimerGetCurrent(frameStartTime);
 
 		if (s_DaemonMode == false)
 		{
 			NCurses::Lock l;
-			l_Done = NCurses::InputWindow::ProcessKey();
+			done = NCurses::InputWindow::ProcessSingleUserKey();
 		}
 
 		// Process command.
@@ -491,28 +496,28 @@ int main(int argc, char** argv)
 		if (s_DaemonMode == true)
 		{
 			// Process socket communication.
-			l_Done = ProcessSocketCommunication();
+			done = ProcessSocketCommunication();
 		}
 
 		// Get the duration of the frame in nanoseconds.
-		Time l_FrameEndTime;
-		TimerGetCurrent(l_FrameEndTime);
+		Time frameEndTime;
+		TimerGetCurrent(frameEndTime);
 
-		float const l_FrameDurationMS = TimerGetElapsedMilliseconds(l_FrameStartTime, l_FrameEndTime);
-		auto const l_FrameDurationNS = static_cast<unsigned long>(l_FrameDurationMS * 1.0e6f);
+		float const frameDurationMS = TimerGetElapsedMilliseconds(frameStartTime, frameEndTime);
+		auto const frameDurationNS = static_cast<unsigned long>(frameDurationMS * 1.0e6f);
 
 		// If the frame is shorter than the duration corresponding to the desired framerate, sleep the
 		// difference off.
-		unsigned long const l_TargetFrameDurationNS = 1000000000 / 60;
+		unsigned long const targetFrameDurationNS = 1000000000 / 60;
 
-		if (l_FrameDurationNS < l_TargetFrameDurationNS)
+		if (frameDurationNS < targetFrameDurationNS)
 		{
-			timespec l_SleepTime;
-			l_SleepTime.tv_sec = 0;
-			l_SleepTime.tv_nsec = l_TargetFrameDurationNS - l_FrameDurationNS;
+			timespec sleepTime;
+			sleepTime.tv_sec = 0;
+			sleepTime.tv_nsec = targetFrameDurationNS - frameDurationNS;
 
-			timespec l_RemainingTime;
-			nanosleep(&l_SleepTime, &l_RemainingTime);
+			timespec remainingTime;
+			nanosleep(&sleepTime, &remainingTime);
 		}
 	}
 

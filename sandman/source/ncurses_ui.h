@@ -48,81 +48,96 @@ namespace NCurses
 
 	namespace Key
 	{
-		template <char t_Name, typename CharT=int>
-		inline constexpr std::enable_if_t<std::is_integral_v<CharT>, CharT> Ctrl{ t_Name bitand 0x1F };
+		template <char kName, typename CharT = int>
+		// Function-like constant.
+		// NOLINTNEXTLINE(readability-identifier-naming)
+		inline constexpr std::enable_if_t<std::is_integral_v<CharT>, CharT> Ctrl{kName bitand 0x1F};
+
 	}
 
 	enum struct ColorIndex : int
 	{
-		NONE    = 0,
-		BLACK   = 1,
-		RED     = 2,
-		GREEN   = 3,
-		YELLOW  = 4,
-		BLUE    = 5,
-		MAGENTA = 6,
-		CYAN    = 7,
-		WHITE   = 8,
+		None    = 0,
+		Black   = 1,
+		Red     = 2,
+		Green   = 3,
+		Yellow  = 4,
+		Blue    = 5,
+		Magenta = 6,
+		Cyan    = 7,
+		White   = 8,
 	};
 
 	struct Attr { int m_Value; bool m_Flag; };
 
-	template <ColorIndex t_ColorIndex, typename... ParamsT>
+	template <ColorIndex kColorIndex, typename... ParamsT>
 	struct Color
 	{
-		static_assert(t_ColorIndex != ColorIndex::NONE);
-		static_assert(t_ColorIndex >= ColorIndex{1} and t_ColorIndex <= ColorIndex{8});
-		static constexpr int s_AttributeValue{ COLOR_PAIR(Common::Enum::IntCast(t_ColorIndex)) };
-		static constexpr Attr On{s_AttributeValue, true};
-		static constexpr Attr Off{s_AttributeValue, false};
-		std::tuple<ParamsT const&...> objects;
-		[[nodiscard]] explicit Color(ParamsT const&... args): objects(args...) {}
+		static_assert(kColorIndex != ColorIndex::None);
+		static_assert(kColorIndex >= ColorIndex{1} and kColorIndex <= ColorIndex{8});
+		static constexpr int kAttributeValue{ COLOR_PAIR(Common::Enum::IntCast(kColorIndex)) };
+		static constexpr Attr kOn{kAttributeValue, true};
+		static constexpr Attr kOff{kAttributeValue, false};
+		std::tuple<ParamsT const&...> m_Objects;
+		[[nodiscard]] explicit Color(ParamsT const&... args): m_Objects(args...) {}
 	};
 
+	// Function-like constant.
+	// NOLINTBEGIN(readability-identifier-naming)
 	template <typename T> inline constexpr bool IsColor{false};
+	template <ColorIndex kColorIndex, typename... ParamsT>
+	inline constexpr bool IsColor<Color<kColorIndex, ParamsT...>>{true};
+	// NOLINTEND(readability-identifier-naming)
 
-	template <ColorIndex t_ColorIndex, typename... ParamsT>
-	inline constexpr bool IsColor<Color<t_ColorIndex, ParamsT...>>{true};
-
-	template <typename... ParamsT> [[gnu::always_inline]] [[nodiscard]] inline auto Black  (ParamsT const&... args) { return Color<ColorIndex::BLACK  , ParamsT...>(args...); }
-	template <typename... ParamsT> [[gnu::always_inline]] [[nodiscard]] inline auto Red    (ParamsT const&... args) { return Color<ColorIndex::RED    , ParamsT...>(args...); }
-	template <typename... ParamsT> [[gnu::always_inline]] [[nodiscard]] inline auto Green  (ParamsT const&... args) { return Color<ColorIndex::GREEN  , ParamsT...>(args...); }
-	template <typename... ParamsT> [[gnu::always_inline]] [[nodiscard]] inline auto Yellow (ParamsT const&... args) { return Color<ColorIndex::YELLOW , ParamsT...>(args...); }
-	template <typename... ParamsT> [[gnu::always_inline]] [[nodiscard]] inline auto Blue   (ParamsT const&... args) { return Color<ColorIndex::BLUE   , ParamsT...>(args...); }
-	template <typename... ParamsT> [[gnu::always_inline]] [[nodiscard]] inline auto Magenta(ParamsT const&... args) { return Color<ColorIndex::MAGENTA, ParamsT...>(args...); }
-	template <typename... ParamsT> [[gnu::always_inline]] [[nodiscard]] inline auto Cyan   (ParamsT const&... args) { return Color<ColorIndex::CYAN   , ParamsT...>(args...); }
-	template <typename... ParamsT> [[gnu::always_inline]] [[nodiscard]] inline auto White  (ParamsT const&... args) { return Color<ColorIndex::WHITE  , ParamsT...>(args...); }
+	template <typename... ParamsT> [[gnu::always_inline]] [[nodiscard]] inline auto Black  (ParamsT const&... args) { return Color<ColorIndex::Black  , ParamsT...>(args...); }
+	template <typename... ParamsT> [[gnu::always_inline]] [[nodiscard]] inline auto Red    (ParamsT const&... args) { return Color<ColorIndex::Red    , ParamsT...>(args...); }
+	template <typename... ParamsT> [[gnu::always_inline]] [[nodiscard]] inline auto Green  (ParamsT const&... args) { return Color<ColorIndex::Green  , ParamsT...>(args...); }
+	template <typename... ParamsT> [[gnu::always_inline]] [[nodiscard]] inline auto Yellow (ParamsT const&... args) { return Color<ColorIndex::Yellow , ParamsT...>(args...); }
+	template <typename... ParamsT> [[gnu::always_inline]] [[nodiscard]] inline auto Blue   (ParamsT const&... args) { return Color<ColorIndex::Blue   , ParamsT...>(args...); }
+	template <typename... ParamsT> [[gnu::always_inline]] [[nodiscard]] inline auto Magenta(ParamsT const&... args) { return Color<ColorIndex::Magenta, ParamsT...>(args...); }
+	template <typename... ParamsT> [[gnu::always_inline]] [[nodiscard]] inline auto Cyan   (ParamsT const&... args) { return Color<ColorIndex::Cyan   , ParamsT...>(args...); }
+	template <typename... ParamsT> [[gnu::always_inline]] [[nodiscard]] inline auto White  (ParamsT const&... args) { return Color<ColorIndex::White  , ParamsT...>(args...); }
 
 	namespace LoggingWindow {
 
 		void Refresh();
 
-		void Write(Attr const p_CharacterAttribute);
-		void Write(chtype const p_Character);
-		void Write(char const* const p_String);
-		void Write(std::string_view const p_String);
+		void Write(Attr const characterAttribute);
+		void Write(chtype const character);
+		void Write(char const* const string);
+		void Write(std::string_view const string);
 
 		template <typename BoolT>
-		std::enable_if_t<std::is_same_v<BoolT, bool>, void> Write(BoolT const p_Boolean)
+		std::enable_if_t<std::is_same_v<BoolT, bool>, void> Write(BoolT const booleanValue)
 		{
-			if (p_Boolean == true)
+			if (booleanValue == true)
+			{
 				Write("true");
+			}
 			else
+			{
 				Write("false");
+			}
 		}
 
 		template <typename T, typename... ParamsT>
-		[[gnu::always_inline]] inline void Print(T const p_Object, ParamsT const... p_Arguments)
+		[[gnu::always_inline]] inline void Print(T const object, ParamsT const... arguments)
 		{
-			Write(p_Object);
-			if constexpr (sizeof...(p_Arguments) > 0u) Print(p_Arguments...);
-			else Refresh();
+			Write(object);
+			if constexpr (sizeof...(arguments) > 0u)
+			{
+				Print(arguments...);
+			}
+			else
+			{
+				Refresh();
+			}
 		}
 
 		template <typename... ParamsT>
-		[[gnu::always_inline]] inline void Println(ParamsT const... p_Arguments)
+		[[gnu::always_inline]] inline void Println(ParamsT const... arguments)
 		{
-			Print(p_Arguments..., '\n');
+			Print(arguments..., '\n');
 		}
 
 		/// @brief Get the pointer to the logging window.
@@ -146,10 +161,10 @@ namespace NCurses
 	{
 		/// @brief The starting location of the cursor for the input window.
 		///
-		inline constexpr int CURSOR_START_Y{ 1 }, CURSOR_START_X{ 2 };
+		inline constexpr int kCursorStartY{ 1 }, kCursorStartX{ 2 };
 
 		// The input window will have a height of 3.
-		inline constexpr int ROW_COUNT{ 3 };
+		inline constexpr int kRowCount{ 3 };
 
 		/// @brief Get the pointer to the input window.
 		///
@@ -170,15 +185,11 @@ namespace NCurses
 		using Buffer = CharBuffer<char, 128u>;
 		Buffer const& GetBuffer();
 
-		/// @brief Get keyboard input.
-		///
-		/// @param p_KeyboardInputBuffer (input/output) The input buffer.
-		/// @param p_KeyboardInputBufferSize (input/output) How much of the input buffer is in use.
-		/// @param p_KeyboardInputBufferCapacity The capacity of the input buffer.
+		/// @brief Process a single key input from the user, if any.
 		///
 		/// @returns `true` if the "quit" command was processed, `false` otherwise.
 		///
-		bool ProcessKey();
+		bool ProcessSingleUserKey();
 	}
 
 } // namespace NCurses

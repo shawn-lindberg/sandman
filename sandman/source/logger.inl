@@ -1,29 +1,29 @@
 #include "logger.h"
 
 template <typename T, typename... ParamsT>
-[[gnu::always_inline]] inline void ::Logger::Write(T const& p_FirstArg, ParamsT const&... p_Args)
+[[gnu::always_inline]] inline void ::Logger::Write(T const& firstArg, ParamsT const&... args)
 {
 	if constexpr (NCurses::IsColor<T>)
 	{
 		std::apply(
 			[this](auto const&... args)
 			{
-				this->Write(T::On, args..., T::Off);
+				this->Write(T::kOn, args..., T::kOff);
 			},
-			p_FirstArg.objects);
+			firstArg.m_Objects);
 	}
 	else if constexpr (std::is_same_v<T, NCurses::Attr>)
 	{
-		std::string const l_String(m_Buffer.str());
+		std::string const string(m_Buffer.str());
 		if (m_ScreenEcho)
 		{
-			NCurses::LoggingWindow::Write(l_String);
+			NCurses::LoggingWindow::Write(string);
 		}
-		m_outputStream << l_String;
+		m_OutputStream << string;
 
 		if (m_ScreenEcho)
 		{
-			NCurses::LoggingWindow::Write(p_FirstArg);
+			NCurses::LoggingWindow::Write(firstArg);
 		}
 
 		// Clear buffer.
@@ -31,12 +31,12 @@ template <typename T, typename... ParamsT>
 	}
 	else
 	{
-		m_Buffer << p_FirstArg;
+		m_Buffer << firstArg;
 	}
 
-	if constexpr (sizeof...(p_Args) > 0u)
+	if constexpr (sizeof...(args) > 0u)
 	{
-		Write(p_Args...);
+		Write(args...);
 	}
 	else
 	{
@@ -47,25 +47,25 @@ template <typename T, typename... ParamsT>
 			NCurses::LoggingWindow::Print(string);
 		}
 
-		m_outputStream << string;
+		m_OutputStream << string;
 		m_Buffer.str("");
 	}
 }
 
-template <char t_InterpolationIndicator>
-void ::Logger::InterpolateWrite(std::string_view const p_FormatString)
+template <char kInterpolationIndicator>
+void ::Logger::InterpolateWrite(std::string_view const formatString)
 {
 	using namespace std::string_view_literals;
 
-	bool l_EscapingCharacter{ false };
-	for (char const c : p_FormatString)
+	bool escapingCharacter{ false };
+	for (char const c : formatString)
 	{
 		switch (c)
 		{
-			case t_InterpolationIndicator:
-				if (l_EscapingCharacter)
+			case kInterpolationIndicator:
+				if (escapingCharacter)
 				{
-					l_EscapingCharacter = false, Write(c);
+					escapingCharacter = false, Write(c);
 				}
 				else
 				{
@@ -73,7 +73,7 @@ void ::Logger::InterpolateWrite(std::string_view const p_FormatString)
 				}
 				break;
 			case '\0':
-				l_EscapingCharacter = true;
+				escapingCharacter = true;
 				break;
 			default:
 				Write(c);
@@ -82,31 +82,31 @@ void ::Logger::InterpolateWrite(std::string_view const p_FormatString)
 	}
 }
 
-template <char t_InterpolationIndicator, typename T, typename... ParamsT>
-void ::Logger::InterpolateWrite(std::string_view p_FormatString, T const& p_FirstArg,
-										  ParamsT const&... p_Args)
+template <char kInterpolationIndicator, typename T, typename... ParamsT>
+void ::Logger::InterpolateWrite(std::string_view formatString, T const& firstArg,
+										  ParamsT const&... args)
 {
-	bool l_EscapingCharacter{ false };
-	for (std::string_view::size_type l_Index{ 0u }; l_Index < p_FormatString.size(); ++l_Index)
+	bool escapingCharacter{ false };
+	for (std::string_view::size_type index{ 0u }; index < formatString.size(); ++index)
 	{
-		char const c{ p_FormatString[l_Index] };
+		char const c{ formatString[index] };
 		switch (c)
 		{
-			case t_InterpolationIndicator:
-				if (l_EscapingCharacter)
+			case kInterpolationIndicator:
+				if (escapingCharacter)
 				{
-					l_EscapingCharacter = false;
+					escapingCharacter = false;
 					Write(c);
 				}
 				else
 				{
-					Write(p_FirstArg);
-					p_FormatString.remove_prefix(++l_Index);
-					return InterpolateWrite<t_InterpolationIndicator>(p_FormatString, p_Args...);
+					Write(firstArg);
+					formatString.remove_prefix(++index);
+					return InterpolateWrite<kInterpolationIndicator>(formatString, args...);
 				}
 				break;
 			case '\0':
-				l_EscapingCharacter = true;
+				escapingCharacter = true;
 				break;
 			default:
 				Write(c);

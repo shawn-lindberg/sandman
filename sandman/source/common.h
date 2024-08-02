@@ -22,8 +22,8 @@ namespace Common
 		public:
 			[[nodiscard]] constexpr NonNull(): m_Function{Simulacrum} {}
 
-			[[nodiscard]] constexpr NonNull(FunctionT const p_FunctionPointer):
-				m_Function{p_FunctionPointer != nullptr ? p_FunctionPointer : Simulacrum} {}
+			[[nodiscard]] constexpr NonNull(FunctionT const functionPointer):
+				m_Function{functionPointer != nullptr ? functionPointer : Simulacrum} {}
 
 			[[gnu::always_inline]] [[nodiscard]] constexpr operator FunctionT() const
 			{
@@ -31,9 +31,9 @@ namespace Common
 			}
 	};
 
-	inline constexpr std::uint_least8_t ASCII_MIN{ 0u }, ASCII_MAX{ 127u };
+	inline constexpr std::uint_least8_t kASCIIMin{ 0u }, kASCIIMax{ 127u };
 
-	/// @returns `true` if `p_Character` is a value that fits into the ASCII character set, `false`
+	/// @returns `true` if `character` is a value that fits into the ASCII character set, `false`
 	/// otherwise.
 	///
 	/// @note This is an alternative to the POSIX function `isascii`. `isascii` is deprecated
@@ -44,16 +44,16 @@ namespace Common
 	///
 	template <typename CharT>
 	[[gnu::always_inline]] [[nodiscard]] constexpr std::enable_if_t<std::is_integral_v<CharT>, bool>
-		IsASCII(CharT const p_Character)
+		IsASCII(CharT const character)
 	{
 		if constexpr (std::is_signed_v<CharT>)
 		{
-			return p_Character >= ASCII_MIN and p_Character <= ASCII_MAX;
+			return character >= kASCIIMin and character <= kASCIIMax;
 		}
 		else
 		{
 			static_assert(std::is_unsigned_v<CharT>);
-			return p_Character <= ASCII_MAX;
+			return character <= kASCIIMax;
 		}
 	}
 
@@ -62,21 +62,21 @@ namespace Common
 		template <typename EnumT>
 		[[gnu::always_inline]] [[nodiscard]] constexpr std::enable_if_t<std::is_enum_v<EnumT>,
 																		std::underlying_type_t<EnumT>>
-			IntCast(EnumT const p_Value)
+			IntCast(EnumT const value)
 		{
 			static_assert(std::is_integral_v<std::underlying_type_t<EnumT>>);
-			return static_cast<std::underlying_type_t<EnumT>>(p_Value);
+			return static_cast<std::underlying_type_t<EnumT>>(value);
 		}
 	}
 
 	[[gnu::always_inline]] [[nodiscard]] inline std::tm* GetLocalTime()
 	{
-		auto const l_TimePoint(std::chrono::system_clock::now());
+		auto const timePoint(std::chrono::system_clock::now());
 
-		auto const l_ArithmeticTimeValue{ std::chrono::system_clock::to_time_t(l_TimePoint) };
-		static_assert(std::is_arithmetic_v<decltype(l_ArithmeticTimeValue)>);
+		auto const arithmeticTimeValue{ std::chrono::system_clock::to_time_t(timePoint) };
+		static_assert(std::is_arithmetic_v<decltype(arithmeticTimeValue)>);
 
-		return std::localtime(&l_ArithmeticTimeValue);
+		return std::localtime(&arithmeticTimeValue);
 	}
 
 } // namespace Common

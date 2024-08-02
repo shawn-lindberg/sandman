@@ -1,8 +1,8 @@
 #include "reports.h"
 
 #include <mutex>
-#include <stdio.h>
-#include <time.h>
+#include <cstdio>
+#include <ctime>
 #include <vector>
 
 #include "rapidjson/document.h"
@@ -51,9 +51,9 @@ static std::vector<PendingItem> s_PendingItemList;
 // The names of the actions.
 static char const* const s_ControlActionNames[] =
 {
-	"stop",			// ACTION_STOPPED
-	"move up",		// ACTION_MOVING_UP
-	"move down",	// ACTION_MOVING_DOWN
+	"stop",			// kActionStopped
+	"move up",		// kActionMovingUp
+	"move down",	// kActionMovingDown
 };
 
 // Functions
@@ -64,25 +64,25 @@ static char const* const s_ControlActionNames[] =
 static std::string ReportsGetEffectiveDate()
 {
 	// Get the current time.
-	auto const l_RawTime = time(nullptr);
-	auto* l_LocalTime = localtime(&l_RawTime);
+	auto const rawTime = time(nullptr);
+	auto* localTime = localtime(&rawTime);
 
 	// If the time is after the starting hour, advance the day.
-	if (l_LocalTime->tm_hour >= REPORT_STARTING_HOUR)
+	if (localTime->tm_hour >= REPORT_STARTING_HOUR)
 	{
-		l_LocalTime->tm_mday++;
+		localTime->tm_mday++;
 	}
 
 	// Get the report date.
-	auto const l_RawReportTime = mktime(l_LocalTime);
-	auto* l_ReportTime = localtime(&l_RawReportTime);
+	auto const rawReportTime = mktime(localTime);
+	auto* reportTime = localtime(&rawReportTime);
 
 	// Put the date in the buffer in 2012-09-23 format.
-	static unsigned int const l_ReportDateBufferCapacity = 128;
-	char l_ReportDateBuffer[l_ReportDateBufferCapacity];
-	strftime(l_ReportDateBuffer, l_ReportDateBufferCapacity, "%Y-%m-%d", l_ReportTime);
+	static constexpr std::size_t kReportDateBufferCapacity{ 128u };
+	char reportDateBuffer[kReportDateBufferCapacity];
+	strftime(reportDateBuffer, kReportDateBufferCapacity, "%Y-%m-%d", reportTime);
 
-	return std::string(l_ReportDateBuffer);
+	return std::string(reportDateBuffer);
 }
 
 // Determine the date and time that we should be using for the report now.
@@ -90,30 +90,30 @@ static std::string ReportsGetEffectiveDate()
 static std::string ReportsGetStartingDateTime()
 {
 	// Get the current time.
-	auto const l_RawTime = time(nullptr);
-	auto* l_LocalTime = localtime(&l_RawTime);
+	auto const rawTime = time(nullptr);
+	auto* localTime = localtime(&rawTime);
 
 	// If the time is before the starting hour, go back one day.
-	if (l_LocalTime->tm_hour < REPORT_STARTING_HOUR)
+	if (localTime->tm_hour < REPORT_STARTING_HOUR)
 	{
-		l_LocalTime->tm_mday--;
+		localTime->tm_mday--;
 	}
 
 	// We also need to set the time to the starting time.
-	l_LocalTime->tm_hour = REPORT_STARTING_HOUR;
-	l_LocalTime->tm_min = 0;
-	l_LocalTime->tm_sec = 0;
+	localTime->tm_hour = REPORT_STARTING_HOUR;
+	localTime->tm_min = 0;
+	localTime->tm_sec = 0;
 
 	// Get the starting time.
-	auto const l_RawStartingTime = mktime(l_LocalTime);
-	auto* l_StartingTime = localtime(&l_RawStartingTime);
+	auto const rawStartingTime = mktime(localTime);
+	auto* startingTime = localtime(&rawStartingTime);
 
 	// Put the date and time in the buffer in 2012/09/23 17:44:05 CDT format.
-	static unsigned int const l_TimeStringBufferCapacity = 128;
-	char l_TimeStringBuffer[l_TimeStringBufferCapacity];
-	strftime(l_TimeStringBuffer, l_TimeStringBufferCapacity, "%Y/%m/%d %H:%M:%S %Z", l_StartingTime);
+	static constexpr std::size_t kTimeStringBufferCapacity{ 128u };
+	char timeStringBuffer[kTimeStringBufferCapacity];
+	strftime(timeStringBuffer, kTimeStringBufferCapacity, "%Y/%m/%d %H:%M:%S %Z", startingTime);
 
-	return std::string(l_TimeStringBuffer);
+	return std::string(timeStringBuffer);
 }
 
 // Opens the appropriate report file corresponding to the effective date.
@@ -121,10 +121,10 @@ static std::string ReportsGetStartingDateTime()
 static void ReportsOpenFile()
 {	
 	// Get the date that we should currently be using.
-	auto const l_CurrentReportDateString = ReportsGetEffectiveDate();
+	auto const currentReportDateString = ReportsGetEffectiveDate();
 
 	// If the correct file is open, we don't need to do anything else.
-	if ((s_ReportFile != nullptr) && (s_ReportDateString.compare(l_CurrentReportDateString) == 0))
+	if ((s_ReportFile != nullptr) && (s_ReportDateString.compare(currentReportDateString) == 0))
 	{
 		return;
 	}
@@ -140,32 +140,32 @@ static void ReportsOpenFile()
 
 	s_ReportDateString = "";
 
-	std::string const l_ReportFileName = SANDMAN_TEMP_DIR "reports/sandman" + 
-		l_CurrentReportDateString + ".rpt";
+	std::string const reportFileName = SANDMAN_TEMP_DIR "reports/sandman" + 
+		currentReportDateString + ".rpt";
 
 	// First, see if the file already exists.
-	bool l_ReportAlreadyExisted = false;
+	bool reportAlreadyExisted = false;
 	
 	// Note: There are other ways to check for file existence, but we don't care about optimal 
 	// performance here.
-	s_ReportFile = fopen(l_ReportFileName.c_str(), "r");
+	s_ReportFile = fopen(reportFileName.c_str(), "r");
 	
 	if (s_ReportFile != nullptr) {
 
 		// If we were able to open it, it must exist. So update the flag and close it so we can open 
 		// it in the correct mode.
-		l_ReportAlreadyExisted = true;
+		reportAlreadyExisted = true;
 
 		fclose(s_ReportFile);
 		s_ReportFile = nullptr;
 	}
 
 	// Open the file for appending.
-	Logger::FormatWriteLine("%s report file %s...", (l_ReportAlreadyExisted == true) ? "Opening" : 
-		"Creating", l_ReportFileName.c_str());
+	Logger::FormatWriteLine("%s report file %s...", (reportAlreadyExisted == true) ? "Opening" : 
+		"Creating", reportFileName.c_str());
 
 	// This mode works regardless of whether the file exists or not.
-	s_ReportFile = fopen(l_ReportFileName.c_str(), "a");
+	s_ReportFile = fopen(reportFileName.c_str(), "a");
 
 	if (s_ReportFile == nullptr)
 	{
@@ -176,36 +176,36 @@ static void ReportsOpenFile()
 	Logger::WriteLine('\t', NCurses::Green("succeeded"));
 
 	// Now that we have successfully opened the file, update the date string.
-	s_ReportDateString = l_CurrentReportDateString;
+	s_ReportDateString = currentReportDateString;
 
 	// If this is a new report file, write out the header.
-	if (l_ReportAlreadyExisted == true)
+	if (reportAlreadyExisted == true)
 	{
 		return;
 	}
 	
 	// Make a JSON representation of the header.
-	rapidjson::Document l_HeaderDocument;
-	l_HeaderDocument.SetObject();
+	rapidjson::Document headerDocument;
+	headerDocument.SetObject();
 
-	auto l_HeaderAllocator = l_HeaderDocument.GetAllocator();
+	auto headerAllocator = headerDocument.GetAllocator();
 
-	l_HeaderDocument.AddMember("version", REPORT_VERSION, l_HeaderAllocator);
+	headerDocument.AddMember("version", REPORT_VERSION, headerAllocator);
 
 	// Also include the starting time. It is safe to use a reference here because the document has 
 	// the same lifetime as the string copy.
-	auto l_StartingTime = ReportsGetStartingDateTime();
+	auto startingTime = ReportsGetStartingDateTime();
 	
-	l_HeaderDocument.AddMember("startingTime", 
-		rapidjson::Value(rapidjson::StringRef(l_StartingTime.c_str())), l_HeaderAllocator);
+	headerDocument.AddMember("startingTime", 
+		rapidjson::Value(rapidjson::StringRef(startingTime.c_str())), headerAllocator);
 	
 	// Write this into a string.
-	rapidjson::StringBuffer l_HeaderBuffer;
-	rapidjson::Writer<rapidjson::StringBuffer> l_HeaderWriter(l_HeaderBuffer);
-	l_HeaderDocument.Accept(l_HeaderWriter);
+	rapidjson::StringBuffer headerBuffer;
+	rapidjson::Writer<rapidjson::StringBuffer> headerWriter(headerBuffer);
+	headerDocument.Accept(headerWriter);
  
 	// Write the whole thing.
-	fputs(l_HeaderBuffer.GetString(), s_ReportFile);
+	fputs(headerBuffer.GetString(), s_ReportFile);
 
 	// fputs doesn't add a newline, do it now.
 	fputs("\n", s_ReportFile);
@@ -216,7 +216,7 @@ static void ReportsOpenFile()
 void ReportsInitialize()
 {
 	// Acquire a lock for the rest of the function.
-	const std::lock_guard<std::mutex> l_ReportGuard(s_ReportMutex);
+	const std::lock_guard<std::mutex> reportGuard(s_ReportMutex);
 
 	Logger::FormatWriteLine("Initializing reports...");
 
@@ -235,7 +235,7 @@ void ReportsInitialize()
 void ReportsUninitialize()
 {
 	// Acquire a lock for the rest of the function.
-	const std::lock_guard<std::mutex> l_ReportGuard(s_ReportMutex);
+	const std::lock_guard<std::mutex> reportGuard(s_ReportMutex);
 
 	// Close the file.
 	if (s_ReportFile != nullptr)
@@ -248,55 +248,58 @@ void ReportsUninitialize()
 
 // Write an item into the report.
 //
-// p_Item:	The item to write out.
+// item:	The item to write out.
 //
-static void ReportsWriteItem(PendingItem const& p_Item)
+static void ReportsWriteItem(PendingItem const& item)
 {
-	static unsigned int const l_TimeStringBufferCapacity = 512;
-	char l_TimeStringBuffer[l_TimeStringBufferCapacity];
+	static constexpr std::size_t kTimeStringBufferCapacity{ 512u };
+	char timeStringBuffer[kTimeStringBufferCapacity];
 
 	// Get the time.
-	auto* l_LocalTime = localtime(&p_Item.m_RawTime);
+	auto* localTime = localtime(&item.m_RawTime);
 
 	// Put the date and time in the buffer in 2012/09/23 17:44:05 CDT format.
-	strftime(l_TimeStringBuffer, l_TimeStringBufferCapacity, "%Y/%m/%d %H:%M:%S %Z", l_LocalTime);
+	strftime(timeStringBuffer, kTimeStringBufferCapacity, "%Y/%m/%d %H:%M:%S %Z", localTime);
 	
+	// Can subtract one from this without underflow.
+	static_assert(kTimeStringBufferCapacity >= 1u);
+
 	// Force terminate.
-	l_TimeStringBuffer[l_TimeStringBufferCapacity - 1] = '\0';
+	timeStringBuffer[kTimeStringBufferCapacity - 1u] = '\0';
 
 	// Parse the event string back into JSON.
-	rapidjson::Document l_EventDocument;
-	l_EventDocument.Parse(p_Item.m_EventString.c_str());
+	rapidjson::Document eventDocument;
+	eventDocument.Parse(item.m_EventString.c_str());
 
-	if (l_EventDocument.HasParseError() == true)
+	if (eventDocument.HasParseError() == true)
 	{
-		Logger::FormatWriteLine<NCurses::ColorIndex::RED>(
+		Logger::FormatWriteLine<NCurses::ColorIndex::Red>(
 			"Failed to convert report event string back into JSON \"%s\".",
-			p_Item.m_EventString.c_str());
+			item.m_EventString.c_str());
 		return;
 	}
 
 	// Make a JSON representation of this item.
-	rapidjson::Document l_ItemDocument;
-	l_ItemDocument.SetObject();
+	rapidjson::Document itemDocument;
+	itemDocument.SetObject();
 
-	auto l_ItemAllocator = l_ItemDocument.GetAllocator();
+	auto itemAllocator = itemDocument.GetAllocator();
 
 	// It is safe to use a string reference here because this document will not live outside of this 
 	// scope.
-	l_ItemDocument.AddMember("dateTime", 
-		rapidjson::Value(rapidjson::StringRef(l_TimeStringBuffer)), l_ItemAllocator);
+	itemDocument.AddMember("dateTime", 
+		rapidjson::Value(rapidjson::StringRef(timeStringBuffer)), itemAllocator);
 
 	// Add the event object.
-	l_ItemDocument.AddMember("event", l_EventDocument.GetObject(), l_ItemAllocator);
+	itemDocument.AddMember("event", eventDocument.GetObject(), itemAllocator);
 	
 	// Write this into a string.
-	rapidjson::StringBuffer l_ItemBuffer;
-	rapidjson::Writer<rapidjson::StringBuffer> l_ItemWriter(l_ItemBuffer);
-	l_ItemDocument.Accept(l_ItemWriter);
+	rapidjson::StringBuffer itemBuffer;
+	rapidjson::Writer<rapidjson::StringBuffer> itemWriter(itemBuffer);
+	itemDocument.Accept(itemWriter);
  	
 	// Write the whole thing.
-	fputs(l_ItemBuffer.GetString(), s_ReportFile);
+	fputs(itemBuffer.GetString(), s_ReportFile);
 
 	// fputs doesn't add a newline, do it now.
 	fputs("\n", s_ReportFile);
@@ -307,15 +310,15 @@ static void ReportsWriteItem(PendingItem const& p_Item)
 void ReportsProcess()
 {
 	// Acquire a lock for the rest of the function.
-	const std::lock_guard<std::mutex> l_ReportGuard(s_ReportMutex);
+	const std::lock_guard<std::mutex> reportGuard(s_ReportMutex);
 
 	if (s_ReportFile != nullptr)
 	{
 		// We are going to write out any pending items first, before we check whether we need to 
 		// switch the file.
-		for (auto const& l_Item : s_PendingItemList)
+		for (auto const& item : s_PendingItemList)
 		{
-			ReportsWriteItem(l_Item);
+			ReportsWriteItem(item);
 		}
 
 		s_PendingItemList.clear();
@@ -329,92 +332,92 @@ void ReportsProcess()
 
 // Add an item to the report.
 // 
-// p_EventString:	The string version of the JSON for the event.
+// eventString:	The string version of the JSON for the event.
 //
-static void ReportsAddItem(std::string const& p_EventString)
+static void ReportsAddItem(std::string const& eventString)
 {
 	// Acquire a lock for the rest of the function.
-	const std::lock_guard<std::mutex> l_ReportGuard(s_ReportMutex);
+	const std::lock_guard<std::mutex> reportGuard(s_ReportMutex);
 
-	PendingItem l_PendingItem;
-	l_PendingItem.m_RawTime = time(nullptr);
-	l_PendingItem.m_EventString = p_EventString;
+	PendingItem pendingItem;
+	pendingItem.m_RawTime = time(nullptr);
+	pendingItem.m_EventString = eventString;
 
-	s_PendingItemList.push_back(l_PendingItem);
+	s_PendingItemList.push_back(pendingItem);
 }
 
 // Add an item to the report corresponding to a control event.
 // 
-// p_ControlName:	The name of the control.
-// p_Action:		The action performed on the control.
-// p_SourceName:	An identifier for where this item comes from.
+// controlName:	The name of the control.
+// action:		The action performed on the control.
+// sourceName:	An identifier for where this item comes from.
 // 
-void ReportsAddControlItem(std::string const& p_ControlName, Control::Actions const p_Action,
-	std::string const& p_SourceName)
+void ReportsAddControlItem(std::string const& controlName, Control::Actions const action,
+	std::string const& sourceName)
 {
-	if ((p_Action < 0) || (p_Action >= Control::NUM_ACTIONS))
+	if ((action < 0) || (action >= Control::kNumActions))
 	{
 		Logger::FormatWriteLine("Could not add control item to the report because it contains an invalid "
-			"action %d!", p_Action);
+			"action %d!", action);
 		return;
 	}
 
 	// Make a JSON representation of this item.
-	rapidjson::Document l_ItemDocument;
-	l_ItemDocument.SetObject();
+	rapidjson::Document itemDocument;
+	itemDocument.SetObject();
 
-	auto l_ItemAllocator = l_ItemDocument.GetAllocator();
+	auto itemAllocator = itemDocument.GetAllocator();
 
-	l_ItemDocument.AddMember("type", 
-		rapidjson::Value(rapidjson::StringRef("control")), l_ItemAllocator);	
+	itemDocument.AddMember("type", 
+		rapidjson::Value(rapidjson::StringRef("control")), itemAllocator);	
 
 	// It is safe to use a string reference here because this document will not live outside of this 
 	// scope.
-	l_ItemDocument.AddMember("control", 
-		rapidjson::Value(rapidjson::StringRef(p_ControlName.c_str())), l_ItemAllocator);
+	itemDocument.AddMember("control", 
+		rapidjson::Value(rapidjson::StringRef(controlName.c_str())), itemAllocator);
 
-	l_ItemDocument.AddMember("action", 
-		rapidjson::Value(rapidjson::StringRef(s_ControlActionNames[p_Action])), l_ItemAllocator);
+	itemDocument.AddMember("action", 
+		rapidjson::Value(rapidjson::StringRef(s_ControlActionNames[action])), itemAllocator);
 
-	l_ItemDocument.AddMember("source", 
-		rapidjson::Value(rapidjson::StringRef(p_SourceName.c_str())), l_ItemAllocator);
+	itemDocument.AddMember("source", 
+		rapidjson::Value(rapidjson::StringRef(sourceName.c_str())), itemAllocator);
 	
 	// Write this into a string.
-	rapidjson::StringBuffer l_ItemBuffer;
-	rapidjson::Writer<rapidjson::StringBuffer> l_ItemWriter(l_ItemBuffer);
-	l_ItemDocument.Accept(l_ItemWriter);
+	rapidjson::StringBuffer itemBuffer;
+	rapidjson::Writer<rapidjson::StringBuffer> itemWriter(itemBuffer);
+	itemDocument.Accept(itemWriter);
 
 	// Handle the rest.
-	ReportsAddItem(l_ItemBuffer.GetString());
+	ReportsAddItem(itemBuffer.GetString());
 }
 
 // Add an item to the report corresponding to a schedule event.
 // 
-// p_ActionName:	The name of the schedule action.
+// actionName:	The name of the schedule action.
 // 
-void ReportsAddScheduleItem(std::string const& p_ActionName)
+void ReportsAddScheduleItem(std::string const& actionName)
 {
 	// Make a JSON representation of this item.
-	rapidjson::Document l_ItemDocument;
-	l_ItemDocument.SetObject();
+	rapidjson::Document itemDocument;
+	itemDocument.SetObject();
 
-	auto l_ItemAllocator = l_ItemDocument.GetAllocator();
+	auto itemAllocator = itemDocument.GetAllocator();
 
-	l_ItemDocument.AddMember("type", 
-		rapidjson::Value(rapidjson::StringRef("schedule")), l_ItemAllocator);	
+	itemDocument.AddMember("type", 
+		rapidjson::Value(rapidjson::StringRef("schedule")), itemAllocator);	
 
 	// It is safe to use a string reference here because this document will not live outside of this 
 	// scope.
-	l_ItemDocument.AddMember("action", 
-		rapidjson::Value(rapidjson::StringRef(p_ActionName.c_str())), l_ItemAllocator);
+	itemDocument.AddMember("action", 
+		rapidjson::Value(rapidjson::StringRef(actionName.c_str())), itemAllocator);
 	
 	// Write this into a string.
-	rapidjson::StringBuffer l_ItemBuffer;
-	rapidjson::Writer<rapidjson::StringBuffer> l_ItemWriter(l_ItemBuffer);
-	l_ItemDocument.Accept(l_ItemWriter);
+	rapidjson::StringBuffer itemBuffer;
+	rapidjson::Writer<rapidjson::StringBuffer> itemWriter(itemBuffer);
+	itemDocument.Accept(itemWriter);
 
 	// Handle the rest.
-	ReportsAddItem(l_ItemBuffer.GetString());
+	ReportsAddItem(itemBuffer.GetString());
 }
 
 // Add an item to the report corresponding to a status event.
@@ -422,19 +425,19 @@ void ReportsAddScheduleItem(std::string const& p_ActionName)
 void ReportsAddStatusItem()
 {
 	// Make a JSON representation of this item.
-	rapidjson::Document l_ItemDocument;
-	l_ItemDocument.SetObject();
+	rapidjson::Document itemDocument;
+	itemDocument.SetObject();
 
-	auto l_ItemAllocator = l_ItemDocument.GetAllocator();
+	auto itemAllocator = itemDocument.GetAllocator();
 
-	l_ItemDocument.AddMember("type", 
-		rapidjson::Value(rapidjson::StringRef("status")), l_ItemAllocator);	
+	itemDocument.AddMember("type", 
+		rapidjson::Value(rapidjson::StringRef("status")), itemAllocator);	
 	
 	// Write this into a string.
-	rapidjson::StringBuffer l_ItemBuffer;
-	rapidjson::Writer<rapidjson::StringBuffer> l_ItemWriter(l_ItemBuffer);
-	l_ItemDocument.Accept(l_ItemWriter);
+	rapidjson::StringBuffer itemBuffer;
+	rapidjson::Writer<rapidjson::StringBuffer> itemWriter(itemBuffer);
+	itemDocument.Accept(itemWriter);
 
 	// Handle the rest.
-	ReportsAddItem(l_ItemBuffer.GetString());
+	ReportsAddItem(itemBuffer.GetString());
 }

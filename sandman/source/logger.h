@@ -14,55 +14,53 @@ class Logger
 private:
 
 	std::ostringstream m_Buffer;
-	std::ostream& m_outputStream;
+	std::ostream& m_OutputStream;
 	bool m_ScreenEcho{ false };
 
 public:
 
-	[[nodiscard]] Logger(std::ostream& outputStream): m_Buffer(), m_outputStream(outputStream) {}
+	[[nodiscard]] Logger(std::ostream& outputStream): m_Buffer(), m_OutputStream(outputStream) {}
 
 	template <typename T, typename... ParamsT>
-	[[gnu::always_inline]] inline void Write(T const& p_FirstArg, ParamsT const&... p_Args);
+	[[gnu::always_inline]] inline void Write(T const& firstArg, ParamsT const&... args);
 
-	template <char t_InterpolationIndicator>
-	void InterpolateWrite(std::string_view const p_FormatString);
+	template <char kInterpolationIndicator>
+	void InterpolateWrite(std::string_view const formatString);
 
-	template <char t_InterpolationIndicator, typename T, typename... ParamsT>
-	void InterpolateWrite(std::string_view p_FormatString, T const& p_FirstArg,
-								 ParamsT const&... p_Args);
+	template <char kInterpolationIndicator, typename T, typename... ParamsT>
+	void InterpolateWrite(std::string_view formatString, T const& firstArg, ParamsT const&... args);
 
 private:
 
-	static std::mutex s_Mutex;
-	static std::ofstream s_File;
-	static Logger s_GlobalLogger;
+	static std::mutex ms_Mutex;
+	static std::ofstream ms_File;
+	static Logger ms_GlobalLogger;
 
 public:
 
 	[[gnu::always_inline]] [[nodiscard]] inline static bool& GetScreenEchoFlag()
 	{
-		return s_GlobalLogger.m_ScreenEcho;
+		return ms_GlobalLogger.m_ScreenEcho;
 	}
 
-	[[nodiscard]] static bool Initialize(char const* const p_LogFileName);
+	[[nodiscard]] static bool Initialize(char const* const logFileName);
 
 	static void Uninitialize();
 
 	template <typename... ParamsT>
-	[[gnu::always_inline]] inline static void WriteLine(ParamsT const&... p_Args);
+	[[gnu::always_inline]] inline static void WriteLine(ParamsT const&... args);
 
-	template <NCurses::ColorIndex t_Color = NCurses::ColorIndex::NONE,
-				 std::size_t t_LogStringBufferCapacity = 2048u>
-	[[gnu::format(printf, 1, 0)]] static bool FormatWriteLine(char const* p_Format,
-																				 std::va_list l_ArgumentList);
+	template <NCurses::ColorIndex kColor = NCurses::ColorIndex::None,
+				 std::size_t kLogStringBufferCapacity = 2048u>
+	[[gnu::format(printf, 1, 0)]] static bool FormatWriteLine(char const* format,
+																				 std::va_list argumentList);
 
-	template <NCurses::ColorIndex t_Color = NCurses::ColorIndex::NONE,
-				 std::size_t t_LogStringBufferCapacity = 2048u>
-	[[gnu::format(printf, 1, 2)]] static bool FormatWriteLine(char const* p_Format, ...);
+	template <NCurses::ColorIndex kColor = NCurses::ColorIndex::None,
+				 std::size_t kLogStringBufferCapacity = 2048u>
+	[[gnu::format(printf, 1, 2)]] static bool FormatWriteLine(char const* format, ...);
 
 	template <typename... ParamsT>
-	static void InterpolateWriteLine(std::string_view const p_FormatString,
-												ParamsT const&... p_Args);
+	static void InterpolateWriteLine(std::string_view const formatString, ParamsT const&... args);
 };
 
 #include "logger.inl"

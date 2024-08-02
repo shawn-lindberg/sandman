@@ -5,83 +5,83 @@
 namespace Require
 {
 	// The next character after the string content should always be the null character.
-	template <typename CharT, std::size_t t_Capacity>
-	static void StringNullTerminated(CharBuffer<CharT, t_Capacity> const& p_Buffer)
+	template <typename CharT, std::size_t kCapacity>
+	static void StringNullTerminated(CharBuffer<CharT, kCapacity> const& buffer)
 	{
-		INFO('\"' << p_Buffer.GetData().data() << "\" with string length "
-					 << p_Buffer.GetStringLength() << " is not null terminated correctly. "
-					 << "The character at index " << p_Buffer.GetStringLength() << " is \'"
-					 << p_Buffer.GetData().at(p_Buffer.GetStringLength()) << "\'.");
-		REQUIRE(p_Buffer.GetData().at(p_Buffer.GetStringLength()) == '\0');
+		INFO('\"' << buffer.GetData().data() << "\" with string length "
+					 << buffer.GetStringLength() << " is not null terminated correctly. "
+					 << "The character at index " << buffer.GetStringLength() << " is \'"
+					 << buffer.GetData().at(buffer.GetStringLength()) << "\'.");
+		REQUIRE(buffer.GetData().at(buffer.GetStringLength()) == '\0');
 	}
 
-	template <typename CharT, std::size_t t_Capacity>
-	static void ReplaceString(CharBuffer<CharT, t_Capacity>& p_Buffer,
-									  typename CharBuffer<CharT, t_Capacity>::Data::size_type const p_Index,
+	template <typename CharT, std::size_t kCapacity>
+	static void ReplaceString(CharBuffer<CharT, kCapacity>& buffer,
+									  typename CharBuffer<CharT, kCapacity>::Data::size_type const index,
 									  std::string_view const string)
 	{
-		INFO("Attempt to replace position " << p_Index << " with \"" << string << "\".");
-		auto const l_OriginalStringLength{ p_Buffer.GetStringLength() };
+		INFO("Attempt to replace position " << index << " with \"" << string << "\".");
+		auto const originalStringLength{ buffer.GetStringLength() };
 		for (std::string_view::size_type count{ 0u }; count < string.length(); ++count)
 		{
-			auto const l_CharacterToRemove{ p_Buffer.GetData().at(p_Index) };
-			auto const l_CharacterToCopyShiftLeft{ p_Buffer.GetData().at(p_Index + 1u) };
+			auto const characterToRemove{ buffer.GetData().at(index) };
+			auto const characterToCopyShiftLeft{ buffer.GetData().at(index + 1u) };
 			INFO("On attempt to remove single character.");
 			INFO("Characters removed successfully: " << count);
-			INFO("Character to remove: \'" << l_CharacterToRemove << '\'');
-			INFO("Character to copy shift left: \'" << l_CharacterToCopyShiftLeft << '\'');
+			INFO("Character to remove: \'" << characterToRemove << '\'');
+			INFO("Character to copy shift left: \'" << characterToCopyShiftLeft << '\'');
 			{
 				INFO("Failed to remove character.");
-				REQUIRE(p_Buffer.Remove(p_Index));
+				REQUIRE(buffer.Remove(index));
 			}
-			INFO("String: \"" << p_Buffer.GetData().data() << '\"');
+			INFO("String: \"" << buffer.GetData().data() << '\"');
 			{
 				INFO("The character to the right of the position to remove "
 					  "was not copy shifted left correctly.");
-				INFO("The character to the right of this position is \'" << p_Buffer.GetData().at(p_Index + 1u)
+				INFO("The character to the right of this position is \'" << buffer.GetData().at(index + 1u)
 																		  << "\'.");
 				INFO("The character to the left of this position is " <<
-					  (p_Index > 0u ?
-							std::string({ '\'', p_Buffer.GetData().at(p_Index - 1u), '\''}) :
+					  (index > 0u ?
+							std::string({ '\'', buffer.GetData().at(index - 1u), '\''}) :
 							std::string("(none)")) <<
 					  ".");
 
-				REQUIRE(p_Buffer.GetData().at(p_Index) == l_CharacterToCopyShiftLeft);
+				REQUIRE(buffer.GetData().at(index) == characterToCopyShiftLeft);
 			}
 			{
 				INFO("The string length was not correctly updated.");
-				REQUIRE(p_Buffer.GetStringLength() == l_OriginalStringLength - (count + 1u));
+				REQUIRE(buffer.GetStringLength() == originalStringLength - (count + 1u));
 			}
 			{
 				INFO("The string was not correctly null terminated.");
-				Require::StringNullTerminated(p_Buffer);
+				Require::StringNullTerminated(buffer);
 			}
 		}
 
 		{
 			INFO("After removed characters, the string length of the buffer is not correct.");
-			REQUIRE(p_Buffer.GetStringLength() == l_OriginalStringLength - string.length());
+			REQUIRE(buffer.GetStringLength() == originalStringLength - string.length());
 		}
 
 		{
 			INFO("After removed characters, the buffer string is not correctly null terminated.");
-			Require::StringNullTerminated(p_Buffer);
+			Require::StringNullTerminated(buffer);
 		}
 
-		for (std::string_view::size_type l_Offset{ 0u }; l_Offset < string.size(); ++l_Offset)
+		for (std::string_view::size_type offset{ 0u }; offset < string.size(); ++offset)
 		{
 			INFO("Failed to insert character.");
-			REQUIRE(p_Buffer.Insert(p_Index + l_Offset, string[l_Offset]));
+			REQUIRE(buffer.Insert(index + offset, string[offset]));
 		}
 
 		{
 			INFO("After inserted characters, the string length of the buffer is not correct.");
-			REQUIRE(p_Buffer.GetStringLength() == l_OriginalStringLength);
+			REQUIRE(buffer.GetStringLength() == originalStringLength);
 		}
 
 		{
 			INFO("After inserted characters, the buffer string is not correctly null terminated.");
-			Require::StringNullTerminated(p_Buffer);
+			Require::StringNullTerminated(buffer);
 		}
 	};
 } // namespace Require
@@ -90,98 +90,107 @@ TEST_CASE("`CharBuffer`", "[.CharBuffer]")
 {
 	using namespace std::string_view_literals;
 
-	static constexpr std::string_view s_BackwardSentence(
+	static constexpr std::string_view kBackwardSentence(
 		".god yzal eht revo depmuj xof nworb ehT"sv);
 
 	// Initialize buffer with size of the sentence plus one for null character.
-	static constexpr std::size_t s_BufferCapacity{ s_BackwardSentence.size() + 1u };
-	CharBuffer<char, s_BufferCapacity> l_Buffer;
+	static constexpr std::size_t kBufferCapacity{ kBackwardSentence.size() + 1u };
+	CharBuffer<char, kBufferCapacity> buffer;
 
 	SECTION("properly initialized")
 	{
 		// The buffer starts with an empty string of size zero.
-		REQUIRE(l_Buffer.GetStringLength() == 0u);
-		REQUIRE(l_Buffer.View().size() == 0u);
+		REQUIRE(buffer.GetStringLength() == 0u);
+		REQUIRE(buffer.View().size() == 0u);
 
 		static_assert(
-			l_Buffer.MAX_STRING_LENGTH == s_BufferCapacity - 1u,
+			buffer.kMaxStringLength == kBufferCapacity - 1u,
 			"The maximum string length is the buffer capacity minus one because"
 			"the last character in the buffer is reserved for the null character"
 			"to remain compatible with functions that expect strings to be null terminated.");
 
-		static_assert(l_Buffer.GetData().size() == s_BufferCapacity,
+		static_assert(buffer.GetData().size() == kBufferCapacity,
 						  "The size of the internal array is the buffer capacity.");
 
-		static_assert(l_Buffer.GetData().max_size() == s_BufferCapacity,
+		static_assert(buffer.GetData().max_size() == kBufferCapacity,
 						  "The maximum size of the internal array is the buffer capacity.");
 
 		// All characters are initialized to the null character.
-		for (char const l_Character : l_Buffer.GetData())
-			REQUIRE(l_Character == '\0');
+		for (char const character : buffer.GetData())
+		{
+			REQUIRE(character == '\0');
+		}
 	}
 
 	SECTION("small string")
 	{
-		REQUIRE(l_Buffer.Push('a'));
-		REQUIRE(l_Buffer.Push('b'));
-		REQUIRE(l_Buffer.Push('c'));
-		REQUIRE(l_Buffer.Push('d'));
-		REQUIRE(l_Buffer.View() == "abcd"sv);
-		REQUIRE(l_Buffer.Remove(1u));
-		REQUIRE(l_Buffer.View() == "acd"sv);
+		REQUIRE(buffer.Push('a'));
+		REQUIRE(buffer.Push('b'));
+		REQUIRE(buffer.Push('c'));
+		REQUIRE(buffer.Push('d'));
+		REQUIRE(buffer.View() == "abcd"sv);
+		REQUIRE(buffer.Remove(1u));
+		REQUIRE(buffer.View() == "acd"sv);
 	}
 
 	SECTION("insert characters")
 	{
 		// Insert all characters in the sentence into the front of the buffer.
-		for (char const l_Character : s_BackwardSentence) REQUIRE(l_Buffer.Insert(0u, l_Character));
-		Require::StringNullTerminated(l_Buffer);
+		for (char const character : kBackwardSentence)
+		{
+			REQUIRE(buffer.Insert(0u, character));
+		}
 
-		static constexpr std::string_view s_ForwardSentence("The brown fox jumped over the lazy dog."sv);
+		Require::StringNullTerminated(buffer);
+
+		static constexpr std::string_view kForwardSentence("The brown fox jumped over the lazy dog."sv);
 
 		// Pushing characters to the front of the buffer should work like pushing to a stack.
-		REQUIRE(l_Buffer.View() == s_ForwardSentence);
+		REQUIRE(buffer.View() == kForwardSentence);
 
 		// The buffer is full.
-		REQUIRE(l_Buffer.GetStringLength() == l_Buffer.MAX_STRING_LENGTH);
+		REQUIRE(buffer.GetStringLength() == buffer.kMaxStringLength);
 
 		SECTION("unchanged when attempt to insert at maximum capacity")
 		{
 			// Attempting to insert more characters while the buffer is at the capacity
 			// should not change the contents of the string.
-			for (char const l_Character : "More text."sv) REQUIRE_FALSE(l_Buffer.Insert(0u, l_Character));
-			Require::StringNullTerminated(l_Buffer);
+			for (char const character : "More text."sv)
+			{
+				REQUIRE_FALSE(buffer.Insert(0u, character));
+			}
+			Require::StringNullTerminated(buffer);
 
 			// Remains unchanged.
-			REQUIRE(l_Buffer.View() == s_ForwardSentence);
+			REQUIRE(buffer.View() == kForwardSentence);
 		}
 
 		SECTION("clear")
 		{
-			l_Buffer.Clear();
-			Require::StringNullTerminated(l_Buffer);
-			REQUIRE(l_Buffer.View() == ""sv);
+			buffer.Clear();
+			Require::StringNullTerminated(buffer);
+			REQUIRE(buffer.View() == ""sv);
 		}
 
 		SECTION("remove and insert characters")
 		{
-			Require::ReplaceString(l_Buffer, 4u, "green"sv);
+			Require::ReplaceString(buffer, 4u, "green"sv);
 
-			Require::ReplaceString(l_Buffer, 14u, "hopped"sv);
+			Require::ReplaceString(buffer, 14u, "hopped"sv);
 
-			Require::ReplaceString(l_Buffer, 35u, "cat"sv);
+			Require::ReplaceString(buffer, 35u, "cat"sv);
 
-			Require::ReplaceString(l_Buffer, 12u, "g"sv);
+			Require::ReplaceString(buffer, 12u, "g"sv);
 
-			Require::ReplaceString(l_Buffer, 30u, "m"sv);
+			Require::ReplaceString(buffer, 30u, "m"sv);
 
-			Require::ReplaceString(l_Buffer, 32u, "d"sv);
+			Require::ReplaceString(buffer, 32u, "d"sv);
 
-			REQUIRE(l_Buffer.Remove(33u));
+			REQUIRE(buffer.Remove(33u));
 
-			REQUIRE(l_Buffer.Insert(11u, 'r'));
+			REQUIRE(buffer.Insert(11u, 'r'));
 
-			REQUIRE(l_Buffer.View() == "The green frog hopped over the mad cat."sv);
+			REQUIRE(buffer.View() == "The green frog hopped over the mad cat."sv);
 		}
 	}
 }

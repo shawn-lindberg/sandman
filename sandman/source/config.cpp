@@ -1,8 +1,8 @@
 #include "config.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "rapidjson/document.h"
 #include "rapidjson/filereadstream.h"
@@ -25,138 +25,138 @@ Config::Config()
 
 // Read the configuration from a file.
 // 
-// p_ConfigFileName:	The name of the config file.
+// configFileName:	The name of the config file.
 //
 // Returns:				True if successful, false otherwise.
 //
-bool Config::ReadFromFile(char const* p_ConfigFileName)
+bool Config::ReadFromFile(char const* configFileName)
 {
-	if (p_ConfigFileName == nullptr)
+	if (configFileName == nullptr)
 	{
 		return false;
 	}
 	
 	// Open the config file.
-	auto* l_ConfigFile = fopen(p_ConfigFileName, "r");
+	auto* configFile = fopen(configFileName, "r");
 
-	if (l_ConfigFile == nullptr)
+	if (configFile == nullptr)
 	{
 		Logger::WriteLine(NCurses::Red("Failed to open the config file."));
 		return false;
 	}
 
-	static constexpr unsigned int l_ReadBufferCapacity = 65536;
-	char l_ReadBuffer[l_ReadBufferCapacity];
-	rapidjson::FileReadStream l_ConfigFileStream(l_ConfigFile, l_ReadBuffer, sizeof(l_ReadBuffer));
+	static constexpr std::size_t kReadBufferCapacity{ 65536u };
+	char readBuffer[kReadBufferCapacity];
+	rapidjson::FileReadStream configFileStream(configFile, readBuffer, sizeof(readBuffer));
 
-	rapidjson::Document l_ConfigDocument;
-	l_ConfigDocument.ParseStream(l_ConfigFileStream);
+	rapidjson::Document configDocument;
+	configDocument.ParseStream(configFileStream);
 
-	if (l_ConfigDocument.HasParseError() == true)
+	if (configDocument.HasParseError() == true)
 	{
 		Logger::WriteLine(NCurses::Red("Failed to parse the config file."));
-		fclose(l_ConfigFile);
+		fclose(configFile);
 		return false;
 	}
 	
 	// Find the control settings.
-	auto const l_ControlSettingsIterator = l_ConfigDocument.FindMember("controlSettings");
+	auto const controlSettingsIterator = configDocument.FindMember("controlSettings");
 
-	if (l_ControlSettingsIterator == l_ConfigDocument.MemberEnd())
+	if (controlSettingsIterator == configDocument.MemberEnd())
 	{
 		Logger::WriteLine(NCurses::Red("Config is missing control settings."));
-		fclose(l_ConfigFile);
+		fclose(configFile);
 		return false;		
 	}
 
 	// Read the control settings.
-	if (ReadControlSettingsFromJSON(l_ControlSettingsIterator->value) == false)
+	if (ReadControlSettingsFromJSON(controlSettingsIterator->value) == false)
 	{
 		Logger::WriteLine(NCurses::Red("Encountered error trying to read control settings."));
-		fclose(l_ConfigFile);
+		fclose(configFile);
 		return false;	
 	}
 
 	// If there are input settings, try to read them.
-	auto const l_InputSettingsIterator = l_ConfigDocument.FindMember("inputSettings");
+	auto const inputSettingsIterator = configDocument.FindMember("inputSettings");
 
-	if (l_InputSettingsIterator != l_ConfigDocument.MemberEnd())
+	if (inputSettingsIterator != configDocument.MemberEnd())
 	{
-		if (ReadInputSettingsFromJSON(l_InputSettingsIterator->value) == false)
+		if (ReadInputSettingsFromJSON(inputSettingsIterator->value) == false)
 		{
 			Logger::WriteLine(NCurses::Red("Encountered error trying to read input settings."));
 		}
 	}
 
-	fclose(l_ConfigFile);
+	fclose(configFile);
 	return true;
 }
 
 // Read control settings from JSON. 
 //
-// p_Object:	The JSON object representing the control settings.
+// object:	The JSON object representing the control settings.
 //
 // Returns:		True if the settings were read successfully, false otherwise.
 //
-bool Config::ReadControlSettingsFromJSON(rapidjson::Value const& p_Object)
+bool Config::ReadControlSettingsFromJSON(rapidjson::Value const& object)
 {
-	if (p_Object.IsObject() == false)
+	if (object.IsObject() == false)
 	{
 		Logger::WriteLine(NCurses::Red("Config has a control settings, but it's not an object."));
 		return false;
 	}
 
 	// Try to get the max moving duration.
-	auto const l_MaxMovingIterator = p_Object.FindMember("maxMovingDurationMS");
+	auto const maxMovingIterator = object.FindMember("maxMovingDurationMS");
 
-	if (l_MaxMovingIterator != p_Object.MemberEnd())
+	if (maxMovingIterator != object.MemberEnd())
 	{
-		if (l_MaxMovingIterator->value.IsInt() == true)
+		if (maxMovingIterator->value.IsInt() == true)
 		{
-			m_ControlMaxMovingDurationMS = l_MaxMovingIterator->value.GetInt();
+			m_ControlMaxMovingDurationMS = maxMovingIterator->value.GetInt();
 		}
 	}
 
 	// Try to get to cool down duration.
-	auto const l_CoolDownIterator = p_Object.FindMember("coolDownDurationMS");
+	auto const coolDownIterator = object.FindMember("coolDownDurationMS");
 
-	if (l_CoolDownIterator != p_Object.MemberEnd())
+	if (coolDownIterator != object.MemberEnd())
 	{
-		if (l_CoolDownIterator->value.IsInt() == true)
+		if (coolDownIterator->value.IsInt() == true)
 		{
-			m_ControlCoolDownDurationMS = l_CoolDownIterator->value.GetInt();
+			m_ControlCoolDownDurationMS = coolDownIterator->value.GetInt();
 		}
 	}
 
 	// A controls array is required, but it may be empty.
 	m_ControlConfigs.clear();
 
-	auto const l_ControlsIterator = p_Object.FindMember("controls");
+	auto const controlsIterator = object.FindMember("controls");
 
-	if (l_ControlsIterator == p_Object.MemberEnd())
+	if (controlsIterator == object.MemberEnd())
 	{
 		Logger::WriteLine(NCurses::Red("Config control settings is missing a control array."));
 		return false;
 	}
 
-	if (l_ControlsIterator->value.IsArray() == false)
+	if (controlsIterator->value.IsArray() == false)
 	{
 		Logger::WriteLine(
 			NCurses::Red("Config control settings has controls but it is not an array."));
 		return false;
 	}
 
-	for (auto const& l_ControlObject : l_ControlsIterator->value.GetArray())
+	for (auto const& controlObject : controlsIterator->value.GetArray())
 	{	
 		// Try to read the control.
-		ControlConfig l_ControlConfig;
-		if (l_ControlConfig.ReadFromJSON(l_ControlObject) == false)
+		ControlConfig controlConfig;
+		if (controlConfig.ReadFromJSON(controlObject) == false)
 		{
 			continue;
 		}
 
 		// If we successfully read a control config, add it to the list.
-		m_ControlConfigs.push_back(l_ControlConfig);
+		m_ControlConfigs.push_back(controlConfig);
 	}
 
 	return true;
@@ -164,13 +164,13 @@ bool Config::ReadControlSettingsFromJSON(rapidjson::Value const& p_Object)
 
 // Read input settings from JSON. 
 //
-// p_Object:	The JSON object representing the input settings.
+// object:	The JSON object representing the input settings.
 //
 // Returns:		True if the settings were read successfully, false otherwise.
 //
-bool Config::ReadInputSettingsFromJSON(rapidjson::Value const& p_Object)
+bool Config::ReadInputSettingsFromJSON(rapidjson::Value const& object)
 {
-	if (p_Object.IsObject() == false)
+	if (object.IsObject() == false)
 	{
 		Logger::WriteLine(
 			NCurses::Red("Config has in input settings member, but it's not an object."));
@@ -178,86 +178,86 @@ bool Config::ReadInputSettingsFromJSON(rapidjson::Value const& p_Object)
 	}
 
 	// We must have an array of input devices.
-	auto const l_InputDevicesIterator = p_Object.FindMember("inputDevices");
+	auto const inputDevicesIterator = object.FindMember("inputDevices");
 
-	if (l_InputDevicesIterator == p_Object.MemberEnd())
+	if (inputDevicesIterator == object.MemberEnd())
 	{
 		Logger::WriteLine(NCurses::Red("Config is missing in input devices member."));
 		return false;
 	}
 
-	if (l_InputDevicesIterator->value.IsArray() == false)
+	if (inputDevicesIterator->value.IsArray() == false)
 	{
 		Logger::WriteLine(
 			NCurses::Red("Config has an input devices member, but it is not an array."));
 		return false;
 	}
 
-	rapidjson::Value const& l_InputDevices = l_InputDevicesIterator->value;
+	rapidjson::Value const& inputDevices = inputDevicesIterator->value;
 
 	// In the future we may support multiple input devices, but for now we will just read the first
 	// one.
-	if (l_InputDevices.Size() == 0)
+	if (inputDevices.Size() == 0)
 	{
 		return true;
 	}
 
-	rapidjson::Value const& l_InputDevice = l_InputDevices[0];
+	rapidjson::Value const& inputDevice = inputDevices[0];
 
-	if (l_InputDevice.IsObject() == false)
+	if (inputDevice.IsObject() == false)
 	{
 		Logger::WriteLine(NCurses::Red("Config has an input device that is not an object."));
 		return false;
 	}
 
 	// We must have a device name.
-	auto const l_DeviceIterator = l_InputDevice.FindMember("device");
+	auto const deviceIterator = inputDevice.FindMember("device");
 
-	if (l_DeviceIterator == p_Object.MemberEnd())
+	if (deviceIterator == object.MemberEnd())
 	{
 		Logger::WriteLine(NCurses::Red("Config input device is missing the device name."));
 		return false;
 	}
 
-	if (l_DeviceIterator->value.IsString() == false)
+	if (deviceIterator->value.IsString() == false)
 	{
 		Logger::WriteLine(NCurses::Red("Config input device name is not a string."));
 		return false;
 	}
 	
 	// Copy no more than the amount of text the buffer can hold.
-	strncpy(m_InputDeviceName, l_DeviceIterator->value.GetString(), sizeof(m_InputDeviceName) - 1);
+	strncpy(m_InputDeviceName, deviceIterator->value.GetString(), sizeof(m_InputDeviceName) - 1);
 	m_InputDeviceName[sizeof(m_InputDeviceName) - 1] = '\0';
 
 	// We must have a bindings array, but it can be empty.
 	m_InputBindings.clear();
 
-	auto const l_BindingsIterator = l_InputDevice.FindMember("bindings");
+	auto const bindingsIterator = inputDevice.FindMember("bindings");
 
-	if (l_BindingsIterator == l_InputDevice.MemberEnd())
+	if (bindingsIterator == inputDevice.MemberEnd())
 	{
 		Logger::WriteLine(NCurses::Red("Config input device is missing a bindings array."));
 		return false;
 	}
 
-	if (l_BindingsIterator->value.IsArray() == false)
+	if (bindingsIterator->value.IsArray() == false)
 	{
 		Logger::WriteLine(
 			NCurses::Red("Config input device bindings exists, but it is not an array."));
 		return false;
 	}
 
-	for (auto const& l_BindingObject : l_BindingsIterator->value.GetArray())
+	for (auto const& bindingObject : bindingsIterator->value.GetArray())
 	{
 		// Try to read the binding.
-		InputBinding l_Binding;
-		if (l_Binding.ReadFromJSON(l_BindingObject) == false)
+		InputBinding binding;
+		if (binding.ReadFromJSON(bindingObject) == false)
 		{
 			continue;
 		}
 
 		// If we successfully read a binding, add it to the list.
-		m_InputBindings.push_back(l_Binding);
+		m_InputBindings.push_back(binding);
 	}
 
 	return true;

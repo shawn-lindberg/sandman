@@ -13,11 +13,11 @@ struct ScheduleEvent
 {
 	// Read a schedule event from JSON. 
 	//
-	// p_Object:	The JSON object representing the event.
+	// object:	The JSON object representing the event.
 	//	
 	// Returns:		True if the event was read successfully, false otherwise.
 	//
-	bool ReadFromJSON(rapidjson::Value const& p_Object);
+	bool ReadFromJSON(rapidjson::Value const& object);
 	
 	// Delay in seconds before this entry occurs (since the last).
 	unsigned int	m_DelaySec;
@@ -34,11 +34,11 @@ class Schedule
 
       // Load a schedule from a file.
       //
-      // p_FileName: The name of a file describing the schedule.
+      // fileName: The name of a file describing the schedule.
       //
       // Returns:    True if the schedule was loaded successfully, false otherwise.
       //
-      bool ReadFromFile(const char* p_FileName);
+      bool ReadFromFile(const char* fileName);
 
       // Determines whether the schedule is empty.
       //

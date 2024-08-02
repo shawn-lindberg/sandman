@@ -1,57 +1,55 @@
 #include "logger.h"
 
 template <typename... ParamsT>
-[[gnu::always_inline]] inline void ::Logger::WriteLine(ParamsT const&... p_Args)
+[[gnu::always_inline]] inline void ::Logger::WriteLine(ParamsT const&... args)
 {
 	using namespace std::string_view_literals;
 
-	std::lock_guard const l_Lock(s_Mutex);
-	s_GlobalLogger.Write(
+	std::lock_guard const lock(ms_Mutex);
+	ms_GlobalLogger.Write(
 		NCurses::Cyan(std::put_time(Common::GetLocalTime(), "%Y/%m/%d %H:%M:%S %Z"), " | "sv),
-		p_Args..., '\n');
+		args..., '\n');
 }
 
-template <NCurses::ColorIndex t_Color, std::size_t t_LogStringBufferCapacity>
-bool ::Logger::FormatWriteLine(char const* p_Format,
-																			 std::va_list l_ArgumentList)
+template <NCurses::ColorIndex kColor, std::size_t kLogStringBufferCapacity>
+bool ::Logger::FormatWriteLine(char const* format, std::va_list argumentList)
 {
-	char l_LogStringBuffer[t_LogStringBufferCapacity];
+	char logStringBuffer[kLogStringBufferCapacity];
 
-	std::vsnprintf(l_LogStringBuffer, t_LogStringBufferCapacity, p_Format, l_ArgumentList);
+	std::vsnprintf(logStringBuffer, kLogStringBufferCapacity, format, argumentList);
 
-	if constexpr (t_Color == NCurses::ColorIndex::NONE)
+	if constexpr (kColor == NCurses::ColorIndex::None)
 	{
-		WriteLine(l_LogStringBuffer);
+		WriteLine(logStringBuffer);
 	}
 	else
 	{
-		WriteLine(NCurses::Color<t_Color, char const*>(l_LogStringBuffer));
+		WriteLine(NCurses::Color<kColor, char const*>(logStringBuffer));
 	}
 
 	return true;
 }
 
-template <NCurses::ColorIndex t_Color, std::size_t t_LogStringBufferCapacity>
-bool ::Logger::FormatWriteLine(char const* p_Format, ...)
+template <NCurses::ColorIndex kColor, std::size_t kLogStringBufferCapacity>
+bool ::Logger::FormatWriteLine(char const* format, ...)
 {
-	std::va_list l_ArgumentList;
-	va_start(l_ArgumentList, p_Format);
-	bool const l_Result{ FormatWriteLine<t_Color, t_LogStringBufferCapacity>(p_Format,
-																									 l_ArgumentList) };
-	va_end(l_ArgumentList);
-	return l_Result;
+	std::va_list argumentList;
+	va_start(argumentList, format);
+	bool const result{ FormatWriteLine<kColor, kLogStringBufferCapacity>(format, argumentList) };
+	va_end(argumentList);
+	return result;
 }
 
 template <typename... ParamsT>
-void ::Logger::InterpolateWriteLine(std::string_view const p_FormatString, ParamsT const&... p_Args)
+void ::Logger::InterpolateWriteLine(std::string_view const formatString, ParamsT const&... args)
 {
 	using namespace std::string_view_literals;
 
-	std::lock_guard const l_Lock(s_Mutex);
-	s_GlobalLogger.Write(
+	std::lock_guard const lock(ms_Mutex);
+	ms_GlobalLogger.Write(
 		NCurses::Cyan(std::put_time(Common::GetLocalTime(), "%Y/%m/%d %H:%M:%S %Z"), " | "sv));
 
-	s_GlobalLogger.InterpolateWrite<'$'>(p_FormatString, p_Args...);
+	ms_GlobalLogger.InterpolateWrite<'$'>(formatString, args...);
 
-	s_GlobalLogger.Write('\n');
+	ms_GlobalLogger.Write('\n');
 }

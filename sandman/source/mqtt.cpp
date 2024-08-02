@@ -65,38 +65,38 @@ static std::vector<CommandToken> s_CommandTokensPendingConfirmation;
 
 // Subscribes to a topic.
 //
-// p_MosquittoClient:	The client instance.
-// p_Topic:					The topic that we want to subscribe to.
+// mosquittoClient:	The client instance.
+// topic:					The topic that we want to subscribe to.
 //
 // Returns:	True on success, false on failure.
 //
-static bool MQTTSubscribeTopic(mosquitto* p_MosquittoClient, const char* p_Topic)
+static bool MQTTSubscribeTopic(mosquitto* mosquittoClient, const char* topic)
 {
-	const int l_QoS = 0;
-	auto l_ReturnCode = mosquitto_subscribe(p_MosquittoClient, nullptr, p_Topic, l_QoS);
+	const int qoS = 0;
+	auto returnCode = mosquitto_subscribe(mosquittoClient, nullptr, topic, qoS);
 
-	if (l_ReturnCode != MOSQ_ERR_SUCCESS)
+	if (returnCode != MOSQ_ERR_SUCCESS)
 	{
-		Logger::FormatWriteLine("Subscription to MQTT topic \"%s\" failed with return code %d", p_Topic,
-			l_ReturnCode);		
+		Logger::FormatWriteLine("Subscription to MQTT topic \"%s\" failed with return code %d", topic,
+			returnCode);		
 		return false;
 	}
 	
-	Logger::FormatWriteLine("Subscribed to MQTT topic \"%s\".", p_Topic);
+	Logger::FormatWriteLine("Subscribed to MQTT topic \"%s\".", topic);
 	return true;
 }
 
 // Handles acknowledgment of a connection.
 //
-// p_MosquittoClient:	The client instance that connected.
-// p_UserData:				The user data associated with the client instance.
-// p_ReturnCode:			The return code of the connection response.
+// mosquittoClient:	The client instance that connected.
+// userData:				The user data associated with the client instance.
+// returnCode:			The return code of the connection response.
 //
-void OnConnectCallback(mosquitto* p_MosquittoClient, void* p_UserData, int p_ReturnCode)
+void OnConnectCallback(mosquitto* mosquittoClient, void* userData, int returnCode)
 {
-	if (p_ReturnCode != MOSQ_ERR_SUCCESS)
+	if (returnCode != MOSQ_ERR_SUCCESS)
 	{		
-		Logger::FormatWriteLine("Connection to MQTT host failed with return code %d", p_ReturnCode);
+		Logger::FormatWriteLine("Connection to MQTT host failed with return code %d", returnCode);
 		return;
 	}
 
@@ -104,28 +104,28 @@ void OnConnectCallback(mosquitto* p_MosquittoClient, void* p_UserData, int p_Ret
 	Logger::FormatWriteLine("Connected to MQTT host.");
 
 	// Subscribe to the relevant topics.
-	MQTTSubscribeTopic(p_MosquittoClient, "hermes/intent/#");
-	MQTTSubscribeTopic(p_MosquittoClient, "hermes/tts/#");
-	MQTTSubscribeTopic(p_MosquittoClient, "hermes/dialogueManager/#");
+	MQTTSubscribeTopic(mosquittoClient, "hermes/intent/#");
+	MQTTSubscribeTopic(mosquittoClient, "hermes/tts/#");
+	MQTTSubscribeTopic(mosquittoClient, "hermes/dialogueManager/#");
 }
 
 // Handles message for a subscribed topic.
 //
-// p_MosquittoClient:	The client instance that subscribed.
-// p_UserData:				The user data associated with the client instance.
-// p_Message:				The message data that was received.
+// mosquittoClient:	The client instance that subscribed.
+// userData:				The user data associated with the client instance.
+// message:				The message data that was received.
 //
-void OnMessageCallback(mosquitto* p_MosquittoClient, void* p_UserData, 
-	const mosquitto_message* p_Message)
+void OnMessageCallback(mosquitto* mosquittoClient, void* userData, 
+	const mosquitto_message* message)
 {
-	const auto* l_PayloadString = reinterpret_cast<char*>(p_Message->payload);
-	//Logger::FormatWriteLine("Received MQTT message for topic \"%s\": %s", p_Message->topic, 
-	//	l_PayloadString);
+	const auto* payloadString = reinterpret_cast<char*>(message->payload);
+	//Logger::FormatWriteLine("Received MQTT message for topic \"%s\": %s", message->topic, 
+	//	payloadString);
 
-	std::string const l_Topic(p_Message->topic);
+	std::string const topic(message->topic);
 
 	// Keep track of whether the first text-to-speech finished.
-	if (l_Topic.find("hermes/tts/sayFinished") != std::string::npos)
+	if (topic.find("hermes/tts/sayFinished") != std::string::npos)
 	{
 		s_FirstTextToSpeechFinished = true;
 
@@ -134,28 +134,28 @@ void OnMessageCallback(mosquitto* p_MosquittoClient, void* p_UserData,
 	}
 
 	// Helper lambda to save a message to process later.
-	auto l_SaveMessage = [&]()
+	auto saveMessage = [&]()
 	{
 		// Acquire a lock to protect the received message list.
-		std::lock_guard<std::mutex> l_MessageGuard(s_ReceivedMessagesMutex);
+		std::lock_guard<std::mutex> messageGuard(s_ReceivedMessagesMutex);
 
-		MessageInfo l_Message;
-		l_Message.m_Topic = l_Topic;
-		l_Message.m_Payload = l_PayloadString;
+		MessageInfo message;
+		message.m_Topic = topic;
+		message.m_Payload = payloadString;
 
-		s_ReceivedMessageList.push_back(l_Message);
+		s_ReceivedMessageList.push_back(message);
 	};
 
 	// Only save certain messages to process later.
-	if (l_Topic.find("hermes/dialogueManager/") != std::string::npos)
+	if (topic.find("hermes/dialogueManager/") != std::string::npos)
 	{
-		l_SaveMessage();
+		saveMessage();
 		return;
 	}
 
-	if (l_Topic.find("hermes/intent/") != std::string::npos) 
+	if (topic.find("hermes/intent/") != std::string::npos) 
 	{
-		l_SaveMessage();
+		saveMessage();
 		return;
 	}
 }
@@ -179,17 +179,17 @@ bool MQTTInitialize()
 	Logger::WriteLine('\t', NCurses::Green("succeeded"));
 	Logger::WriteLine();
 
-	int l_MajorVersion = 0;
-	int l_MinorVersion = 0;
-	int l_Revision = 0;
-	mosquitto_lib_version(&l_MajorVersion, &l_MinorVersion, &l_Revision);
+	int majorVersion = 0;
+	int minorVersion = 0;
+	int revision = 0;
+	mosquitto_lib_version(&majorVersion, &minorVersion, &revision);
 
-	Logger::FormatWriteLine("MQTT version %i.%i.%i", l_MajorVersion, l_MinorVersion, l_Revision);
+	Logger::FormatWriteLine("MQTT version %i.%i.%i", majorVersion, minorVersion, revision);
 
 	Logger::FormatWriteLine("Creating MQTT client...");
 
-	const bool l_CleanSession = true;
-    s_MosquittoClient = mosquitto_new("sandman", l_CleanSession, nullptr);
+	const bool cleanSession = true;
+    s_MosquittoClient = mosquitto_new("sandman", cleanSession, nullptr);
 
 	if (s_MosquittoClient == nullptr) 
 	{
@@ -208,38 +208,38 @@ bool MQTTInitialize()
 
 	// We are going to repeatedly attempt to connect roughly every second for a 
 	// certain period of time.
-	auto l_Connected = false;
+	auto connected = false;
 	
-	Time l_ConnectStartTime;
-	TimerGetCurrent(l_ConnectStartTime);
+	Time connectStartTime;
+	TimerGetCurrent(connectStartTime);
 		
-	while (l_Connected == false)
+	while (connected == false)
 	{
-		static constexpr int l_Port = 12183;
-		static constexpr int l_KeepAliveSeconds = 60;
+		static constexpr int kPort{ 12183 };
+		static constexpr int kKeepAliveSeconds{ 60 };
 
-		const auto l_ReturnCode = mosquitto_connect(s_MosquittoClient, "localhost", 
-			l_Port, l_KeepAliveSeconds);
+		const auto returnCode = mosquitto_connect(s_MosquittoClient, "localhost", 
+			kPort, kKeepAliveSeconds);
 		
-		if (l_ReturnCode == MOSQ_ERR_SUCCESS)
+		if (returnCode == MOSQ_ERR_SUCCESS)
 		{		
-			l_Connected = true;
+			connected = true;
 			break;
 		}
 	
 		// Figure out how long we have been attempting to connect.
-		Time l_ConnectCurrentTime;
-		TimerGetCurrent(l_ConnectCurrentTime);
+		Time connectCurrentTime;
+		TimerGetCurrent(connectCurrentTime);
 		
-		float const l_DurationMS = TimerGetElapsedMilliseconds(l_ConnectStartTime, 
-			l_ConnectCurrentTime);
-		auto const l_DurationSeconds = static_cast<unsigned long>(l_DurationMS) / 
+		float const durationMS = TimerGetElapsedMilliseconds(connectStartTime, 
+			connectCurrentTime);
+		auto const durationSeconds = static_cast<unsigned long>(durationMS) / 
 			1000;
 		
 		// Attempt for five minutes at most.
-		static constexpr unsigned long l_TimeoutDurationSeconds = 5 * 60;
+		static constexpr unsigned long kTimeoutDurationSeconds = 5 * 60;
 		
-		if (l_DurationSeconds >= l_TimeoutDurationSeconds)
+		if (durationSeconds >= kTimeoutDurationSeconds)
 		{
 			break;
 		}
@@ -248,7 +248,7 @@ bool MQTTInitialize()
 		sleep(1);
 	}
 
-	if (l_Connected == false) {
+	if (connected == false) {
 		
 		Logger::WriteLine('\t', NCurses::Red("failed"));
 		return false;
@@ -270,8 +270,8 @@ void MQTTUninitialize()
 	if (s_MosquittoClient != nullptr)
 	{
 		// Stop any processing that may have been occurring in another thread.
-		const auto l_Force = true;
-		mosquitto_loop_stop(s_MosquittoClient, l_Force);
+		const auto force = true;
+		mosquitto_loop_stop(s_MosquittoClient, force);
 
 		mosquitto_disconnect(s_MosquittoClient);
 		mosquitto_destroy(s_MosquittoClient);
@@ -282,17 +282,17 @@ void MQTTUninitialize()
 
 // Publishes a message to a given topic.
 //
-// p_Topic:		The topic to publish to.
-// p_Message:	The message to be published.
+// topic:		The topic to publish to.
+// message:	The message to be published.
 //
-static void MQTTPublishMessage(char const* p_Topic, char const* p_Message)
+static void MQTTPublishMessage(char const* topic, char const* message)
 {
-	if (p_Topic == nullptr)
+	if (topic == nullptr)
 	{
 		return;
 	}
 
-	if (p_Message == nullptr)
+	if (message == nullptr)
 	{
 		return;
 	}
@@ -300,32 +300,32 @@ static void MQTTPublishMessage(char const* p_Topic, char const* p_Message)
 	// If we are not yet connected, put the message and the topic on a list to publish once we are.
 	if (s_ConnectedToHost == false) {
 
-		MessageInfo l_PendingMessage;
-		l_PendingMessage.m_Topic = p_Topic;
-		l_PendingMessage.m_Payload = p_Message;
+		MessageInfo pendingMessage;
+		pendingMessage.m_Topic = topic;
+		pendingMessage.m_Payload = message;
 
-		s_PendingMessageList.push_back(l_PendingMessage);
+		s_PendingMessageList.push_back(pendingMessage);
 		return;
 	}
 
 	// I thought that we needed to count the terminator here, but it actually doesn't work if we do. 
 	// Go figure.
-	auto const l_MessageLength = strlen(p_Message);
+	auto const messageLength = std::strlen(message);
 
-	int const l_QoS = 0;
-	bool const l_Retain = false;
-	auto l_ReturnCode = mosquitto_publish(s_MosquittoClient, nullptr, p_Topic, l_MessageLength,
-		p_Message, l_QoS, l_Retain);
+	int const qoS = 0;
+	bool const retain = false;
+	auto returnCode = mosquitto_publish(s_MosquittoClient, nullptr, topic, messageLength,
+		message, qoS, retain);
 
-	if (l_ReturnCode != MOSQ_ERR_SUCCESS)
+	if (returnCode != MOSQ_ERR_SUCCESS)
 	{
-		Logger::FormatWriteLine("Publish to MQTT topic \"%s\" failed with return code %d", p_Topic,
-			l_ReturnCode);		
+		Logger::FormatWriteLine("Publish to MQTT topic \"%s\" failed with return code %d", topic,
+			returnCode);		
 	} 
 	else 
 	{
-		//Logger::FormatWriteLine("Published message to MQTT topic \"%s\": %s", p_Topic, p_Message);			
-		Logger::FormatWriteLine("Published message to MQTT topic \"%s\"", p_Topic);			
+		//Logger::FormatWriteLine("Published message to MQTT topic \"%s\": %s", topic, message);			
+		Logger::FormatWriteLine("Published message to MQTT topic \"%s\"", topic);			
 	}
 }
 
@@ -334,74 +334,74 @@ static void MQTTPublishMessage(char const* p_Topic, char const* p_Message)
 static void DialogueManagerEndSession()
 {
 	// Create a properly formatted message that will end the session.
-	static constexpr unsigned int l_MessageBufferCapacity = 500;
-	char l_MessageBuffer[l_MessageBufferCapacity];
+	static constexpr std::size_t kMessageBufferCapacity{ 500u };
+	char messageBuffer[kMessageBufferCapacity];
 
-	snprintf(l_MessageBuffer, l_MessageBufferCapacity, "{\"sessionId\": \"%s\", \"text\": \"\"}", 
+	std::snprintf(messageBuffer, kMessageBufferCapacity, "{\"sessionId\": \"%s\", \"text\": \"\"}", 
 		s_DialogueManagerSessionID.c_str());
 
 	// Actually publish to the topic.
-	char const* l_Topic = "hermes/dialogueManager/endSession";
-	MQTTPublishMessage(l_Topic, l_MessageBuffer);
+	char const* topic = "hermes/dialogueManager/endSession";
+	MQTTPublishMessage(topic, messageBuffer);
 }
 
 // Handles processing a dialogue manager message.
 //
-// p_Topic:					The topic of the message.
-// p_MessageDocument:	The JSON document for the message payload.
+// topic:					The topic of the message.
+// messageDocument:	The JSON document for the message payload.
 // 
-static void ProcessDialogueManagerMessage(std::string const& p_Topic, 
-	rapidjson::Document const& p_MessageDocument)
+static void ProcessDialogueManagerMessage(std::string const& topic, 
+	rapidjson::Document const& messageDocument)
 {
 	// Technically we probably don't need to be able to access the session ID for all cases here, 
 	// but it's reasonable to expect and the code is cleanest this way.
-	auto const l_SessionIDIterator = p_MessageDocument.FindMember("sessionId");
+	auto const sessionIDIterator = messageDocument.FindMember("sessionId");
 
-	if (l_SessionIDIterator == p_MessageDocument.MemberEnd())
+	if (sessionIDIterator == messageDocument.MemberEnd())
 	{
 		return;
 	}
 		
-	auto const l_SessionID = l_SessionIDIterator->value.GetString();
+	auto const sessionID = sessionIDIterator->value.GetString();
 	
-	if (p_Topic.find("sessionStarted") != std::string::npos)
+	if (topic.find("sessionStarted") != std::string::npos)
 	{
-		Logger::FormatWriteLine("Dialogue session started with ID: %s", l_SessionID);
-		s_DialogueManagerSessionID = l_SessionID;
+		Logger::FormatWriteLine("Dialogue session started with ID: %s", sessionID);
+		s_DialogueManagerSessionID = sessionID;
 		return;
 	}
 
-	if (p_Topic.find("sessionEnded") != std::string::npos)
+	if (topic.find("sessionEnded") != std::string::npos)
 	{
-		auto l_GetReason = [&]() -> char const*
+		auto getReason = [&]() -> char const*
 		{
-			auto const l_TerminationIterator = p_MessageDocument.FindMember("termination");
+			auto const terminationIterator = messageDocument.FindMember("termination");
 
-			if (l_TerminationIterator == p_MessageDocument.MemberEnd())
+			if (terminationIterator == messageDocument.MemberEnd())
 			{
 				return nullptr;
 			}
 
-			auto const l_ReasonIterator = l_TerminationIterator->value.FindMember("reason");
+			auto const reasonIterator = terminationIterator->value.FindMember("reason");
 
-			if (l_ReasonIterator == p_MessageDocument.MemberEnd())
+			if (reasonIterator == messageDocument.MemberEnd())
 			{
 				return nullptr;
 			}
 
-			return l_ReasonIterator->value.GetString();
+			return reasonIterator->value.GetString();
 		};
 
-		auto const l_Reason = l_GetReason();
+		auto const reason = getReason();
 
-		if (l_Reason != nullptr)
+		if (reason != nullptr)
 		{
-			Logger::FormatWriteLine("Dialogue session ended with ID: %s and reason: %s", l_SessionID, 
-				l_Reason);
+			Logger::FormatWriteLine("Dialogue session ended with ID: %s and reason: %s", sessionID, 
+				reason);
 		}
 		else
 		{
-			Logger::FormatWriteLine("Dialogue session ended with ID: %s", l_SessionID);
+			Logger::FormatWriteLine("Dialogue session ended with ID: %s", sessionID);
 		}	
 	
 		s_DialogueManagerSessionID = "";
@@ -411,101 +411,101 @@ static void ProcessDialogueManagerMessage(std::string const& p_Topic,
 
 // Handles processing an intent message.
 //
-// p_IntentDocument:	The JSON document for the intent payload.
+// intentDocument:	The JSON document for the intent payload.
 //
-static void ProcessIntentMessage(rapidjson::Document const& p_IntentDocument)
+static void ProcessIntentMessage(rapidjson::Document const& intentDocument)
 {
 	// Take into account tokens pending confirmation, but only once.
-	auto l_CommandTokens = s_CommandTokensPendingConfirmation;
+	auto commandTokens = s_CommandTokensPendingConfirmation;
 	s_CommandTokensPendingConfirmation.clear();
 
-	CommandTokenizeJSONDocument(l_CommandTokens, p_IntentDocument);
+	CommandTokenizeJSONDocument(commandTokens, intentDocument);
 
-	if (l_CommandTokens.empty() == true)
+	if (commandTokens.empty() == true)
 	{
 		DialogueManagerEndSession();
 		return;
 	}
 		
-	char const* l_ConfirmationText = nullptr;
-	auto const l_ReturnValue = CommandParseTokens(l_ConfirmationText, l_CommandTokens);
+	char const* confirmationText = nullptr;
+	auto const returnValue = CommandParseTokens(confirmationText, commandTokens);
 
-	if (l_ReturnValue == CommandParseTokensReturnTypes::INVALID)
+	if (returnValue == CommandParseTokensReturnTypes::Invalid)
 	{
 		DialogueManagerEndSession();
 		return;
 	}
 
 	// Handle missing confirmations, if necessary.
-	if (l_ReturnValue != CommandParseTokensReturnTypes::MISSING_CONFIRMATION)
+	if (returnValue != CommandParseTokensReturnTypes::MissingConfirmation)
 	{
 		return;
 	}
 
  	// Save these tokens for next time.
-	s_CommandTokensPendingConfirmation = l_CommandTokens;
+	s_CommandTokensPendingConfirmation = commandTokens;
 	
 	// Create a properly formatted message that will trigger the confirmation.
-	static constexpr unsigned int l_MessageBufferCapacity = 500;
-	char l_MessageBuffer[l_MessageBufferCapacity];
+	static constexpr std::size_t kMessageBufferCapacity{ 500u };
+	char messageBuffer[kMessageBufferCapacity];
 
-	snprintf(l_MessageBuffer, l_MessageBufferCapacity, "{\"sessionId\": \"%s\", \"text\": \"%s\"}", 
-		s_DialogueManagerSessionID.c_str(), l_ConfirmationText);
+	snprintf(messageBuffer, kMessageBufferCapacity, "{\"sessionId\": \"%s\", \"text\": \"%s\"}", 
+		s_DialogueManagerSessionID.c_str(), confirmationText);
 
 	// Actually publish to the topic.
-	char const* l_Topic = "hermes/dialogueManager/continueSession";
-	MQTTPublishMessage(l_Topic, l_MessageBuffer);
+	char const* topic = "hermes/dialogueManager/continueSession";
+	MQTTPublishMessage(topic, messageBuffer);
 }
 
 // Process is a message that we have received.
 //
-// p_Message:	The message we have received.
+// message:	The message we have received.
 //
-static void MQTTProcessReceivedMessage(MessageInfo const& p_Message)
+static void MQTTProcessReceivedMessage(MessageInfo const& message)
 {
 	// Parse the payload as JSON.
-	rapidjson::Document l_PayloadDocument;
-	l_PayloadDocument.Parse(p_Message.m_Payload.c_str());
+	rapidjson::Document payloadDocument;
+	payloadDocument.Parse(message.m_Payload.c_str());
 
-	if (l_PayloadDocument.HasParseError() == true)
+	if (payloadDocument.HasParseError() == true)
 	{
 		return;
 	}
 
-	auto const& l_Topic = p_Message.m_Topic;
+	auto const& topic = message.m_Topic;
 	
-	if (l_Topic.find("hermes/dialogueManager/") != std::string::npos)
+	if (topic.find("hermes/dialogueManager/") != std::string::npos)
 	{
-		ProcessDialogueManagerMessage(l_Topic, l_PayloadDocument);
+		ProcessDialogueManagerMessage(topic, payloadDocument);
 		return;
 	}
 
-	if (l_Topic.find("hermes/intent/") != std::string::npos) 
+	if (topic.find("hermes/intent/") != std::string::npos) 
 	{
-		Logger::FormatWriteLine("Received MQTT message for topic \"%s\"", p_Message.m_Topic.c_str());
+		Logger::FormatWriteLine("Received MQTT message for topic \"%s\"", message.m_Topic.c_str());
 
-		ProcessIntentMessage(l_PayloadDocument);
+		ProcessIntentMessage(payloadDocument);
 		return;
 	}
 }
 
 // Generates and publishes a message that causes a spoken notification.
 //
-// p_Text:	The notification text.
+// text:	The notification text.
 //
-static void MQTTPublishNotification(std::string const& p_Text)
+static void MQTTPublishNotification(std::string const& text)
 {
 	// Create a properly formatted message that will trigger the notification.
-	static constexpr unsigned int l_MessageBufferCapacity = 500;
-	char l_MessageBuffer[l_MessageBufferCapacity];
+	static constexpr std::size_t kMessageBufferCapacity{ 500u };
+	char messageBuffer[kMessageBufferCapacity];
 
-	snprintf(l_MessageBuffer, l_MessageBufferCapacity, 
+	snprintf(messageBuffer, kMessageBufferCapacity, 
 		"{\"init\": {\"type\": \"notification\", \"text\": \"%s\"}, \"siteId\": \"default\"}",
-		p_Text.c_str());
+		text.c_str());
 
 	// Actually publish to the topic.
-	char const* l_Topic = "hermes/dialogueManager/startSession";
-	MQTTPublishMessage(l_Topic, l_MessageBuffer);
+	char const* topic = "hermes/dialogueManager/startSession";
+	MQTTPublishMessage(topic, messageBuffer);
 }
 
 // Process MQTT.
@@ -515,11 +515,11 @@ void MQTTProcess()
 	{
 		// Acquire a lock to protect the received message list.
 		// NOTE: It is expected that this will be executed from the main thread.
-		std::lock_guard<std::mutex> l_MessageGuard(s_ReceivedMessagesMutex);
+		std::lock_guard<std::mutex> messageGuard(s_ReceivedMessagesMutex);
 
-		for (auto const& l_Message : s_ReceivedMessageList)		
+		for (auto const& message : s_ReceivedMessageList)		
 		{
-			MQTTProcessReceivedMessage(l_Message);
+			MQTTProcessReceivedMessage(message);
 		}
 
 		// Get rid of the messages.
@@ -529,9 +529,9 @@ void MQTTProcess()
 	// If we are connected, send any pending messages.
 	if (s_ConnectedToHost == true) {
 
-		for (auto const& l_PendingMessage : s_PendingMessageList)
+		for (auto const& pendingMessage : s_PendingMessageList)
 		{
-			MQTTPublishMessage(l_PendingMessage.m_Topic.c_str(), l_PendingMessage.m_Payload.c_str());
+			MQTTPublishMessage(pendingMessage.m_Topic.c_str(), pendingMessage.m_Payload.c_str());
 		}
 
 		// Get rid of the pending messages.
@@ -540,9 +540,9 @@ void MQTTProcess()
 		if (s_FirstTextToSpeechFinished == true)
 		{
 			// If we have successfully started playing notifications, go ahead and post the rest.
-			for (auto const& l_PendingNotification : s_PendingNotificationList)
+			for (auto const& pendingNotification : s_PendingNotificationList)
 			{
-				MQTTPublishNotification(l_PendingNotification);
+				MQTTPublishNotification(pendingNotification);
 			}
 
 			// Get rid of the pending notifications. 
@@ -571,16 +571,16 @@ void MQTTProcess()
 			}
 
 			// See if enough time has passed since our last attempt.
-			Time l_CurrentTime;
-			TimerGetCurrent(l_CurrentTime);
+			Time currentTime;
+			TimerGetCurrent(currentTime);
 
-			auto const l_DurationMS = TimerGetElapsedMilliseconds(s_LastAttemptTime, l_CurrentTime);
-			auto const l_DurationSeconds = static_cast<unsigned long>(l_DurationMS) / 1000;
+			auto const durationMS = TimerGetElapsedMilliseconds(s_LastAttemptTime, currentTime);
+			auto const durationSeconds = static_cast<unsigned long>(durationMS) / 1000;
 			
-			static constexpr unsigned long l_ReattemptTimeSeconds = 5;
+			static constexpr unsigned long kReattemptTimeSeconds = 5;
 
 			if ((s_FirstNotification.compare("") != 0) && 
-				(l_DurationSeconds >= l_ReattemptTimeSeconds))
+				(durationSeconds >= kReattemptTimeSeconds))
 			{
 				// If so, reattempt the notification.
 				MQTTPublishNotification(s_FirstNotification);
@@ -594,37 +594,37 @@ void MQTTProcess()
 
 // Generates and publishes a message to cause the provided text to be spoken.
 //
-// p_Text:	The text that should be spoken.
+// text:	The text that should be spoken.
 //
-void MQTTTextToSpeech(std::string const& p_Text)
+void MQTTTextToSpeech(std::string const& text)
 {
 	// Create a properly formatted message that will trigger the text to be spoken.
-	static constexpr unsigned int l_MessageBufferCapacity = 500;
-	char l_MessageBuffer[l_MessageBufferCapacity];
+	static constexpr std::size_t kMessageBufferCapacity{ 500u };
+	char messageBuffer[kMessageBufferCapacity];
 
-	snprintf(l_MessageBuffer, l_MessageBufferCapacity, 
+	snprintf(messageBuffer, kMessageBufferCapacity, 
 		"{\"text\": \"%s\", \"siteId\": \"default\", \"lang\": null, \"id\": \"\", "
-		"\"sessionId\": \"\", \"volume\": 1.0}", p_Text.c_str());
+		"\"sessionId\": \"\", \"volume\": 1.0}", text.c_str());
 
 	// Actually publish to the topic.
-	char const* l_Topic = "hermes/tts/say";
-	MQTTPublishMessage(l_Topic, l_MessageBuffer);
+	char const* topic = "hermes/tts/say";
+	MQTTPublishMessage(topic, messageBuffer);
 }
 
 // Causes a spoken notification.
 //
-// p_Text:	The notification text.
+// text:	The notification text.
 //
-void MQTTNotification(std::string const& p_Text)
+void MQTTNotification(std::string const& text)
 {
-	s_PendingNotificationList.push_back(p_Text);
+	s_PendingNotificationList.push_back(text);
 }
 
 // Get the time that the last text-to-speech finished.
 //
-// p_Time:	(Output) The last time.
+// time:	(Output) The last time.
 //
-void MQTTGetLastTextToSpeechFinishedTime(Time& p_Time)
+void MQTTGetLastTextToSpeechFinishedTime(Time& time)
 {
-	p_Time = s_LastTextToSpeechFinishedTime;
+	time = s_LastTextToSpeechFinishedTime;
 }

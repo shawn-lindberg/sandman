@@ -19,7 +19,7 @@ class Config
 		//
 		// Returns:				True if successful, false otherwise.
 		//
-		bool ReadFromFile(char const* p_FileName);
+		bool ReadFromFile(char const* fileName);
 		
 		// Accessors.
 		
@@ -52,34 +52,34 @@ class Config
 	
 		// Read control settings from JSON. 
 		//
-		// p_Object:	The JSON object representing the control settings.
+		// object:	The JSON object representing the control settings.
 		//
 		// Returns:		True if the settings were read successfully, false otherwise.
 		//
-		bool ReadControlSettingsFromJSON(rapidjson::Value const& p_Object);
+		bool ReadControlSettingsFromJSON(rapidjson::Value const& object);
 
 		// Read input settings from JSON. 
 		//
-		// p_Object:	The JSON object representing the input settings.
+		// object:	The JSON object representing the input settings.
 		//
 		// Returns:		True if the settings were read successfully, false otherwise.
 		//
-		bool ReadInputSettingsFromJSON(rapidjson::Value const& p_Object);
+		bool ReadInputSettingsFromJSON(rapidjson::Value const& object);
 
 		// Constants.
-		static constexpr unsigned int ms_InputDeviceNameCapacity = 64;
+		static constexpr unsigned int kInputDeviceNameCapacity{ 64u };
 		
 		// The name of the input device.
-		char m_InputDeviceName[ms_InputDeviceNameCapacity];
+		char m_InputDeviceName[kInputDeviceNameCapacity];
 							
 		// The list of input bindings.
 		std::vector<InputBinding> m_InputBindings;
 		
 		// The maximum duration a control can move for (in milliseconds).
-		unsigned int m_ControlMaxMovingDurationMS = 100000;
+		unsigned int m_ControlMaxMovingDurationMS = 100'000;
 				
 		// The duration a control will be on cooldown (in milliseconds).
-		unsigned int m_ControlCoolDownDurationMS = 50000;
+		unsigned int m_ControlCoolDownDurationMS = 50'000;
 		
 		// The list of control configs.
 		std::vector<ControlConfig> m_ControlConfigs;

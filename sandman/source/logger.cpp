@@ -1,22 +1,22 @@
 #include "logger.h"
 
-std::mutex Logger::s_Mutex;
-std::ofstream Logger::s_File;
-Logger Logger::s_GlobalLogger(s_File);
+std::mutex Logger::ms_Mutex;
+std::ofstream Logger::ms_File;
+Logger Logger::ms_GlobalLogger(ms_File);
 
-bool ::Logger::Initialize(char const* const p_LogFileName)
+bool ::Logger::Initialize(char const* const logFileName)
 {
-	if (p_LogFileName == nullptr)
+	if (logFileName == nullptr)
 	{
 		return false;
 	}
 
 	{
-		std::lock_guard const l_Lock(s_Mutex);
+		std::lock_guard const lock(ms_Mutex);
 
-		s_File.open(p_LogFileName);
+		ms_File.open(logFileName);
 
-		if (not s_File)
+		if (not ms_File)
 		{
 			return false;
 		}
@@ -27,6 +27,6 @@ bool ::Logger::Initialize(char const* const p_LogFileName)
 
 void ::Logger::Uninitialize()
 {
-	std::lock_guard const l_Lock(s_Mutex);
-	s_File.close();
+	std::lock_guard const lock(ms_Mutex);
+	ms_File.close();
 }
