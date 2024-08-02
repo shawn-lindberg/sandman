@@ -65,8 +65,8 @@ void ::Logger::InterpolateWrite(std::string_view formatString, T const& firstArg
 			case kInterpolationIndicator:
 				if (escapingCharacter)
 				{
-					escapingCharacter = false;
 					Write(c);
+					escapingCharacter = false;
 				}
 				else
 				{
@@ -76,7 +76,15 @@ void ::Logger::InterpolateWrite(std::string_view formatString, T const& firstArg
 				}
 				break;
 			case kEscapeIndicator:
-				escapingCharacter = true;
+				if (escapingCharacter)
+				{
+					Write(c);
+					escapingCharacter = false;
+				}
+				else
+				{
+					escapingCharacter = true;
+				}
 				break;
 			default:
 				Write(c);

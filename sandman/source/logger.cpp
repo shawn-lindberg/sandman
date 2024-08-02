@@ -43,16 +43,24 @@ void ::Logger::InterpolateWrite(std::string_view const formatString)
 			case kInterpolationIndicator:
 				if (escapingCharacter)
 				{
-					escapingCharacter = false;
 					Write(c);
+					escapingCharacter = false;
 				}
 				else
 				{
 					Write("`null`"sv);
 				}
 				break;
-			case '\0':
-				escapingCharacter = true;
+			case kEscapeIndicator:
+				if (escapingCharacter)
+				{
+					Write(c);
+					escapingCharacter = false;
+				}
+				else
+				{
+					escapingCharacter = true;
+				}
 				break;
 			default:
 				Write(c);
