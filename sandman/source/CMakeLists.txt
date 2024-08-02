@@ -24,7 +24,12 @@ find_package(Curses REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(Mosquitto IMPORTED_TARGET libmosquitto REQUIRED)
 
-target_compile_options(sandman_lib PUBLIC -Wall -Werror)
+if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+   target_compile_options(sandman_lib PUBLIC -Wall -Werror -pedantic)
+else()
+   message(WARNING "Not using GNU compiler or Clang compiler.")
+endif()
+
 target_include_directories(sandman_lib PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 #target_include_directories(sandman_lib PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
 
