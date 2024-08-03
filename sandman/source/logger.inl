@@ -3,21 +3,22 @@
 template <typename T, typename... ParamsT>
 [[gnu::always_inline]] inline void ::Logger::Write(Common::Forward<T> firstArg, Common::Forward<ParamsT>... args)
 {
-	if constexpr (Logger::IsFormat<T>{})
+	if constexpr (Logger::IsFormat<std::decay_t<T>>)
 	{
-		// std::apply(
-		// 	[this, &firstArg](Common::Forward<auto>... args)
-		// 	{
-		// 		this->InterpolateWrite(firstArg.m_FormatString, std::forward<decltype(args)>(args)...);
-		// 	},
-		// 	firstArg.m_Objects);
+		std::apply(
+			[this, &firstArg](Common::Forward<auto>... args)
+			{
+				this->InterpolateWrite(firstArg.m_FormatString, std::forward<decltype(args)>(args)...);
+			},
+			firstArg.m_Objects);
 	}
-	else if constexpr (NCurses::IsColor<T>)
+	else if constexpr (NCurses::IsColor<std::decay_t<T>>)
 	{
 		std::apply(
 			[this](Common::Forward<auto>... args)
 			{
-				this->Write(T::kOn, std::forward<decltype(args)>(args)..., T::kOff);
+				this->Write(std::decay_t<T>::kOn, std::forward<decltype(args)>(args)...,
+								std::decay_t<T>::kOff);
 			},
 			firstArg.m_Objects);
 	}

@@ -50,19 +50,25 @@ public:
 	template <typename... ParamsT>
 	Format(std::string_view const, Common::Forward<ParamsT>...) -> Format<Common::Forward<ParamsT>...>;
 
-	template <typename T>
-	struct IsFormat : Common::Implicitly<bool, false> {};
-
-	template <typename... ObjectsT>
-	struct IsFormat<Format<ObjectsT...>> : Common::Implicitly<bool, true> {};
-
 private:
 
 	static std::mutex ms_Mutex;
 	static std::ofstream ms_File;
 	static Logger ms_GlobalLogger;
 
+	struct Traits final
+	{
+		template <typename T>
+		struct IsFormat : Common::Implicitly<bool, false> {};
+
+		template <typename... ObjectsT>
+		struct IsFormat<Format<ObjectsT...>> : Common::Implicitly<bool, true> {};
+	};
+
 public:
+
+	template <typename T>
+	static constexpr bool IsFormat{ ::Logger::Traits::IsFormat<T>{} };
 
 	[[gnu::always_inline]] [[nodiscard]] inline static bool& GetScreenEchoFlag()
 	{
