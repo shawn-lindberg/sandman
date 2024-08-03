@@ -75,9 +75,11 @@ namespace NCurses
 	{
 		static_assert(kColorIndex != ColorIndex::None);
 		static_assert(kColorIndex >= ColorIndex{ 1 } and kColorIndex <= ColorIndex{ 8 });
+
 		static constexpr int kAttributeValue{ COLOR_PAIR(Common::Enum::IntCast(kColorIndex)) };
 		static constexpr CharacterAttribute kOn{ kAttributeValue, true };
 		static constexpr CharacterAttribute kOff{ kAttributeValue, false };
+
 		std::tuple<ObjectsT...> m_Objects;
 
 		template <typename... ParamsT>
@@ -93,14 +95,14 @@ namespace NCurses
 
 	// Deduction guide: deduce from forwarding reference arguments.
 	template <ColorIndex kColorIndex, typename... ParamsT>
-	Color(Common::Forward<ParamsT>... args) -> Color<kColorIndex, Common::Forward<ParamsT>...>;
+	Color(Common::Forward<ParamsT>...) -> Color<kColorIndex, Common::Forward<ParamsT>...>;
 
 	// Function-like constant.
 	// NOLINTBEGIN(readability-identifier-naming)
 
-	template <typename T> inline constexpr bool IsColor{false};
-	template <ColorIndex kColorIndex, typename... ParamsT>
-	inline constexpr bool IsColor<Color<kColorIndex, ParamsT...>>{true};
+	template <typename T> inline constexpr bool IsColor{ false };
+	template <ColorIndex kColorIndex, typename... ObjectsT>
+	inline constexpr bool IsColor<Color<kColorIndex, ObjectsT...>>{ true };
 
 	// NOLINTEND(readability-identifier-naming)
 
