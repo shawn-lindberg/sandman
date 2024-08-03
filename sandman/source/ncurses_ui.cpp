@@ -156,7 +156,6 @@ namespace NCurses
 
 	namespace InputWindow
 	{
-
 		// This window is where user input is echoed to.
 		static WINDOW* s_Window = nullptr;
 
@@ -209,7 +208,7 @@ namespace NCurses
 					break;
 			}
 		}
-	} // namespace
+	}
 
 	inline static void HandleResize()
 	{
