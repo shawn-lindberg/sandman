@@ -82,4 +82,7 @@ namespace Common
 	template <typename T>
 	using Forward = T&&;
 
+	template <typename T, T kValue>
+	struct Implicitly { [[gnu::always_inline]] constexpr operator T() const { return kValue; } };
+
 } // namespace Common
