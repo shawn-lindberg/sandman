@@ -22,13 +22,16 @@ public:
 	[[nodiscard]] Logger(std::ostream& outputStream): m_Buffer(), m_OutputStream(outputStream) {}
 
 	template <typename T, typename... ParamsT>
-	[[gnu::always_inline]] inline void Write(Common::Forward<T> firstArg, Common::Forward<ParamsT>... args);
+	[[gnu::always_inline]] inline void Write(Common::Forward<T> firstArg,
+														  Common::Forward<ParamsT>... args);
 
 	static constexpr char kInterpolationIndicator{ '$' }, kEscapeIndicator{ '\\' };
 
 	void InterpolateWrite(std::string_view const formatString);
 
 	template <typename T, typename... ParamsT>
+	void InterpolateWrite(std::string_view formatString, Common::Forward<T> firstArg,
+								 Common::Forward<ParamsT>... args);
 
 	template <typename... ObjectsT>
 	struct Format
