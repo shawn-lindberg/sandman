@@ -205,7 +205,7 @@ namespace NCurses
 			{
 				case SIGWINCH:
 					s_ShouldResize = true;
-					break;
+					return;
 			}
 		}
 	}
