@@ -417,16 +417,6 @@ namespace NCurses
 			case Key::Ctrl<'D'>:
 				return true;
 
-			case '`':
-				using namespace ColorStringLiterals;
-
-				Logger::InterpolateWriteLine(
-					R"(Zero is $$. One is $. Two is $. Dollar sign is "\$". True is `$$`. False is `$`. )"sv
-					"Green is $. Blue is $blue$. Magenta is $. Missing value is $.",
-					std::noboolalpha, false, true, 2, std::boolalpha, true, false, "green"_green,
-					decltype(Blue())::kOn, decltype(Blue())::kOff, Magenta("magenta"sv));
-				return false;
-
 			case KEY_LEFT:
 				// If the curser has space to move left, move it left.
 				if (s_Cursor > 0u)
