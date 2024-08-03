@@ -29,7 +29,29 @@ public:
 	void InterpolateWrite(std::string_view const formatString);
 
 	template <typename T, typename... ParamsT>
-	void InterpolateWrite(std::string_view formatString, Common::Forward<T> firstArg, Common::Forward<ParamsT>... args);
+
+	template <typename... ObjectsT>
+	struct Format
+	{
+		std::tuple<ObjectsT...> m_Objects;
+		std::string_view m_FormatString;
+
+		template <typename... ParamsT>
+		[[nodiscard]] explicit Format(std::string_view const formatString,
+												Common::Forward<ParamsT>... args)
+			: m_Objects(std::forward<ParamsT>(args)...),
+			  m_FormatString(formatString) {}
+	};
+
+	// Deduction guide: deduce from forwarding reference arguments.
+	template <typename... ParamsT>
+	Format(std::string_view const, Common::Forward<ParamsT>...) -> Format<Common::Forward<ParamsT>...>;
+
+	template <typename T>
+	struct IsFormat : Common::Implicitly<bool, false> {};
+
+	template <typename... ObjectsT>
+	struct IsFormat<Format<ObjectsT...>> : Common::Implicitly<bool, true> {};
 
 private:
 
