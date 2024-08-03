@@ -3,7 +3,16 @@
 template <typename T, typename... ParamsT>
 [[gnu::always_inline]] inline void ::Logger::Write(Common::Forward<T> firstArg, Common::Forward<ParamsT>... args)
 {
-	if constexpr (NCurses::IsColor<T>)
+	if constexpr (Logger::IsFormat<T>{})
+	{
+		// std::apply(
+		// 	[this, &firstArg](Common::Forward<auto>... args)
+		// 	{
+		// 		this->InterpolateWrite(firstArg.m_FormatString, std::forward<decltype(args)>(args)...);
+		// 	},
+		// 	firstArg.m_Objects);
+	}
+	else if constexpr (NCurses::IsColor<T>)
 	{
 		std::apply(
 			[this](Common::Forward<auto>... args)
