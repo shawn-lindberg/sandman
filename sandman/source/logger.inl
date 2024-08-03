@@ -6,9 +6,9 @@ template <typename T, typename... ParamsT>
 	if constexpr (Logger::IsFormat<std::decay_t<T>>)
 	{
 		std::apply(
-			[this, &firstArg](Common::Forward<auto>... args)
+			[this, formatString=firstArg.m_FormatString](Common::Forward<auto>... args)
 			{
-				this->InterpolateWrite(firstArg.m_FormatString, std::forward<decltype(args)>(args)...);
+				this->InterpolateWrite(formatString, std::forward<decltype(args)>(args)...);
 			},
 			firstArg.m_Objects);
 	}
