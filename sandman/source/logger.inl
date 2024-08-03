@@ -58,6 +58,8 @@ template <typename T, typename... ParamsT>
 		}
 
 		m_OutputStream << string;
+
+		// Clear buffer.
 		m_Buffer.str("");
 	}
 }
