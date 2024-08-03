@@ -22,14 +22,14 @@ public:
 	[[nodiscard]] Logger(std::ostream& outputStream): m_Buffer(), m_OutputStream(outputStream) {}
 
 	template <typename T, typename... ParamsT>
-	[[gnu::always_inline]] inline void Write(T const& firstArg, ParamsT const&... args);
+	[[gnu::always_inline]] inline void Write(Common::Forward<T> firstArg, Common::Forward<ParamsT>... args);
 
-	static constexpr char kInterpolationIndicator{'$'}, kEscapeIndicator{'\\'};
+	static constexpr char kInterpolationIndicator{ '$' }, kEscapeIndicator{ '\\' };
 
 	void InterpolateWrite(std::string_view const formatString);
 
 	template <typename T, typename... ParamsT>
-	void InterpolateWrite(std::string_view formatString, T const& firstArg, ParamsT const&... args);
+	void InterpolateWrite(std::string_view formatString, Common::Forward<T> firstArg, Common::Forward<ParamsT>... args);
 
 private:
 
@@ -49,7 +49,7 @@ public:
 	static void Uninitialize();
 
 	template <typename... ParamsT>
-	[[gnu::always_inline]] inline static void WriteLine(ParamsT const&... args);
+	[[gnu::always_inline]] inline static void WriteLine(Common::Forward<ParamsT>... args);
 
 	template <NCurses::ColorIndex kColor = NCurses::ColorIndex::None,
 				 std::size_t kLogStringBufferCapacity = 2048u>
@@ -61,7 +61,7 @@ public:
 	[[gnu::format(printf, 1, 2)]] static bool FormatWriteLine(char const* format, ...);
 
 	template <typename... ParamsT>
-	static void InterpolateWriteLine(std::string_view const formatString, ParamsT const&... args);
+	static void InterpolateWriteLine(std::string_view const formatString, Common::Forward<ParamsT>... args);
 };
 
 #include "logger.inl"

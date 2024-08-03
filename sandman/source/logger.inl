@@ -1,18 +1,18 @@
 #include "logger.h"
 
 template <typename T, typename... ParamsT>
-[[gnu::always_inline]] inline void ::Logger::Write(T const& firstArg, ParamsT const&... args)
+[[gnu::always_inline]] inline void ::Logger::Write(Common::Forward<T> firstArg, Common::Forward<ParamsT>... args)
 {
 	if constexpr (NCurses::IsColor<T>)
 	{
 		std::apply(
-			[this](auto const&... args)
+			[this](Common::Forward<auto>... args)
 			{
-				this->Write(T::kOn, args..., T::kOff);
+				this->Write(T::kOn, std::forward<decltype(args)>(args)..., T::kOff);
 			},
 			firstArg.m_Objects);
 	}
-	else if constexpr (std::is_same_v<T, NCurses::CharacterAttribute>)
+	else if constexpr (std::is_same_v<std::decay_t<T>, NCurses::CharacterAttribute>)
 	{
 		std::string const string(m_Buffer.str());
 		if (m_ScreenEcho)
@@ -23,7 +23,7 @@ template <typename T, typename... ParamsT>
 
 		if (m_ScreenEcho)
 		{
-			NCurses::LoggingWindow::Write(firstArg);
+			NCurses::LoggingWindow::Write(std::forward<T>(firstArg));
 		}
 
 		// Clear buffer.
@@ -31,12 +31,12 @@ template <typename T, typename... ParamsT>
 	}
 	else
 	{
-		m_Buffer << firstArg;
+		m_Buffer << std::forward<T>(firstArg);
 	}
 
 	if constexpr (sizeof...(args) > 0u)
 	{
-		Write(args...);
+		Write(std::forward<ParamsT>(args)...);
 	}
 	else
 	{
@@ -53,8 +53,8 @@ template <typename T, typename... ParamsT>
 }
 
 template <typename T, typename... ParamsT>
-void ::Logger::InterpolateWrite(std::string_view formatString, T const& firstArg,
-										  ParamsT const&... args)
+void ::Logger::InterpolateWrite(std::string_view formatString, Common::Forward<T> firstArg,
+										  Common::Forward<ParamsT>... args)
 {
 	bool escapingCharacter{ false };
 	for (std::string_view::size_type index{ 0u }; index < formatString.size(); ++index)
@@ -70,9 +70,9 @@ void ::Logger::InterpolateWrite(std::string_view formatString, T const& firstArg
 				}
 				else
 				{
-					Write(firstArg);
+					Write(std::forward<T>(firstArg));
 					formatString.remove_prefix(++index);
-					return InterpolateWrite(formatString, args...);
+					return InterpolateWrite(formatString, std::forward<ParamsT>(args)...);
 				}
 				break;
 			case kEscapeIndicator:
