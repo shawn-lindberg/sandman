@@ -298,7 +298,7 @@ void Input::CloseDevice(bool wasFailure, char const* format, ...)
 	va_list arguments;
 	va_start(arguments, format);
 
-	Logger::FormatWriteLine<NCurses::ColorIndex::Red>(format, arguments);
+	Logger::FormatWriteLine<Shell::ColorIndex::Red>(format, arguments);
 	
 	va_end(arguments);
 		

@@ -19,7 +19,7 @@
 /// library, so it is not recommended to interact with the NCurses library without using this this
 /// `NCurses` namespace.
 ///
-namespace NCurses
+namespace Shell
 {
 	using namespace std::string_view_literals;
 
@@ -52,7 +52,6 @@ namespace NCurses
 		// Function-like constant.
 		// NOLINTNEXTLINE(readability-identifier-naming)
 		inline constexpr std::enable_if_t<std::is_integral_v<CharT>, CharT> Ctrl{kName bitand 0x1F};
-
 	}
 
 	enum struct ColorIndex : int
@@ -223,4 +222,4 @@ namespace NCurses
 		bool ProcessSingleUserKey();
 	}
 
-} // namespace NCurses
+}

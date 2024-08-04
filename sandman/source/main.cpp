@@ -16,7 +16,7 @@
 #include "input.h"
 #include "logger.h"
 #include "mqtt.h"
-#include "ncurses_ui.h"
+#include "shell.h"
 #include "notification.h"
 #include "reports.h"
 #include "schedule.h"
@@ -90,7 +90,7 @@ static bool Initialize()
 
 		if (sessionID < 0)
 		{
-			Logger::WriteLine(NCurses::Red("Failed to get new session ID for daemon."));
+			Logger::WriteLine(Shell::Red("Failed to get new session ID for daemon."));
 			s_ExitCode = 1;
 			return false;
 		}
@@ -98,7 +98,7 @@ static bool Initialize()
 		// Change the current working directory.
 		if (chdir(SANDMAN_TEMP_DIR) < 0)
 		{
-			Logger::FormatWriteLine<NCurses::ColorIndex::Red>(
+			Logger::FormatWriteLine<Shell::ColorIndex::Red>(
 				"Failed to change working directory to \"%s\" ID for daemon.", SANDMAN_TEMP_DIR);
 			s_ExitCode = 1;
 			return false;
@@ -122,7 +122,7 @@ static bool Initialize()
 
 		if (s_ListeningSocket < 0)
 		{
-			Logger::WriteLine(NCurses::Red("Failed to create listening socket."));
+			Logger::WriteLine(Shell::Red("Failed to create listening socket."));
 			s_ExitCode = 1;
 			return false;
 		}
@@ -130,7 +130,7 @@ static bool Initialize()
 		// Set to non-blocking.
 		if (fcntl(s_ListeningSocket, F_SETFL, O_NONBLOCK) < 0)
 		{
-			Logger::WriteLine(NCurses::Red("Failed to make listening socket non-blocking."));
+			Logger::WriteLine(Shell::Red("Failed to make listening socket non-blocking."));
 			s_ExitCode = 1;
 			return false;
 		}
@@ -149,7 +149,7 @@ static bool Initialize()
 		if (bind(s_ListeningSocket, reinterpret_cast<sockaddr*>(&listeningAddress),
 					sizeof(sockaddr_un)) < 0)
 		{
-			Logger::WriteLine(NCurses::Red("Failed to bind listening socket."));
+			Logger::WriteLine(Shell::Red("Failed to bind listening socket."));
 			s_ExitCode = 1;
 			return false;
 		}
@@ -157,7 +157,7 @@ static bool Initialize()
 		// Mark the socket for listening.
 		if (listen(s_ListeningSocket, 5) < 0)
 		{
-			Logger::WriteLine(NCurses::Red("Failed to mark listening socket to listen."));
+			Logger::WriteLine(Shell::Red("Failed to mark listening socket to listen."));
 			s_ExitCode = 1;
 			return false;
 		}
@@ -166,7 +166,7 @@ static bool Initialize()
 	}
 	else
 	{
-		NCurses::Initialize();
+		Shell::Initialize();
 
 		// Initialize logging.
 		if (Logger::Initialize(SANDMAN_TEMP_DIR "sandman.log") == false)
@@ -262,7 +262,7 @@ static void Uninitialize()
 
 	if (s_DaemonMode == false)
 	{
-		NCurses::Uninitialize();
+		Shell::Uninitialize();
 	}
 }
 
@@ -471,8 +471,8 @@ int main(int argc, char** argv)
 
 		if (s_DaemonMode == false)
 		{
-			NCurses::Lock l;
-			done = NCurses::InputWindow::ProcessSingleUserKey();
+			Shell::Lock l;
+			done = Shell::InputWindow::ProcessSingleUserKey();
 		}
 
 		// Process command.

@@ -6,7 +6,7 @@
 #include <sstream>
 #include <string>
 
-#include "ncurses_ui.h"
+#include "shell.h"
 
 class Logger
 {
@@ -82,12 +82,12 @@ public:
 	template <typename... ParamsT>
 	[[gnu::always_inline]] inline static void WriteLine(Common::Forward<ParamsT>... args);
 
-	template <NCurses::ColorIndex kColor = NCurses::ColorIndex::None,
+	template <Shell::ColorIndex kColor = Shell::ColorIndex::None,
 				 std::size_t kLogStringBufferCapacity = 2048u>
 	[[gnu::format(printf, 1, 0)]] static bool FormatWriteLine(char const* format,
 																				 std::va_list argumentList);
 
-	template <NCurses::ColorIndex kColor = NCurses::ColorIndex::None,
+	template <Shell::ColorIndex kColor = Shell::ColorIndex::None,
 				 std::size_t kLogStringBufferCapacity = 2048u>
 	[[gnu::format(printf, 1, 2)]] static bool FormatWriteLine(char const* format, ...);
 

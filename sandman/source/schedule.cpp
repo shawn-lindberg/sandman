@@ -104,7 +104,7 @@ bool Schedule::ReadFromFile(const char* fileName)
 
 	if (scheduleFile == nullptr)
 	{
-		Logger::FormatWriteLine<NCurses::ColorIndex::Red>("Failed to open the schedule file %s.\n", fileName);
+		Logger::FormatWriteLine<Shell::ColorIndex::Red>("Failed to open the schedule file %s.\n", fileName);
 		return false;
 	}
 
@@ -118,7 +118,7 @@ bool Schedule::ReadFromFile(const char* fileName)
 
 	if (scheduleDocument.HasParseError() == true)
 	{
-		Logger::FormatWriteLine<NCurses::ColorIndex::Red>("Failed to parse the schedule file %s.\n", fileName);
+		Logger::FormatWriteLine<Shell::ColorIndex::Red>("Failed to parse the schedule file %s.\n", fileName);
 		fclose(scheduleFile);
 		return false;
 	}
@@ -245,7 +245,7 @@ void ScheduleInitialize()
 		return;
 	}
 
-	Logger::WriteLine('\t', NCurses::Green("succeeded"));
+	Logger::WriteLine('\t', Shell::Green("succeeded"));
 	Logger::WriteLine();
 	
 	// Log the schedule that just got loaded.

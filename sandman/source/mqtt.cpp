@@ -176,7 +176,7 @@ bool MQTTInitialize()
 		return false;
 	}
 		
-	Logger::WriteLine('\t', NCurses::Green("succeeded"));
+	Logger::WriteLine('\t', Shell::Green("succeeded"));
 	Logger::WriteLine();
 
 	int majorVersion = 0;
@@ -197,7 +197,7 @@ bool MQTTInitialize()
 		return false;
 	}
 	
-	Logger::WriteLine('\t', NCurses::Green("succeeded"));
+	Logger::WriteLine('\t', Shell::Green("succeeded"));
 	Logger::WriteLine();
 
 	// Set some necessary callbacks.
@@ -250,11 +250,11 @@ bool MQTTInitialize()
 
 	if (connected == false) {
 		
-		Logger::WriteLine('\t', NCurses::Red("failed"));
+		Logger::WriteLine('\t', Shell::Red("failed"));
 		return false;
 	}
 	
-	Logger::WriteLine('\t', NCurses::Green("succeeded"));
+	Logger::WriteLine('\t', Shell::Green("succeeded"));
 	Logger::WriteLine();
 
 	// Start processing in another thread.

@@ -1,7 +1,8 @@
 #include "logger.h"
 
 template <typename T, typename... ParamsT>
-[[gnu::always_inline]] inline void ::Logger::Write(Common::Forward<T> firstArg, Common::Forward<ParamsT>... args)
+[[gnu::always_inline]] inline void ::Logger::Write(Common::Forward<T> firstArg,
+																	Common::Forward<ParamsT>... args)
 {
 	if constexpr (Logger::IsFormat<std::decay_t<T>>)
 	{
@@ -12,7 +13,7 @@ template <typename T, typename... ParamsT>
 			},
 			firstArg.m_Objects);
 	}
-	else if constexpr (NCurses::IsColor<std::decay_t<T>>)
+	else if constexpr (Shell::IsColor<std::decay_t<T>>)
 	{
 		std::apply(
 			[this](Common::Forward<auto>... args)
@@ -22,18 +23,18 @@ template <typename T, typename... ParamsT>
 			},
 			firstArg.m_Objects);
 	}
-	else if constexpr (std::is_same_v<std::decay_t<T>, NCurses::CharacterAttribute>)
+	else if constexpr (std::is_same_v<std::decay_t<T>, Shell::CharacterAttribute>)
 	{
 		std::string const string(m_Buffer.str());
 		if (m_ScreenEcho)
 		{
-			NCurses::LoggingWindow::Write(string);
+			Shell::LoggingWindow::Write(string);
 		}
 		m_OutputStream << string;
 
 		if (m_ScreenEcho)
 		{
-			NCurses::LoggingWindow::Write(std::forward<T>(firstArg));
+			Shell::LoggingWindow::Write(std::forward<T>(firstArg));
 		}
 
 		// Clear buffer.
@@ -54,7 +55,7 @@ template <typename T, typename... ParamsT>
 
 		if (m_ScreenEcho)
 		{
-			NCurses::LoggingWindow::Print(string);
+			Shell::LoggingWindow::Print(string);
 		}
 
 		m_OutputStream << string;

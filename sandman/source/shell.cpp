@@ -1,4 +1,4 @@
-#include "ncurses_ui.h"
+#include "shell.h"
 
 #include "command.h"
 
@@ -11,7 +11,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace NCurses
+namespace Shell
 {
 	namespace
 	{
@@ -416,6 +416,7 @@ namespace NCurses
 			case Key::Ctrl<'D'>:
 				return true;
 
+
 			case KEY_LEFT:
 				// If the curser has space to move left, move it left.
 				if (s_Cursor > 0u)
@@ -472,4 +473,4 @@ namespace NCurses
 		return false;
 	}
 
-} // namespace NCurses
+}

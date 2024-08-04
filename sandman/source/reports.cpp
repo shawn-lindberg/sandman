@@ -173,7 +173,7 @@ static void ReportsOpenFile()
 		return;
 	}
 
-	Logger::WriteLine('\t', NCurses::Green("succeeded"));
+	Logger::WriteLine('\t', Shell::Green("succeeded"));
 
 	// Now that we have successfully opened the file, update the date string.
 	s_ReportDateString = currentReportDateString;
@@ -273,7 +273,7 @@ static void ReportsWriteItem(PendingItem const& item)
 
 	if (eventDocument.HasParseError() == true)
 	{
-		Logger::FormatWriteLine<NCurses::ColorIndex::Red>(
+		Logger::FormatWriteLine<Shell::ColorIndex::Red>(
 			"Failed to convert report event string back into JSON \"%s\".",
 			item.m_EventString.c_str());
 		return;
