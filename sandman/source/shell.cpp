@@ -208,6 +208,8 @@ namespace Shell
 				case SIGWINCH:
 					s_ShouldResize = true;
 					return;
+				default:
+					return;
 			}
 		}
 	}
