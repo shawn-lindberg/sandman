@@ -27,7 +27,7 @@ public:
 	[[gnu::always_inline]] inline void Write(Common::Forward<T> firstArg,
 														  Common::Forward<ParamsT>... args);
 
-	static constexpr char kInterpolationIndicator{ '$' }, kEscapeIndicator{ '\\' };
+	static constexpr char kFormatEscapeIndicator{ '%' }, kFormatInterpolationIndicator{ '$' };
 
 	void InterpolateWrite(std::string_view const formatString);
 
