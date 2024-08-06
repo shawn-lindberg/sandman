@@ -5,7 +5,7 @@
 #include <sstream>
 #include <type_traits>
 
-#if true
+#if false
 inline namespace Debug
 {
 
@@ -197,7 +197,6 @@ TEST_CASE("`CharBuffer`", "[.CharBuffer]")
 		// Insert all characters in the sentence into the front of the buffer.
 		for (char const character : kBackwardSentence)
 		{
-			INFO(ToString(buffer) << '\n');
 			CHECK(buffer.View() ==
 					kForwardSentence.substr(kForwardSentence.length() - insertCount, insertCount));
 			REQUIRE(buffer.Insert(0u, character));
