@@ -94,9 +94,8 @@ public:
 				 std::size_t kLogStringBufferCapacity = 2048u>
 	[[gnu::format(printf, 1, 2)]] static bool FormatWriteLine(char const* format, ...);
 
-	template <typename... ParamsT>
-	static void InterpolateWriteLine(std::string_view const formatString, Common::Forward<ParamsT>... args);
+
 };
 
-#include "logger.inl"
+#include "logger_local.inl"
 #include "logger_global.inl"
