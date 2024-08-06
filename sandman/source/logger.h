@@ -58,13 +58,13 @@ private:
 	static std::ofstream ms_File;
 	static Logger ms_GlobalLogger;
 
-	struct Traits final
+	struct Traits
 	{
-		template <typename T>
-		struct IsFormat : Common::Implicitly<bool, false> {};
+		template <typename>
+		struct IsFormat : Common::Implicitly<false> {};
 
 		template <typename... ObjectsT>
-		struct IsFormat<Format<ObjectsT...>> : Common::Implicitly<bool, true> {};
+		struct IsFormat<Format<ObjectsT...>> : Common::Implicitly<true> {};
 	};
 
 public:
