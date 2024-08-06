@@ -1,12 +1,71 @@
-#include "char_buffer.h"
+#include "common/char_buffer.h"
 
 #include "catch_amalgamated.hpp"
+
+#include <sstream>
+#include <type_traits>
+
+#if true
+inline namespace Debug
+{
+
+	template <typename CharT, std::size_t kN>
+	std::ostream& operator<<(std::ostream& outputStream, Common::CharBuffer<CharT, kN> const& buffer)
+	{
+		outputStream << "Buffer[";
+		for (typename Common::CharBuffer<CharT, kN>::Data::size_type i{ 0u }; i < kN; ++i)
+		{
+			if (i == buffer.GetStringLength()) { outputStream << '@'; continue; }
+			CharT const c{ buffer.GetData().at(i) };
+			switch (c)
+			{
+				case '\0': outputStream << '0'; break;
+				default: outputStream << c; break;
+			}
+		}
+		outputStream << ']';
+		return outputStream;
+	}
+
+	template <typename>
+	static constexpr bool kIsCharBuffer{ false };
+
+	template <typename CharT, std::size_t kN>
+	static constexpr bool kIsCharBuffer<Common::CharBuffer<CharT, kN>>{ true };
+
+	template <typename T>
+	[[nodiscard]] std::string ToString(T&& object)
+	{
+		std::ostringstream outputStream;
+		outputStream << std::forward<T>(object);
+		return outputStream.str();
+	}
+
+	template <typename T, typename... ParamsT>
+	static void Print(T&& firstArg, ParamsT&&... args)
+	{
+		Catch::cout() << std::forward<T>(firstArg);
+
+		if constexpr (sizeof...(args) > 0u)
+		{
+			return Print(std::forward<ParamsT>(args)...);
+		}
+	};
+
+	template <typename... ParamsT>
+	static void Println(ParamsT&&... args)
+	{
+		return Print(std::forward<decltype(args)>(args)..., '\n');
+	}
+
+} // namespace Debug
+#endif
 
 namespace Require
 {
 	// The next character after the string content should always be the null character.
-	template <typename CharT, std::size_t kCapacity>
-	static void StringNullTerminated(CharBuffer<CharT, kCapacity> const& buffer)
+	template <typename CharT, std::size_t kN>
+	static void StringNullTerminated(Common::CharBuffer<CharT, kN> const& buffer)
 	{
 		INFO('\"' << buffer.GetData().data() << "\" with string length "
 					 << buffer.GetStringLength() << " is not null terminated correctly. "
@@ -15,10 +74,11 @@ namespace Require
 		REQUIRE(buffer.GetData().at(buffer.GetStringLength()) == '\0');
 	}
 
-	template <typename CharT, std::size_t kCapacity>
-	static void ReplaceString(CharBuffer<CharT, kCapacity>& buffer,
-									  typename CharBuffer<CharT, kCapacity>::Data::size_type const index,
-									  std::string_view const string)
+	template <typename CharT, std::size_t kN>
+	static void
+		ReplaceString(Common::CharBuffer<CharT, kN>& buffer,
+						  typename Common::CharBuffer<CharT, kN>::Data::size_type const index,
+						  std::string_view const string)
 	{
 		INFO("Attempt to replace position " << index << " with \"" << string << "\".");
 		auto const originalStringLength{ buffer.GetStringLength() };
@@ -91,11 +151,13 @@ TEST_CASE("`CharBuffer`", "[.CharBuffer]")
 	using namespace std::string_view_literals;
 
 	static constexpr std::string_view kBackwardSentence(
-		".god yzal eht revo depmuj xof nworb ehT"sv);
+		".god yzal eht revo spmuj xof nworb kciuq ehT"sv
+		// ".god yzal eht revo depmuj xof nworb ehT"sv
+	);
 
-	// Initialize buffer with size of the sentence plus one for null character.
+	// Initialize buffer with size of the sentence plus one for null character terminator.
 	static constexpr std::size_t kBufferCapacity{ kBackwardSentence.size() + 1u };
-	CharBuffer<char, kBufferCapacity> buffer;
+	Common::CharBuffer<char, kBufferCapacity> buffer;
 
 	SECTION("properly initialized")
 	{
@@ -122,7 +184,7 @@ TEST_CASE("`CharBuffer`", "[.CharBuffer]")
 		}
 	}
 
-	SECTION("small string")
+	SECTION("small string: pushing characters and remove one character")
 	{
 		REQUIRE(buffer.Push('a'));
 		REQUIRE(buffer.Push('b'));
@@ -135,15 +197,25 @@ TEST_CASE("`CharBuffer`", "[.CharBuffer]")
 
 	SECTION("insert characters")
 	{
+
+		REQUIRE(buffer.GetStringLength() == 0u);
+
+		decltype(buffer)::Data::size_type insertCount{ 0u };
+
+		static constexpr std::string_view kForwardSentence(
+			"The quick brown fox jumps over the lazy dog."sv);
+
 		// Insert all characters in the sentence into the front of the buffer.
 		for (char const character : kBackwardSentence)
 		{
+			INFO(ToString(buffer) << '\n');
+			CHECK(buffer.View() ==
+					kForwardSentence.substr(kForwardSentence.length() - insertCount, insertCount));
 			REQUIRE(buffer.Insert(0u, character));
+			REQUIRE(buffer.GetStringLength() == ++insertCount);
 		}
 
 		Require::StringNullTerminated(buffer);
-
-		static constexpr std::string_view kForwardSentence("The brown fox jumped over the lazy dog."sv);
 
 		// Pushing characters to the front of the buffer should work like pushing to a stack.
 		REQUIRE(buffer.View() == kForwardSentence);
@@ -174,23 +246,29 @@ TEST_CASE("`CharBuffer`", "[.CharBuffer]")
 
 		SECTION("remove and insert characters")
 		{
-			Require::ReplaceString(buffer, 4u, "green"sv);
+			// "The quick brown fox jumps over the lazy dog."
+			//  01234567890123456789012345678901234567890123
+			//  0    5   10   15   20   25   30   35   40 43
 
-			Require::ReplaceString(buffer, 14u, "hopped"sv);
+			Require::ReplaceString(buffer, 10u, "gree"sv);
+			Require::ReplaceString(buffer, 18u, "g"sv);
+			Require::ReplaceString(buffer, 20u, "hop"sv);
+			Require::ReplaceString(buffer, 35u, "keen"sv);
+			Require::ReplaceString(buffer, 40u, "cat"sv);
 
-			Require::ReplaceString(buffer, 35u, "cat"sv);
+			REQUIRE(buffer.GetStringLength() == buffer.kMaxStringLength);
+			REQUIRE_FALSE(buffer.Push('Z'));
 
-			Require::ReplaceString(buffer, 12u, "g"sv);
+			REQUIRE(buffer.Remove(23u));
 
-			Require::ReplaceString(buffer, 30u, "m"sv);
+			for (std::size_t i{0u}; i < ("agile "sv).length(); ++i)
+			{
+				REQUIRE(buffer.Remove(4u));
+			}
 
-			Require::ReplaceString(buffer, 32u, "d"sv);
+			REQUIRE(buffer.Insert(17u - ("agile "sv).length(), 'r'));
 
-			REQUIRE(buffer.Remove(33u));
-
-			REQUIRE(buffer.Insert(11u, 'r'));
-
-			REQUIRE(buffer.View() == "The green frog hopped over the mad cat."sv);
+			REQUIRE(buffer.View() == "The green frog hops over the keen cat."sv);
 		}
 	}
 }
