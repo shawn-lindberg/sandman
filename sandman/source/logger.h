@@ -71,6 +71,7 @@ private:
 public:
 
 	template <typename T>
+	// NOLINTNEXTLINE(readability-identifier-naming)
 	static constexpr bool IsFormat{ ::Logger::Traits::IsFormat<T>{} };
 
 	[[gnu::always_inline]] [[nodiscard]] inline static bool& GetScreenEchoFlag()
