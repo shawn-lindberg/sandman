@@ -461,6 +461,9 @@ namespace Shell
 				LoggingWindow::PrintRedLine("Unexpectedly got a `Ctrl` character (", inputKey,
 													 ") from user input.");
 				return false;
+
+			default:
+				break;
 		}
 
 		bool const inputKeyIsPrintable{ Common::ASCII::Match(inputKey) and
