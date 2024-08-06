@@ -167,8 +167,8 @@ TEST_CASE("`CharBuffer`", "[.CharBuffer]")
 
 		static_assert(
 			buffer.kMaxStringLength == kBufferCapacity - 1u,
-			"The maximum string length is the buffer capacity minus one because"
-			"the last character in the buffer is reserved for the null character"
+			"The maximum string length is the buffer capacity minus one because" " "
+			"the last character in the buffer is reserved for the null character" " "
 			"to remain compatible with functions that expect strings to be null terminated.");
 
 		static_assert(buffer.GetData().size() == kBufferCapacity,
