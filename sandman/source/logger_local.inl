@@ -9,7 +9,7 @@ template <typename T, typename... ParamsT>
 		std::apply(
 			[this, formatString=firstArg.m_FormatString](Common::Forward<auto>... args)
 			{
-				this->InterpolateWrite(formatString, std::forward<decltype(args)>(args)...);
+				this->FormatWrite(formatString, std::forward<decltype(args)>(args)...);
 			},
 			firstArg.m_Objects);
 	}
@@ -66,42 +66,41 @@ template <typename T, typename... ParamsT>
 }
 
 template <typename T, typename... ParamsT>
-void ::Logger::InterpolateWrite(std::string_view formatString, Common::Forward<T> firstArg,
+void ::Logger::FormatWrite(std::string_view formatString, Common::Forward<T> firstArg,
 										  Common::Forward<ParamsT>... args)
 {
 	bool escapingCharacter{ false };
+
 	for (std::string_view::size_type index{ 0u }; index < formatString.size(); ++index)
 	{
 		char const c{ formatString[index] };
-		switch (c)
+
+		if (escapingCharacter)
 		{
-			case kInterpolationIndicator:
-				if (escapingCharacter)
-				{
-					Write(c);
-					escapingCharacter = false;
-				}
-				else
-				{
+			switch (c)
+			{
+				case kFormatInterpolationIndicator:
 					Write(std::forward<T>(firstArg));
 					formatString.remove_prefix(++index);
-					return InterpolateWrite(formatString, std::forward<ParamsT>(args)...);
-				}
-				break;
-			case kEscapeIndicator:
-				if (escapingCharacter)
-				{
+					return FormatWrite(formatString, std::forward<ParamsT>(args)...);
+				default:
 					Write(c);
-					escapingCharacter = false;
-				}
-				else
-				{
+					break;
+			}
+			escapingCharacter = false;
+		}
+		else
+		{
+			switch (c)
+			{
+				case kFormatEscapeIndicator:
 					escapingCharacter = true;
-				}
-				break;
-			default:
-				Write(c);
-				break;
+					break;
+				default:
+					Write(c);
+					break;
+			}
 		}
 	}
+
 }

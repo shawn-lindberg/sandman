@@ -36,35 +36,33 @@ void ::Logger::FormatWrite(std::string_view const formatString)
 	using namespace std::string_view_literals;
 
 	bool escapingCharacter{ false };
+
 	for (char const c : formatString)
 	{
-		switch (c)
+		if (escapingCharacter)
 		{
-			case kInterpolationIndicator:
-				if (escapingCharacter)
-				{
-					Write(c);
-					escapingCharacter = false;
-				}
-				else
-				{
+			switch (c)
+			{
+				case kFormatInterpolationIndicator:
 					Write("`null`"sv);
-				}
-				break;
-			case kEscapeIndicator:
-				if (escapingCharacter)
-				{
+					break;
+				default:
 					Write(c);
-					escapingCharacter = false;
-				}
-				else
-				{
+					break;
+			}
+			escapingCharacter = false;
+		}
+		else
+		{
+			switch (c)
+			{
+				case kFormatEscapeIndicator:
 					escapingCharacter = true;
-				}
-				break;
-			default:
-				Write(c);
-				break;
+					break;
+				default:
+					Write(c);
+					break;
+			}
 		}
 	}
 }
