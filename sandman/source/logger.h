@@ -50,7 +50,8 @@ public:
 
 	// Deduction guide: deduce from forwarding reference arguments.
 	template <typename... ParamsT>
-	Format(std::string_view const, Common::Forward<ParamsT>...) -> Format<Common::Forward<ParamsT>...>;
+	Format(std::string_view const,
+			 Common::Forward<ParamsT>...) -> Format<Common::Forward<ParamsT>...>;
 
 private:
 
