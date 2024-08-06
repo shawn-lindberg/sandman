@@ -5,17 +5,21 @@
 #include <type_traits>
 #include <string_view>
 
-#include "common.h"
+#include "common/non_null.h"
+
+namespace Common { template <typename, std::size_t> class CharBuffer; }
 
 template <typename CharT, std::size_t kCapacity>
-class CharBuffer
+class Common::CharBuffer
 {
 	static_assert(std::is_integral_v<CharT>);
 
 	public:
 		using Data = std::array<CharT, kCapacity>;
+
 		// Can certainly use `CharT` as an alias for `typename Data::value_type`.
 		static_assert(std::is_same_v<CharT, typename Data::value_type>);
+
 		using OnStringUpdateListener = void (*)(typename Data::size_type const index, CharT const character);
 		using OnClearListener = void (*)();
 		using OnDecrementStringLengthListener = void (*)(typename Data::size_type const newStringLength);
@@ -45,14 +49,14 @@ class CharBuffer
 
 		constexpr CharBuffer() = default;
 
-		explicit constexpr CharBuffer(OnStringUpdateListener          const onStringUpdateListener         ,
-												OnClearListener                 const onClearListener                ,
-												OnDecrementStringLengthListener const onDecrementStringLengthListener)
-												:
-												m_OnStringUpdate                     (onStringUpdateListener         ),
-												m_OnClear                            (onClearListener                ),
-												m_OnDecrementStringLength            (onDecrementStringLengthListener)
-												{};
+		explicit constexpr CharBuffer(
+			OnStringUpdateListener          const onStringUpdateListener          ,
+			OnClearListener                 const onClearListener                 ,
+			OnDecrementStringLengthListener const onDecrementStringLengthListener):
+			m_OnStringUpdate                     (onStringUpdateListener         ),
+			m_OnClear                            (onClearListener                ),
+			m_OnDecrementStringLength            (onDecrementStringLengthListener)
+		{};
 
 		constexpr bool Insert(typename Data::size_type const index, CharT const character)
 		{
