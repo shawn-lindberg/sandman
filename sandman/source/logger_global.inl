@@ -43,17 +43,3 @@ bool ::Logger::FormatWriteLine(char const* format, ...)
 	va_end(argumentList);
 	return result;
 }
-
-template <typename... ParamsT>
-void ::Logger::InterpolateWriteLine(std::string_view const formatString, Common::Forward<ParamsT>... args)
-{
-	using namespace std::string_view_literals;
-
-	std::lock_guard const lock(ms_Mutex);
-	ms_GlobalLogger.Write(
-		Shell::Cyan(std::put_time(Common::GetLocalTime(), "%Y/%m/%d %H:%M:%S %Z"), " | "sv));
-
-	ms_GlobalLogger.InterpolateWrite(formatString, std::forward<ParamsT>(args)...);
-
-	ms_GlobalLogger.Write('\n');
-}
