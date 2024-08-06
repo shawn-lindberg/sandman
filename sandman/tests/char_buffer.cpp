@@ -41,21 +41,10 @@ inline namespace Debug
 		return outputStream.str();
 	}
 
-	template <typename T, typename... ParamsT>
-	static void Print(T&& firstArg, ParamsT&&... args)
-	{
-		Catch::cout() << std::forward<T>(firstArg);
-
-		if constexpr (sizeof...(args) > 0u)
-		{
-			return Print(std::forward<ParamsT>(args)...);
-		}
-	};
-
 	template <typename... ParamsT>
 	static void Println(ParamsT&&... args)
 	{
-		return Print(std::forward<decltype(args)>(args)..., '\n');
+		(Catch::cout() << ... << std::forward<ParamsT>(args)) << '\n';
 	}
 
 } // namespace Debug
