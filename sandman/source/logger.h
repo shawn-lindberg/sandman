@@ -29,11 +29,11 @@ public:
 
 	static constexpr char kFormatEscapeIndicator{ '%' }, kFormatInterpolationIndicator{ '$' };
 
-	void InterpolateWrite(std::string_view const formatString);
+	void FormatWrite(std::string_view const formatString);
 
 	template <typename T, typename... ParamsT>
-	void InterpolateWrite(std::string_view formatString, Common::Forward<T> firstArg,
-								 Common::Forward<ParamsT>... args);
+	void FormatWrite(std::string_view formatString, Common::Forward<T> firstArg,
+						  Common::Forward<ParamsT>... args);
 
 	template <typename... ObjectsT>
 	struct Format

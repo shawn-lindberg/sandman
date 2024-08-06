@@ -31,7 +31,7 @@ void ::Logger::Uninitialize()
 	ms_File.close();
 }
 
-void ::Logger::InterpolateWrite(std::string_view const formatString)
+void ::Logger::FormatWrite(std::string_view const formatString)
 {
 	using namespace std::string_view_literals;
 
