@@ -240,14 +240,14 @@ TEST_CASE("`CharBuffer`", "[.CharBuffer]")
 
 			Require::ReplaceString(buffer, 10u, "gree"sv);
 			Require::ReplaceString(buffer, 18u, "g"sv);
-			Require::ReplaceString(buffer, 20u, "hop"sv);
+			Require::ReplaceString(buffer, 20u, "ho"sv);
 			Require::ReplaceString(buffer, 35u, "keen"sv);
 			Require::ReplaceString(buffer, 40u, "cat"sv);
 
 			REQUIRE(buffer.GetStringLength() == buffer.kMaxStringLength);
 			REQUIRE_FALSE(buffer.Push('Z'));
 
-			REQUIRE(buffer.Remove(23u));
+			REQUIRE(buffer.Remove(22u));
 
 			for (decltype(buffer)::Data::size_type i{ 0u }; i < ("agile "sv).length(); ++i)
 			{
