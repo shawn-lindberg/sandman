@@ -62,7 +62,7 @@ class Common::CharBuffer
 		{
 			if (index <= m_StringLength and m_StringLength < kMaxStringLength)
 			{
-				for (typename Data::size_type i{ m_StringLength }; i > i; --i)
+				for (typename Data::size_type i{ m_StringLength }; i > index; --i)
 				{
 					m_OnStringUpdate(i, m_Data[i] = m_Data[i - 1u]);
 				}
