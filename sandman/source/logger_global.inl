@@ -1,5 +1,9 @@
 #include "logger.h"
 
+#include "common/get_local_time.h"
+
+#include <iomanip>
+
 template <typename... ParamsT>
 [[gnu::always_inline]] inline void ::Logger::WriteLine(Common::Forward<ParamsT>... args)
 {

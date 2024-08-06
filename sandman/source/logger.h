@@ -3,10 +3,12 @@
 #include <cstdarg>
 #include <fstream>
 #include <mutex>
+#include <optional>
 #include <sstream>
 #include <string>
 
 #include "shell.h"
+#include "common/implicitly.h"
 
 class Logger
 {

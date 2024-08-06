@@ -1,14 +1,14 @@
 #pragma once
 
-#include "char_buffer.h"
+#include "common/char_buffer.h"
+#include "common/enum.h"
+#include "common/forward_alias.h"
 
 #include <array>
 #include <cstddef>
 #include <cstdint>
 #include <mutex>
 #include <type_traits>
-
-#include "common.h"
 
 // This is the standard include directive for NCurses
 // as noted in the "SYNOPSIS" section of the manual page `man 3NCURSES ncurses`.

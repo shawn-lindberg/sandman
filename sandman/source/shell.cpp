@@ -1,8 +1,10 @@
 #include "shell.h"
 
 #include "command.h"
-
 #include "logger.h"
+#include "common/stack.h"
+#include "common/ascii.h"
+
 #include <algorithm>
 #include <csignal>
 #include <cstring>
