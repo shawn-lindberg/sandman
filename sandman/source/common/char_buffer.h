@@ -56,7 +56,7 @@ class Common::CharBuffer
 			m_OnStringUpdate                     (onStringUpdateListener         ),
 			m_OnClear                            (onClearListener                ),
 			m_OnDecrementStringLength            (onDecrementStringLengthListener)
-		{};
+		{}
 
 		constexpr bool Insert(typename Data::size_type const index, CharT const character)
 		{
