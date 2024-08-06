@@ -249,7 +249,7 @@ TEST_CASE("`CharBuffer`", "[.CharBuffer]")
 
 			REQUIRE(buffer.Remove(23u));
 
-			for (std::size_t i{0u}; i < ("agile "sv).length(); ++i)
+			for (decltype(buffer)::Data::size_type i{ 0u }; i < ("agile "sv).length(); ++i)
 			{
 				REQUIRE(buffer.Remove(4u));
 			}
