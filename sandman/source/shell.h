@@ -176,6 +176,51 @@ namespace Shell
 			: m_Objects(std::forward<ParamsT>(args)...), m_Attributes{ attributes } {}
 	};
 
+	constexpr Attr GetColorPair(ForegroundColor const foregroundColor,
+										 BackgroundColor const backgroundColor)
+	{
+		using Common::Enum::IntCast;
+		using ColorPairID = decltype(GetColorID(std::declval<ColorIndex>()));
+
+		ColorPairID const column{ IntCast(static_cast<ColorIndex>(foregroundColor)) };
+		ColorPairID const row{ IntCast(static_cast<ColorIndex>(backgroundColor)) };
+		ColorPairID const colorPairIndex{ row * kColorList.size() + column };
+
+		return Attr(COLOR_PAIR(colorPairIndex));
+	}
+
+	inline namespace CharacterAttributeConstants
+	{
+		using Fg = ForegroundColor;
+		using Bg = BackgroundColor;
+
+		inline constexpr Attr
+			Normal     (Attr::kNormal                                                 ),
+			Highlight  (Attr::kHighlight                                              ),
+			Underline  (Attr::kUnderline                                              ),
+			FlipColor  (Attr::kFlipColor                                              ),
+			Blink      (Attr::kBlink                                                  ),
+			Dim        (Attr::kDim                                                    ),
+			Bold       (Attr::kBold                                                   ),
+			Invisible  (Attr::kInvisible                                              ),
+			Italic     (Attr::kItalic                                                 ),
+			Black      (GetColorPair(Fg{ColorIndex::Black  }, Bg{ColorIndex::Black  })),
+			Red        (GetColorPair(Fg{ColorIndex::Red    }, Bg{ColorIndex::Black  })),
+			Green      (GetColorPair(Fg{ColorIndex::Green  }, Bg{ColorIndex::Black  })),
+			Yellow     (GetColorPair(Fg{ColorIndex::Yellow }, Bg{ColorIndex::Black  })),
+			Blue       (GetColorPair(Fg{ColorIndex::Blue   }, Bg{ColorIndex::Black  })),
+			Magenta    (GetColorPair(Fg{ColorIndex::Magenta}, Bg{ColorIndex::Black  })),
+			Cyan       (GetColorPair(Fg{ColorIndex::Cyan   }, Bg{ColorIndex::Black  })),
+			White      (GetColorPair(Fg{ColorIndex::White  }, Bg{ColorIndex::Black  })),
+			BackBlack  (GetColorPair(Fg{ColorIndex::Black  }, Bg{ColorIndex::Black  })),
+			BackRed    (GetColorPair(Fg{ColorIndex::Black  }, Bg{ColorIndex::Red    })),
+			BackGreen  (GetColorPair(Fg{ColorIndex::Black  }, Bg{ColorIndex::Green  })),
+			BackYellow (GetColorPair(Fg{ColorIndex::Black  }, Bg{ColorIndex::Yellow })),
+			BackBlue   (GetColorPair(Fg{ColorIndex::Black  }, Bg{ColorIndex::Blue   })),
+			BackMagenta(GetColorPair(Fg{ColorIndex::Black  }, Bg{ColorIndex::Magenta})),
+			BackCyan   (GetColorPair(Fg{ColorIndex::Black  }, Bg{ColorIndex::Cyan   })),
+			BackWhite  (GetColorPair(Fg{ColorIndex::Black  }, Bg{ColorIndex::White  }));
+	}
 
 	struct CharacterAttribute { int m_Value; bool m_Flag; };
 
