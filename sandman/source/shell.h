@@ -237,7 +237,9 @@ namespace Shell
 		std::tuple<ObjectsT...> m_Objects;
 
 		template <typename... ParamsT>
-		[[nodiscard]] explicit constexpr Color(Common::Forward<ParamsT>... args) : m_Objects(std::forward<ParamsT>(args)...) {}
+		[[nodiscard]] explicit constexpr Color(Common::Forward<ParamsT>... args)
+			: m_Objects(std::forward<ParamsT>(args)...)
+		{}
 
 		template <typename... ParamsT>
 		[[deprecated("Prefer to use a color factory function.")]]
