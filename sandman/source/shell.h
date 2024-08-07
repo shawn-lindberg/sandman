@@ -84,6 +84,8 @@ namespace Shell
 			case ColorIndex::Magenta: return COLOR_MAGENTA;
 			case ColorIndex::Cyan   : return COLOR_CYAN   ;
 			case ColorIndex::White  : return COLOR_WHITE  ;
+
+			default: return {};
 		}
 	}
 
