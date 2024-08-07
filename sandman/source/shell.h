@@ -166,6 +166,16 @@ namespace Shell
 			: m_Objects(std::forward<ParamsT>(args)...), m_Attributes{ attributes } {}
 	};
 
+	// NOLINTBEGIN(readability-identifier-naming)
+
+	template <typename>
+	inline constexpr bool IsAttrWrapper{ false };
+
+	template <typename... ObjectsT>
+	inline constexpr bool IsAttrWrapper<Attr::Wrapper<ObjectsT...>>{ true };
+
+	// NOLINTEND(readability-identifier-naming)
+
 	constexpr Attr GetColorPair(ForegroundColor const foregroundColor,
 										 BackgroundColor const backgroundColor)
 	{
