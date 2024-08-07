@@ -184,9 +184,20 @@ namespace Shell
 
 		ColorPairID const column{ IntCast(static_cast<ColorIndex>(foregroundColor)) };
 		ColorPairID const row{ IntCast(static_cast<ColorIndex>(backgroundColor)) };
-		ColorPairID const colorPairIndex{ row * kColorList.size() + column };
 
-		return Attr(COLOR_PAIR(colorPairIndex));
+		// Check that it's okay to downcast the `std::size_t` from `size()` to `ColorPairID`.
+		static_assert(kColorList.size() <= 8u and 8u <= std::numeric_limits<ColorPairID>::max());
+
+		ColorPairID const colorPairIndex{
+			// Needs to be static cast to a `ColorPairID`
+			// because operations on `short` integral types
+			// will implicitly convert to not `short` types.
+			static_cast<ColorPairID>(
+				row * ColorPairID{ kColorList.size() } + column
+			)
+		};
+
+		return Attr(Attr::Value{ COLOR_PAIR(colorPairIndex) });
 	}
 
 	inline namespace CharacterAttributeConstants
