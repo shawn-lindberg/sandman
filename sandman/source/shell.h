@@ -370,7 +370,7 @@ namespace Shell
 		///
 		[[deprecated("Manage this window through other functions.")]] [[nodiscard]] WINDOW* Get();
 
-		using Buffer = Common::CharBuffer<char, 128u>;
+		using Buffer = Common::String<char, 1u << 7u>;
 		Buffer const& GetBuffer();
 
 		/// @brief Process a single key input from the user, if any.
