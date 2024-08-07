@@ -195,6 +195,8 @@ namespace Shell
 		using Fg = ForegroundColor;
 		using Bg = BackgroundColor;
 
+		// NOLINTBEGIN(readability-identifier-naming)
+
 		inline constexpr Attr
 			Normal     (Attr::kNormal                                                 ),
 			Highlight  (Attr::kHighlight                                              ),
