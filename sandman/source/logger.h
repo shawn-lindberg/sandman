@@ -23,6 +23,21 @@ public:
 
 	[[nodiscard]] Logger(std::ostream& outputStream): m_Buffer(), m_OutputStream(outputStream) {}
 
+	[[nodiscard]] constexpr std::ostringstream const& GetBuffer() const
+	{
+		return m_Buffer;
+	}
+
+	[[nodiscard]] constexpr std::ostream const& GetOutputStream() const
+	{
+		return m_OutputStream;
+	}
+
+	[[nodiscard]] constexpr bool HasScreenEchoEnabled() const
+	{
+		return m_ScreenEcho;
+	}
+
 	template <typename T, typename... ParamsT>
 	[[gnu::always_inline]] inline void Write(Common::Forward<T> firstArg,
 														  Common::Forward<ParamsT>... args);
