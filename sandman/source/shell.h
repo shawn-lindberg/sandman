@@ -110,18 +110,6 @@ namespace Shell
 		[[nodiscard]] constexpr explicit BackgroundColor(ColorIndex const color) : Box{color} {};
 	};
 
-	inline constexpr bool InColorIndexList(ColorIndex const color)
-	{
-		for (ColorIndex const validColor : kColorList)
-		{
-			if (color == validColor)
-			{
-				return true;
-			}
-		}
-		return false;
-	}
-
 	struct Attr
 	{
 		using Value = attr_t;
