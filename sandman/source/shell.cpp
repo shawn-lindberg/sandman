@@ -221,6 +221,41 @@ namespace Shell
 		LoggingWindow::PrintRedLine("Window resize is unimplemented.");
 	}
 
+	static void InitializeColorFunctionality()
+	{
+		// Initialize Curses color functionality.
+		start_color();
+
+		// Maximum color pairs that the terminal supports.
+		auto const maxColorPairCount{ COLOR_PAIRS };
+
+		short signed int colorPairID{ 0 };
+
+		for (ColorIndex const backgroundColor : kColorList)
+		{
+			for (ColorIndex const foregroundColor : kColorList)
+			{
+				static constexpr decltype(colorPairID) kExclusiveUpperLimit{
+					std::min(
+						decltype(colorPairID){ 256 },
+						std::numeric_limits<decltype(colorPairID)>::max()
+					)
+				};
+
+				if (colorPairID >= maxColorPairCount or colorPairID >= kExclusiveUpperLimit)
+				{
+					goto EndInitializeColorPairs;
+				}
+
+				// Initialize a Curses color pair for later use.
+				// A Curses color pair is a combination of foreground color and a background color.
+				init_pair(colorPairID++, GetColorID(foregroundColor), GetColorID(backgroundColor));
+			}
+		}
+
+		EndInitializeColorPairs: {};
+	}
+
 	void Initialize()
 	{
 		// Initialize NCurses. This function exits the program on error!
@@ -229,16 +264,7 @@ namespace Shell
 
 		if (has_colors() == TRUE)
 		{
-			start_color();
-
-			init_pair(Common::Enum::IntCast(ColorIndex::Black  ), COLOR_BLACK  , COLOR_BLACK);
-			init_pair(Common::Enum::IntCast(ColorIndex::Red    ), COLOR_RED    , COLOR_BLACK);
-			init_pair(Common::Enum::IntCast(ColorIndex::Green  ), COLOR_GREEN  , COLOR_BLACK);
-			init_pair(Common::Enum::IntCast(ColorIndex::Yellow ), COLOR_YELLOW , COLOR_BLACK);
-			init_pair(Common::Enum::IntCast(ColorIndex::Blue   ), COLOR_BLUE   , COLOR_BLACK);
-			init_pair(Common::Enum::IntCast(ColorIndex::Magenta), COLOR_MAGENTA, COLOR_BLACK);
-			init_pair(Common::Enum::IntCast(ColorIndex::Cyan   ), COLOR_CYAN   , COLOR_BLACK);
-			init_pair(Common::Enum::IntCast(ColorIndex::White  ), COLOR_WHITE  , COLOR_BLACK);
+			InitializeColorFunctionality();
 		}
 		else
 		{
