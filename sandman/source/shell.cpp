@@ -89,11 +89,9 @@ namespace Shell
 		// This window is where messages from the logger are written to.
 		static WINDOW* s_Window = nullptr;
 
-		template <typename... ParamsT>
-		[[gnu::always_inline]] inline static void PrintRedLine(ParamsT const... arguments)
-		{
-			Println(decltype(Red())::kOn, arguments..., decltype(Red())::kOff);
-		}
+		static Common::Stack<Attr, 1u << 7u> s_AttributeStack{};
+
+		void Refresh() { wrefresh(s_Window); }
 
 		void Write(CharacterAttribute const characterAttribute)
 		{
