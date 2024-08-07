@@ -70,31 +70,17 @@ namespace Shell
 
 	template <bool kFlag>
 	[[gnu::always_inline]] inline static void SetCharAttr(WINDOW* const window, int const y,
-																			int const x, chtype const attributes)
+																			int const x, attr_t const attributes)
 	{
 		if constexpr (kFlag)
 		{
-			chtype const character{ mvwinch(window, y, x) };
-			mvwaddch(window, y, x, character | attributes);
+			attr_t const character{ mvwinch(window, y, x) };
+			mvwaddch(window, y, x, character bitor attributes);
 		}
 		else
 		{
-			chtype const character{ mvwinch(window, y, x) };
-			mvwaddch(window, y, x, character & ~attributes);
-		}
-	}
-
-	[[gnu::always_inline]] inline static void SetCharAttr(WINDOW* const window, int const y,
-																			int const x,
-																			CharacterAttribute const attributes)
-	{
-		if (attributes.m_Flag)
-		{
-			SetCharAttr<true>(window, y, x, attributes.m_Value);
-		}
-		else
-		{
-			SetCharAttr<false>(window, y, x, attributes.m_Value);
+			attr_t const character{ mvwinch(window, y, x) };
+			mvwaddch(window, y, x, character bitand compl(attributes));
 		}
 	}
 
