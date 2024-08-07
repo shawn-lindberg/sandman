@@ -5,7 +5,7 @@
 #include <type_traits>
 #include <string_view>
 
-#include "common/non_null.h"
+#include "./non_null.h"
 
 namespace Common { template <typename, std::size_t> class String; }
 
