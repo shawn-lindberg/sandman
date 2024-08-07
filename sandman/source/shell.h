@@ -368,7 +368,7 @@ namespace Shell
 		/// After `Shell::Initialize` is called successfully, this function always returns the same
 		/// pointer.
 		///
-		[[deprecated]] [[nodiscard]] WINDOW* Get();
+		[[deprecated("Manage this window through other functions.")]] [[nodiscard]] WINDOW* Get();
 
 		using Buffer = Common::CharBuffer<char, 128u>;
 		Buffer const& GetBuffer();
