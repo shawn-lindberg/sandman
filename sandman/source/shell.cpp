@@ -205,9 +205,11 @@ namespace Shell
 		{
 			switch (signal)
 			{
+				#ifdef SIGWINCH
 				case SIGWINCH:
 					s_ShouldResize = true;
 					return;
+				#endif
 				default:
 					return;
 			}
