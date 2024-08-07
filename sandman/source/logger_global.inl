@@ -11,7 +11,7 @@ template <typename... ParamsT>
 
 	std::lock_guard const lock(ms_Mutex);
 	ms_GlobalLogger.Write(
-		Shell::Cyan(std::put_time(Common::GetLocalTime(), "%Y/%m/%d %H:%M:%S %Z"), " | "sv),
+		Shell::Cyan(std::put_time(::Common::GetLocalTime(), "%Y/%m/%d %H:%M:%S %Z"), " | "sv),
 		std::forward<ParamsT>(args)..., '\n');
 }
 
