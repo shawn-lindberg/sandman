@@ -26,7 +26,7 @@ namespace Shell
 {
 	using namespace std::string_view_literals;
 
-	class Lock
+	class [[nodiscard]] Lock
 	{
 		private: std::lock_guard<std::mutex> m_Lock;
 		public: [[nodiscard]] explicit Lock();
