@@ -328,7 +328,8 @@ namespace Shell
 
 		/// @brief Get the pointer to the logging window.
 		///
-		/// @attention Do not call this function before having called `Shell::Initialize` successfully.
+		/// @attention Do not call this function before having called `Shell::Initialize`
+		/// successfully.
 		///
 		/// @return NCurses window pointer
 		///
@@ -337,8 +338,8 @@ namespace Shell
 		/// `Shell::Uninitialize` is called.
 		///
 		/// @note The logging window is the region on the terminal where the logger outputs characters
-		/// to. After `Shell::Initialize` is called successfully, this function always returns the same
-		/// pointer.
+		/// to. After `Shell::Initialize` is called successfully, this function always returns the
+		/// same pointer.
 		///
 		[[deprecated("Prefer using other functions to write to this window.")]] [[nodiscard]] WINDOW* Get();
 	}
