@@ -54,7 +54,8 @@ template <typename T, typename... ParamsT>
 	}
 	else
 	{
-		auto const string(m_Buffer.str());
+		// Get current data.
+		std::string const string(m_Buffer.str());
 
 		if (m_ScreenEcho)
 		{
