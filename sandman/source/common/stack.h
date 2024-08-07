@@ -4,8 +4,6 @@
 #include <optional>
 #include <utility>
 
-#include "./forward_alias.h"
-
 namespace Common { template <typename, std::size_t> class Stack; }
 
 template <typename T, std::size_t kCapacity>
@@ -57,7 +55,7 @@ public:
 	}
 
 	template <typename ObjectT>
-	constexpr bool Push(Common::Forward<ObjectT> object)
+	constexpr bool Push(ObjectT&& object)
 	{
 		return m_Size < kMaxSize ? (m_Data[m_Size++] = std::forward<ObjectT>(object), true) : false;
 	}
