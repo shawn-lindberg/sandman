@@ -57,18 +57,18 @@ namespace Shell
 		inline constexpr std::enable_if_t<std::is_integral_v<CharT>, CharT> Ctrl{kName bitand 0x1F};
 	}
 
-	enum struct ColorIndex : int
+	enum struct ColorIndex : std::uint_least8_t
 	{
-		None    = 0,
-		Black   = 1,
-		Red     = 2,
-		Green   = 3,
-		Yellow  = 4,
-		Blue    = 5,
-		Magenta = 6,
-		Cyan    = 7,
-		White   = 8,
+		Black   = 0u,
+		Red     = 1u,
+		Green   = 2u,
+		Yellow  = 3u,
+		Blue    = 4u,
+		Magenta = 5u,
+		Cyan    = 6u,
+		White   = 7u,
 	};
+
 
 	struct CharacterAttribute { int m_Value; bool m_Flag; };
 
