@@ -67,4 +67,8 @@ public:
 		return m_Size > 0u ? std::move(m_Data[--m_Size]) : std::nullopt;
 	}
 
+	constexpr void Clear()
+	{
+		m_Size = 0u;
+	}
 };
