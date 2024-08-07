@@ -3,12 +3,14 @@
 #include "common/string.h"
 #include "common/enum.h"
 #include "common/forward_alias.h"
+#include "common/box.h"
 
 #include <array>
 #include <cstddef>
 #include <cstdint>
 #include <mutex>
 #include <type_traits>
+#include <utility>
 
 // This is the standard include directive for NCurses
 // as noted in the "SYNOPSIS" section of the manual page `man 3NCURSES ncurses`.
