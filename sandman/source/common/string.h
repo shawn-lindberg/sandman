@@ -7,10 +7,10 @@
 
 #include "common/non_null.h"
 
-namespace Common { template <typename, std::size_t> class CharBuffer; }
+namespace Common { template <typename, std::size_t> class String; }
 
 template <typename CharT, std::size_t kCapacity>
-class Common::CharBuffer
+class Common::String
 {
 	static_assert(std::is_integral_v<CharT>);
 
@@ -32,24 +32,25 @@ class Common::CharBuffer
 		Common::NonNull<OnDecrementStringLengthListener> m_OnDecrementStringLength;
 
 	public:
-		static_assert(std::tuple_size_v<decltype(m_Data)> > 0u, "Assert can subtract from size without underflow.");
+		static_assert(std::tuple_size_v<Data> > 0u,
+						  "Assert can subtract from size without underflow.");
 
 		// The last position is reserved for the null character.
-		static constexpr typename Data::size_type kMaxStringLength{ std::tuple_size_v<decltype(m_Data)> - 1u };
+		static constexpr typename Data::size_type kMaxStringLength{ std::tuple_size_v<Data> - 1u };
 
 		[[gnu::always_inline]] constexpr Data const& GetData() const
 		{
 			return m_Data;
 		}
 
-		[[gnu::always_inline]] constexpr typename Data::size_type GetStringLength() const
+		[[gnu::always_inline]] constexpr typename Data::size_type GetLength() const
 		{
 			return m_StringLength;
 		}
 
-		constexpr CharBuffer() = default;
+		constexpr String() = default;
 
-		explicit constexpr CharBuffer(
+		explicit constexpr String(
 			OnStringUpdateListener          const onStringUpdateListener          ,
 			OnClearListener                 const onClearListener                 ,
 			OnDecrementStringLengthListener const onDecrementStringLengthListener):
@@ -135,8 +136,8 @@ class Common::CharBuffer
 			return static_cast<void>(true);
 		}
 
-		[[gnu::always_inline]] constexpr std::string_view View() const
+		[[gnu::always_inline]] constexpr std::basic_string_view<CharT> View() const
 		{
-			return std::string_view(m_Data.data(), m_StringLength);
+			return std::basic_string_view<CharT>(m_Data.data(), m_StringLength);
 		}
 };

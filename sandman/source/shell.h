@@ -1,6 +1,6 @@
 #pragma once
 
-#include "common/char_buffer.h"
+#include "common/string.h"
 #include "common/enum.h"
 #include "common/forward_alias.h"
 

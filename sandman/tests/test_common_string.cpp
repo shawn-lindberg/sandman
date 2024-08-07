@@ -1,4 +1,4 @@
-#include "common/char_buffer.h"
+#include "common/string.h"
 
 #include "catch_amalgamated.hpp"
 
@@ -10,12 +10,12 @@ inline namespace Debug
 {
 
 	template <typename CharT, std::size_t kN>
-	std::ostream& operator<<(std::ostream& outputStream, Common::CharBuffer<CharT, kN> const& buffer)
+	std::ostream& operator<<(std::ostream& outputStream, Common::String<CharT, kN> const& buffer)
 	{
 		outputStream << "Buffer[";
-		for (typename Common::CharBuffer<CharT, kN>::Data::size_type i{ 0u }; i < kN; ++i)
+		for (typename Common::String<CharT, kN>::Data::size_type i{ 0u }; i < kN; ++i)
 		{
-			if (i == buffer.GetStringLength()) { outputStream << '@'; continue; }
+			if (i == buffer.GetLength()) { outputStream << '@'; continue; }
 			CharT const c{ buffer.GetData().at(i) };
 			switch (c)
 			{
@@ -31,7 +31,7 @@ inline namespace Debug
 	static constexpr bool kIsCharBuffer{ false };
 
 	template <typename CharT, std::size_t kN>
-	static constexpr bool kIsCharBuffer<Common::CharBuffer<CharT, kN>>{ true };
+	static constexpr bool kIsCharBuffer<Common::String<CharT, kN>>{ true };
 
 	template <typename T>
 	[[nodiscard]] std::string ToString(T&& object)
@@ -54,23 +54,23 @@ namespace Require
 {
 	// The next character after the string content should always be the null character.
 	template <typename CharT, std::size_t kN>
-	static void StringNullTerminated(Common::CharBuffer<CharT, kN> const& buffer)
+	static void StringNullTerminated(Common::String<CharT, kN> const& buffer)
 	{
 		INFO('\"' << buffer.GetData().data() << "\" with string length "
-					 << buffer.GetStringLength() << " is not null terminated correctly. "
-					 << "The character at index " << buffer.GetStringLength() << " is \'"
-					 << buffer.GetData().at(buffer.GetStringLength()) << "\'.");
-		REQUIRE(buffer.GetData().at(buffer.GetStringLength()) == '\0');
+					 << buffer.GetLength() << " is not null terminated correctly. "
+					 << "The character at index " << buffer.GetLength() << " is \'"
+					 << buffer.GetData().at(buffer.GetLength()) << "\'.");
+		REQUIRE(buffer.GetData().at(buffer.GetLength()) == '\0');
 	}
 
 	template <typename CharT, std::size_t kN>
 	static void
-		ReplaceString(Common::CharBuffer<CharT, kN>& buffer,
-						  typename Common::CharBuffer<CharT, kN>::Data::size_type const index,
+		ReplaceString(Common::String<CharT, kN>& buffer,
+						  typename Common::String<CharT, kN>::Data::size_type const index,
 						  std::string_view const string)
 	{
 		INFO("Attempt to replace position " << index << " with \"" << string << "\".");
-		auto const originalStringLength{ buffer.GetStringLength() };
+		auto const originalStringLength{ buffer.GetLength() };
 		for (std::string_view::size_type count{ 0u }; count < string.length(); ++count)
 		{
 			auto const characterToRemove{ buffer.GetData().at(index) };
@@ -99,7 +99,7 @@ namespace Require
 			}
 			{
 				INFO("The string length was not correctly updated.");
-				REQUIRE(buffer.GetStringLength() == originalStringLength - (count + 1u));
+				REQUIRE(buffer.GetLength() == originalStringLength - (count + 1u));
 			}
 			{
 				INFO("The string was not correctly null terminated.");
@@ -109,7 +109,7 @@ namespace Require
 
 		{
 			INFO("After removed characters, the string length of the buffer is not correct.");
-			REQUIRE(buffer.GetStringLength() == originalStringLength - string.length());
+			REQUIRE(buffer.GetLength() == originalStringLength - string.length());
 		}
 
 		{
@@ -125,7 +125,7 @@ namespace Require
 
 		{
 			INFO("After inserted characters, the string length of the buffer is not correct.");
-			REQUIRE(buffer.GetStringLength() == originalStringLength);
+			REQUIRE(buffer.GetLength() == originalStringLength);
 		}
 
 		{
@@ -135,7 +135,7 @@ namespace Require
 	};
 } // namespace Require
 
-TEST_CASE("`CharBuffer`", "[.CharBuffer]")
+TEST_CASE("`String`", "[.Common][.String]")
 {
 	using namespace std::string_view_literals;
 
@@ -146,12 +146,12 @@ TEST_CASE("`CharBuffer`", "[.CharBuffer]")
 
 	// Initialize buffer with size of the sentence plus one for null character terminator.
 	static constexpr std::size_t kBufferCapacity{ kBackwardSentence.size() + 1u };
-	Common::CharBuffer<char, kBufferCapacity> buffer;
+	Common::String<char, kBufferCapacity> buffer;
 
 	SECTION("properly initialized")
 	{
 		// The buffer starts with an empty string of size zero.
-		REQUIRE(buffer.GetStringLength() == 0u);
+		REQUIRE(buffer.GetLength() == 0u);
 		REQUIRE(buffer.View().size() == 0u);
 
 		static_assert(
@@ -187,7 +187,7 @@ TEST_CASE("`CharBuffer`", "[.CharBuffer]")
 	SECTION("insert characters")
 	{
 
-		REQUIRE(buffer.GetStringLength() == 0u);
+		REQUIRE(buffer.GetLength() == 0u);
 
 		decltype(buffer)::Data::size_type insertCount{ 0u };
 
@@ -200,7 +200,7 @@ TEST_CASE("`CharBuffer`", "[.CharBuffer]")
 			CHECK(buffer.View() ==
 					kForwardSentence.substr(kForwardSentence.length() - insertCount, insertCount));
 			REQUIRE(buffer.Insert(0u, character));
-			REQUIRE(buffer.GetStringLength() == ++insertCount);
+			REQUIRE(buffer.GetLength() == ++insertCount);
 		}
 
 		Require::StringNullTerminated(buffer);
@@ -209,7 +209,7 @@ TEST_CASE("`CharBuffer`", "[.CharBuffer]")
 		REQUIRE(buffer.View() == kForwardSentence);
 
 		// The buffer is full.
-		REQUIRE(buffer.GetStringLength() == buffer.kMaxStringLength);
+		REQUIRE(buffer.GetLength() == buffer.kMaxStringLength);
 
 		SECTION("unchanged when attempt to insert at maximum capacity")
 		{
@@ -244,7 +244,7 @@ TEST_CASE("`CharBuffer`", "[.CharBuffer]")
 			Require::ReplaceString(buffer, 35u, "keen"sv);
 			Require::ReplaceString(buffer, 40u, "cat"sv);
 
-			REQUIRE(buffer.GetStringLength() == buffer.kMaxStringLength);
+			REQUIRE(buffer.GetLength() == buffer.kMaxStringLength);
 			REQUIRE_FALSE(buffer.Push('Z'));
 
 			REQUIRE(buffer.Remove(22u));
