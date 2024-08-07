@@ -165,6 +165,17 @@ namespace Shell
 		}
 	};
 
+	template <typename... ObjectsT>
+	struct [[nodiscard]] Attr::Wrapper
+	{
+		std::tuple<ObjectsT...> m_Objects;
+		Attr m_Attributes;
+
+		template <typename... ParamsT> [[nodiscard]]
+		constexpr explicit Wrapper(Attr const attributes, Common::Forward<ParamsT>... args)
+			: m_Objects(std::forward<ParamsT>(args)...), m_Attributes{ attributes } {}
+	};
+
 
 	struct CharacterAttribute { int m_Value; bool m_Flag; };
 
