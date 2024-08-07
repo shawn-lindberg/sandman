@@ -191,7 +191,7 @@ namespace Shell
 		ColorPairID const colorPairIndex{
 			// Needs to be static cast to a `ColorPairID`
 			// because operations on `short` integral types
-			// will implicitly convert to not `short` types.
+			// will implicitly convert to non `short` types.
 			static_cast<ColorPairID>(
 				row * ColorPairID{ kColorList.size() } + column
 			)
