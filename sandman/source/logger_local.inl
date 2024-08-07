@@ -16,7 +16,7 @@ template <typename T, typename... ParamsT>
 			},
 			firstArg.m_Objects);
 	}
-	else if constexpr (Shell::IsColor<std::decay_t<T>>)
+	else if constexpr (Shell::IsAttrWrapper<std::decay_t<T>>)
 	{
 		std::apply(
 			[this](Common::Forward<auto>... args)
