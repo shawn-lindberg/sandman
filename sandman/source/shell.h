@@ -317,6 +317,14 @@ namespace Shell
 
 		void Write(Attr const attributes) = delete;
 
+		template <typename IntT>
+		std::enable_if_t<std::is_integral_v<IntT>, void> Write(IntT const) = delete;
+
+		void PushAttributes(Attr const attributes);
+
+		void PopAttributes();
+
+		void ClearAttributes();
 
 		template <auto kAttributes=nullptr, typename T, typename... ParamsT>
 		[[gnu::always_inline]] inline void Print(T const object, ParamsT const... arguments)
