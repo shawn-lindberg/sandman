@@ -4,6 +4,9 @@ template <typename T, typename... ParamsT>
 [[gnu::always_inline]] inline void ::Logger::Write(Common::Forward<T> firstArg,
 																	Common::Forward<ParamsT>... args)
 {
+	static_assert(not std::is_same_v<std::decay_t<T>, Shell::Attr>,
+					  "Do not pass in attributes directly; use the attribute wrapper class.");
+
 	if constexpr (Logger::IsFormat<std::decay_t<T>>)
 	{
 		std::apply(
