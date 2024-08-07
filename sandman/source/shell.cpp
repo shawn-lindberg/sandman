@@ -460,7 +460,7 @@ namespace Shell
 			case KEY_RIGHT:
 				// If the cursor has space to move right, including the position of the null character,
 				// move right.
-				if (s_Cursor < s_Buffer.GetStringLength())
+				if (s_Cursor < s_Buffer.GetLength())
 				{
 					BumpCursor<Right>();
 				}
