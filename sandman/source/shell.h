@@ -272,7 +272,7 @@ namespace Shell
 		template <typename... ObjectsT> [[gnu::always_inline]] [[nodiscard]] constexpr auto White  (Common::Forward<ObjectsT>... args) { return Color<ColorIndex::White  , ObjectsT...>(std::forward<ObjectsT>(args)...); }
 	}
 
-	inline namespace ColorStringLiterals
+	inline namespace [[deprecated]] ColorStringLiterals
 	{
 		[[gnu::always_inline]] [[nodiscard]] constexpr auto operator""_black  (char const* const string, std::size_t const) { return Color<ColorIndex::Black  , char const*>(string); }
 		[[gnu::always_inline]] [[nodiscard]] constexpr auto operator""_red    (char const* const string, std::size_t const) { return Color<ColorIndex::Red    , char const*>(string); }
