@@ -93,17 +93,7 @@ namespace Shell
 
 		void Refresh() { wrefresh(s_Window); }
 
-		void Write(CharacterAttribute const characterAttribute)
-		{
-			if (characterAttribute.m_Flag)
-			{
-				wattron(s_Window, characterAttribute.m_Value);
-			}
-			else
-			{
-				wattroff(s_Window, characterAttribute.m_Value);
-			}
-		}
+		void Write(chtype const character) { waddch(s_Window, character); }
 
 		void Write(char const* const string) { waddstr(s_Window, string); }
 
