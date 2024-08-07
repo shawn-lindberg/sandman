@@ -87,6 +87,17 @@ namespace Shell
 		}
 	}
 
+	inline constexpr std::array kColorList{
+		ColorIndex::Black  ,
+		ColorIndex::Red    ,
+		ColorIndex::Green  ,
+		ColorIndex::Yellow ,
+		ColorIndex::Blue   ,
+		ColorIndex::Magenta,
+		ColorIndex::Cyan   ,
+		ColorIndex::White  ,
+	};
+
 
 	struct CharacterAttribute { int m_Value; bool m_Flag; };
 
