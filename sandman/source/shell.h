@@ -299,13 +299,21 @@ namespace Shell
 
 		void Refresh();
 
-		void Write(CharacterAttribute const characterAttribute);
 		void Write(chtype const character);
-		void Write(char const* const string);
-		void Write(std::string_view const string);
 
-		template <typename BoolT>
-		std::enable_if_t<std::is_same_v<BoolT, bool>, void> Write(BoolT const booleanValue)
+		void Write(char const* const string);
+
+		template <typename CharT>
+		std::enable_if_t<std::is_same_v<CharT, char> or std::is_same_v<CharT, chtype>, void>
+			Write(std::basic_string_view<CharT> const string)
+		{
+			for (CharT const character : string)
+			{
+				Write(static_cast<chtype>(character));
+			}
+		}
+
+		[[gnu::always_inline]] inline void Write(bool const booleanValue)
 		{
 			if (booleanValue == true)
 			{
@@ -316,6 +324,8 @@ namespace Shell
 				Write("false");
 			}
 		}
+
+		void Write(Attr const attributes) = delete;
 
 
 		template <auto kAttributes=nullptr, typename T, typename... ParamsT>

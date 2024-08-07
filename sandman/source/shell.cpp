@@ -131,10 +131,6 @@ namespace Shell
 			}
 		}
 
-		void Write(chtype const character) { waddch(s_Window, character); }
-
-		void Refresh() { wrefresh(s_Window); }
-
 		WINDOW* Get() { return s_Window; }
 
 		static void Initialize()
@@ -386,7 +382,7 @@ namespace Shell
 		static bool HandleSubmitString()
 		{
 			// Echo the command back.
-			LoggingWindow::Println('\"', s_Buffer.View(), '\"');
+			LoggingWindow::Println(chtype{'\"'}, s_Buffer.View(), chtype{'\"'});
 
 			// Parse a command.
 			{
