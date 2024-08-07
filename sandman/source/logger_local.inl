@@ -18,30 +18,33 @@ template <typename T, typename... ParamsT>
 	}
 	else if constexpr (Shell::IsAttrWrapper<std::decay_t<T>>)
 	{
-		std::apply(
-			[this](Common::Forward<auto>... args)
-			{
-				this->Write(std::decay_t<T>::kOn, std::forward<decltype(args)>(args)...,
-								std::decay_t<T>::kOff);
-			},
-			firstArg.m_Objects);
-	}
-	else if constexpr (std::is_same_v<std::decay_t<T>, Shell::CharacterAttribute>)
-	{
-		std::string const string(m_Buffer.str());
-		if (m_ScreenEcho)
+		auto const writeArgs = [this](Common::Forward<auto>... args) -> void
 		{
-			Shell::LoggingWindow::Write(string);
-		}
-		m_OutputStream << string;
+			this->Write(std::forward<decltype(args)>(args)...);
+		};
 
 		if (m_ScreenEcho)
 		{
-			Shell::LoggingWindow::Write(std::forward<T>(firstArg));
-		}
+			// Get the current data from the buffer.
+			std::string const string(m_Buffer.str());
 
-		// Clear buffer.
-		m_Buffer.str("");
+			// Dump the current data.
+			::Shell::LoggingWindow::Write(std::string_view(string));
+			m_OutputStream << string;
+
+			// Clear the buffer.
+			m_Buffer.str("");
+
+			::Shell::LoggingWindow::PushAttributes(firstArg.m_Attributes);
+
+			std::apply(writeArgs, firstArg.m_Objects);
+
+			::Shell::LoggingWindow::PopAttributes();
+		}
+		else
+		{
+			std::apply(writeArgs, firstArg.m_Objects);
+		}
 	}
 	else
 	{
