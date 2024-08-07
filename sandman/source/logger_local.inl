@@ -57,6 +57,7 @@ template <typename T, typename... ParamsT>
 		// Get current data.
 		std::string const string(m_Buffer.str());
 
+		// Dump data.
 		if (m_ScreenEcho)
 		{
 			Shell::LoggingWindow::Print(string);
