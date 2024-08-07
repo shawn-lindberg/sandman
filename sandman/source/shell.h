@@ -98,6 +98,16 @@ namespace Shell
 		ColorIndex::White  ,
 	};
 
+	struct ForegroundColor : Common::Box<ColorIndex>
+	{
+		[[nodiscard]] constexpr explicit ForegroundColor(ColorIndex const color) : Box{color} {};
+	};
+
+	struct BackgroundColor : Common::Box<ColorIndex>
+	{
+		[[nodiscard]] constexpr explicit BackgroundColor(ColorIndex const color) : Box{color} {};
+	};
+
 
 	struct CharacterAttribute { int m_Value; bool m_Flag; };
 
