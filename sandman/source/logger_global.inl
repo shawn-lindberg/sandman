@@ -13,6 +13,12 @@ template <typename... ParamsT>
 	ms_GlobalLogger.Write(
 		Shell::Cyan(std::put_time(::Common::GetLocalTime(), "%Y/%m/%d %H:%M:%S %Z"), " | "sv),
 		std::forward<ParamsT>(args)..., '\n');
+
+	if (ms_GlobalLogger.HasScreenEchoEnabled())
+	{
+		::Shell::LoggingWindow::ClearAttributes();
+		::Shell::LoggingWindow::Refresh();
+	}
 }
 
 template <Shell::ColorIndex kColor, std::size_t kLogStringBufferCapacity>
