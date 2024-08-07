@@ -4,7 +4,7 @@
 #include <optional>
 #include <utility>
 
-#include "common/forward_alias.h"
+#include "./forward_alias.h"
 
 namespace Common { template <typename, std::size_t> class Stack; }
 
