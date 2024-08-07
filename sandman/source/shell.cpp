@@ -109,12 +109,19 @@ namespace Shell
 
 		void Write(char const* const string) { waddstr(s_Window, string); }
 
-		void Write(std::string_view const string)
+		void PushAttributes(Attr const attributes)
 		{
-			for (char const character : string)
-			{
-				waddch(s_Window, character);
-			}
+			s_AttributeStack.Push(attributes);
+		}
+
+		void PopAttributes()
+		{
+			s_AttributeStack.Pop();
+		}
+
+		void ClearAttributes()
+		{
+			s_AttributeStack.Clear();
 		}
 
 		WINDOW* Get() { return s_Window; }
