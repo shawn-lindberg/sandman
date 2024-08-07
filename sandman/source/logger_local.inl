@@ -60,9 +60,8 @@ template <typename T, typename... ParamsT>
 		// Dump data.
 		if (m_ScreenEcho)
 		{
-			Shell::LoggingWindow::Print(string);
+			::Shell::LoggingWindow::Write(std::string_view(string));
 		}
-
 		m_OutputStream << string;
 
 		// Clear buffer.
