@@ -221,44 +221,6 @@ namespace Shell
 			BackMagenta(GetColorPair(Fg{ColorIndex::Black  }, Bg{ColorIndex::Magenta})),
 			BackCyan   (GetColorPair(Fg{ColorIndex::Black  }, Bg{ColorIndex::Cyan   })),
 			BackWhite  (GetColorPair(Fg{ColorIndex::Black  }, Bg{ColorIndex::White  }));
-	}
-
-	struct CharacterAttribute { int m_Value; bool m_Flag; };
-
-	template <ColorIndex kColorIndex, typename... ObjectsT>
-	struct Color
-	{
-		static_assert(InColorIndexList(kColorIndex));
-
-		static constexpr int kAttributeValue{ COLOR_PAIR(GetColorID(kColorIndex)) };
-		static constexpr CharacterAttribute kOn{ kAttributeValue, true };
-		static constexpr CharacterAttribute kOff{ kAttributeValue, false };
-
-		std::tuple<ObjectsT...> m_Objects;
-
-		template <typename... ParamsT>
-		[[nodiscard]] explicit constexpr Color(Common::Forward<ParamsT>... args)
-			: m_Objects(std::forward<ParamsT>(args)...)
-		{}
-
-		template <typename... ParamsT>
-		[[deprecated("Prefer to use a color factory function.")]]
-		static constexpr auto Make(Common::Forward<ParamsT>... args)
-		{
-			return Color<kColorIndex, Common::Forward<ParamsT>...>(std::forward<ParamsT>(args)...);
-		}
-	};
-
-	// Deduction guide: deduce from forwarding reference arguments.
-	template <ColorIndex kColorIndex, typename... ParamsT>
-	Color(Common::Forward<ParamsT>...) -> Color<kColorIndex, Common::Forward<ParamsT>...>;
-
-	// Function-like constant.
-	// NOLINTBEGIN(readability-identifier-naming)
-
-	template <typename T> inline constexpr bool IsColor{ false };
-	template <ColorIndex kColorIndex, typename... ObjectsT>
-	inline constexpr bool IsColor<Color<kColorIndex, ObjectsT...>>{ true };
 
 		// NOLINTEND(readability-identifier-naming)
 	}
