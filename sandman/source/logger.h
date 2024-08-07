@@ -85,6 +85,11 @@ private:
 
 public:
 
+	[[nodiscard]] static constexpr Logger const& Get()
+	{
+		return ms_GlobalLogger;
+	}
+
 	template <typename T>
 	// NOLINTNEXTLINE(readability-identifier-naming)
 	static constexpr bool IsFormat{ ::Logger::Traits::IsFormat<T>{} };
