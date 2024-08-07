@@ -104,7 +104,7 @@ bool Schedule::ReadFromFile(const char* fileName)
 
 	if (scheduleFile == nullptr)
 	{
-		Logger::FormatWriteLine<Shell::ColorIndex::Red>("Failed to open the schedule file %s.\n", fileName);
+		Logger::FormatWriteLine<Shell::Red.m_Value>("Failed to open the schedule file %s.\n", fileName);
 		return false;
 	}
 
@@ -118,7 +118,7 @@ bool Schedule::ReadFromFile(const char* fileName)
 
 	if (scheduleDocument.HasParseError() == true)
 	{
-		Logger::FormatWriteLine<Shell::ColorIndex::Red>("Failed to parse the schedule file %s.\n", fileName);
+		Logger::FormatWriteLine<Shell::Red.m_Value>("Failed to parse the schedule file %s.\n", fileName);
 		fclose(scheduleFile);
 		return false;
 	}

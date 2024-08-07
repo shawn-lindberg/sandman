@@ -218,7 +218,7 @@ namespace Shell
 
 	inline static void HandleResize()
 	{
-		LoggingWindow::PrintRedLine("Window resize is unimplemented.");
+		LoggingWindow::Println<Red.m_Value>("Window resize is unimplemented.");
 	}
 
 	static void InitializeColorFunctionality()
@@ -480,7 +480,7 @@ namespace Shell
 				return HandleSubmitString();
 
 			case '\n':
-				LoggingWindow::PrintRedLine("Unexpectedly got a newline character from user input.");
+				LoggingWindow::Println<&Red>("Unexpectedly got a newline character from user input.");
 				return false;
 
 			// These "Ctrl" characters are usually handled by the terminal,
@@ -488,8 +488,8 @@ namespace Shell
 			case Key::Ctrl<'C'>:
 			case Key::Ctrl<'Z'>:
 				// (Most likely unreachable.)
-				LoggingWindow::PrintRedLine("Unexpectedly got a `Ctrl` character (", inputKey,
-													 ") from user input.");
+				LoggingWindow::Println<&Red>("Unexpectedly got a `Ctrl` character (",
+													  static_cast<chtype>(inputKey), ") from user input.");
 				return false;
 
 			default:

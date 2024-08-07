@@ -98,7 +98,7 @@ static bool Initialize()
 		// Change the current working directory.
 		if (chdir(SANDMAN_TEMP_DIR) < 0)
 		{
-			Logger::FormatWriteLine<Shell::ColorIndex::Red>(
+			Logger::FormatWriteLine<Shell::Red.m_Value>(
 				"Failed to change working directory to \"%s\" ID for daemon.", SANDMAN_TEMP_DIR);
 			s_ExitCode = 1;
 			return false;
