@@ -341,8 +341,8 @@ namespace Shell
 		/// to. After `Shell::Initialize` is called successfully, this function always returns the
 		/// same pointer.
 		///
-		[[deprecated("Prefer using other functions to write to this window.")]] [[nodiscard]] WINDOW* Get();
-	}
+
+	} // namespace LoggingWindow
 
 	namespace InputWindow
 	{
