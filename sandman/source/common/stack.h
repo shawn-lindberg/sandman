@@ -12,6 +12,8 @@ template <typename T, std::size_t kCapacity>
 class Common::Stack
 {
 
+	static_assert(std::is_default_constructible_v<T>, "`T` should be default constructible.");
+
 private:
 
 	std::array<T, kCapacity> m_Data;
