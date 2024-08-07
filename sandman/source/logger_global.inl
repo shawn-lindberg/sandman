@@ -21,24 +21,26 @@ template <typename... ParamsT>
 	}
 }
 
-template <Shell::ColorIndex kColor, std::size_t kLogStringBufferCapacity>
+template <Shell::Attr::Value kAttributes, std::size_t kStringBufferCapacity>
 bool ::Logger::FormatWriteLine(char const* format, std::va_list argumentList)
 {
-	char logStringBuffer[kLogStringBufferCapacity];
+	char logStringBuffer[kStringBufferCapacity];
 
-	std::vsnprintf(logStringBuffer, kLogStringBufferCapacity, format, argumentList);
+	std::vsnprintf(logStringBuffer, kStringBufferCapacity, format, argumentList);
 
-	WriteLine(Shell::Color<kColor, char const*>(logStringBuffer));
+	static constexpr Shell::Attr kAttributeCallable(kAttributes);
+
+	WriteLine(kAttributeCallable(logStringBuffer));
 
 	return true;
 }
 
-template <Shell::ColorIndex kColor, std::size_t kLogStringBufferCapacity>
+template <Shell::Attr::Value kAttributes, std::size_t kStringBufferCapacity>
 bool ::Logger::FormatWriteLine(char const* format, ...)
 {
 	std::va_list argumentList;
 	va_start(argumentList, format);
-	bool const result{ FormatWriteLine<kColor, kLogStringBufferCapacity>(format, argumentList) };
+	bool const result{ FormatWriteLine<kAttributes, kStringBufferCapacity>(format, argumentList) };
 	va_end(argumentList);
 	return result;
 }
