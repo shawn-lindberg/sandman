@@ -30,8 +30,6 @@ private:
 
 public:
 
-	constexpr Stack() = default;
-
 	[[nodiscard]] constexpr auto GetSize() const { return m_Size; }
 
 	[[nodiscard]] constexpr T const* operator[](SizeType const index) const
