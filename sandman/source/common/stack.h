@@ -62,7 +62,7 @@ public:
 
 	constexpr std::optional<T> Pop()
 	{
-		return m_Size > 0u ? std::move(m_Data[--m_Size]) : std::nullopt;
+		return m_Size > 0u ? std::make_optional(std::move(m_Data[--m_Size])) : std::nullopt;
 	}
 
 	constexpr void Clear()
