@@ -86,13 +86,13 @@ public:
 	template <typename... ParamsT>
 	[[gnu::always_inline]] inline static void WriteLine(Common::Forward<ParamsT>... args);
 
-	template <Shell::ColorIndex kColor = Shell::ColorIndex::None,
-				 std::size_t kLogStringBufferCapacity = 2048u>
+	template <Shell::ColorIndex kColor = Shell::ColorIndex::White,
+				 std::size_t kLogStringBufferCapacity = 1u << 11u>
 	[[gnu::format(printf, 1, 0)]] static bool FormatWriteLine(char const* format,
 																				 std::va_list argumentList);
 
-	template <Shell::ColorIndex kColor = Shell::ColorIndex::None,
-				 std::size_t kLogStringBufferCapacity = 2048u>
+	template <Shell::ColorIndex kColor = Shell::ColorIndex::White,
+				 std::size_t kLogStringBufferCapacity = 1u << 11u>
 	[[gnu::format(printf, 1, 2)]] static bool FormatWriteLine(char const* format, ...);
 
 
