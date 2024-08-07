@@ -48,7 +48,7 @@ public:
 			  m_FormatString(formatString) {}
 	};
 
-	// Deduction guide: deduce from forwarding reference arguments.
+	// Deduction guide.
 	template <typename... ParamsT>
 	Format(std::string_view const,
 			 Common::Forward<ParamsT>...) -> Format<Common::Forward<ParamsT>...>;
