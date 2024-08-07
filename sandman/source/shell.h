@@ -227,10 +227,9 @@ namespace Shell
 	template <ColorIndex kColorIndex, typename... ObjectsT>
 	struct Color
 	{
-		static_assert(kColorIndex != ColorIndex::None);
-		static_assert(kColorIndex >= ColorIndex{ 1 } and kColorIndex <= ColorIndex{ 8 });
+		static_assert(InColorIndexList(kColorIndex));
 
-		static constexpr int kAttributeValue{ COLOR_PAIR(Common::Enum::IntCast(kColorIndex)) };
+		static constexpr int kAttributeValue{ COLOR_PAIR(GetColorID(kColorIndex)) };
 		static constexpr CharacterAttribute kOn{ kAttributeValue, true };
 		static constexpr CharacterAttribute kOff{ kAttributeValue, false };
 
