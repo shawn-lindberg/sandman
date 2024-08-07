@@ -120,6 +120,51 @@ namespace Shell
 		return false;
 	}
 
+	struct Attr
+	{
+		using Value = attr_t;
+		Value m_Value;
+
+		[[nodiscard]] constexpr explicit Attr(Value const attributes) : m_Value{ attributes } {}
+
+		// Default constructor is implicit.
+		[[nodiscard]] constexpr Attr() : Attr(Value{0u}) {};
+
+		Attr operator|(Attr const attributes)
+		{
+			return Attr(this->m_Value | attributes.m_Value);
+		}
+
+		static constexpr Value
+			kNormal    {A_NORMAL   },
+			kHighlight {A_STANDOUT },
+			kUnderline {A_UNDERLINE},
+			kFlipColor {A_REVERSE  },
+			kBlink     {A_BLINK    },
+			kDim       {A_DIM      },
+			kBold      {A_BOLD     },
+			kInvisible {A_INVIS    },
+			kItalic    {
+				// Italics are a non-X/Open extension.
+				#ifdef A_ITALIC
+				A_ITALIC
+				#else
+				0
+				#endif
+			};
+
+		template <typename...> struct [[nodiscard]] Wrapper;
+
+		template <typename... ParamsT>
+		Wrapper(Attr const, Common::Forward<ParamsT>...) -> Wrapper<Common::Forward<ParamsT>...>;
+
+		template <typename... ParamsT> [[nodiscard]] constexpr
+		Wrapper<Common::Forward<ParamsT>...> operator()(Common::Forward<ParamsT>... args) const
+		{
+			return Wrapper(*this, std::forward<ParamsT>(args)...);
+		}
+	};
+
 
 	struct CharacterAttribute { int m_Value; bool m_Flag; };
 
