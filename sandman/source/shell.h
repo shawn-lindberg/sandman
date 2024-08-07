@@ -260,29 +260,7 @@ namespace Shell
 	template <ColorIndex kColorIndex, typename... ObjectsT>
 	inline constexpr bool IsColor<Color<kColorIndex, ObjectsT...>>{ true };
 
-	// NOLINTEND(readability-identifier-naming)
-
-	inline namespace ColorFactoryFunctions {
-		template <typename... ObjectsT> [[gnu::always_inline]] [[nodiscard]] constexpr auto Black  (Common::Forward<ObjectsT>... args) { return Color<ColorIndex::Black  , ObjectsT...>(std::forward<ObjectsT>(args)...); }
-		template <typename... ObjectsT> [[gnu::always_inline]] [[nodiscard]] constexpr auto Red    (Common::Forward<ObjectsT>... args) { return Color<ColorIndex::Red    , ObjectsT...>(std::forward<ObjectsT>(args)...); }
-		template <typename... ObjectsT> [[gnu::always_inline]] [[nodiscard]] constexpr auto Green  (Common::Forward<ObjectsT>... args) { return Color<ColorIndex::Green  , ObjectsT...>(std::forward<ObjectsT>(args)...); }
-		template <typename... ObjectsT> [[gnu::always_inline]] [[nodiscard]] constexpr auto Yellow (Common::Forward<ObjectsT>... args) { return Color<ColorIndex::Yellow , ObjectsT...>(std::forward<ObjectsT>(args)...); }
-		template <typename... ObjectsT> [[gnu::always_inline]] [[nodiscard]] constexpr auto Blue   (Common::Forward<ObjectsT>... args) { return Color<ColorIndex::Blue   , ObjectsT...>(std::forward<ObjectsT>(args)...); }
-		template <typename... ObjectsT> [[gnu::always_inline]] [[nodiscard]] constexpr auto Magenta(Common::Forward<ObjectsT>... args) { return Color<ColorIndex::Magenta, ObjectsT...>(std::forward<ObjectsT>(args)...); }
-		template <typename... ObjectsT> [[gnu::always_inline]] [[nodiscard]] constexpr auto Cyan   (Common::Forward<ObjectsT>... args) { return Color<ColorIndex::Cyan   , ObjectsT...>(std::forward<ObjectsT>(args)...); }
-		template <typename... ObjectsT> [[gnu::always_inline]] [[nodiscard]] constexpr auto White  (Common::Forward<ObjectsT>... args) { return Color<ColorIndex::White  , ObjectsT...>(std::forward<ObjectsT>(args)...); }
-	}
-
-	inline namespace [[deprecated]] ColorStringLiterals
-	{
-		[[gnu::always_inline]] [[nodiscard]] constexpr auto operator""_black  (char const* const string, std::size_t const) { return Color<ColorIndex::Black  , char const*>(string); }
-		[[gnu::always_inline]] [[nodiscard]] constexpr auto operator""_red    (char const* const string, std::size_t const) { return Color<ColorIndex::Red    , char const*>(string); }
-		[[gnu::always_inline]] [[nodiscard]] constexpr auto operator""_green  (char const* const string, std::size_t const) { return Color<ColorIndex::Green  , char const*>(string); }
-		[[gnu::always_inline]] [[nodiscard]] constexpr auto operator""_yellow (char const* const string, std::size_t const) { return Color<ColorIndex::Yellow , char const*>(string); }
-		[[gnu::always_inline]] [[nodiscard]] constexpr auto operator""_blue   (char const* const string, std::size_t const) { return Color<ColorIndex::Blue   , char const*>(string); }
-		[[gnu::always_inline]] [[nodiscard]] constexpr auto operator""_magenta(char const* const string, std::size_t const) { return Color<ColorIndex::Magenta, char const*>(string); }
-		[[gnu::always_inline]] [[nodiscard]] constexpr auto operator""_cyan   (char const* const string, std::size_t const) { return Color<ColorIndex::Cyan   , char const*>(string); }
-		[[gnu::always_inline]] [[nodiscard]] constexpr auto operator""_white  (char const* const string, std::size_t const) { return Color<ColorIndex::White  , char const*>(string); }
+		// NOLINTEND(readability-identifier-naming)
 	}
 
 	namespace LoggingWindow {
