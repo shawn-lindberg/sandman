@@ -143,6 +143,8 @@ namespace Shell
 				#endif
 			};
 
+		struct [[nodiscard]] Toggler;
+
 		template <typename...> struct [[nodiscard]] Wrapper;
 
 		template <typename... ParamsT>
@@ -153,6 +155,13 @@ namespace Shell
 		{
 			return Wrapper(*this, std::forward<ParamsT>(args)...);
 		}
+	};
+
+	struct [[nodiscard]] Attr::Toggler : Common::Box<bool>
+	{
+		Attr m_Attributes;
+		constexpr explicit Toggler(Attr const attributes, bool const b)
+			: Box{b}, m_Attributes(attributes) {}
 	};
 
 	template <typename... ObjectsT>
