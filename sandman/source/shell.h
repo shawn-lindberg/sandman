@@ -69,6 +69,24 @@ namespace Shell
 		White   = 7u,
 	};
 
+	// I don't make assumptions about what the Curses color macros
+	// are defined as, so this function serves as a well defined mapping
+	// from numeric constants to the Curses color macros.
+	constexpr signed short int GetColorID(ColorIndex const color)
+	{
+		switch (color)
+		{
+			case ColorIndex::Black  : return COLOR_BLACK  ;
+			case ColorIndex::Red    : return COLOR_RED    ;
+			case ColorIndex::Green  : return COLOR_GREEN  ;
+			case ColorIndex::Yellow : return COLOR_YELLOW ;
+			case ColorIndex::Blue   : return COLOR_BLUE   ;
+			case ColorIndex::Magenta: return COLOR_MAGENTA;
+			case ColorIndex::Cyan   : return COLOR_CYAN   ;
+			case ColorIndex::White  : return COLOR_WHITE  ;
+		}
+	}
+
 
 	struct CharacterAttribute { int m_Value; bool m_Flag; };
 
