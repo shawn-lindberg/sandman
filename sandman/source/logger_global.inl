@@ -22,14 +22,7 @@ bool ::Logger::FormatWriteLine(char const* format, std::va_list argumentList)
 
 	std::vsnprintf(logStringBuffer, kLogStringBufferCapacity, format, argumentList);
 
-	if constexpr (kColor == Shell::ColorIndex::None)
-	{
-		WriteLine(logStringBuffer);
-	}
-	else
-	{
-		WriteLine(Shell::Color<kColor, char const*>(logStringBuffer));
-	}
+	WriteLine(Shell::Color<kColor, char const*>(logStringBuffer));
 
 	return true;
 }
