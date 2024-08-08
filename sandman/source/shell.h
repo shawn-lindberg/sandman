@@ -131,25 +131,7 @@ namespace Shell
 			return Attr(this->m_Value | attributes.m_Value);
 		}
 
-		static constexpr Value
-			kNormal    {A_NORMAL   },
-			kHighlight {A_STANDOUT },
-			kUnderline {A_UNDERLINE},
-			kFlipColor {A_REVERSE  },
-			kBlink     {A_BLINK    },
-			kDim       {A_DIM      },
-			kBold      {A_BOLD     },
-			kInvisible {A_INVIS    },
-			kItalic    {
-				// Italics are a non-X/Open extension.
-				#ifdef A_ITALIC
-				A_ITALIC
-				#else
-				0
-				#endif
-			};
-
-		struct [[nodiscard]] Toggler;
+				struct [[nodiscard]] Toggler;
 
 		template <typename...> struct [[nodiscard]] Wrapper;
 
@@ -225,15 +207,15 @@ namespace Shell
 		// NOLINTBEGIN(readability-identifier-naming)
 
 		inline constexpr Attr
-			Normal     (Attr::kNormal                                                 ),
-			Highlight  (Attr::kHighlight                                              ),
-			Underline  (Attr::kUnderline                                              ),
-			FlipColor  (Attr::kFlipColor                                              ),
-			Blink      (Attr::kBlink                                                  ),
-			Dim        (Attr::kDim                                                    ),
-			Bold       (Attr::kBold                                                   ),
-			Invisible  (Attr::kInvisible                                              ),
-			Italic     (Attr::kItalic                                                 ),
+			Normal     (A_NORMAL                                                      ),
+			Highlight  (A_STANDOUT                                                    ),
+			Underline  (A_UNDERLINE                                                   ),
+			FlipColor  (A_REVERSE                                                     ),
+			Blink      (A_BLINK                                                       ),
+			Dim        (A_DIM                                                         ),
+			Bold       (A_BOLD                                                        ),
+			Invisible  (A_INVIS                                                       ),
+			Italic     (A_ITALIC                                                      ),
 			Black      (GetColorPair(Fg{ColorIndex::Black  }, Bg{ColorIndex::Black  })),
 			Red        (GetColorPair(Fg{ColorIndex::Red    }, Bg{ColorIndex::Black  })),
 			Green      (GetColorPair(Fg{ColorIndex::Green  }, Bg{ColorIndex::Black  })),
