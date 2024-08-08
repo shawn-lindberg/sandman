@@ -99,8 +99,10 @@ namespace Shell
 
 		void PushAttributes(Attr const attributes)
 		{
-			s_AttributeStack.Push(attributes);
-wattrset(s_Window, attributes.m_Value);
+			if (s_AttributeStack.Push(attributes))
+			{
+				wattrset(s_Window, attributes.m_Value);
+			}
 		}
 
 		void PopAttributes()
