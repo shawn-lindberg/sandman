@@ -158,6 +158,8 @@ namespace Shell
 		template <typename... ParamsT> [[nodiscard]] constexpr
 		Wrapper<Common::Forward<ParamsT>...> operator()(Common::Forward<ParamsT>... args) const
 		{
+			static_assert(sizeof...(args) > 0u,
+							  "Calling this function without any arguments is probably a mistake.");
 			return Wrapper(*this, std::forward<ParamsT>(args)...);
 		}
 	};
