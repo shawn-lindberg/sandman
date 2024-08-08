@@ -128,7 +128,7 @@ namespace Shell
 
 		[[nodiscard]] constexpr Attr operator|(Attr const attributes) const
 		{
-			return Attr(this->m_Value | attributes.m_Value);
+			return Attr(this->m_Value bitor attributes.m_Value);
 		}
 
 		struct [[nodiscard]] Toggler;
