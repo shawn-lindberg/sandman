@@ -100,16 +100,27 @@ namespace Shell
 		void PushAttributes(Attr const attributes)
 		{
 			s_AttributeStack.Push(attributes);
+wattrset(s_Window, attributes.m_Value);
 		}
 
 		void PopAttributes()
 		{
 			s_AttributeStack.Pop();
+
+			if (Attr const* const attributes(s_AttributeStack.GetTop()); attributes != nullptr)
+			{
+				wattrset(s_Window, attributes->m_Value);
+			}
+			else
+			{
+				wattrset(s_Window, Normal.m_Value);
+			}
 		}
 
 		void ClearAttributes()
 		{
 			s_AttributeStack.Clear();
+wattrset(s_Window, Normal.m_Value);
 		}
 
 		WINDOW* Get() { return s_Window; }
