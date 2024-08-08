@@ -99,20 +99,10 @@ namespace Shell
 
 		void ClearAttributes();
 
-		template <auto kAttributes=nullptr, typename T, typename... ParamsT>
+		template <Attr::Value kAttributes=Normal.m_Value, typename T, typename... ParamsT>
 		[[gnu::always_inline]] inline void Print(T const object, ParamsT const... arguments)
 		{
-			using AttributesT = std::decay_t<decltype(kAttributes)>;
-
-			if constexpr (std::is_same_v<AttributesT, Attr const*>)
-			{
-				static_assert(kAttributes != nullptr);
-				PushAttributes(*kAttributes);
-			}
-			else if constexpr (not std::is_same_v<AttributesT, std::nullptr_t>)
-			{
-				PushAttributes(Attr(kAttributes));
-			}
+			PushAttributes(Attr(kAttributes));
 
 			Write(object);
 
@@ -127,7 +117,7 @@ namespace Shell
 			}
 		}
 
-		template <auto kAttributes=nullptr, typename... ParamsT>
+		template <Attr::Value kAttributes=Normal.m_Value, typename... ParamsT>
 		[[gnu::always_inline]] inline void Println(ParamsT const... arguments)
 		{
 			Print<kAttributes>(arguments..., chtype{'\n'});
