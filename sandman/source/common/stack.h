@@ -37,21 +37,27 @@ public:
 
 	[[nodiscard]] constexpr T* operator[](SizeType const index)
 	{
-		return std::as_const(*this)[index];
+		return const_cast<T*>(std::as_const(*this)[index]);
 	}
 
-	[[nodiscard]] constexpr T const* GetBottom() const { return (*this)[0u]; }
+	[[nodiscard]] constexpr T const* GetBottom() const
+	{
+		return (*this)[0u];
+	}
 
 	[[nodiscard]] constexpr T* GetBottom()
 	{
-		return std::as_const(*this).GetBottom();
+		return const_cast<T*>(std::as_const(*this).GetBottom());
 	}
 
-	[[nodiscard]] constexpr T const* GetTop() const { return (*this)[m_Size - 1u]; }
+	[[nodiscard]] constexpr T const* GetTop() const
+	{
+		return (*this)[m_Size - 1u];
+	}
 
 	[[nodiscard]] constexpr T* GetTop()
 	{
-		return std::as_const(*this).GetTop();
+		return const_cast<T*>(std::as_const(*this).GetTop());
 	}
 
 	template <typename ObjectT>
