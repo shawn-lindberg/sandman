@@ -126,12 +126,12 @@ namespace Shell
 		// Default constructor is implicit.
 		[[nodiscard]] constexpr Attr() : Attr(Value{0u}) {};
 
-[[nodiscard]] constexpr Attr operator|(Attr const attributes) const
+		[[nodiscard]] constexpr Attr operator|(Attr const attributes) const
 		{
 			return Attr(this->m_Value | attributes.m_Value);
 		}
 
-				struct [[nodiscard]] Toggler;
+		struct [[nodiscard]] Toggler;
 
 		template <typename...> struct [[nodiscard]] Wrapper;
 
