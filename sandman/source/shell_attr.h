@@ -277,15 +277,15 @@ namespace Shell {
 		// NOLINTBEGIN(readability-identifier-naming)
 
 		inline constexpr Attr
-			Normal     (A_NORMAL                                                      ),
-			Highlight  (A_STANDOUT                                                    ),
-			Underline  (A_UNDERLINE                                                   ),
-			FlipColor  (A_REVERSE                                                     ),
-			Blink      (A_BLINK                                                       ),
-			Dim        (A_DIM                                                         ),
-			Bold       (A_BOLD                                                        ),
-			Invisible  (A_INVIS                                                       ),
-			Italic     (A_ITALIC                                                      );
+			Normal     (A_NORMAL                   ),
+			Highlight  (A_STANDOUT                 ),
+			Underline  (A_UNDERLINE                ),
+			FlipColor  (A_REVERSE                  ),
+			Blink      (A_BLINK                    ),
+			Dim        (A_DIM                      ),
+			Bold       (A_BOLD                     ),
+			Invisible  (A_INVIS                    ),
+			Italic     (A_ITALIC                   );
 
 		inline constexpr Attr::ForegroundColor
 			Black      {Normal, ColorIndex::Black  },
