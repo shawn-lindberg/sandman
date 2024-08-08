@@ -21,21 +21,34 @@ template <typename... ParamsT>
 	}
 }
 
-template <Shell::Attr::Value kAttributes, std::size_t kStringBufferCapacity>
+template <auto kAttributes, std::size_t kStringBufferCapacity>
 bool ::Logger::FormatWriteLine(char const* format, std::va_list argumentList)
 {
 	char logStringBuffer[kStringBufferCapacity];
 
 	std::vsnprintf(logStringBuffer, kStringBufferCapacity, format, argumentList);
 
-	static constexpr Shell::Attr kAttributeCallable(kAttributes);
+	using AttributesT = std::decay_t<decltype(kAttributes)>;
 
-	WriteLine(kAttributeCallable(logStringBuffer));
+	if constexpr (std::is_null_pointer_v<AttributesT>)
+	{
+		WriteLine(logStringBuffer);
+	}
+	else if constexpr (std::is_pointer_v<AttributesT>)
+	{
+		static_assert(kAttributes != nullptr);
+		WriteLine(kAttributes->operator()(logStringBuffer));
+	}
+	else
+	{
+		static_assert(std::is_same_v<AttributesT, Shell::Attr::Value>);
+		WriteLine(Shell::Attr(kAttributes)(logStringBuffer));
+	}
 
 	return true;
 }
 
-template <Shell::Attr::Value kAttributes, std::size_t kStringBufferCapacity>
+template <auto kAttributes, std::size_t kStringBufferCapacity>
 bool ::Logger::FormatWriteLine(char const* format, ...)
 {
 	std::va_list argumentList;
