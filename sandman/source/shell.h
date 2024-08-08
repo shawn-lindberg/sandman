@@ -126,7 +126,7 @@ namespace Shell
 		// Default constructor is implicit.
 		[[nodiscard]] constexpr Attr() : Attr(Value{0u}) {};
 
-		Attr operator|(Attr const attributes)
+[[nodiscard]] constexpr Attr operator|(Attr const attributes) const
 		{
 			return Attr(this->m_Value | attributes.m_Value);
 		}
