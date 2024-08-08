@@ -113,11 +113,12 @@ namespace Shell
 	struct Attr
 	{
 
-		// `attr_t` is a type that should be large enough to hold at least `chtype`
-		static_assert(std::numeric_limits<chtype>::max() <= std::numeric_limits<attr_t>::max());
-		static_assert(std::numeric_limits<chtype>::min() >= std::numeric_limits<attr_t>::min());
+		using Value = chtype;
 
-		using Value = attr_t;
+		// `Attr::Value` is a type that should be large enough to hold at least `chtype`
+		static_assert(std::numeric_limits<chtype>::max() <= std::numeric_limits<Attr::Value>::max());
+		static_assert(std::numeric_limits<chtype>::min() >= std::numeric_limits<Attr::Value>::min());
+
 		Value m_Value;
 
 		[[nodiscard]] constexpr explicit Attr(Value const attributes) : m_Value{ attributes } {}
