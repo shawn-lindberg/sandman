@@ -112,11 +112,11 @@ public:
 								  Shell::Bg(Shell::ColorIndex::Black)).m_Value
 	};
 
-	template <Shell::Attr::Value = kDefaultColorPair, std::size_t kStringBufferCapacity = 1u << 11u>
+	template <auto = nullptr, std::size_t kStringBufferCapacity = 1u << 11u>
 	[[gnu::format(printf, 1, 0)]] static bool FormatWriteLine(char const* format,
 																				 std::va_list argumentList);
 
-	template <Shell::Attr::Value = kDefaultColorPair, std::size_t kStringBufferCapacity = 1u << 11u>
+	template <auto = nullptr, std::size_t kStringBufferCapacity = 1u << 11u>
 	[[gnu::format(printf, 1, 2)]] static bool FormatWriteLine(char const* format, ...);
 
 
