@@ -263,7 +263,8 @@ namespace Shell
 
 		/// @brief Get the pointer to the input window.
 		///
-		/// @attention Do not call this function before having called `Shell::Initialize` successfully.
+		/// @attention Do not call this function before having called `Shell::Initialize`
+		/// successfully.
 		///
 		/// @return NCurses window pointer
 		///
