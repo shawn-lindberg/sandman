@@ -4,6 +4,7 @@
 #include "common/enum.h"
 #include "common/forward_alias.h"
 #include "common/box.h"
+#include "shell_attr.h"
 
 #include <array>
 #include <cstddef>
@@ -57,18 +58,6 @@ namespace Shell
 		inline constexpr std::enable_if_t<std::is_integral_v<CharT>, CharT> Ctrl{kName bitand 0x1F};
 	}
 
-	enum struct ColorIndex : std::uint_least8_t
-	{
-		Black   = 0u,
-		Red     = 1u,
-		Green   = 2u,
-		Yellow  = 3u,
-		Blue    = 4u,
-		Magenta = 5u,
-		Cyan    = 6u,
-		White   = 7u,
-	};
-
 	// I don't make assumptions about what the Curses color macros
 	// are defined as, so this function serves as a well defined mapping
 	// from numeric constants to the Curses color macros.
@@ -110,73 +99,8 @@ namespace Shell
 		[[nodiscard]] constexpr explicit BackgroundColor(ColorIndex const color) : Box{color} {};
 	};
 
-	struct Attr
-	{
-
-		using Value = chtype;
-
-		// `Attr::Value` is a type that should be large enough to hold at least `chtype`
-		static_assert(std::numeric_limits<chtype>::max() <= std::numeric_limits<Attr::Value>::max());
-		static_assert(std::numeric_limits<chtype>::min() >= std::numeric_limits<Attr::Value>::min());
-
-		Value m_Value;
-
-		[[nodiscard]] constexpr explicit Attr(Value const attributes) : m_Value{ attributes } {}
-
-		// Default constructor is implicit.
-		[[nodiscard]] constexpr Attr() : Attr(Value{A_NORMAL}) {};
-
-		[[nodiscard]] constexpr Attr operator|(Attr const attributes) const
-		{
-			return Attr(this->m_Value bitor attributes.m_Value);
-		}
-
-		struct [[nodiscard]] Toggler;
-
-		template <typename...> struct [[nodiscard]] Wrapper;
-
-		template <typename... ParamsT>
-		Wrapper(Attr const, Common::Forward<ParamsT>...) -> Wrapper<Common::Forward<ParamsT>...>;
-
-		template <typename... ParamsT> [[nodiscard]] constexpr
-		Wrapper<Common::Forward<ParamsT>...> operator()(Common::Forward<ParamsT>... args) const
-		{
-			static_assert(sizeof...(args) > 0u,
-							  "Calling this function without any arguments is probably a mistake.");
-			return Wrapper(*this, std::forward<ParamsT>(args)...);
-		}
-	};
-
-	struct [[nodiscard]] Attr::Toggler : Common::Box<bool>
-	{
-		Attr m_Attributes;
-		constexpr explicit Toggler(Attr const attributes, bool const b)
-			: Box{b}, m_Attributes(attributes) {}
-	};
-
-	template <typename... ObjectsT>
-	struct [[nodiscard]] Attr::Wrapper
-	{
-		std::tuple<ObjectsT...> m_Objects;
-		Attr m_Attributes;
-
-		template <typename... ParamsT> [[nodiscard]]
-		constexpr explicit Wrapper(Attr const attributes, Common::Forward<ParamsT>... args)
-			: m_Objects(std::forward<ParamsT>(args)...), m_Attributes{ attributes } {}
-	};
-
-	// NOLINTBEGIN(readability-identifier-naming)
-
-	template <typename>
-	inline constexpr bool IsAttrWrapper{ false };
-
-	template <typename... ObjectsT>
-	inline constexpr bool IsAttrWrapper<Attr::Wrapper<ObjectsT...>>{ true };
-
-	// NOLINTEND(readability-identifier-naming)
-
-	constexpr Attr GetColorPair(ForegroundColor const foregroundColor,
-										 BackgroundColor const backgroundColor)
+	constexpr Attr GetColorPair(Fg const foregroundColor,
+										 Bg const backgroundColor)
 	{
 		using Common::Enum::IntCast;
 		using ColorPairID = decltype(GetColorID(std::declval<ColorIndex>()));
