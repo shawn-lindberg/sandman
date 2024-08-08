@@ -122,7 +122,7 @@ namespace Shell
 		void ClearAttributes()
 		{
 			s_AttributeStack.Clear();
-wattrset(s_Window, Normal.m_Value);
+			wattrset(s_Window, Normal.m_Value);
 		}
 
 		WINDOW* Get() { return s_Window; }
