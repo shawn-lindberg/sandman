@@ -1,16 +1,14 @@
 #pragma once
 
-
 namespace Common
 {
-	template<typename ValueT>
+	template <typename T>
 	struct Box
 	{
-		ValueT m_Value;
+		T m_Value;
 
-		[[nodiscard]] constexpr operator ValueT() const
-		{
-			return m_Value;
-		}
+		[[nodiscard]] explicit constexpr Box(T const& value) : m_Value(value) {}
+
+		[[nodiscard]] explicit constexpr Box(T&& value) : m_Value(std::move(value)) {}
 	};
 }
