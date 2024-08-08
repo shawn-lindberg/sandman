@@ -89,14 +89,14 @@ namespace Shell
 		ColorIndex::White  ,
 	};
 
-	struct ForegroundColor : Common::Box<ColorIndex>
+	struct Fg : Common::Box<ColorIndex>
 	{
-		[[nodiscard]] constexpr explicit ForegroundColor(ColorIndex const color) : Box{color} {};
+		[[nodiscard]] constexpr explicit Fg(ColorIndex const color) : Box{color} {};
 	};
 
-	struct BackgroundColor : Common::Box<ColorIndex>
+	struct Bg : Common::Box<ColorIndex>
 	{
-		[[nodiscard]] constexpr explicit BackgroundColor(ColorIndex const color) : Box{color} {};
+		[[nodiscard]] constexpr explicit Bg(ColorIndex const color) : Box{color} {};
 	};
 
 	constexpr Attr GetColorPair(Fg const foregroundColor,
@@ -125,8 +125,6 @@ namespace Shell
 
 	inline namespace CharacterAttributeConstants
 	{
-		using Fg = ForegroundColor;
-		using Bg = BackgroundColor;
 
 		// NOLINTBEGIN(readability-identifier-naming)
 
@@ -148,14 +146,14 @@ namespace Shell
 			Magenta    (GetColorPair(Fg{ColorIndex::Magenta}, Bg{ColorIndex::Black  })),
 			Cyan       (GetColorPair(Fg{ColorIndex::Cyan   }, Bg{ColorIndex::Black  })),
 			White      (GetColorPair(Fg{ColorIndex::White  }, Bg{ColorIndex::Black  })),
-			BackBlack  (GetColorPair(Fg{ColorIndex::Black  }, Bg{ColorIndex::Black  })),
-			BackRed    (GetColorPair(Fg{ColorIndex::Black  }, Bg{ColorIndex::Red    })),
-			BackGreen  (GetColorPair(Fg{ColorIndex::Black  }, Bg{ColorIndex::Green  })),
-			BackYellow (GetColorPair(Fg{ColorIndex::Black  }, Bg{ColorIndex::Yellow })),
-			BackBlue   (GetColorPair(Fg{ColorIndex::Black  }, Bg{ColorIndex::Blue   })),
-			BackMagenta(GetColorPair(Fg{ColorIndex::Black  }, Bg{ColorIndex::Magenta})),
-			BackCyan   (GetColorPair(Fg{ColorIndex::Black  }, Bg{ColorIndex::Cyan   })),
-			BackWhite  (GetColorPair(Fg{ColorIndex::Black  }, Bg{ColorIndex::White  }));
+			BackBlack  (GetColorPair(Fg{ColorIndex::White  }, Bg{ColorIndex::Black  })),
+			BackRed    (GetColorPair(Fg{ColorIndex::White  }, Bg{ColorIndex::Red    })),
+			BackGreen  (GetColorPair(Fg{ColorIndex::White  }, Bg{ColorIndex::Green  })),
+			BackYellow (GetColorPair(Fg{ColorIndex::White  }, Bg{ColorIndex::Yellow })),
+			BackBlue   (GetColorPair(Fg{ColorIndex::White  }, Bg{ColorIndex::Blue   })),
+			BackMagenta(GetColorPair(Fg{ColorIndex::White  }, Bg{ColorIndex::Magenta})),
+			BackCyan   (GetColorPair(Fg{ColorIndex::White  }, Bg{ColorIndex::Cyan   })),
+			BackWhite  (GetColorPair(Fg{ColorIndex::White  }, Bg{ColorIndex::White  }));
 
 		// NOLINTEND(readability-identifier-naming)
 	}
