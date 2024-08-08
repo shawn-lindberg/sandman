@@ -124,7 +124,7 @@ namespace Shell
 		[[nodiscard]] constexpr explicit Attr(Value const attributes) : m_Value{ attributes } {}
 
 		// Default constructor is implicit.
-		[[nodiscard]] constexpr Attr() : Attr(Value{0u}) {};
+		[[nodiscard]] constexpr Attr() : Attr(Value{A_NORMAL}) {};
 
 		[[nodiscard]] constexpr Attr operator|(Attr const attributes) const
 		{
