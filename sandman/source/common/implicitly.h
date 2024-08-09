@@ -2,7 +2,7 @@
 
 namespace Common
 {
-	/// Utility type that is implicitly convertable to a value specified by the
+	/// Utility type that is implicitly `constexpr` convertible to a value specified by the
 	/// template parameter.
 	template <auto kValue>
 	struct Implicitly
