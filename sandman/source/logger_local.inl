@@ -107,8 +107,8 @@ void ::Logger::FormatWrite(std::string_view formatString, Common::Forward<T> fir
 			switch (c)
 			{
 				case kFormatInterpolationIndicator:
-					// Write the first argument then
-					// write the remaining arguments interpolated
+					// Write the first argument, then
+					// interpolate the remaining arguments
 					// into the rest of the string.
 
 					Write(std::forward<T>(firstArg));
