@@ -41,6 +41,10 @@ template <typename T, typename... ParamsT>
 			std::apply(writeArgs, firstArg.m_Objects);
 
 			// Pop the attributes object to remove its affect.
+			{
+				::Shell::Lock const lock;
+				::Shell::LoggingWindow::PopAttributes();
+			}
 		}
 		else
 		{
