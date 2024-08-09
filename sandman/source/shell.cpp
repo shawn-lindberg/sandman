@@ -90,7 +90,7 @@ namespace Shell
 		// This window is where messages from the logger are written to.
 		static WINDOW* s_Window = nullptr;
 
-		static Common::Stack<Attr, kMaxAttributeObjectCount> s_AttributeStack{};
+		static Common::Stack<Attr, kMaxAttributeObjectCount> s_AttributeStack;
 
 		void Refresh() { wrefresh(s_Window); }
 
