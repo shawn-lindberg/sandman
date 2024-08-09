@@ -108,8 +108,8 @@ public:
 
 	static constexpr Shell::Attr::Value kDefaultColorPair
 	{
-		Shell::GetColorPair(Shell::Fg(Shell::ColorIndex::White),
-								  Shell::Bg(Shell::ColorIndex::Black)).m_Value
+		Shell::GetColorPair(Shell::ForegroundColorIndex(Shell::ColorIndex::White),
+								  Shell::BackgroundColorIndex(Shell::ColorIndex::Black)).m_Value
 	};
 
 	template <auto = nullptr, std::size_t kStringBufferCapacity = 1u << 11u>

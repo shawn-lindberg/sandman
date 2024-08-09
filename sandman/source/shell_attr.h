@@ -271,9 +271,6 @@ namespace Shell {
 	inline namespace CharacterAttributeConstants
 	{
 
-		using Fg = ForegroundColorIndex;
-		using Bg = BackgroundColorIndex;
-
 		// NOLINTBEGIN(readability-identifier-naming)
 
 		inline constexpr Attr
