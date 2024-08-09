@@ -1,13 +1,19 @@
 #pragma once
 
+/// Wrapper around a pointer that is not null.
 namespace Common { template <typename> class NonNull; }
 
+// Wrapper around a function pointer that is not null.
+// If initialized with a null pointer, the internal pointer value is not set to null pointer;
+// the internal pointer value is instead initialized with a function with no side effects
+// that returns a default value.
 template <typename ReturnT, typename... ParamsT>
 class Common::NonNull<ReturnT (*)(ParamsT...)>
 {
 public:
 	using FunctionT = ReturnT (*)(ParamsT...);
 
+	/// Does nothing with the parameters, and returns a default constructed value.
 	[[gnu::always_inline]] static constexpr ReturnT Simulacrum(ParamsT...)
 	{
 		return ReturnT();

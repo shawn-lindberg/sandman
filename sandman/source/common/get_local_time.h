@@ -4,6 +4,11 @@
 
 namespace Common
 {
+	/// @warning This function may not be thread-safe because
+	/// it calls `std::localtime` which may not be thread-safe.
+	/// @return Pointer to a static internal `std::tm` object on success, or null pointer otherwise.
+	/// The structure may be shared between `std::gmtime`, `std::localtime`, and `std::ctime`, and
+	/// may be overwritten on each invocation.
 	[[gnu::always_inline]] [[nodiscard]] inline std::tm* GetLocalTime()
 	{
 		auto const timePoint(std::chrono::system_clock::now());

@@ -4,6 +4,8 @@
 
 namespace Common::Enum
 {
+
+	/// Shorthand for `static_cast<std::underlying_type_t<EnumT>>(enumValue)`.
 	template <typename EnumT>
 	[[gnu::always_inline]] [[nodiscard]] constexpr std::enable_if_t<std::is_enum_v<EnumT>,
 																						 std::underlying_type_t<EnumT>>
