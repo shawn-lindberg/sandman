@@ -9,7 +9,8 @@ template <typename... ParamsT>
 {
 	using namespace std::string_view_literals;
 
-	std::lock_guard const lock(ms_Mutex);
+	{
+		std::lock_guard const lock(ms_Mutex);
 
 		if (std::tm const* localTime{ ::Common::GetLocalTime() }; localTime != nullptr)
 		{
