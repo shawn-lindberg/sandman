@@ -2,7 +2,7 @@
 
 std::mutex Logger::ms_Mutex;
 std::ofstream Logger::ms_File;
-Logger Logger::ms_GlobalLogger(ms_File);
+Logger Logger::ms_Logger(ms_File);
 
 bool ::Logger::Initialize(char const* const logFileName)
 {
