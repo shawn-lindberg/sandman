@@ -438,7 +438,6 @@ namespace Shell
 			case Key::Ctrl<'D'>:
 				return true;
 
-
 			case KEY_LEFT:
 				// If the curser has space to move left, move it left.
 				if (s_Cursor > 0u)
