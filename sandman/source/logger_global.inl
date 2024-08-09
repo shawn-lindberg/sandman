@@ -14,7 +14,7 @@ template <typename... ParamsT>
 
 		if (std::tm const* const localTime{ ::Common::GetLocalTime() }; localTime != nullptr)
 		{
-			ms_Logger.Write(Shell::Cyan(std::put_time(localTime, "%Y/%m/%d %H:%M:%S %Z"), " | "sv),
+			ms_Logger.Write(Shell::Cyan(std::put_time(localTime, "%Y/%m/%d %H:%M:%S %Z | ")),
 								 std::forward<ParamsT>(args)..., '\n');
 		}
 		else
