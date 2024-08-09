@@ -72,6 +72,7 @@ template <typename T, typename... ParamsT>
 		// Dump current data to output destinations.
 		if (m_ScreenEcho)
 		{
+			::Shell::Lock const lock;
 			::Shell::LoggingWindow::Write(std::string_view(string));
 		}
 		m_OutputStream << string;
