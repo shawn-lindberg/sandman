@@ -59,6 +59,7 @@ template <typename T, typename... ParamsT>
 	if constexpr (sizeof...(args) > 0u)
 	{
 		// Recursively write the remaining arguments.
+		return Write(std::forward<ParamsT>(args)...);
 	}
 	else
 	{
