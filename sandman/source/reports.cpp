@@ -132,7 +132,7 @@ static void ReportsOpenFile()
 	// If necessary, close the previous file.
 	if (s_ReportFile != nullptr)
 	{
-		Logger::FormatWriteLine("Closing report file for %s.", s_ReportDateString.c_str());
+		Logger::WriteFormattedLine("Closing report file for %s.", s_ReportDateString.c_str());
 
 		fclose(s_ReportFile);
 		s_ReportFile = nullptr;
@@ -161,7 +161,7 @@ static void ReportsOpenFile()
 	}
 
 	// Open the file for appending.
-	Logger::FormatWriteLine("%s report file %s...", (reportAlreadyExisted == true) ? "Opening" : 
+	Logger::WriteFormattedLine("%s report file %s...", (reportAlreadyExisted == true) ? "Opening" : 
 		"Creating", reportFileName.c_str());
 
 	// This mode works regardless of whether the file exists or not.
@@ -169,7 +169,7 @@ static void ReportsOpenFile()
 
 	if (s_ReportFile == nullptr)
 	{
-		Logger::FormatWriteLine("\tfailed");
+		Logger::WriteFormattedLine("\tfailed");
 		return;
 	}
 
@@ -218,7 +218,7 @@ void ReportsInitialize()
 	// Acquire a lock for the rest of the function.
 	const std::lock_guard<std::mutex> reportGuard(s_ReportMutex);
 
-	Logger::FormatWriteLine("Initializing reports...");
+	Logger::WriteFormattedLine("Initializing reports...");
 
 	// Initialize the file.
 	s_ReportFile = nullptr;
@@ -273,7 +273,7 @@ static void ReportsWriteItem(PendingItem const& item)
 
 	if (eventDocument.HasParseError() == true)
 	{
-		Logger::FormatWriteLine<&Shell::Red>(
+		Logger::WriteFormattedLine<&Shell::Red>(
 			"Failed to convert report event string back into JSON \"%s\".",
 			item.m_EventString.c_str());
 		return;
@@ -357,7 +357,7 @@ void ReportsAddControlItem(std::string const& controlName, Control::Actions cons
 {
 	if ((action < 0) || (action >= Control::kNumActions))
 	{
-		Logger::FormatWriteLine("Could not add control item to the report because it contains an invalid "
+		Logger::WriteFormattedLine("Could not add control item to the report because it contains an invalid "
 			"action %d!", action);
 		return;
 	}

@@ -54,13 +54,13 @@ bool InputBinding::ReadFromJSON(rapidjson::Value const& object)
 
 	if (keyCodeIterator == object.MemberEnd())
 	{
-		Logger::FormatWriteLine("Input binding is missing a key code.");
+		Logger::WriteFormattedLine("Input binding is missing a key code.");
 		return false;
 	}
 
 	if (keyCodeIterator->value.IsInt() == false)
 	{
-		Logger::FormatWriteLine("Input binding has a key code, but it is not an integer.");
+		Logger::WriteFormattedLine("Input binding has a key code, but it is not an integer.");
 		return false;
 	}
 
@@ -71,13 +71,13 @@ bool InputBinding::ReadFromJSON(rapidjson::Value const& object)
 
 	if (controlActionIterator == object.MemberEnd())
 	{
-		Logger::FormatWriteLine("Input binding is missing a control action.");
+		Logger::WriteFormattedLine("Input binding is missing a control action.");
 		return false;
 	}
 	
 	if (m_ControlAction.ReadFromJSON(controlActionIterator->value) == false) 
 	{
-		Logger::FormatWriteLine("Input binding has a control action, but it could not be parsed.");
+		Logger::WriteFormattedLine("Input binding has a control action, but it could not be parsed.");
 		return false;
 	}
 
@@ -109,14 +109,14 @@ void Input::Initialize(char const* deviceName, std::vector<InputBinding> const& 
 	}
 	
 	// Display what we initialized.
-	Logger::FormatWriteLine("Initialized input device \'%s\' with input bindings:", m_DeviceName);
+	Logger::WriteFormattedLine("Initialized input device \'%s\' with input bindings:", m_DeviceName);
 	
 	for (auto const& binding : m_Bindings) 
 	{
 		auto* const actionText = 
 			(binding.m_ControlAction.m_Action == Control::Actions::kActionMovingUp) ? "up" : "down";
 		
-		Logger::FormatWriteLine("\tCode %i -> %s, %s", binding.m_KeyCode, 
+		Logger::WriteFormattedLine("\tCode %i -> %s, %s", binding.m_KeyCode, 
 			binding.m_ControlAction.m_ControlName, actionText);
 	}
 	
@@ -177,13 +177,13 @@ void Input::Process()
 			CloseDevice(true, "Failed to get name for input device \'%s\'", m_DeviceName);
 		}
 		
-		Logger::FormatWriteLine("Input device \'%s\' is a \'%s\'", m_DeviceName, name);
+		Logger::WriteFormattedLine("Input device \'%s\' is a \'%s\'", m_DeviceName, name);
 		
 		// More device information.
 		unsigned short deviceID[4];
 		ioctl(m_DeviceFileHandle, EVIOCGID, deviceID);
 		
-		Logger::FormatWriteLine("Input device bus 0x%x, vendor 0x%x, product 0x%x, version 0x%x.", 
+		Logger::WriteFormattedLine("Input device bus 0x%x, vendor 0x%x, product 0x%x, version 0x%x.", 
 			deviceID[ID_BUS], deviceID[ID_VENDOR], deviceID[ID_PRODUCT], deviceID[ID_VERSION]);
 			
 		// Play controller connected notification.
@@ -226,7 +226,7 @@ void Input::Process()
 			continue;
 		}
 		
-		//Logger::FormatWriteLine("Input event type %i, code %i, value %i", event.type, event.code, 
+		//Logger::WriteFormattedLine("Input event type %i, code %i, value %i", event.type, event.code, 
 		//	event.value);
 			
 		// Try to find a control action corresponding to this input.
@@ -245,7 +245,7 @@ void Input::Process()
 		
 		if (control == nullptr) {
 			
-			Logger::FormatWriteLine("Couldn't find control \'%s\' mapped to key code %i.", 
+			Logger::WriteFormattedLine("Couldn't find control \'%s\' mapped to key code %i.", 
 				controlAction.m_ControlName, event.code);
 			continue;
 		}
@@ -298,7 +298,7 @@ void Input::CloseDevice(bool wasFailure, char const* format, ...)
 	va_list arguments;
 	va_start(arguments, format);
 
-	Logger::FormatWriteLine<Shell::Red.BuildAttr().m_Value>(format, arguments);
+	Logger::WriteFormattedLine<Shell::Red.BuildAttr().m_Value>(format, arguments);
 	
 	va_end(arguments);
 		

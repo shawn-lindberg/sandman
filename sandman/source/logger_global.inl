@@ -33,7 +33,7 @@ template <typename... ParamsT>
 }
 
 template <auto kAttributes, std::size_t kStringBufferCapacity>
-bool ::Logger::FormatWriteLine(char const* const format, std::va_list argumentList)
+bool ::Logger::WriteFormattedLine(char const* const format, std::va_list argumentList)
 {
 	char logStringBuffer[kStringBufferCapacity];
 
@@ -60,11 +60,11 @@ bool ::Logger::FormatWriteLine(char const* const format, std::va_list argumentLi
 }
 
 template <auto kAttributes, std::size_t kStringBufferCapacity>
-bool ::Logger::FormatWriteLine(char const* const format, ...)
+bool ::Logger::WriteFormattedLine(char const* const format, ...)
 {
 	std::va_list argumentList;
 	va_start(argumentList, format);
-	bool const result{ FormatWriteLine<kAttributes, kStringBufferCapacity>(format, argumentList) };
+	bool const result{ WriteFormattedLine<kAttributes, kStringBufferCapacity>(format, argumentList) };
 	va_end(argumentList);
 	return result;
 }

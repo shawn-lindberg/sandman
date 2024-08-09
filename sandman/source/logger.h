@@ -210,7 +210,7 @@ public:
 	// Internally calls `std::vsnprintf` to format the data,
 	// then calls `::Logger::WriteLine` to write the data.
 	template <auto = nullptr, std::size_t kStringBufferCapacity = 1u << 11u>
-	[[gnu::format(printf, 1, 0)]] static bool FormatWriteLine(char const* const format,
+	[[gnu::format(printf, 1, 0)]] static bool WriteFormattedLine(char const* const format,
 																				 std::va_list argumentList);
 
 	// "std::printf" style write function.
@@ -218,9 +218,9 @@ public:
 	// This function takes arguments that are interpreted exactly how
 	// `std::printf` would interpret them, and writes the data using the global logger.
 	// 
-	// Internally calls `::Logger::FormatWriteLine(char const* const, std::va_list)`.
+	// Internally calls `::Logger::WriteFormattedLine(char const* const, std::va_list)`.
 	template <auto = nullptr, std::size_t kStringBufferCapacity = 1u << 11u>
-	[[gnu::format(printf, 1, 2)]] static bool FormatWriteLine(char const* const format, ...);
+	[[gnu::format(printf, 1, 2)]] static bool WriteFormattedLine(char const* const format, ...);
 
 };
 

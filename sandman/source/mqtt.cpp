@@ -77,12 +77,12 @@ static bool MQTTSubscribeTopic(mosquitto* mosquittoClient, const char* topic)
 
 	if (returnCode != MOSQ_ERR_SUCCESS)
 	{
-		Logger::FormatWriteLine("Subscription to MQTT topic \"%s\" failed with return code %d", topic,
+		Logger::WriteFormattedLine("Subscription to MQTT topic \"%s\" failed with return code %d", topic,
 			returnCode);		
 		return false;
 	}
 	
-	Logger::FormatWriteLine("Subscribed to MQTT topic \"%s\".", topic);
+	Logger::WriteFormattedLine("Subscribed to MQTT topic \"%s\".", topic);
 	return true;
 }
 
@@ -96,12 +96,12 @@ void OnConnectCallback(mosquitto* mosquittoClient, void* userData, int returnCod
 {
 	if (returnCode != MOSQ_ERR_SUCCESS)
 	{		
-		Logger::FormatWriteLine("Connection to MQTT host failed with return code %d", returnCode);
+		Logger::WriteFormattedLine("Connection to MQTT host failed with return code %d", returnCode);
 		return;
 	}
 
 	s_ConnectedToHost = true;
-	Logger::FormatWriteLine("Connected to MQTT host.");
+	Logger::WriteFormattedLine("Connected to MQTT host.");
 
 	// Subscribe to the relevant topics.
 	MQTTSubscribeTopic(mosquittoClient, "hermes/intent/#");
@@ -119,7 +119,7 @@ void OnMessageCallback(mosquitto* mosquittoClient, void* userData,
 	const mosquitto_message* message)
 {
 	const auto* payloadString = reinterpret_cast<char*>(message->payload);
-	//Logger::FormatWriteLine("Received MQTT message for topic \"%s\": %s", message->topic, 
+	//Logger::WriteFormattedLine("Received MQTT message for topic \"%s\": %s", message->topic, 
 	//	payloadString);
 
 	std::string const topic(message->topic);
@@ -164,7 +164,7 @@ void OnMessageCallback(mosquitto* mosquittoClient, void* userData,
 //
 bool MQTTInitialize()
 {
-	Logger::FormatWriteLine("Initializing MQTT support...");
+	Logger::WriteFormattedLine("Initializing MQTT support...");
 
 	s_ConnectedToHost = false;
 	s_FirstTextToSpeechFinished = false;
@@ -172,7 +172,7 @@ bool MQTTInitialize()
 	
 	if (mosquitto_lib_init() != MOSQ_ERR_SUCCESS)
 	{
-		Logger::FormatWriteLine("\tfailed");
+		Logger::WriteFormattedLine("\tfailed");
 		return false;
 	}
 		
@@ -184,16 +184,16 @@ bool MQTTInitialize()
 	int revision = 0;
 	mosquitto_lib_version(&majorVersion, &minorVersion, &revision);
 
-	Logger::FormatWriteLine("MQTT version %i.%i.%i", majorVersion, minorVersion, revision);
+	Logger::WriteFormattedLine("MQTT version %i.%i.%i", majorVersion, minorVersion, revision);
 
-	Logger::FormatWriteLine("Creating MQTT client...");
+	Logger::WriteFormattedLine("Creating MQTT client...");
 
 	const bool cleanSession = true;
     s_MosquittoClient = mosquitto_new("sandman", cleanSession, nullptr);
 
 	if (s_MosquittoClient == nullptr) 
 	{
-		Logger::FormatWriteLine("\tfailed");
+		Logger::WriteFormattedLine("\tfailed");
 		return false;
 	}
 	
@@ -204,7 +204,7 @@ bool MQTTInitialize()
 	mosquitto_connect_callback_set(s_MosquittoClient, OnConnectCallback);
 	mosquitto_message_callback_set(s_MosquittoClient, OnMessageCallback);
 
-	Logger::FormatWriteLine("Connecting to MQTT host...");
+	Logger::WriteFormattedLine("Connecting to MQTT host...");
 
 	// We are going to repeatedly attempt to connect roughly every second for a 
 	// certain period of time.
@@ -319,13 +319,13 @@ static void MQTTPublishMessage(char const* topic, char const* message)
 
 	if (returnCode != MOSQ_ERR_SUCCESS)
 	{
-		Logger::FormatWriteLine("Publish to MQTT topic \"%s\" failed with return code %d", topic,
+		Logger::WriteFormattedLine("Publish to MQTT topic \"%s\" failed with return code %d", topic,
 			returnCode);		
 	} 
 	else 
 	{
-		//Logger::FormatWriteLine("Published message to MQTT topic \"%s\": %s", topic, message);			
-		Logger::FormatWriteLine("Published message to MQTT topic \"%s\"", topic);			
+		//Logger::WriteFormattedLine("Published message to MQTT topic \"%s\": %s", topic, message);			
+		Logger::WriteFormattedLine("Published message to MQTT topic \"%s\"", topic);			
 	}
 }
 
@@ -366,7 +366,7 @@ static void ProcessDialogueManagerMessage(std::string const& topic,
 	
 	if (topic.find("sessionStarted") != std::string::npos)
 	{
-		Logger::FormatWriteLine("Dialogue session started with ID: %s", sessionID);
+		Logger::WriteFormattedLine("Dialogue session started with ID: %s", sessionID);
 		s_DialogueManagerSessionID = sessionID;
 		return;
 	}
@@ -396,12 +396,12 @@ static void ProcessDialogueManagerMessage(std::string const& topic,
 
 		if (reason != nullptr)
 		{
-			Logger::FormatWriteLine("Dialogue session ended with ID: %s and reason: %s", sessionID, 
+			Logger::WriteFormattedLine("Dialogue session ended with ID: %s and reason: %s", sessionID, 
 				reason);
 		}
 		else
 		{
-			Logger::FormatWriteLine("Dialogue session ended with ID: %s", sessionID);
+			Logger::WriteFormattedLine("Dialogue session ended with ID: %s", sessionID);
 		}	
 	
 		s_DialogueManagerSessionID = "";
@@ -482,7 +482,7 @@ static void MQTTProcessReceivedMessage(MessageInfo const& message)
 
 	if (topic.find("hermes/intent/") != std::string::npos) 
 	{
-		Logger::FormatWriteLine("Received MQTT message for topic \"%s\"", message.m_Topic.c_str());
+		Logger::WriteFormattedLine("Received MQTT message for topic \"%s\"", message.m_Topic.c_str());
 
 		ProcessIntentMessage(payloadDocument);
 		return;
@@ -567,7 +567,7 @@ void MQTTProcess()
 				MQTTPublishNotification(s_FirstNotification);
 				TimerGetCurrent(s_LastAttemptTime);
 
-				Logger::FormatWriteLine("Attempted first notification.");
+				Logger::WriteFormattedLine("Attempted first notification.");
 			}
 
 			// See if enough time has passed since our last attempt.
@@ -586,7 +586,7 @@ void MQTTProcess()
 				MQTTPublishNotification(s_FirstNotification);
 				TimerGetCurrent(s_LastAttemptTime);
 
-				Logger::FormatWriteLine("Reattempted first notification.");
+				Logger::WriteFormattedLine("Reattempted first notification.");
 			}
 		}
 	}
