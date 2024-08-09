@@ -30,6 +30,7 @@ private:
 
 public:
 
+	// Get "logical" size of stack, not "physical" size of internal buffer.
 	[[nodiscard]] constexpr auto GetSize() const { return m_Size; }
 
 	// Return pointer to value at index. Returns `nullptr` on out of bounds.
@@ -44,13 +45,13 @@ public:
 		return const_cast<T*>(std::as_const(*this)[index]);
 	}
 
-	// Return pointer to value at index 0. Returns `nullptr` on out of bounds.
+	// Return pointer to value at index zero. Returns `nullptr` on out of bounds.
 	[[nodiscard]] constexpr T const* GetBottom() const
 	{
 		return (*this)[0u];
 	}
 
-	// Return pointer to value at index 0. Returns `nullptr` on out of bounds.
+	// Return pointer to value at index zero. Returns `nullptr` on out of bounds.
 	[[nodiscard]] constexpr T* GetBottom()
 	{
 		return const_cast<T*>(std::as_const(*this).GetBottom());
@@ -59,6 +60,9 @@ public:
 	// Return pointer to value at index size minus one. Returns `nullptr` on out of bounds.
 	[[nodiscard]] constexpr T const* GetTop() const
 	{
+		// Unsigned integral underflow is well-defined behavior; it will wrap.
+		// So, it is okay to subtract from size without checking if size is zero.
+		static_assert(std::is_unsigned_v<decltype(m_Size)>);
 		return (*this)[m_Size - 1u];
 	}
 
@@ -68,7 +72,7 @@ public:
 		return const_cast<T*>(std::as_const(*this).GetTop());
 	}
 
-	// Push an object to the stack at index size. Returns `true` on success, `false` otherwise.
+	// Push an object onto the stack at index size. Returns `true` on success, `false` otherwise.
 	template <typename ObjectT>
 	constexpr bool Push(ObjectT&& object)
 	{
