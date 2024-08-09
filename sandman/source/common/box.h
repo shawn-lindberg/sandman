@@ -1,5 +1,7 @@
 #pragma once
 
+#include <utility>
+
 namespace Common
 {
 	/// Sometimes, when a function takes two or more parameters of the same type,
