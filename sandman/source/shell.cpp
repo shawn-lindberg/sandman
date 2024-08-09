@@ -316,6 +316,8 @@ namespace Shell
 
 	namespace InputWindow
 	{
+		using Buffer = Common::String<char, kMaxInputStringLength>;
+
 		// User keyboard input is stored here.
 		static Buffer s_Buffer(
 			Buffer::OnStringUpdateListener{[](Buffer::Data::size_type const index, Buffer::Data::value_type const character) -> void
