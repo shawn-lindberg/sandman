@@ -18,6 +18,7 @@ bool ::Logger::Initialize(char const* const logFileName)
 
 		if (not ms_File)
 		{
+			// Failed to open the file.
 			return false;
 		}
 	}
@@ -28,6 +29,8 @@ bool ::Logger::Initialize(char const* const logFileName)
 void ::Logger::Uninitialize()
 {
 	std::lock_guard const lock(ms_Mutex);
+
+	// Closing the file stream also flushes any remaining data to the file.
 	ms_File.close();
 }
 
@@ -44,9 +47,11 @@ void ::Logger::FormatWrite(std::string_view const formatString)
 			switch (c)
 			{
 				case kFormatInterpolationIndicator:
-					Write("`null`"sv);
+					// Don't have any arguments to write, so write a placeholder.
+					Write(kMissingFormatValue);
 					break;
 				default:
+					// An escaped character that isn't special is simply written.
 					Write(c);
 					break;
 			}
