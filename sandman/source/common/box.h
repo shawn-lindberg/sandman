@@ -12,7 +12,7 @@ namespace Common
 	/// different inputs to a function in a way that is enforced at compile time.
 	///
 	/// This utility type exists so that declaring "named parameter" types
-	/// is less verbose; a `struct` or `class` can be declared
+	/// is less verbose: a `struct` or `class` can be declared
 	/// publicly inheriting from this type and also inheriting the constructors.
 	template <typename BoxedValueT>
 	struct Box
