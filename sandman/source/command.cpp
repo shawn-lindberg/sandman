@@ -325,7 +325,7 @@ CommandParseTokensReturnTypes CommandParseTokens(char const*& confirmationText,
 				
 				if ((s_Input != nullptr) && (s_Input->IsConnected() == true))
 				{
-					NotificationPlay("controconnected");
+					NotificationPlay("control_connected");
 				}
 
 				ReportsAddStatusItem();

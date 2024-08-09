@@ -187,7 +187,7 @@ void Input::Process()
 			deviceID[ID_BUS], deviceID[ID_VENDOR], deviceID[ID_PRODUCT], deviceID[ID_VERSION]);
 			
 		// Play controller connected notification.
-		NotificationPlay("controconnected");
+		NotificationPlay("control_connected");
 			
 		m_DeviceOpenHasFailed = false;
 	}
@@ -303,5 +303,5 @@ void Input::CloseDevice(bool wasFailure, char const* format, ...)
 	va_end(arguments);
 		
 	// Play controller disconnected notification.
-	NotificationPlay("controdisconnected");
+	NotificationPlay("control_disconnected");
 }
