@@ -26,7 +26,7 @@ namespace Shell
 {
 	using namespace std::string_view_literals;
 
-	class [[nodiscard]] Lock
+	class [[nodiscard]] Lock final
 	{
 		private: std::lock_guard<std::mutex> m_Lock;
 		public: [[nodiscard]] explicit Lock();
@@ -63,6 +63,7 @@ namespace Shell
 	namespace LoggingWindow {
 
 		// Refresh the logging window.
+		//
 		// This applies the writes to this window that otherwise would not have been shown.
 		void Refresh();
 
@@ -116,7 +117,8 @@ namespace Shell
 		// If there is no previoues attribute object, revert to no attributes being applied.
 		void PopAttributes();
 
-		// Clear the window of all applied attributes and clear the stack of attribute objects.
+		// Clear the logging window of all applied attributes and clear the stack of attribute
+		// objects.
 		void ClearAllAttributes();
 
 		// Print one or more objects to a the logging window,
