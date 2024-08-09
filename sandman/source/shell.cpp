@@ -244,7 +244,7 @@ namespace Shell
 			}
 		}
 
-		EndInitializeColorPairs: {};
+		EndInitializeColorPairs: {}
 	}
 
 	void Initialize()
