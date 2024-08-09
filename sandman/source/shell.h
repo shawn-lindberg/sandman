@@ -1,6 +1,5 @@
 #pragma once
 
-#include "common/string.h"
 #include "common/enum.h"
 #include "common/forward_alias.h"
 #include "common/box.h"
@@ -50,22 +49,30 @@ namespace Shell
 	///
 	void Uninitialize();
 
+	// Key constants.
 	namespace Key
 	{
+		// `Ctrl+CharT` key combination constant.
 		template <char kName, typename CharT = int>
 		// Function-like constant.
 		// NOLINTNEXTLINE(readability-identifier-naming)
 		inline constexpr std::enable_if_t<std::is_integral_v<CharT>, CharT> Ctrl{kName bitand 0x1F};
 	}
 
+	// Log messages are printed to this window.
 	namespace LoggingWindow {
 
+		// Refresh the logging window.
+		// This applies the writes to this window that otherwise would not have been shown.
 		void Refresh();
 
+		// Write a character.
 		void Write(chtype const character);
 
+		// Write a null terminated string.
 		void Write(char const* const string);
 
+		// Write a string view.
 		template <typename CharT>
 		std::enable_if_t<std::is_same_v<CharT, char> or std::is_same_v<CharT, chtype>, void>
 			Write(std::basic_string_view<CharT> const string)
@@ -76,6 +83,7 @@ namespace Shell
 			}
 		}
 
+		// Write "true" if `true` and write "false" if `false`.
 		[[gnu::always_inline]] inline void Write(bool const booleanValue)
 		{
 			if (booleanValue == true)
@@ -88,17 +96,31 @@ namespace Shell
 			}
 		}
 
+		// `PushAttributes` instead.
 		void Write(Attr const attributes) = delete;
 
+		// This function is deleted to stop from writing integral types with the expectation
+		// that they will be formated as decimal numbers on the logging window;
+		// they would actually be interprected as characters if this function wasn't deleted.
 		template <typename IntT>
 		std::enable_if_t<std::is_integral_v<IntT>, void> Write(IntT const) = delete;
 
+		// The maximum amount of attribute objects that the stack can contain.
+		// (Each attribute object can still contain several Curses attributes though.)
+		inline constexpr std::size_t kMaxAttributeObjectCount{ 1u << 7u };
+
+		// Push an attribute object and apply the attributes.
 		void PushAttributes(Attr const attributes);
 
+		// Pop an attribute object and revert to the previous attribute object's attributes.
+		// If there is no previoues attribute object, revert to no attributes being applied.
 		void PopAttributes();
 
-		void ClearAttributes();
+		// Clear the window of all applied attributes and clear the stack of attribute objects.
+		void ClearAllAttributes();
 
+		// Print one or more objects to a the logging window,
+		// then clear all attributes and refresh.
 		template <Attr::Value kAttributes=Normal.m_Value, typename T, typename... ParamsT>
 		[[gnu::always_inline]] inline void Print(T const object, ParamsT const... arguments)
 		{
@@ -112,11 +134,12 @@ namespace Shell
 			}
 			else
 			{
-				ClearAttributes();
+				ClearAllAttributes();
 				Refresh();
 			}
 		}
 
+		// Same as `Print`, but also print a newline character.
 		template <Attr::Value kAttributes=Normal.m_Value, typename... ParamsT>
 		[[gnu::always_inline]] inline void Println(ParamsT const... arguments)
 		{
@@ -168,11 +191,11 @@ namespace Shell
 		///
 		[[deprecated("Manage this window through other functions.")]] [[nodiscard]] WINDOW* Get();
 
-		using Buffer = Common::String<char, 1u << 7u>;
-		Buffer const& GetBuffer();
+		// Maximum length of a string that can be submitted as input in the input window.
+		inline constexpr std::size_t kMaxInputStringLength{ 1u << 7u };
 
 		/// @brief Process a single key input from the user, if any.
-		///
+		/// @warning Not thread safe.
 		/// @returns `true` if the "quit" command was processed, `false` otherwise.
 		///
 		bool ProcessSingleUserKey();
