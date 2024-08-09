@@ -4,6 +4,7 @@
 #include "logger.h"
 #include "common/stack.h"
 #include "common/ascii.h"
+#include "common/string.h"
 
 #include <algorithm>
 #include <csignal>
