@@ -8,6 +8,7 @@
 #include <curses.h>
 #include <limits>
 #include <utility>
+#include <array>
 
 namespace Shell
 {
