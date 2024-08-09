@@ -215,6 +215,9 @@ namespace Shell
 	static void InitializeColorFunctionality()
 	{
 		// Initialize Curses color functionality.
+		//
+		// `man 'color(3NCURSES)'`, FUNCTIONS, start_color:
+		// 	"It is good practice to call this routine right after `initscr`."
 		start_color();
 
 		// Maximum color pairs that the terminal supports.
