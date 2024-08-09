@@ -42,7 +42,7 @@ namespace Shell
 	/// @brief Uninitialize NCurses state and other logical state.
 	///
 	/// @attention Only call this function once.
-	/// Only call this function after a successfull call to `Shell::Initialize`.
+	/// Only call this function after a successful call to `Shell::Initialize`.
 	/// This does not necessarily clear the screen.
 	///
 	/// @note This frees the windows used by NCurses.
