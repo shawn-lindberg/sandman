@@ -30,7 +30,7 @@ template <typename... ParamsT>
 }
 
 template <auto kAttributes, std::size_t kStringBufferCapacity>
-bool ::Logger::FormatWriteLine(char const* format, std::va_list argumentList)
+bool ::Logger::FormatWriteLine(char const* const format, std::va_list argumentList)
 {
 	char logStringBuffer[kStringBufferCapacity];
 
