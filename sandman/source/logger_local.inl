@@ -74,7 +74,7 @@ template <typename T, typename... ParamsT>
 
 template <typename T, typename... ParamsT>
 void ::Logger::FormatWrite(std::string_view formatString, Common::Forward<T> firstArg,
-										  Common::Forward<ParamsT>... args)
+									Common::Forward<ParamsT>... args)
 {
 	bool escapingCharacter{ false };
 
