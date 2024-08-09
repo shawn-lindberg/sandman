@@ -193,7 +193,8 @@ static bool Initialize()
 	}
 
 	// Initialize controls.
-	ControlsInitialize(l_Config.GetControlConfigs());
+	bool const l_EnableGPIO = false;
+	ControlsInitialize(l_Config.GetControlConfigs(), l_EnableGPIO);
 
 	// Set control durations.
 	Control::SetDurations(l_Config.GetControlMaxMovingDurationMS(),

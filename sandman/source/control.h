@@ -237,9 +237,10 @@ struct ControlAction
 
 // Initialize all of the controls.
 //
-// p_Configs:	Configuration parameters for the controls to add.
+// p_Configs:		Configuration parameters for the controls to add.
+// p_EnableGPIO:	Whether to turn on GPIO or not.
 //
-void ControlsInitialize(std::vector<ControlConfig> const& p_Configs);
+void ControlsInitialize(std::vector<ControlConfig> const& p_Configs, bool const p_EnableGPIO);
 
 // Uninitialize all of the controls.
 //

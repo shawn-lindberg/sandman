@@ -72,6 +72,13 @@ static char const* const s_ControlStateNotificationNames[] =
 // A list of registered controls.
 static std::vector<Control> s_Controls;
 
+#if defined ENABLE_GPIO
+
+	// Whether controls can use GPIO or not.
+	static bool s_EnableGPIO = true;
+
+#endif // defined ENABLE_GPIO
+
 // Control members
 
 unsigned int Control::ms_MaxMovingDurationMS = MAX_MOVING_STATE_DURATION_MS;
@@ -79,6 +86,54 @@ unsigned int Control::ms_CoolDownDurationMS = MAX_COOL_DOWN_STATE_DURATION_MS;
 
 // Functions
 //
+
+// Set the given GPIO pin mode to input.
+//
+// p_Pin:	The GPIO pin to set the mode of.
+//
+void SetGPIOPinModeInput(int p_Pin)
+{
+	#if defined ENABLE_GPIO
+
+		if (s_EnableGPIO == true)
+		{
+			gpioSetMode(p_Pin, PI_INPUT);
+		}
+		else
+		{
+			LoggerAddMessage("Would have set GPIO %d mode to input, but it's not enabled.", p_Pin);
+		}
+
+	#else
+
+		LoggerAddMessage("A Raspberry Pi would have set GPIO %d mode to input.", p_Pin);
+
+	#endif // defined ENABLE_GPIO
+}
+
+// Set the given GPIO pin mode to output.
+//
+// p_Pin:	The GPIO pin to set the mode of.
+//
+void SetGPIOPinModeOutput(int p_Pin)
+{
+	#if defined ENABLE_GPIO
+
+		if (s_EnableGPIO == true)
+		{
+			gpioSetMode(p_Pin, PI_OUTPUT);
+		}
+		else
+		{
+			LoggerAddMessage("Would have set GPIO %d mode to output, but it's not enabled.", p_Pin);
+		}
+
+	#else
+
+		LoggerAddMessage("A Raspberry Pi would have set GPIO %d mode to output.", p_Pin);
+
+	#endif // defined ENABLE_GPIO
+}
 
 // Set the given GPIO pin to the "on" value.
 //
@@ -88,7 +143,14 @@ void SetGPIOPinOn(int p_Pin)
 {
 	#if defined ENABLE_GPIO
 
-		gpioWrite(p_Pin, CONTROL_ON_GPIO_VALUE);
+		if (s_EnableGPIO == true)
+		{
+			gpioWrite(p_Pin, CONTROL_ON_GPIO_VALUE);
+		}
+		else
+		{
+			LoggerAddMessage("Would have set GPIO %d to on, but it's not enabled.", p_Pin);
+		}
 
 	#else
 
@@ -105,7 +167,14 @@ void SetGPIOPinOff(int p_Pin)
 {
 	#if defined ENABLE_GPIO
 	
-		gpioWrite(p_Pin, CONTROL_OFF_GPIO_VALUE);
+		if (s_EnableGPIO == true)
+		{
+			gpioWrite(p_Pin, CONTROL_OFF_GPIO_VALUE);
+		}
+		else
+		{
+			LoggerAddMessage("Would have set GPIO %d to off, but it's not enabled.", p_Pin);
+		}
 
 	#else
 
@@ -222,15 +291,11 @@ void Control::Initialize(ControlConfig const& p_Config)
 	m_UpGPIOPin = p_Config.m_UpGPIOPin;
 	m_DownGPIOPin = p_Config.m_DownGPIOPin;
 	
-	#if defined ENABLE_GPIO
+	SetGPIOPinModeOutput(m_UpGPIOPin);
+	SetGPIOPinModeOutput(m_DownGPIOPin);
 	
-		gpioSetMode(m_UpGPIOPin, PI_OUTPUT);
-		SetGPIOPinOff(m_UpGPIOPin);
-	
-		gpioSetMode(m_DownGPIOPin, PI_OUTPUT);
-		SetGPIOPinOff(m_DownGPIOPin);
-
-	#endif // defined ENABLE_GPIO
+	SetGPIOPinOff(m_UpGPIOPin);
+	SetGPIOPinOff(m_DownGPIOPin);
 	
 	// Set the individual control moving duration.
 	m_StandardMovingDurationMS = p_Config.m_MovingDurationMS;
@@ -243,13 +308,9 @@ void Control::Initialize(ControlConfig const& p_Config)
 //
 void Control::Uninitialize()
 {
-	#if defined ENABLE_GPIO
-
-		// Revert to input.
-		gpioSetMode(m_UpGPIOPin, PI_INPUT);
-		gpioSetMode(m_DownGPIOPin, PI_INPUT);
-
-	#endif // defined ENABLE_GPIO
+	// Revert to input.
+	SetGPIOPinModeInput(m_UpGPIOPin);
+	SetGPIOPinModeInput(m_DownGPIOPin);
 }
 
 // Process a tick.
@@ -458,7 +519,8 @@ void Control::SetDurations(unsigned int p_MovingDurationMS, unsigned int p_CoolD
 	ms_MaxMovingDurationMS = p_MovingDurationMS;
 	ms_CoolDownDurationMS = p_CoolDownDurationMS;
 	
-	LoggerAddMessage("Control durations set to moving - %i ms, cool down - %i ms.", p_MovingDurationMS, p_CoolDownDurationMS);
+	LoggerAddMessage("Control durations set to moving - %i ms, cool down - %i ms.", 
+						  p_MovingDurationMS, p_CoolDownDurationMS);
 }
 
 // Attempt to get the handle of a control based on its name.
@@ -661,21 +723,32 @@ Control* ControlAction::GetControl()
 
 // Initialize all of the controls.
 //
-// p_Configs:	Configuration parameters for the controls to add.
+// p_Configs:		Configuration parameters for the controls to add.
+// p_EnableGPIO:	Whether to turn on GPIO or not.
 //
-void ControlsInitialize(std::vector<ControlConfig> const& p_Configs)
+void ControlsInitialize(std::vector<ControlConfig> const& p_Configs, bool const p_EnableGPIO)
 {
 	#if defined ENABLE_GPIO
 	
-		LoggerAddMessage("Initializing GPIO support...");
-	
-		if (gpioInitialise() < 0)
-		{
-			LoggerAddMessage("\tfailed");
-			return;
-		}
+		s_EnableGPIO = p_EnableGPIO;
 
-		LoggerAddMessage("\tsucceeded");
+		if (s_EnableGPIO == true)
+		{
+			LoggerAddMessage("Initializing GPIO support...");
+	
+			if (gpioInitialise() < 0)
+			{
+				LoggerAddMessage("\tfailed");
+				return;
+			}
+
+			LoggerAddMessage("\tsucceeded");
+		}
+		else
+		{
+			LoggerAddMessage("GPIO support not enabled, initialization skipped.");
+		}
+		
 		LoggerAddEmptyLine();
 
 	#endif // defined ENABLE_GPIO
@@ -701,7 +774,10 @@ void ControlsUninitialize()
 	#if defined ENABLE_GPIO
 	
 		// Uninitialize GPIO support.
-		gpioTerminate();
+		if (s_EnableGPIO == true)
+		{
+			gpioTerminate();
+		}
 	
 	#endif // defined ENABLE_GPIO
 }
