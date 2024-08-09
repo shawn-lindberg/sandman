@@ -63,8 +63,6 @@ namespace Shell
 
 	};
 
-	struct ForegroundColorIndex : Common::Box<ColorIndex> { using Box::Box; };
-	struct BackgroundColorIndex : Common::Box<ColorIndex> { using Box::Box; };
 
 	// Not making assumptions about what the Curses color macros
 	// are defined as, so this function serves as a well defined mapping
@@ -96,6 +94,9 @@ namespace Shell
 		ColorIndex::Cyan   ,
 		ColorIndex::White  ,
 	};
+
+	struct ForegroundColorIndex : Common::Box<ColorIndex> { using Box::Box; };
+	struct BackgroundColorIndex : Common::Box<ColorIndex> { using Box::Box; };
 
 	constexpr Attr GetColorPair(ForegroundColorIndex const foregroundColor,
 										 BackgroundColorIndex const backgroundColor)
