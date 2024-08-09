@@ -52,7 +52,7 @@ class Common::String
 			return m_StringLength;
 		}
 
-		constexpr String() = default;
+		explicit constexpr String() = default;
 
 		// Construct a string with events.
 		// Pass a null pointer to ignore an event.
