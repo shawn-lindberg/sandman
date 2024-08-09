@@ -5,7 +5,7 @@ template <typename T, typename... ParamsT>
 																	Common::Forward<ParamsT>... args)
 {
 	static_assert(not std::is_same_v<std::decay_t<T>, Shell::Attr>,
-					  "Do not pass in attributes directly; use the attribute wrapper class.");
+					  "Do not pass in attributes directly; instead use an attribute object wrapper.");
 
 	if constexpr (Logger::IsFormat<std::decay_t<T>>)
 	{
