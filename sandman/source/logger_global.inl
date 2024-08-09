@@ -10,9 +10,17 @@ template <typename... ParamsT>
 	using namespace std::string_view_literals;
 
 	std::lock_guard const lock(ms_Mutex);
-	ms_GlobalLogger.Write(
-		Shell::Cyan(std::put_time(::Common::GetLocalTime(), "%Y/%m/%d %H:%M:%S %Z"), " | "sv),
-		std::forward<ParamsT>(args)..., '\n');
+
+	if (std::tm const* localTime{ ::Common::GetLocalTime() }; localTime != nullptr)
+	{
+		ms_GlobalLogger.Write(Shell::Cyan(std::put_time(localTime, "%Y/%m/%d %H:%M:%S %Z"), " | "sv),
+									 std::forward<ParamsT>(args)..., '\n');
+	}
+	else
+	{
+		ms_GlobalLogger.Write(Shell::Cyan("(missing local time) | "sv),
+									 std::forward<ParamsT>(args)..., '\n');
+	}
 
 	if (ms_GlobalLogger.HasScreenEchoEnabled())
 	{
