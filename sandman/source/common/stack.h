@@ -30,6 +30,8 @@ private:
 
 public:
 
+	[[nodiscard]] constexpr explicit Stack() {}
+
 	// Get "logical" size of stack, not "physical" size of internal buffer.
 	[[nodiscard]] constexpr auto GetSize() const { return m_Size; }
 
