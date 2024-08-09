@@ -9,7 +9,8 @@
 #include <limits>
 #include <utility>
 
-namespace Shell {
+namespace Shell
+{
 
 	enum struct ColorIndex : std::uint_least8_t
 	{
