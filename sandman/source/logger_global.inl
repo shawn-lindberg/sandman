@@ -45,7 +45,7 @@ bool ::Logger::FormatWriteLine(char const* format, std::va_list argumentList)
 	else if constexpr (std::is_pointer_v<AttributesT>)
 	{
 		static_assert(kAttributes != nullptr);
-		WriteLine(kAttributes->operator()(logStringBuffer));
+		WriteLine((*kAttributes)(logStringBuffer));
 	}
 	else
 	{
