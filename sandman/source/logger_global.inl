@@ -26,6 +26,7 @@ template <typename... ParamsT>
 
 	if (ms_Logger.HasScreenEchoEnabled())
 	{
+		::Shell::Lock const lock;
 		::Shell::LoggingWindow::ClearAllAttributes();
 		::Shell::LoggingWindow::Refresh();
 	}
