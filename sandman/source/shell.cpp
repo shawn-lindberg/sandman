@@ -119,7 +119,7 @@ namespace Shell
 			}
 		}
 
-		void ClearAttributes()
+		void ClearAllAttributes()
 		{
 			s_AttributeStack.Clear();
 			wattrset(s_Window, Normal.m_Value);

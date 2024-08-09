@@ -24,7 +24,7 @@ template <typename... ParamsT>
 
 	if (ms_GlobalLogger.HasScreenEchoEnabled())
 	{
-		::Shell::LoggingWindow::ClearAttributes();
+		::Shell::LoggingWindow::ClearAllAttributes();
 		::Shell::LoggingWindow::Refresh();
 	}
 }
