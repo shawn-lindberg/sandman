@@ -10,7 +10,7 @@
 namespace Common { template <typename, std::size_t> class String; }
 
 /// Fixed sized eventful string.
-/// `std::string` is dynamically sized.
+/// (`std::string` is dynamically sized.)
 template <typename CharT, std::size_t kCapacity>
 class Common::String
 {

@@ -7,7 +7,7 @@
 namespace Common { template <typename, std::size_t> class Stack; }
 
 /// Fixed size stack data structure.
-/// `std::stack` is dynamically sized.
+/// (`std::stack` is dynamically sized.)
 template <typename T, std::size_t kCapacity>
 class Common::Stack
 {
