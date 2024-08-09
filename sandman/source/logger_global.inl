@@ -12,7 +12,7 @@ template <typename... ParamsT>
 	{
 		std::lock_guard const lock(ms_Mutex);
 
-		if (std::tm const* localTime{ ::Common::GetLocalTime() }; localTime != nullptr)
+		if (std::tm const* const localTime{ ::Common::GetLocalTime() }; localTime != nullptr)
 		{
 			ms_Logger.Write(Shell::Cyan(std::put_time(localTime, "%Y/%m/%d %H:%M:%S %Z"), " | "sv),
 								 std::forward<ParamsT>(args)..., '\n');
