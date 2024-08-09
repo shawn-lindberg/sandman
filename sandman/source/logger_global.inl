@@ -57,7 +57,7 @@ bool ::Logger::FormatWriteLine(char const* format, std::va_list argumentList)
 }
 
 template <auto kAttributes, std::size_t kStringBufferCapacity>
-bool ::Logger::FormatWriteLine(char const* format, ...)
+bool ::Logger::FormatWriteLine(char const* const format, ...)
 {
 	std::va_list argumentList;
 	va_start(argumentList, format);
