@@ -31,11 +31,13 @@ template <typename T, typename... ParamsT>
 			std::string const string(m_Buffer.str());
 
 			// Dump the current data to the output destinations.
+			bool const didPushAttributes{[
+				attributes=firstArg.m_Attributes, stringView=std::string_view(string)]() -> bool
 			{
 				::Shell::Lock const lock;
-				::Shell::LoggingWindow::Write(std::string_view(string));
-				::Shell::LoggingWindow::PushAttributes(firstArg.m_Attributes);
-			}
+				::Shell::LoggingWindow::Write(stringView);
+				return ::Shell::LoggingWindow::PushAttributes(attributes);
+			}()};
 			m_OutputStream << string;
 
 			// Clear the buffer.
@@ -45,7 +47,7 @@ template <typename T, typename... ParamsT>
 			std::apply(writeArgs, firstArg.m_Objects);
 
 			// Pop the attributes object to remove its affect.
-			{
+			if (didPushAttributes) {
 				::Shell::Lock const lock;
 				::Shell::LoggingWindow::PopAttributes();
 			}
