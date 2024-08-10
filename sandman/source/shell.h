@@ -110,7 +110,9 @@ namespace Shell
 		inline constexpr std::size_t kMaxAttributeObjectCount{ 1u << 7u };
 
 		// Push an attribute object and apply the attributes.
-		void PushAttributes(Attr const attributes);
+		//
+		// Returns `true` on success, `false` otherwise.
+		bool PushAttributes(Attr const attributes);
 
 		// Pop an attribute object and revert to the previous attribute object's attributes.
 		// If there is no previoues attribute object, revert to no attributes being applied.
@@ -122,16 +124,30 @@ namespace Shell
 
 		// Print one or more objects to a the logging window,
 		// then clear all attributes and refresh.
-		template <Attr::Value kAttributes=Normal.m_Value, typename T, typename... ParamsT>
-		[[gnu::always_inline]] inline void Print(T const object, ParamsT const... arguments)
+		template <typename T, typename... ParamsT>
+		[[gnu::always_inline]] inline void Print(T&& first, ParamsT&& ... arguments)
 		{
-			PushAttributes(Attr(kAttributes));
+			if constexpr (IsAttrWrapper<std::decay_t<T>>)
+			{
+				bool const didPushAttributes{ PushAttributes(first.m_Attributes) };
 
-			Write(object);
+				std::apply([](auto&&... objects) {
+					Print(std::forward<decltype(objects)>(objects)...);
+				}, first.m_Objects);
+
+				if (didPushAttributes)
+				{
+					PopAttributes();
+				}
+			}
+			else
+			{
+				Write(std::forward<T>(first));
+			}
 
 			if constexpr (sizeof...(arguments) > 0u)
 			{
-				return Print(arguments...);
+				return Print(std::forward<ParamsT>(arguments)...);
 			}
 			else
 			{
@@ -141,10 +157,10 @@ namespace Shell
 		}
 
 		// Same as `Print`, but also print a newline character.
-		template <Attr::Value kAttributes=Normal.m_Value, typename... ParamsT>
-		[[gnu::always_inline]] inline void Println(ParamsT const... arguments)
+		template <typename... ParamsT>
+		[[gnu::always_inline]] inline void Println(ParamsT&&... arguments)
 		{
-			Print<kAttributes>(arguments..., chtype{'\n'});
+			Print(std::forward<ParamsT>(arguments)..., chtype{'\n'});
 		}
 
 		/// @brief Get the pointer to the logging window.
