@@ -403,7 +403,7 @@ namespace Shell
 				CommandParseTokens(commandTokens);
 			}
 
-			static std::unordered_map<std::string_view, bool (*)()> const s_StringDispatch
+			static std::unordered_map<std::string_view, bool (*)()> const s_DispatchTable
 			{
 				{ "quit"sv, []() constexpr -> bool { return true; } },
 				{ ""sv, []() -> bool {
@@ -422,11 +422,12 @@ namespace Shell
 
 			// Handle dispatch.
 			{
-				auto const dispatchHandle(s_StringDispatch.find(s_Buffer.View()));
+				auto const dispatchEntry(s_DispatchTable.find(s_Buffer.View()));
 
-				s_Buffer.Clear(); SetCharHighlight<true>(s_Cursor = 0u);
+				s_Buffer.Clear();
+				SetCharHighlight<true>(X(s_Cursor = 0u));
 
-				return dispatchHandle != s_StringDispatch.end() ? dispatchHandle->second() : false;
+				return dispatchEntry != s_DispatchTable.end() ? dispatchEntry->second() : false;
 			}
 		}
 
