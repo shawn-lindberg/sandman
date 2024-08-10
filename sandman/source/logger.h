@@ -66,8 +66,7 @@ public:
 	//
 	// The internal buffer should be empty after every call to this function.
 	template <typename T, typename... ParamsT>
-	[[gnu::always_inline]] inline void Write(Common::Forward<T> firstArg,
-														  Common::Forward<ParamsT>... args);
+	[[gnu::always_inline]] inline void Write(T&& firstArg, ParamsT&&... args);
 
 	static constexpr char kFormatEscapeIndicator{ '%' }, kFormatInterpolationIndicator{ '$' };
 
@@ -96,8 +95,7 @@ public:
 	// If there are more arguments than there are interpolation indicators `%$`
 	// in the format string, the extra arguments are ignored.
 	template <typename T, typename... ParamsT>
-	void FormatWrite(std::string_view formatString, Common::Forward<T> firstArg,
-						  Common::Forward<ParamsT>... args);
+	void FormatWrite(std::string_view formatString, T&& firstArg, ParamsT&&... args);
 
 	// Object wrapper for formatting.
 	//
@@ -126,8 +124,7 @@ public:
 		// If there are more arguments than there are interpolation indicators `%$`
 		// in the format string, the extra arguments are ignored.
 		template <typename... ParamsT>
-		[[nodiscard]] explicit Format(std::string_view const formatString,
-												Common::Forward<ParamsT>... args)
+		[[nodiscard]] explicit Format(std::string_view const formatString, ParamsT&&... args)
 			: m_Objects(std::forward<ParamsT>(args)...),
 			  m_FormatString(formatString) {}
 	};
@@ -136,8 +133,7 @@ public:
 	// 
 	// Deduce the type of a `Format` object from the arguments passed to its constructor.
 	template <typename... ParamsT>
-	Format(std::string_view const,
-			 Common::Forward<ParamsT>...) -> Format<Common::Forward<ParamsT>...>;
+	Format(std::string_view const, ParamsT&&...) -> Format<ParamsT&&...>;
 
 private:
 
@@ -200,7 +196,7 @@ public:
 	// writes a string composed of a timestamp followed by
 	// the arguments of this function followed by a newline character `'\n'`.
 	template <typename... ParamsT>
-	[[gnu::always_inline]] inline static void WriteLine(Common::Forward<ParamsT>... args);
+	[[gnu::always_inline]] inline static void WriteLine(ParamsT&&... args);
 
 	// "std::vprintf" style write function.
 	//

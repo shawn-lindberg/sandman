@@ -1,8 +1,7 @@
 #include "logger.h"
 
 template <typename T, typename... ParamsT>
-[[gnu::always_inline]] inline void ::Logger::Write(Common::Forward<T> firstArg,
-																	Common::Forward<ParamsT>... args)
+[[gnu::always_inline]] inline void ::Logger::Write(T&& firstArg, ParamsT&&... args)
 {
 	static_assert(not std::is_same_v<std::decay_t<T>, Shell::Attr>,
 					  "Do not pass in attributes directly; instead use an attribute object wrapper.");
@@ -12,7 +11,7 @@ template <typename T, typename... ParamsT>
 		// If the first argument is a `Logger::Format` object,
 		// then forward the arguments to a call to `Logger::FormatWrite`.
 		std::apply(
-			[this, formatString=firstArg.m_FormatString](Common::Forward<auto>... args)
+			[this, formatString=firstArg.m_FormatString](auto&&... args)
 			{
 				this->FormatWrite(formatString, std::forward<decltype(args)>(args)...);
 			},
@@ -21,7 +20,7 @@ template <typename T, typename... ParamsT>
 	else if constexpr (Shell::IsAttrWrapper<std::decay_t<T>>)
 	{
 		// Callable to be passed into `std::apply`.
-		auto const writeArgs = [this](Common::Forward<auto>... args) -> void
+		auto const writeArgs = [this](auto&&... args) -> void
 		{
 			this->Write(std::forward<decltype(args)>(args)...);
 		};
@@ -93,8 +92,7 @@ template <typename T, typename... ParamsT>
 }
 
 template <typename T, typename... ParamsT>
-void ::Logger::FormatWrite(std::string_view formatString, Common::Forward<T> firstArg,
-									Common::Forward<ParamsT>... args)
+void ::Logger::FormatWrite(std::string_view formatString, T&& firstArg, ParamsT&&... args)
 {
 	bool escapingCharacter{ false };
 

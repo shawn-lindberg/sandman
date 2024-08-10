@@ -5,7 +5,7 @@
 #include <iomanip>
 
 template <typename... ParamsT>
-[[gnu::always_inline]] inline void ::Logger::WriteLine(Common::Forward<ParamsT>... args)
+[[gnu::always_inline]] inline void ::Logger::WriteLine(ParamsT&&... args)
 {
 	using namespace std::string_view_literals;
 

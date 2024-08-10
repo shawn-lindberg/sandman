@@ -1,6 +1,5 @@
 #pragma once
 
-#include "common/forward_alias.h"
 #include "common/box.h"
 #include "common/enum.h"
 
@@ -58,11 +57,11 @@ namespace Shell
 		//
 		// Deduce `Wrapper` type from arguments in `Wrapper` constructor.
 		template <typename... ParamsT>
-		Wrapper(Attr const, Common::Forward<ParamsT>...) -> Wrapper<Common::Forward<ParamsT>...>;
+		Wrapper(Attr const, ParamsT&&...) -> Wrapper<ParamsT&&...>;
 
 		// Wrap objects.
 		template <typename... ParamsT> [[nodiscard]] constexpr
-		Wrapper<Common::Forward<ParamsT>...> operator()(Common::Forward<ParamsT>... args) const
+		Wrapper<ParamsT&&...> operator()(ParamsT&&... args) const
 		{
 			static_assert(sizeof...(args) > 0u,
 							  "Calling this function without any arguments is probably a mistake.");
@@ -142,7 +141,7 @@ namespace Shell
 		Attr m_Attributes;
 
 		template <typename... ParamsT> [[nodiscard]]
-		constexpr explicit Wrapper(Attr const attributes, Common::Forward<ParamsT>... args)
+		constexpr explicit Wrapper(Attr const attributes, ParamsT&&... args)
 			: m_Objects(std::forward<ParamsT>(args)...), m_Attributes{ attributes } {}
 	};
 
@@ -176,8 +175,7 @@ namespace Shell
 		}
 
 		template <typename... ParamsT>
-		[[nodiscard]] constexpr Wrapper<Common::Forward<ParamsT>...>
-			operator()(Common::Forward<ParamsT>... args) const
+		[[nodiscard]] constexpr Wrapper<ParamsT&&...> operator()(ParamsT&&... args) const
 		{
 			static_assert(sizeof...(args) > 0u,
 							  "Calling this function without any arguments is probably a mistake.");
@@ -211,8 +209,7 @@ namespace Shell
 		}
 
 		template <typename... ParamsT>
-		[[nodiscard]] constexpr Wrapper<Common::Forward<ParamsT>...>
-			operator()(Common::Forward<ParamsT>... args) const
+		[[nodiscard]] constexpr Wrapper<ParamsT&&...> operator()(ParamsT&&... args) const
 		{
 			static_assert(sizeof...(args) > 0u,
 							  "Calling this function without any arguments is probably a mistake.");
@@ -248,8 +245,7 @@ namespace Shell
 		}
 
 		template <typename... ParamsT>
-		[[nodiscard]] constexpr Wrapper<Common::Forward<ParamsT>...>
-			operator()(Common::Forward<ParamsT>... args) const
+		[[nodiscard]] constexpr Wrapper<ParamsT&&...> operator()(ParamsT&&... args) const
 		{
 			static_assert(sizeof...(args) > 0u,
 							  "Calling this function without any arguments is probably a mistake.");

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "common/enum.h"
-#include "common/forward_alias.h"
 #include "common/box.h"
 #include "shell_attr.h"
 
