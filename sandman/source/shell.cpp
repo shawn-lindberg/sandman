@@ -331,7 +331,8 @@ namespace Shell
 
 		// User keyboard input is stored here.
 		static Buffer s_Buffer(
-			Buffer::OnStringUpdateListener{[](Buffer::Data::size_type const index, Buffer::Data::value_type const character) -> void
+			Buffer::OnStringUpdateListener{[](Buffer::Data::size_type const index,
+														 Buffer::Data::value_type const character) -> void
 			{
 				mvwaddch(s_Window, kCursorStartY, kCursorStartX + index, character);
 			}},
@@ -351,7 +352,8 @@ namespace Shell
 					 // Use default horizontal character.
 					 0);
 			}},
-			Buffer::OnDecrementStringLengthListener{[](Buffer::Data::size_type const newStringLength) -> void
+			Buffer::OnDecrementStringLengthListener{[](Buffer::Data::size_type const newStringLength
+																	) -> void
 			{
 				mvwaddch(s_Window, kCursorStartY, kCursorStartX + newStringLength, ' ');
 			}}
