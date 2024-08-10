@@ -283,7 +283,7 @@ namespace Shell
 		return foregroundColor | backgroundColor;
 	}
 
-	inline namespace CharacterAttributeConstants
+	inline namespace CharacterAttributeCallables
 	{
 
 		// NOLINTBEGIN(readability-identifier-naming)
