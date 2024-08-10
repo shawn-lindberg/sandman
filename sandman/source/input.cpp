@@ -162,8 +162,7 @@ void Input::Process()
 		{
 			// Record the time of the last open failure.
 			TimerGetCurrent(m_LastDeviceOpenFailTime);
-			
-			CloseDevice(true, "Failed to open input device \'%s\'", m_DeviceName);						
+			CloseDevice(true, "Failed to open input device \'%s\'", m_DeviceName);
 			return;
 		}
 		
