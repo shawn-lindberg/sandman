@@ -298,7 +298,7 @@ void Input::CloseDevice(bool wasFailure, char const* format, ...)
 	va_start(arguments, format);
 
 	Logger::WriteFormattedVarArgsListLine(Shell::Red, format, arguments);
-	
+
 	va_end(arguments);
 		
 	// Play controller disconnected notification.
