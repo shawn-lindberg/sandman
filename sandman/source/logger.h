@@ -304,6 +304,9 @@ public:
 		return result;
 	}
 
+	template <std::size_t = kDefaultFormatBufferCapacity, typename AttributesT>
+	static bool WriteFormattedLine(AttributesT, char const* const, std::va_list) = delete;
+
 	// `std::printf` style write function.
 	//
 	// This function takes arguments that are interpreted exactly how
@@ -323,6 +326,9 @@ public:
 		va_end(argumentList);
 		return result;
 	}
+
+	template <std::size_t = kDefaultFormatBufferCapacity>
+	static bool WriteFormattedLine(char const* const, std::va_list) = delete;
 };
 
 #include "logger.inl"
