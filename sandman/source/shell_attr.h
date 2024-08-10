@@ -54,9 +54,13 @@ namespace Shell
 		struct BackgroundColor;
 		template <typename...> struct Wrapper;
 
+		// Deduction guide.
+		//
+		// Deduce `Wrapper` type from arguments in `Wrapper` constructor.
 		template <typename... ParamsT>
 		Wrapper(Attr const, Common::Forward<ParamsT>...) -> Wrapper<Common::Forward<ParamsT>...>;
 
+		// Wrap objects.
 		template <typename... ParamsT> [[nodiscard]] constexpr
 		Wrapper<Common::Forward<ParamsT>...> operator()(Common::Forward<ParamsT>... args) const
 		{
