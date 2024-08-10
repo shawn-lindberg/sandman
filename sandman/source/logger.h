@@ -6,8 +6,10 @@
 #include <optional>
 #include <sstream>
 #include <string>
+#include <iomanip>
 
 #include "shell.h"
+#include "common/get_local_time.h"
 #include "common/implicitly.h"
 
 class Logger
@@ -196,29 +198,112 @@ public:
 	// writes a string composed of a timestamp followed by
 	// the arguments of this function followed by a newline character `'\n'`.
 	template <typename... ParamsT>
-	[[gnu::always_inline]] inline static void WriteLine(ParamsT&&... args);
+	[[gnu::always_inline]] inline static void WriteLine(ParamsT&&... args)
+	{
+		using namespace std::string_view_literals;
 
-	// "std::vprintf" style write function.
+		{
+			std::lock_guard const lock(ms_Mutex);
+
+			if (std::tm const* const localTime{ ::Common::GetLocalTime() }; localTime != nullptr)
+			{
+				ms_Logger.Write(Shell::Cyan(std::put_time(localTime, "%Y/%m/%d %H:%M:%S %Z | ")),
+									 std::forward<ParamsT>(args)..., '\n');
+			}
+			else
+			{
+				ms_Logger.Write(Shell::Cyan("(missing local time) | "sv),
+									 std::forward<ParamsT>(args)..., '\n');
+			}
+		}
+
+		if (ms_Logger.HasScreenEchoEnabled())
+		{
+			::Shell::Lock const lock;
+			::Shell::LoggingWindow::ClearAllAttributes();
+			::Shell::LoggingWindow::Refresh();
+		}
+	}
+
+	static constexpr std::size_t kDefaultFormatBufferCapacity{ 1u << 11u };
+
+	// `std::vprintf` style write function.
 	//
 	// The function takes arguments that are interpreted exactly how
-	// `std::vprintf` would interpret them, and writes the data using the global logger.
+	// `std::vprintf` would interpret them after the attributes parameter, and writes the data using
+	// the global logger with a trailing newline character `'\n'`.
+	//
+	// Returns `true` on success, `false` otherwise.
 	//
 	// Internally calls `std::vsnprintf` to format the data,
 	// then calls `::Logger::WriteLine` to write the data.
-	template <auto = nullptr, std::size_t kStringBufferCapacity = 1u << 11u>
-	[[gnu::format(printf, 1, 0)]] static bool WriteFormattedLine(char const* const format,
-																				 std::va_list argumentList);
+	template <std::size_t kCapacity = kDefaultFormatBufferCapacity, typename AttributesT>
+	[[gnu::format(printf, 2, 0)]] static std::enable_if_t<
+		std::is_null_pointer_v<std::decay_t<AttributesT>> or
+		std::is_class_v<std::decay_t<AttributesT>>,
+	bool> WriteFormattedVarArgsListLine(AttributesT const attributes, char const* const format,
+													std::va_list argumentList)
+	{
+		char logStringBuffer[kCapacity];
 
-	// "std::printf" style write function.
-	// 
+		if (std::vsnprintf(logStringBuffer, kCapacity, format, argumentList) < 0)
+		{
+			return false;
+		}
+
+		if constexpr (std::is_null_pointer_v<std::decay_t<AttributesT>>)
+		{
+			WriteLine(logStringBuffer);
+		}
+		else
+		{
+			WriteLine(attributes(logStringBuffer));
+		}
+
+		return true;
+	}
+
+	// `std::printf` style write function.
+	//
 	// This function takes arguments that are interpreted exactly how
-	// `std::printf` would interpret them, and writes the data using the global logger.
-	// 
-	// Internally calls `::Logger::WriteFormattedLine(char const* const, std::va_list)`.
-	template <auto = nullptr, std::size_t kStringBufferCapacity = 1u << 11u>
-	[[gnu::format(printf, 1, 2)]] static bool WriteFormattedLine(char const* const format, ...);
+	// `std::printf` would interpret them after the attributes parameter, and writes the data using
+	// the global logger with a trailing newline character `'\n'`.
+	//
+	// Returns `true` on success, `false` otherwise.
+	//
+	// Internally calls
+	// `::Logger::WriteFormattedVarArgsListLine(AttributesT, char const* const, std::va_list)`.
+	template <std::size_t kCapacity = kDefaultFormatBufferCapacity, typename AttributesT>
+	[[gnu::format(printf, 2, 3)]]
+	static std::enable_if_t<std::is_class_v<std::decay_t<AttributesT>>, bool>
+	WriteAttrFormattedLine(AttributesT const attributes, char const* const format, ...)
+	{
+		std::va_list argumentList;
+		va_start(argumentList, format);
+		bool const result{WriteFormattedVarArgsListLine<kCapacity>(attributes, format, argumentList)};
+		va_end(argumentList);
+		return result;
+	}
 
+	// `std::printf` style write function.
+	//
+	// This function takes arguments that are interpreted exactly how
+	// `std::printf` would interpret them, and writes the data using the global logger with a
+	// trailing newline character `'\n'`.
+	//
+	// Returns `true` on success, `false` otherwise.
+	//
+	// Internally calls
+	// `::Logger::WriteFormattedVarArgsListLine(std::nullptr_t, char const* const, std::va_list)`.
+	template <std::size_t kCapacity = kDefaultFormatBufferCapacity>
+	[[gnu::format(printf, 1, 2)]] static bool WriteFormattedLine(char const* const format, ...)
+	{
+		std::va_list argumentList;
+		va_start(argumentList, format);
+		bool const result{WriteFormattedVarArgsListLine<kCapacity>(nullptr, format, argumentList)};
+		va_end(argumentList);
+		return result;
+	}
 };
 
-#include "logger_local.inl"
-#include "logger_global.inl"
+#include "logger.inl"

@@ -11,18 +11,18 @@ template <typename T, typename... ParamsT>
 		// If the first argument is a `Logger::Format` object,
 		// then forward the arguments to a call to `Logger::FormatWrite`.
 		std::apply(
-			[this, formatString=firstArg.m_FormatString](auto&&... args)
+			[this, formatString=firstArg.m_FormatString](auto&&... objects)
 			{
-				this->FormatWrite(formatString, std::forward<decltype(args)>(args)...);
+				this->FormatWrite(formatString, std::forward<decltype(objects)>(objects)...);
 			},
 			firstArg.m_Objects);
 	}
 	else if constexpr (Shell::IsAttrWrapper<std::decay_t<T>>)
 	{
 		// Callable to be passed into `std::apply`.
-		auto const writeArgs = [this](auto&&... args) -> void
+		auto const writeArgs = [this](auto&&... objects) -> void
 		{
-			this->Write(std::forward<decltype(args)>(args)...);
+			this->Write(std::forward<decltype(objects)>(objects)...);
 		};
 
 		if (m_ScreenEcho)
