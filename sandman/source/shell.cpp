@@ -98,12 +98,15 @@ namespace Shell
 
 		void Write(char const* const string) { waddstr(s_Window, string); }
 
-		void PushAttributes(Attr const attributes)
+		[[nodiscard]] bool PushAttributes(Attr const attributes)
 		{
 			if (s_AttributeStack.Push(attributes))
 			{
 				wattrset(s_Window, attributes.m_Value);
+				return true;
 			}
+
+			return false;
 		}
 
 		void PopAttributes()
