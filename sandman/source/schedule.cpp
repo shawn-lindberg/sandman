@@ -96,7 +96,7 @@ bool ScheduleEvent::ReadFromJSON(rapidjson::Value const& object)
 //
 // Returns:    True if the schedule was loaded successfully, false otherwise.
 //
-bool Schedule::ReadFromFile(const char* fileName)
+bool Schedule::ReadFromFile(char const* fileName)
 {
 	m_Events.clear();
 
