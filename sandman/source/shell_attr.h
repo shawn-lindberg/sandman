@@ -71,11 +71,15 @@ namespace Shell
 
 	};
 
+	// This should be the same type that Curses `init_pair` takes as parameters.
+	using CursesColorID = short signed int;
 
-	// Not making assumptions about what the Curses color macros
-	// are defined as, so this function serves as a well defined mapping
+	// Even though the Curses color macros be simply be defined
+	// as integers zero though seven, not making assumptions
+	// about what the Curses color macros are defined as,
+	// so this function serves as a well defined mapping
 	// from numeric constants to the Curses color macros.
-	constexpr signed short int GetColorID(ColorIndex const color)
+	constexpr CursesColorID GetColorID(ColorIndex const color)
 	{
 		switch (color)
 		{
@@ -92,6 +96,7 @@ namespace Shell
 		}
 	}
 
+	// A list of color indices to make it easier to loop over them.
 	inline constexpr std::array kColorList{
 		ColorIndex::Black  ,
 		ColorIndex::Red    ,
@@ -106,6 +111,7 @@ namespace Shell
 	struct ForegroundColorIndex : Common::Box<ColorIndex> { using Box::Box; };
 	struct BackgroundColorIndex : Common::Box<ColorIndex> { using Box::Box; };
 
+	// Get an attribute value that has the foreground color and background color set.
 	constexpr Attr GetColorPair(ForegroundColorIndex const foregroundColor,
 										 BackgroundColorIndex const backgroundColor)
 	{
