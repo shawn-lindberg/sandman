@@ -231,10 +231,8 @@ bool MQTTInitialize()
 		Time connectCurrentTime;
 		TimerGetCurrent(connectCurrentTime);
 		
-		float const durationMS = TimerGetElapsedMilliseconds(connectStartTime, 
-			connectCurrentTime);
-		auto const durationSeconds = static_cast<unsigned long>(durationMS) / 
-			1000;
+		float const durationMS = TimerGetElapsedMilliseconds(connectStartTime, connectCurrentTime);
+		auto const durationSeconds = static_cast<unsigned long>(durationMS) / 1'000;
 		
 		// Attempt for five minutes at most.
 		static constexpr unsigned long kTimeoutDurationSeconds = 5 * 60;
@@ -575,8 +573,8 @@ void MQTTProcess()
 			TimerGetCurrent(currentTime);
 
 			auto const durationMS = TimerGetElapsedMilliseconds(s_LastAttemptTime, currentTime);
-			auto const durationSeconds = static_cast<unsigned long>(durationMS) / 1000;
-			
+			auto const durationSeconds = static_cast<unsigned long>(durationMS) / 1'000;
+
 			static constexpr unsigned long kReattemptTimeSeconds = 5;
 
 			if ((s_FirstNotification.compare("") != 0) && 
