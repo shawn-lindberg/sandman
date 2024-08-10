@@ -24,7 +24,7 @@
 #define MAX_COOL_DOWN_STATE_DURATION_MS	(50 * 1000) // 50 sec.
 
 // Time between commands.
-//#define COMMAND_INTERVAmS				(2 * 1000) // 2 sec.
+//#define COMMAND_INTERVAL_MS				(2 * 1000) // 2 sec.
 
 // The pin to use for enabling controls.
 #define ENABLE_GPIO_PIN							(7)
