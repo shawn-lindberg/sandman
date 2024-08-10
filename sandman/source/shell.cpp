@@ -375,15 +375,18 @@ namespace Shell
 						  "NCurses uses `int` for window positions, so the cursor should never be "
 						  "a value that can't be a valid window position.");
 
-		using Right = std::plus<FastCursor>;
-		using Left = std::minus<FastCursor>;
-
-		template <typename DirectionT>
-		[[gnu::always_inline]] inline static
-		std::enable_if_t<std::is_same_v<DirectionT, Left> or std::is_same_v<DirectionT, Right>, void>
-		BumpCursor()
+		inline namespace CursorMovements
 		{
-			static constexpr DirectionT kNext{};
+			using Right = std::plus<FastCursor>;
+			using Left = std::minus<FastCursor>;
+		} // namespace CursorMovements
+
+		template <typename CursorMovementT>
+		[[gnu::always_inline]] inline static std::enable_if_t<
+			std::is_same_v<CursorMovementT, Left> or std::is_same_v<CursorMovementT, Right>, void>
+			BumpCursor()
+		{
+			static constexpr CursorMovementT kNext{};
 			SetCharHighlight<false>(X(s_Cursor));
 			SetCharHighlight<true>(X(s_Cursor = kNext(s_Cursor, static_cast<FastCursor>(1u))));
 		}
