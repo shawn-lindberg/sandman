@@ -13,6 +13,7 @@
 namespace Shell
 {
 
+	// Color numeric constants.
 	enum struct ColorIndex : std::uint_least8_t
 	{
 		Black   = 0u,
@@ -25,8 +26,11 @@ namespace Shell
 		White   = 7u,
 	};
 
+	// Represents a bundle of character attributes for the Curses library.
 	struct Attr
 	{
+		// Using `chtype` instead of `attr_t` because
+		// `attr_t` seems to be an extension to Curses.
 		using Value = chtype;
 
 		// `Attr::Value` is a type that should be large enough to hold at least `chtype`
