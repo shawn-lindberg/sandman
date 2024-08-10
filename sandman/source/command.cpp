@@ -130,7 +130,7 @@ void CommandProcess()
 	float const durationMS = TimerGetElapsedMilliseconds(s_RebootDelayStartTime, 
 																		  rebootDelayCurrentTime);
 
-	auto const durationSeconds{static_cast<unsigned long>(durationMS) / 1000};
+	auto const durationSeconds{static_cast<unsigned long>(durationMS) / 1'000};
 
 	static constexpr unsigned long kDelayDurationSeconds{60u};
 
@@ -342,13 +342,13 @@ CommandParseTokensReturnTypes CommandParseTokens(char const*& confirmationText,
 					return CommandParseTokensReturnTypes::MissingConfirmation;
 				}
 
-				token = commandTokens[tokenIndex];	
+				token = commandTokens[tokenIndex];
 
 				// Only a positive confirmation is accepted.
 				if (token.m_Type != CommandToken::kTypeYes)
 				{
-					Logger::WriteFormattedLine("Ignoring reboot command because it was not followed by a positive "
-						"confirmation.");
+					Logger::WriteFormattedLine("Ignoring reboot command because it was not followed by "
+														"a positive confirmation.");
 					NotificationPlay("canceled");
 					break;
 				}
