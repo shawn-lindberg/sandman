@@ -139,11 +139,11 @@ void OnMessageCallback([[maybe_unused]] mosquitto* mosquittoClient, [[maybe_unus
 		// Acquire a lock to protect the received message list.
 		std::lock_guard<std::mutex> messageGuard(s_ReceivedMessagesMutex);
 
-		MessageInfo message;
-		message.m_Topic = topic;
-		message.m_Payload = payloadString;
+		MessageInfo messageObject;
+		messageObject.m_Topic = topic;
+		messageObject.m_Payload = payloadString;
 
-		s_ReceivedMessageList.push_back(message);
+		s_ReceivedMessageList.push_back(messageObject);
 	};
 
 	// Only save certain messages to process later.
