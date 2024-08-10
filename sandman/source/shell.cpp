@@ -432,9 +432,7 @@ namespace Shell
 		}
 
 		// Get one input key from the terminal, if any.
-		int const inputKey{ wgetch(s_Window) };
-
-		switch (inputKey)
+		switch (int const inputKey{ wgetch(s_Window) }; inputKey)
 		{
 			// No input.
 			case ERR:
@@ -463,20 +461,19 @@ namespace Shell
 
 			case KEY_BACKSPACE:
 				// If successfully removed a character, move the cursor left.
-				// Unsigned `int` underflow is defined to wrap.
+				// (Unsigned `int` underflow is defined to wrap.)
 				if (s_Buffer.Remove(s_Cursor - 1u))
 				{
 					BumpCursor<Left>();
 				}
-				break;
+				return false;
 
 			// User is submitting the line.
 			case '\r':
 				return HandleSubmitString();
 
 			case '\n':
-				LoggingWindow::Println<Red.BuildAttr().m_Value>(
-					"Unexpectedly got a newline character from user input.");
+				LoggingWindow::Println(Red("Unexpectedly got a newline character from user input."));
 				return false;
 
 			// These "Ctrl" characters are usually handled by the terminal,
@@ -484,25 +481,22 @@ namespace Shell
 			case Key::Ctrl<'C'>:
 			case Key::Ctrl<'Z'>:
 				// (Most likely unreachable.)
-				LoggingWindow::Println<Red.BuildAttr().m_Value>(
-					"Unexpectedly got a `Ctrl` character (", static_cast<chtype>(inputKey),
-					") from user input.");
+				LoggingWindow::Println(Red("Unexpectedly got a `Ctrl` character (",
+													static_cast<chtype>(inputKey), ") from user input."));
 				return false;
 
 			default:
-				break;
+				bool const inputKeyIsPrintable{ Common::ASCII::Match(inputKey) and
+														  std::isprint<char>(inputKey, std::locale::classic()) };
+
+				// If successfully inserted into the buffer, move the cursor to the right.
+				if (inputKeyIsPrintable and s_Buffer.Insert(s_Cursor, inputKey))
+				{
+					BumpCursor<Right>();
+				}
+
+				return false;
 		}
-
-		bool const inputKeyIsPrintable{ Common::ASCII::Match(inputKey) and
-													 std::isprint<char>(inputKey, std::locale::classic()) };
-
-		// If successfully inserted into the buffer, move the cursor to the right.
-		if (inputKeyIsPrintable and s_Buffer.Insert(s_Cursor, inputKey))
-		{
-			BumpCursor<Right>();
-		}
-
-		return false;
 	}
 
 }
