@@ -135,7 +135,7 @@ namespace Require
 	};
 } // namespace Require
 
-TEST_CASE("`String`", "[.Common][.String]")
+TEST_CASE("`String`", "[.Common][.Common_String]")
 {
 	using namespace std::string_view_literals;
 
