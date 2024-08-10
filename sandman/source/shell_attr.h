@@ -134,6 +134,7 @@ namespace Shell
 		return Attr(Attr::Value{ COLOR_PAIR(colorPairIndex) });
 	}
 
+	// Object wrapper.
 	template <typename... ObjectsT>
 	struct [[nodiscard]] Attr::Wrapper
 	{
@@ -160,6 +161,7 @@ namespace Shell
 		Attr m_Ancillary;
 		ColorIndex m_ColorIndex;
 
+		// Combine an `Attr::ForegroundColor` with an `Attr`.
 		[[nodiscard]] constexpr ForegroundColor operator|(Attr const attributes) const
 		{
 			return { this->m_Ancillary | attributes, m_ColorIndex };
