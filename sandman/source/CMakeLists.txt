@@ -1,7 +1,7 @@
 include(GNUInstallDirs)
 
 set(SOURCE_FILES command.cpp config.cpp control.cpp input.cpp logger.cpp main.cpp mqtt.cpp 
-    shell.cpp notification.cpp reports.cpp schedule.cpp timer.cpp)
+    notification.cpp reports.cpp schedule.cpp shell.cpp timer.cpp)
 add_library(sandman_lib STATIC ${SOURCE_FILES})
 add_executable(sandman main.cpp)
 
