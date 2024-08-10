@@ -25,7 +25,23 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(Mosquitto IMPORTED_TARGET libmosquitto REQUIRED)
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-   target_compile_options(sandman_lib PUBLIC -Wall -Werror -pedantic)
+   target_compile_options(sandman_lib PUBLIC 
+      -Wall                    # Enable most common warnings
+      -Wextra                  # Enable additional warnings
+      -Werror                  # Treat warnings as errors
+      -pedantic                # Enforce strict ISO C++ compliance
+      -Wshadow                 # Warn when a variable shadows another
+      -Wnon-virtual-dtor       # Warn if a class with virtual functions has a non-virtual destructor
+      -Wold-style-cast         # Warn about old-style casts
+      -Woverloaded-virtual     # Warn if a virtual function is overloaded
+      # -Wsign-conversion      # Warn on implicit conversions that change sign
+      -Wformat=1               # Warn about format string issues
+      -Wfloat-equal            # Warn if floating-point values are compared for equality
+		-Wimplicit-fallthrough   # Warn if switch case fallthrough not marked with `[[fallthrough]]`
+   )
+
+   # `-Wformat=2` would warn about non literal format strings.
+
 else()
    message(WARNING "Not using GNU compiler or Clang compiler.")
 endif()
