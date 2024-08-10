@@ -96,10 +96,10 @@ namespace Shell
 			}
 		}
 
-		// `PushAttributes` instead.
+		// Use `PushAttributes` instead.
 		void Write(Attr const attributes) = delete;
 
-		// This function is deleted to stop from writing integral types with the expectation
+		// This function is deleted to stop attempts to write integral types with the expectation
 		// that they will be formated as decimal numbers on the logging window;
 		// they would actually be interprected as characters if this function wasn't deleted.
 		template <typename IntT>
