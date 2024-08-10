@@ -129,6 +129,22 @@ public:
 		[[nodiscard]] explicit Format(std::string_view const formatString, ParamsT&&... args)
 			: m_Objects(std::forward<ParamsT>(args)...),
 			  m_FormatString(formatString) {}
+
+		// Convenience method.
+		//
+		// Calls `::Logger::WriteLine(*this)`.
+		void constexpr WriteLine() const &
+		{
+			return ::Logger::WriteLine(*this);
+		}
+
+		// Convenience method.
+		//
+		// Calls `::Logger::WriteLine(std::move(*this))`.
+		void constexpr WriteLine() &&
+		{
+			return ::Logger::WriteLine(std::move(*this));
+		}
 	};
 
 	// Deduction guide.
