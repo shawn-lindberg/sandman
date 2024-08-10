@@ -394,7 +394,7 @@ namespace Shell
 		static bool HandleSubmitString()
 		{
 			// Echo the command back.
-			LoggingWindow::Println(chtype{'\"'}, s_Buffer.View(), chtype{'\"'});
+			LoggingWindow::Println(Cyan(chtype{'\"'}), s_Buffer.View(), Cyan(chtype{'\"'}));
 
 			// Parse a command.
 			{
