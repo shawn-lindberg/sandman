@@ -216,7 +216,7 @@ namespace Shell
 
 	inline static void HandleResize()
 	{
-		LoggingWindow::Println<Red.BuildAttr().m_Value>("Window resize is unimplemented.");
+		LoggingWindow::Println(Red("Window resize is unimplemented."));
 	}
 
 	static void InitializeColorFunctionality()
