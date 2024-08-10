@@ -248,6 +248,8 @@ public:
 	// The function takes arguments that are interpreted exactly how
 	// `std::vprintf` would interpret them after the attributes parameter, and writes the data using
 	// the global logger with a trailing newline character `'\n'`.
+	// 
+	// Pass `nullptr` as the attributes parameter to not use any attributes.
 	//
 	// Returns `true` on success, `false` otherwise.
 	//
@@ -262,6 +264,7 @@ public:
 	{
 		char logStringBuffer[kCapacity];
 
+		// `std::vsnprintf` returns a negative value on error.
 		if (std::vsnprintf(logStringBuffer, kCapacity, format, argumentList) < 0)
 		{
 			return false;
