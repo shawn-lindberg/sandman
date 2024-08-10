@@ -379,7 +379,7 @@ namespace Shell
 		{
 			using Right = std::plus<FastCursor>;
 			using Left = std::minus<FastCursor>;
-		} // namespace CursorMovements
+		}
 
 		template <typename CursorMovementT>
 		[[gnu::always_inline]] inline static std::enable_if_t<
