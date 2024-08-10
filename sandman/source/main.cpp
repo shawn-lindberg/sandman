@@ -287,7 +287,7 @@ static bool ProcessSocketCommunication()
 	static constexpr std::size_t kMessageBufferCapacity{ 100u };
 	char messageBuffer[kMessageBufferCapacity];
 
-	// Can subtract one this without underflow.
+	// Assert can subtract one from this without underflow.
 	static_assert(kMessageBufferCapacity >= 1u);
 
 	auto const numReceivedBytes = recv(connectionSocket, messageBuffer,
