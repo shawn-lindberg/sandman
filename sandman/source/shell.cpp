@@ -69,19 +69,22 @@ namespace Shell
 		}
 	}
 
+	struct Y : Common::Box<int> { using Box::Box; };
+	struct X : Common::Box<int> { using Box::Box; };
+
 	template <bool kFlag>
-	[[gnu::always_inline]] inline static void SetCharAttr(WINDOW* const window, int const y,
-																			int const x, Attr::Value const attributes)
+	[[gnu::always_inline]] inline static void SetCharAttr(WINDOW* const window, Y const y,
+																			X const x, Attr::Value const attributes)
 	{
 		if constexpr (kFlag)
 		{
-			chtype const character{ mvwinch(window, y, x) };
-			mvwaddch(window, y, x, character bitor attributes);
+			chtype const character{ mvwinch(window, y.m_Value, x.m_Value) };
+			mvwaddch(window, y.m_Value, x.m_Value, character bitor attributes);
 		}
 		else
 		{
-			chtype const character{ mvwinch(window, y, x) };
-			mvwaddch(window, y, x, character bitand compl(attributes));
+			chtype const character{ mvwinch(window, y.m_Value, x.m_Value) };
+			mvwaddch(window, y.m_Value, x.m_Value, character bitand compl(attributes));
 		}
 	}
 
@@ -158,9 +161,10 @@ namespace Shell
 		WINDOW* Get() { return s_Window; }
 
 		template <bool kFlag>
-		[[gnu::always_inline]] inline static void SetCharHighlight(int const position)
+		[[gnu::always_inline]] inline static void SetCharHighlight(X const positionX)
 		{
-			SetCharAttr<kFlag>(s_Window, kCursorStartY, kCursorStartX + position, A_STANDOUT);
+			auto const offsetX{ positionX.m_Value };
+			SetCharAttr<kFlag>(s_Window, Y(kCursorStartY), X(kCursorStartX + offsetX), A_STANDOUT);
 		}
 
 		static void Initialize()
@@ -187,7 +191,7 @@ namespace Shell
 			// Move the cursor to the corner.
 			wmove(s_Window, kCursorStartY, kCursorStartX);
 
-			SetCharHighlight<true>(0u);
+			SetCharHighlight<true>(X(0u));
 		}
 	} // namespace InputWindow
 
@@ -378,8 +382,8 @@ namespace Shell
 		BumpCursor()
 		{
 			static constexpr DirectionT kNext{};
-			SetCharHighlight<false>(s_Cursor);
-			SetCharHighlight<true>(s_Cursor = kNext(s_Cursor, static_cast<FastCursor>(1u)));
+			SetCharHighlight<false>(X(s_Cursor));
+			SetCharHighlight<true>(X(s_Cursor = kNext(s_Cursor, static_cast<FastCursor>(1u))));
 		}
 
 		static bool HandleSubmitString()
