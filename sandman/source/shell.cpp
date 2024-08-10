@@ -223,7 +223,7 @@ namespace Shell
 		// Maximum color pairs that the terminal supports.
 		auto const maxColorPairCount{ COLOR_PAIRS };
 
-		short signed int colorPairID{ 0 };
+		CursesColorID colorPairID{ 0 };
 
 		for (ColorIndex const backgroundColor : kColorList)
 		{
