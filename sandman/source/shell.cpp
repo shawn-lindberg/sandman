@@ -110,11 +110,17 @@ namespace Shell
 		{
 			if (s_AttributeStack.Push(attributes))
 			{
+				// Set attributes.
 				wattrset(s_Window, attributes.m_Value);
+
+				// Success.
 				return true;
 			}
-
-			return false;
+			else
+			{
+				// Failure.
+				return false;
+			}
 		}
 
 		void PopAttributes()
