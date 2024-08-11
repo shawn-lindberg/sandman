@@ -374,8 +374,9 @@ namespace Shell
 
 		Buffer const& GetBuffer() { return s_Buffer; }
 
-		// The position for where to insert and remove in the input buffer.
 		using FastCursor = std::uint_fast8_t;
+
+		// The position for where to insert and remove in the input buffer.
 		static FastCursor s_Cursor{ 0u };
 
 		static_assert(std::is_unsigned_v<FastCursor> and
