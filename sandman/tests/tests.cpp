@@ -13,7 +13,8 @@ public:
 	{
 		if (not Logger::Initialize("tests.log"))
 		{
-			throw std::runtime_error("The logger failed to initialize.");
+			Catch::cerr() << "The logger failed to initialize.\n";
+			std::exit(EXIT_FAILURE);
 		}
 	}
 
