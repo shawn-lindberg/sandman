@@ -228,8 +228,16 @@ namespace Shell
 	{
 		// Initialize Curses color functionality.
 		//
+		// `main 'color(3NCURSES)'`, FUNCTIONS, start_color:
+		// "It initializes two global variables, `COLORS` and `COLOR_PAIRS`."
+		//
+		// `main 'color(3NCURSES)'`, FUNCTIONS, start_color:
+		// "It initializes the special color pair 0 to the default foreground and background colors."
+		// No other colors pairs are initialized yet, but more will be initialized,
+		// manually after this function call.
+		//
 		// `man 'color(3NCURSES)'`, FUNCTIONS, start_color:
-		// 	"It is good practice to call this routine right after `initscr`."
+		// "It is good practice to call this routine right after `initscr`."
 		start_color();
 
 		// Maximum color pairs that the terminal supports.
