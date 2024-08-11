@@ -24,8 +24,13 @@ namespace Shell
 	Lock::Lock(): m_Lock(s_Mutex) {};
 
 	// Configure a window with "sensible" defaults.
-	[[gnu::nonnull]] static void ConfigureWindowDefaults(WINDOW* const window)
+	static void ConfigureWindowDefaults(WINDOW* const window)
 	{
+		if (window == nullptr)
+		{
+			return;
+		}
+
 		// output options: `man 'outopts(3NCURSES)'`
 		{
 			// Don't make the next call to `wrefresh` clear and redraw the screen completely.
