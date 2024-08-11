@@ -406,8 +406,14 @@ namespace Shell
 
 		static bool HandleSubmitString()
 		{
-			// Echo the command back.
-			LoggingWindow::Println(Cyan(chtype{'\"'}), s_Buffer.View(), Cyan(chtype{'\"'}));
+
+			std::string_view const bufferView(s_Buffer.View());
+
+			if (not bufferView.empty())
+			{
+				// Echo the command back.
+				LoggingWindow::Println(Cyan(chtype{'\"'}), bufferView, Cyan(chtype{'\"'}));
+			}
 
 			// Parse a command.
 			{
@@ -421,8 +427,11 @@ namespace Shell
 
 			static std::unordered_map<std::string_view, bool (*)()> const s_DispatchTable
 			{
-				{ "quit"sv, []() constexpr -> bool { return true; } },
-				{ ""sv, []() -> bool {
+				{"quit"sv, []() constexpr -> bool {
+					// Return boolean `true` denoting that the program should stop running.
+					return true;
+				}},
+				{""sv, []() -> bool {
 					redrawwin(LoggingWindow::s_Window);
 					redrawwin(InputWindow::s_Window);
 
@@ -432,13 +441,15 @@ namespace Shell
 					// Reset cursor, just to be safe.
 					s_Cursor = 0u;
 
+					LoggingWindow::Println(Magenta("Refreshed the screen."));
+
 					return false;
-				} }
+				}}
 			};
 
 			// Handle dispatch.
 			{
-				auto const dispatchEntry(s_DispatchTable.find(s_Buffer.View()));
+				auto const dispatchEntry(s_DispatchTable.find(bufferView));
 
 				s_Buffer.Clear();
 				SetCharHighlight<true>(X(s_Cursor = 0u));
