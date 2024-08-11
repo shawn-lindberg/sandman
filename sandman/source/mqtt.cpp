@@ -324,7 +324,9 @@ static void MQTTPublishMessage(char const* topic, char const* message)
 	}
 	else
 	{
-		//Logger::WriteFormattedLine("Published message to MQTT topic \"%s\": %s", topic, message);			
+		#if false
+		Logger::WriteFormattedLine("Published message to MQTT topic \"%s\": %s", topic, message);
+		#endif
 		Logger::WriteFormattedLine("Published message to MQTT topic \"%s\"", topic);
 	}
 }
