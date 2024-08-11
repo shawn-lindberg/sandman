@@ -31,7 +31,10 @@ namespace Shell
 		public: [[nodiscard]] explicit Lock();
 	};
 
-	/// @brief Initialize NCurses state and other logical state for managing the shell.
+	/// @brief Initialize NCurses state and other state necessary for managing the shell.
+	/// Will register a signal handler for `SIGWINCH`, which will override
+	/// any previous signal handler for `SIGWINCH`. This signal handler is registered
+	/// in order to handle screen resizes.
 	///
 	/// @attention Only call this function once. Call this function successfully before
 	/// calling any other functions in the `Shell` namespace.
