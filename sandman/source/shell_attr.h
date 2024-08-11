@@ -8,6 +8,7 @@
 #include <limits>
 #include <utility>
 #include <array>
+#include <string_view>
 
 namespace Shell
 {
@@ -94,6 +95,24 @@ namespace Shell
 			default: return CursesColorID{};
 		}
 	}
+
+	// Gets the name of a color index. This is mainly for debugging.
+	constexpr std::string_view GetName(ColorIndex const color)
+	{
+		using namespace std::string_view_literals;
+
+		switch (color)
+		{
+			case ColorIndex::Black  : return "Black"   ""sv;
+			case ColorIndex::Red    : return "Red"     ""sv;
+			case ColorIndex::Green  : return "Green"   ""sv;
+			case ColorIndex::Yellow : return "Yellow"  ""sv;
+			case ColorIndex::Blue   : return "Blue"    ""sv;
+			case ColorIndex::Magenta: return "Magenta" ""sv;
+			case ColorIndex::Cyan   : return "Cyan"    ""sv;
+			case ColorIndex::White  : return "White"   ""sv;
+
+			default: return "null"sv;
 		}
 	}
 
