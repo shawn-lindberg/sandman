@@ -82,16 +82,18 @@ namespace Shell
 	{
 		switch (color)
 		{
-			case ColorIndex::Black  : return COLOR_BLACK  ;
-			case ColorIndex::Red    : return COLOR_RED    ;
-			case ColorIndex::Green  : return COLOR_GREEN  ;
-			case ColorIndex::Yellow : return COLOR_YELLOW ;
-			case ColorIndex::Blue   : return COLOR_BLUE   ;
-			case ColorIndex::Magenta: return COLOR_MAGENTA;
-			case ColorIndex::Cyan   : return COLOR_CYAN   ;
-			case ColorIndex::White  : return COLOR_WHITE  ;
+			case ColorIndex::Black  : return CursesColorID{COLOR_BLACK  };
+			case ColorIndex::Red    : return CursesColorID{COLOR_RED    };
+			case ColorIndex::Green  : return CursesColorID{COLOR_GREEN  };
+			case ColorIndex::Yellow : return CursesColorID{COLOR_YELLOW };
+			case ColorIndex::Blue   : return CursesColorID{COLOR_BLUE   };
+			case ColorIndex::Magenta: return CursesColorID{COLOR_MAGENTA};
+			case ColorIndex::Cyan   : return CursesColorID{COLOR_CYAN   };
+			case ColorIndex::White  : return CursesColorID{COLOR_WHITE  };
 
-			default: return {};
+			default: return CursesColorID{};
+		}
+	}
 		}
 	}
 
