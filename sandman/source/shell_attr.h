@@ -309,6 +309,7 @@ namespace Shell
 
 		// NOLINTBEGIN(readability-identifier-naming)
 
+		// Character attribute.
 		inline constexpr Attr
 			Normal     (A_NORMAL                   ),
 			Highlight  (A_STANDOUT                 ),
@@ -320,6 +321,7 @@ namespace Shell
 			Invisible  (A_INVIS                    ),
 			Italic     (A_ITALIC                   );
 
+		// Foreground color.
 		inline constexpr Attr::ForegroundColor
 			Black      {Normal, ColorIndex::Black  },
 			Red        {Normal, ColorIndex::Red    },
@@ -330,6 +332,7 @@ namespace Shell
 			Cyan       {Normal, ColorIndex::Cyan   },
 			White      {Normal, ColorIndex::White  };
 
+		// Background color.
 		inline constexpr Attr::BackgroundColor
 			BackBlack  {Normal, ColorIndex::Black  },
 			BackRed    {Normal, ColorIndex::Red    },
