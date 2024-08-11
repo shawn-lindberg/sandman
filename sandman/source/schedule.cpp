@@ -241,7 +241,7 @@ void ScheduleInitialize()
 	// Parse the schedule.
 	if (ScheduleLoad() == false)
 	{
-		Logger::WriteFormattedLine("\tfailed");
+		Logger::WriteLine('\t', Shell::Red("failed"));
 		return;
 	}
 

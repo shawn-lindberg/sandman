@@ -77,11 +77,12 @@ static bool MQTTSubscribeTopic(mosquitto* mosquittoClient, const char* topic)
 
 	if (returnCode != MOSQ_ERR_SUCCESS)
 	{
-		Logger::WriteFormattedLine("Subscription to MQTT topic \"%s\" failed with return code %d", topic,
-			returnCode);		
+		Logger::WriteFormattedLine(Shell::Red,
+											"Subscription to MQTT topic \"%s\" failed with return code %d",
+											topic, returnCode);
 		return false;
 	}
-	
+
 	Logger::WriteFormattedLine("Subscribed to MQTT topic \"%s\".", topic);
 	return true;
 }
@@ -95,8 +96,9 @@ static bool MQTTSubscribeTopic(mosquitto* mosquittoClient, const char* topic)
 void OnConnectCallback(mosquitto* mosquittoClient, [[maybe_unused]] void* userData, int returnCode)
 {
 	if (returnCode != MOSQ_ERR_SUCCESS)
-	{		
-		Logger::WriteFormattedLine("Connection to MQTT host failed with return code %d", returnCode);
+	{
+		Logger::WriteFormattedLine(Shell::Red, "Connection to MQTT host failed with return code %d",
+											returnCode);
 		return;
 	}
 
@@ -164,7 +166,7 @@ void OnMessageCallback([[maybe_unused]] mosquitto* mosquittoClient, [[maybe_unus
 //
 bool MQTTInitialize()
 {
-	Logger::WriteFormattedLine("Initializing MQTT support...");
+	Logger::WriteLine("Initializing MQTT support...");
 
 	s_ConnectedToHost = false;
 	s_FirstTextToSpeechFinished = false;
@@ -172,7 +174,7 @@ bool MQTTInitialize()
 	
 	if (mosquitto_lib_init() != MOSQ_ERR_SUCCESS)
 	{
-		Logger::WriteFormattedLine("\tfailed");
+		Logger::WriteLine('\t', Shell::Red("failed"));
 		return false;
 	}
 		
@@ -193,7 +195,7 @@ bool MQTTInitialize()
 
 	if (s_MosquittoClient == nullptr) 
 	{
-		Logger::WriteFormattedLine("\tfailed");
+		Logger::WriteLine('\t', Shell::Red("failed"));
 		return false;
 	}
 	
@@ -317,13 +319,13 @@ static void MQTTPublishMessage(char const* topic, char const* message)
 
 	if (returnCode != MOSQ_ERR_SUCCESS)
 	{
-		Logger::WriteFormattedLine("Publish to MQTT topic \"%s\" failed with return code %d", topic,
-			returnCode);		
-	} 
-	else 
+		Logger::WriteFormattedLine(
+			Shell::Red, "Publish to MQTT topic \"%s\" failed with return code %d", topic, returnCode);
+	}
+	else
 	{
 		//Logger::WriteFormattedLine("Published message to MQTT topic \"%s\": %s", topic, message);			
-		Logger::WriteFormattedLine("Published message to MQTT topic \"%s\"", topic);			
+		Logger::WriteFormattedLine("Published message to MQTT topic \"%s\"", topic);
 	}
 }
 

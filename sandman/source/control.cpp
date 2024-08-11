@@ -667,11 +667,11 @@ void ControlsInitialize(std::vector<ControlConfig> const& configs)
 {
 	#if defined ENABLE_GPIO
 	
-		Logger::WriteFormattedLine("Initializing GPIO support...");
+		Logger::WriteLine("Initializing GPIO support...");
 	
 		if (gpioInitialise() < 0)
 		{
-			Logger::WriteFormattedLine("\tfailed");
+			Logger::WriteLine('\t', Shell::Red("failed"));
 			return;
 		}
 

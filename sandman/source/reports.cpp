@@ -169,7 +169,7 @@ static void ReportsOpenFile()
 
 	if (s_ReportFile == nullptr)
 	{
-		Logger::WriteFormattedLine("\tfailed");
+		Logger::WriteLine('\t', Shell::Red("failed"));
 		return;
 	}
 
