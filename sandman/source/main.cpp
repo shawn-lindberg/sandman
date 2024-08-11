@@ -166,16 +166,16 @@ static bool Initialize()
 	}
 	else
 	{
-		Shell::Initialize();
+		::Shell::Initialize();
 
 		// Initialize logging.
-		if (Logger::Initialize(SANDMAN_TEMP_DIR "sandman.log") == false)
+		if (::Logger::Initialize(SANDMAN_TEMP_DIR "sandman.log") == false)
 		{
 			s_ExitCode = 1;
 			return false;
 		}
 
-		Logger::GetScreenEchoFlag() = true;
+		::Logger::GetScreenEchoFlag() = true;
 	}
 
 	// Read the config.
@@ -262,7 +262,7 @@ static void Uninitialize()
 
 	if (s_DaemonMode == false)
 	{
-		Shell::Uninitialize();
+		::Shell::Uninitialize();
 	}
 }
 
