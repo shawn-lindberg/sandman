@@ -12,6 +12,12 @@ template <typename T, std::size_t kCapacity>
 class Common::Stack
 {
 
+	// Without this assertion,
+	// a compiler error message that is more difficult to understand
+	// would occur if `T` is not default constructible.
+	//
+	// This assertion is to make it easier to understand why a type `T`
+	// won't compile with `Common::Stack`.
 	static_assert(std::is_default_constructible_v<T>, "`T` should be default constructible.");
 
 private:
