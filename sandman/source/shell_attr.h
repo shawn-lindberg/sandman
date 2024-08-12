@@ -143,22 +143,22 @@ namespace Shell
 									  BackgroundIndex const backgroundColor)
 		{
 			using Common::Enum::IntCast;
-			using ColorPairID = decltype(GetColorID(std::declval<Index>()));
 
-			ColorPairID const column{ IntCast(foregroundColor.m_Value) };
-			ColorPairID const row{ IntCast(backgroundColor.m_Value) };
+			CursesColorID const column{ IntCast(foregroundColor.m_Value) };
+			CursesColorID const row{ IntCast(backgroundColor.m_Value) };
 
 			// Check that it's okay to downcast the `std::size_t` from `size()` to `int`.
 			static_assert(kList.size() <= 8u and 8u <= std::numeric_limits<int>::max());
 
-			ColorPairID const colorPairIndex{
-				// Needs to be static cast to a `ColorPairID`
+			// `COLOR_PAIR` takes an `int` as its argument.
+			int const colorPairIndex{
+				// Needs to be static cast to a `CursesColorID`
 				// because operations on `short` integral types
 				// will implicitly promote to non `short` types.
-				static_cast<ColorPairID>(
-					row * ColorPairID{ kColorList.size() } + column
+				static_cast<int>(
+					int{ row } * int{ kList.size() } + int{ column }
 					// Add an offset of 1 because color pair 0 is reserved as the default color pair.
-					+ ColorPairID{ 1 }
+					+ int{ 1 }
 				)
 			};
 
