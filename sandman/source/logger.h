@@ -226,27 +226,24 @@ public:
 	template <typename... ParamsT>
 	[[gnu::always_inline]] inline static void WriteLine(ParamsT&&... args)
 	{
-		using namespace std::string_view_literals;
+		std::lock_guard const loggerLock(ms_Mutex);
 
 		// Lock Shell functionality only if screen echo is enabled.
 		Shell::OptionalLock const shellLock(ms_Logger.HasScreenEchoEnabled());
 
+		// Write the timestamp.
+		if (std::tm const* const localTime{ ::Common::GetLocalTime() }; localTime != nullptr)
 		{
-			std::lock_guard const loggerLock(ms_Mutex);
-
-			// Write the timestamp.
-			if (std::tm const* const localTime{ ::Common::GetLocalTime() }; localTime != nullptr)
-			{
-				ms_Logger.Write(Shell::Cyan(std::put_time(localTime, "%Y/%m/%d %H:%M:%S %Z | ")));
-			}
-			else
-			{
-				ms_Logger.Write(Shell::Cyan("(missing local time) | "sv));
-			}
-
-			// Write the arguments with a trailing newline.
-			ms_Logger.Write(std::forward<ParamsT>(args)..., '\n');
+			ms_Logger.Write(Shell::Cyan(std::put_time(localTime, "%Y/%m/%d %H:%M:%S %Z | ")));
 		}
+		else
+		{
+			using namespace std::string_view_literals;
+			ms_Logger.Write(Shell::Cyan("(missing local time) | "sv));
+		}
+
+		// Write the arguments with a trailing newline character.
+		ms_Logger.Write(std::forward<ParamsT>(args)..., '\n');
 
 		if (ms_Logger.HasScreenEchoEnabled())
 		{
