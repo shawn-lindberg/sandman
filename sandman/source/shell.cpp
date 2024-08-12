@@ -584,6 +584,13 @@ namespace Shell
 				{
 					BumpCursor<Right>();
 				}
+				else
+				{
+					LoggingWindow::Println
+					(
+						Red("Can't write '", static_cast<chtype>(inputKey), "' into the input buffer.")
+					);
+				}
 
 				return false;
 		}
