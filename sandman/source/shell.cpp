@@ -232,6 +232,8 @@ namespace Shell
 
 	static void InitializeColorFunctionality()
 	{
+		using namespace ColorMatrix;
+
 		// Initialize Curses color functionality.
 		//
 		// `main 'color(3NCURSES)'`, FUNCTIONS, start_color:
@@ -246,34 +248,78 @@ namespace Shell
 		// "It is good practice to call this routine right after `initscr`."
 		start_color();
 
+		if (COLORS < decltype(COLORS){kColorList.size()})
+		{
+			// Doesn't support the standard colors; do something.
+			return;
+		}
+
 		// Maximum color pairs that the terminal supports.
 		auto const maxColorPairCount{ COLOR_PAIRS };
 
-		CursesColorID colorPairID{ 0 };
+		// Starting from 1 instead of 0
+		// because 0 denotes the default color which can't be changed portably
+		// across Curses implementations.
+		//
+		// See further down in the nested for-loops in the comment
+		// above the call to `init_pair` for some sources.
+		CursesColorID colorPairID{ 1 };
 
-		for (ColorIndex const backgroundColor : kColorList)
+		for (Index const backgroundColor : kColorList)
 		{
-			for (ColorIndex const foregroundColor : kColorList)
+			for (Index const foregroundColor : kColorList)
 			{
-				static constexpr decltype(colorPairID) kExclusiveUpperLimit{
-					std::min(
-						decltype(colorPairID){ 256 },
-						std::numeric_limits<decltype(colorPairID)>::max()
+				static constexpr decltype(colorPairID) kExclusiveUpperLimit
+				{
+					std::min
+					(
+						decltype(colorPairID){ 256 }, std::numeric_limits<decltype(colorPairID)>::max()
 					)
 				};
 
 				if (colorPairID >= maxColorPairCount or colorPairID >= kExclusiveUpperLimit)
 				{
-					goto EndInitializeColorPairs;
+					return;
 				}
 
 				// Initialize a Curses color pair for later use.
+				//
 				// A Curses color pair is a combination of foreground color and a background color.
-				init_pair(colorPairID++, GetColorID(foregroundColor), GetColorID(backgroundColor));
+				//
+				// The first argument should not be zero, because that denotes the
+				// default color pair which can't be changed without extensions to Curses.
+				//
+				// Here are some sources that agree that the first argument should not be zero.
+				//
+				// According to
+				// "https://www.ibm.com/docs/en/aix/7.3?topic=i-init-pair-subroutine",
+				// in section "Parameters",
+				// the first argument is a value that must be between `1` and `COLOR_PAIRS - 1`.
+				// (It says `COLORS_PAIRS` instead of `COLOR_PAIRS`, but I believe
+				// that is likely to be a mistake.)
+				//
+				// According to
+				// "https://docs.oracle.com/cd/E36784_01/html/E36880/init-pair-3curses.html",
+				// in section "Description", in subsection "Routine Descriptions",
+				// in paragraph starting with "The init_pair() routine...",
+				// the first argument is a value that must be btewen `1` and `COLOR_PAIRS - 1`.
+				//
+				// I cited those sources because the manual page `man 'init_pair(3NCURSES)'`,
+				// in section "FUNCTIONS", in subsection "init_pair",
+				// only says that for applications to be portable,
+				// the first argument to `init_pair` must be a "legal color pair value".
+				// However, in that section, it doesn't define what a "legal color pair value" is.
+				// Although, it does state that, as an extension, NCurses does allows color pair 0
+				// to be set if the routine `assume_default_colors` is called. This implies
+				// that without the NCurses extension, it cannot be set.
+				//
+				init_pair(colorPairID, GetColorID(foregroundColor), GetColorID(backgroundColor));
+
+				// Don't put the increment in call to `init_pair` in case it is a macro.
+				// Sometimes Curses functions are macros.
+				++colorPairID;
 			}
 		}
-
-		EndInitializeColorPairs: {}
 	}
 
 	void Initialize()
