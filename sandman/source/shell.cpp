@@ -571,13 +571,21 @@ namespace Shell
 			case Key::Ctrl<'C'>:
 			case Key::Ctrl<'Z'>:
 				// (Most likely unreachable.)
-				LoggingWindow::Println(Red("Unexpectedly got a `Ctrl` character (",
-													static_cast<chtype>(inputKey), ") from user input."));
+				LoggingWindow::Println(
+					Red
+					(
+						"Unexpectedly got a `Ctrl` character '", static_cast<chtype>(inputKey),
+						"' from user input."
+					)
+				);
 				return false;
 
 			default:
-				bool const inputKeyIsPrintable{ Common::ASCII::Match(inputKey) and
-														  std::isprint<char>(inputKey, std::locale::classic()) };
+				bool const inputKeyIsPrintable
+				{
+					Common::ASCII::Match(inputKey) and
+					std::isprint<char>(inputKey, std::locale::classic())
+				};
 
 				// If successfully inserted into the buffer, move the cursor to the right.
 				if (inputKeyIsPrintable and s_Buffer.Insert(s_Cursor, inputKey))
