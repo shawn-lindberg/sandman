@@ -142,3 +142,57 @@ TEST_CASE("Test example schedule", "[schedules]")
 		REQUIRE(l_Events[1].m_ControlAction.m_Action == Control::ACTION_MOVING_DOWN);
 	}
 }
+
+TEST_CASE("Test controls", "[control]")
+{
+	Config l_Config;
+	bool const l_Loaded = l_Config.ReadFromFile("data/sandman.conf");
+	REQUIRE(l_Loaded == true);
+
+	std::vector<ControlConfig> const& l_ControlConfigs = l_Config.GetControlConfigs();
+	REQUIRE(l_ControlConfigs.size() == 3);
+	if (l_ControlConfigs.size() > 2)
+	{
+		// Set up the controls.
+		bool const l_EnableGPIO = false;
+		ControlsInitialize(l_ControlConfigs, l_EnableGPIO);
+
+		Control::SetDurations(l_Config.GetControlMaxMovingDurationMS(), 
+									 l_Config.GetControlCoolDownDurationMS());
+
+		// Test an invalid control.
+		{
+			ControlHandle l_Handle = Control::GetHandle("chicken");
+			REQUIRE(l_Handle.IsValid() == false);
+			Control* l_Control = Control::GetFromHandle(l_Handle);
+			REQUIRE(l_Control == nullptr);
+		}
+
+		ControlHandle l_LegHandle = Control::GetHandle("legs");
+		REQUIRE(l_LegHandle.IsValid() == true);
+		Control* l_LegControl = Control::GetFromHandle(l_LegHandle);
+		REQUIRE(l_LegControl != nullptr);
+		if (l_LegControl != nullptr)
+		{
+			REQUIRE(l_LegControl->GetState() == Control::STATE_IDLE);
+		}
+
+		ControlHandle l_BackHandle = Control::GetHandle("back");
+		REQUIRE(l_BackHandle.IsValid() == true);
+		Control* l_BackControl = Control::GetFromHandle(l_BackHandle);
+		REQUIRE(l_BackControl != nullptr);
+		if (l_BackControl != nullptr)
+		{
+			REQUIRE(l_BackControl->GetState() == Control::STATE_IDLE);
+		}
+
+		ControlHandle l_ElevationHandle = Control::GetHandle("elev");
+		REQUIRE(l_ElevationHandle.IsValid() == true);
+		Control* l_ElevationControl = Control::GetFromHandle(l_ElevationHandle);
+		REQUIRE(l_ElevationControl != nullptr);
+		if (l_ElevationControl != nullptr)
+		{
+			REQUIRE(l_ElevationControl->GetState() == Control::STATE_IDLE);
+		}
+	}
+}
