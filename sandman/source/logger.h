@@ -185,7 +185,7 @@ public:
 		return ms_Logger;
 	}
 
-	// Is `true` if `T` is a type that is a conrete instance of the `Format` template class;
+	// Is `true` if `T` is a type that is a variant of the `Format` template class;
 	// is `false` otherwise.
 	//
 	// This can be used for compile-time conditional branching.
