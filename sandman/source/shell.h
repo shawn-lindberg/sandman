@@ -36,8 +36,8 @@ namespace Shell
 	{
 		private: std::optional<Lock> m_Lock;
 		public: [[nodiscard]] explicit OptionalLock(bool const lock);
-		public: [[gnu::always_inline]] inline void lock() { m_Lock.emplace(); }
-		public: [[gnu::always_inline]] inline void unlock() { m_Lock.reset(); }
+		public: [[gnu::always_inline]] inline void Relock() { m_Lock.emplace(); }
+		public: [[gnu::always_inline]] inline void Unlock() { m_Lock.reset(); }
 	};
 
 	/// @brief Initialize NCurses state and other state necessary for managing the shell.
