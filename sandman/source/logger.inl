@@ -98,9 +98,12 @@ template <typename T, typename... ParamsT>
 template <typename T, typename... ParamsT>
 void ::Logger::FormatWrite(std::string_view formatString, T&& firstArg, ParamsT&&... args)
 {
-	bool escapingCharacter{ false };
-
-	for (std::string_view::size_type index{ 0u }; index < formatString.size(); ++index)
+	for
+	(
+		auto [index, escapingCharacter] = std::tuple{std::string_view::size_type{ 0u }, false};
+		index < formatString.size();
+		++index
+	)
 	{
 		char const c{ formatString[index] };
 
