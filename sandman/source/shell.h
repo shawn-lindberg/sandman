@@ -203,6 +203,7 @@ namespace Shell
 
 	} // namespace LoggingWindow
 
+	// User input is echoed to this window.
 	namespace InputWindow
 	{
 		/// @brief The starting location of the cursor for the input window.
