@@ -56,18 +56,17 @@ namespace Require
 	template <typename CharT, std::size_t kN>
 	static void StringNullTerminated(Common::String<CharT, kN> const& buffer)
 	{
-		INFO('\"' << buffer.GetData().data() << "\" with string length "
-					 << buffer.GetLength() << " is not null terminated correctly. "
+		INFO('\"' << buffer.GetData().data() << "\" with string length " << buffer.GetLength()
+					 << " is not null terminated correctly. "
 					 << "The character at index " << buffer.GetLength() << " is \'"
 					 << buffer.GetData().at(buffer.GetLength()) << "\'.");
 		REQUIRE(buffer.GetData().at(buffer.GetLength()) == '\0');
 	}
 
 	template <typename CharT, std::size_t kN>
-	static void
-		ReplaceString(Common::String<CharT, kN>& buffer,
-						  typename Common::String<CharT, kN>::Data::size_type const index,
-						  std::string_view const string)
+	static void ReplaceString(Common::String<CharT, kN>& buffer,
+									  typename Common::String<CharT, kN>::Data::size_type const index,
+									  std::string_view const string)
 	{
 		INFO("Attempt to replace position " << index << " with \"" << string << "\".");
 		auto const originalStringLength{ buffer.GetLength() };
@@ -87,13 +86,12 @@ namespace Require
 			{
 				INFO("The character to the right of the position to remove "
 					  "was not copy shifted left correctly.");
-				INFO("The character to the right of this position is \'" << buffer.GetData().at(index + 1u)
-																		  << "\'.");
-				INFO("The character to the left of this position is " <<
-					  (index > 0u ?
-							std::string({ '\'', buffer.GetData().at(index - 1u), '\''}) :
-							std::string("(none)")) <<
-					  ".");
+				INFO("The character to the right of this position is \'"
+					  << buffer.GetData().at(index + 1u) << "\'.");
+				INFO("The character to the left of this position is "
+					  << (index > 0u ? std::string({ '\'', buffer.GetData().at(index - 1u), '\'' }) :
+											 std::string("(none)"))
+					  << ".");
 
 				REQUIRE(buffer.GetData().at(index) == characterToCopyShiftLeft);
 			}
