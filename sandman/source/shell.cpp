@@ -81,14 +81,14 @@ namespace Shell
 	[[gnu::always_inline]] inline static void SetCharAttr(WINDOW* const window, Y const y,
 																			X const x, Attr::Value const attributes)
 	{
+		chtype const character{ mvwinch(window, y.m_Value, x.m_Value) };
+
 		if constexpr (kFlag)
 		{
-			chtype const character{ mvwinch(window, y.m_Value, x.m_Value) };
 			mvwaddch(window, y.m_Value, x.m_Value, character bitor attributes);
 		}
 		else
 		{
-			chtype const character{ mvwinch(window, y.m_Value, x.m_Value) };
 			mvwaddch(window, y.m_Value, x.m_Value, character bitand compl(attributes));
 		}
 	}
