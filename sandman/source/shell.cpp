@@ -571,13 +571,10 @@ namespace Shell
 			case Key::Ctrl<'C'>:
 			case Key::Ctrl<'Z'>:
 				// (Most likely unreachable.)
-				LoggingWindow::Println(
-					Red
-					(
-						"Unexpectedly got a `Ctrl` character '", static_cast<chtype>(inputKey),
-						"' from user input."
-					)
-				);
+				LoggingWindow::Println(Red(
+					"Unexpectedly got a `Ctrl` character '", static_cast<chtype>(inputKey),
+					"' from user input."
+				));
 				return false;
 
 			default:
