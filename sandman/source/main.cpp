@@ -195,7 +195,8 @@ static bool Initialize()
 	}
 
 	// Initialize controls.
-	ControlsInitialize(config.GetControlConfigs());
+	static constexpr bool kEnableGPIO{ false };
+	ControlsInitialize(config.GetControlConfigs(), kEnableGPIO);
 
 	// Set control durations.
 	Control::SetDurations(config.GetControlMaxMovingDurationMS(),

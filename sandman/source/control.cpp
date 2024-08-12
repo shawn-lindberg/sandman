@@ -72,6 +72,13 @@ static char const* const s_ControlStateNotificationNames[] =
 // A list of registered controls.
 static std::vector<Control> s_Controls;
 
+#if defined ENABLE_GPIO
+
+	// Whether controls can use GPIO or not.
+	static bool s_EnableGPIO = true;
+
+#endif // defined ENABLE_GPIO
+
 // Control members
 
 unsigned int Control::ms_MaxMovingDurationMS = MAX_MOVING_STATE_DURATION_MS;
@@ -79,6 +86,56 @@ unsigned int Control::ms_CoolDownDurationMS = MAX_COOL_DOWN_STATE_DURATION_MS;
 
 // Functions
 //
+
+// Set the given GPIO pin mode to input.
+//
+// p_Pin:	The GPIO pin to set the mode of.
+//
+void SetGPIOPinModeInput(int p_Pin)
+{
+	#if defined ENABLE_GPIO
+
+		if (s_EnableGPIO == true)
+		{
+			gpioSetMode(p_Pin, PI_INPUT);
+		}
+		else
+		{
+			Logger::WriteFormattedLine("Would have set GPIO %d mode to input, but it's not enabled.",
+												p_Pin);
+		}
+
+	#else
+
+		Logger::WriteFormattedLine("A Raspberry Pi would have set GPIO %d mode to input.", p_Pin);
+
+	#endif // defined ENABLE_GPIO
+}
+
+// Set the given GPIO pin mode to output.
+//
+// p_Pin:	The GPIO pin to set the mode of.
+//
+void SetGPIOPinModeOutput(int p_Pin)
+{
+	#if defined ENABLE_GPIO
+
+		if (s_EnableGPIO == true)
+		{
+			gpioSetMode(p_Pin, PI_OUTPUT);
+		}
+		else
+		{
+			Logger::WriteFormattedLine("Would have set GPIO %d mode to output, but it's not enabled.",
+												p_Pin);
+		}
+
+	#else
+
+		Logger::WriteFormattedLine("A Raspberry Pi would have set GPIO %d mode to output.", p_Pin);
+
+	#endif // defined ENABLE_GPIO
+}
 
 // Set the given GPIO pin to the "on" value.
 //
@@ -88,7 +145,14 @@ void SetGPIOPinOn(int pin)
 {
 	#if defined ENABLE_GPIO
 
-		gpioWrite(pin, CONTROL_ON_GPIO_VALUE);
+		if (s_EnableGPIO == true)
+		{
+			gpioWrite(pin, CONTROL_ON_GPIO_VALUE);
+		}
+		else
+		{
+			Logger::WriteFormattedLine("Would have set GPIO %d to on, but it's not enabled.", pin);
+		}
 
 	#else
 
@@ -105,7 +169,14 @@ void SetGPIOPinOff(int pin)
 {
 	#if defined ENABLE_GPIO
 	
-		gpioWrite(pin, CONTROL_OFF_GPIO_VALUE);
+		if (s_EnableGPIO == true)
+		{
+			gpioWrite(pin, CONTROL_OFF_GPIO_VALUE);
+		}
+		else
+		{
+			Logger::WriteFormattedLine("Would have set GPIO %d to off, but it's not enabled.", pin);
+		}
 
 	#else
 
@@ -222,34 +293,27 @@ void Control::Initialize(ControlConfig const& config)
 	m_UpGPIOPin = config.m_UpGPIOPin;
 	m_DownGPIOPin = config.m_DownGPIOPin;
 	
-	#if defined ENABLE_GPIO
+	SetGPIOPinModeOutput(m_UpGPIOPin);
+	SetGPIOPinModeOutput(m_DownGPIOPin);
 	
-		gpioSetMode(m_UpGPIOPin, PI_OUTPUT);
-		SetGPIOPinOff(m_UpGPIOPin);
-	
-		gpioSetMode(m_DownGPIOPin, PI_OUTPUT);
-		SetGPIOPinOff(m_DownGPIOPin);
-
-	#endif // defined ENABLE_GPIO
+	SetGPIOPinOff(m_UpGPIOPin);
+	SetGPIOPinOff(m_DownGPIOPin);
 	
 	// Set the individual control moving duration.
 	m_StandardMovingDurationMS = config.m_MovingDurationMS;
-	
+
 	Logger::WriteFormattedLine("Initialized control \'%s\' with GPIO pins (up %i, "
-		"down %i) and duration %i ms.", m_Name, m_UpGPIOPin, m_DownGPIOPin, m_StandardMovingDurationMS);
+										"down %i) and duration %i ms.",
+										m_Name, m_UpGPIOPin, m_DownGPIOPin, m_StandardMovingDurationMS);
 }
 
 // Handle uninitialization.
 //
 void Control::Uninitialize()
 {
-	#if defined ENABLE_GPIO
-
-		// Revert to input.
-		gpioSetMode(m_UpGPIOPin, PI_INPUT);
-		gpioSetMode(m_DownGPIOPin, PI_INPUT);
-
-	#endif // defined ENABLE_GPIO
+	// Revert to input.
+	SetGPIOPinModeInput(m_UpGPIOPin);
+	SetGPIOPinModeInput(m_DownGPIOPin);
 }
 
 // Process a tick.
@@ -288,8 +352,9 @@ void Control::Process()
 			// Record when the state transition timer began.
 			TimerGetCurrent(m_StateStartTime);
 
-			Logger::WriteFormattedLine("Control \"%s\": State transition from \"%s\" to \"%s\" triggered.", 
-				m_Name, s_ControlStateNames[kStateIdle], s_ControlStateNames[m_State]);
+			Logger::WriteFormattedLine(
+				"Control \"%s\": State transition from \"%s\" to \"%s\" triggered.", m_Name,
+				s_ControlStateNames[kStateIdle], s_ControlStateNames[m_State]);
 		}
 		break;
 
@@ -348,8 +413,9 @@ void Control::Process()
 			// Record when the state transition timer began.
 			TimerGetCurrent(m_StateStartTime);
 
-			Logger::WriteFormattedLine("Control \"%s\": State transition from \"%s\" to \"%s\" triggered.", 
-				m_Name, s_ControlStateNames[oldState], s_ControlStateNames[m_State]);
+			Logger::WriteFormattedLine(
+				"Control \"%s\": State transition from \"%s\" to \"%s\" triggered.", m_Name,
+				s_ControlStateNames[oldState], s_ControlStateNames[m_State]);
 		}
 		break;
 
@@ -377,14 +443,16 @@ void Control::Process()
 			SetGPIOPinOff(m_UpGPIOPin);
 			SetGPIOPinOff(m_DownGPIOPin);
 
-			Logger::WriteFormattedLine("Control \"%s\": State transition from \"%s\" to \"%s\" triggered.", 
-				m_Name, s_ControlStateNames[kStateCoolDown], s_ControlStateNames[m_State]);
+			Logger::WriteFormattedLine(
+				"Control \"%s\": State transition from \"%s\" to \"%s\" triggered.", m_Name,
+				s_ControlStateNames[kStateCoolDown], s_ControlStateNames[m_State]);
 		}
 		break;
 
 		default:
 		{
-			Logger::WriteFormattedLine("Control \"%d\": Unrecognized state %s in Process()", m_State, m_Name);
+			Logger::WriteFormattedLine("Control \"%d\": Unrecognized state %s in Process()", m_State,
+												m_Name);
 		}
 		break;
 	}
@@ -420,9 +488,10 @@ void Control::SetDesiredAction(Actions desiredAction, Modes mode, unsigned int d
 		m_MovingDurationMS = ms_MaxMovingDurationMS;
 	}
 
-	Logger::WriteFormattedLine("Control \"%s\": Setting desired action to \"%s\" with mode \"%s\" and "
-		"duration %i ms.", m_Name, s_ControlActionNames[desiredAction], 
-		s_ControlModeNames[mode], m_MovingDurationMS);
+	Logger::WriteFormattedLine(
+		"Control \"%s\": Setting desired action to \"%s\" with mode \"%s\" and "
+		"duration %i ms.",
+		m_Name, s_ControlActionNames[desiredAction], s_ControlModeNames[mode], m_MovingDurationMS);
 }
 
 // Enable or disable all controls.
@@ -457,8 +526,9 @@ void Control::SetDurations(unsigned int movingDurationMS, unsigned int coolDownD
 {
 	ms_MaxMovingDurationMS = movingDurationMS;
 	ms_CoolDownDurationMS = coolDownDurationMS;
-	
-	Logger::WriteFormattedLine("Control durations set to moving - %i ms, cool down - %i ms.", movingDurationMS, coolDownDurationMS);
+
+	Logger::WriteFormattedLine("Control durations set to moving - %i ms, cool down - %i ms.",
+										movingDurationMS, coolDownDurationMS);
 }
 
 // Attempt to get the handle of a control based on its name.
@@ -661,21 +731,32 @@ Control* ControlAction::GetControl()
 
 // Initialize all of the controls.
 //
-// configs:	Configuration parameters for the controls to add.
+// configs:    Configuration parameters for the controls to add.
+// enableGPIO: Whether to turn on GPIO or not.
 //
-void ControlsInitialize(std::vector<ControlConfig> const& configs)
+void ControlsInitialize(std::vector<ControlConfig> const& configs, bool const enableGPIO)
 {
 	#if defined ENABLE_GPIO
 	
-		Logger::WriteLine("Initializing GPIO support...");
-	
-		if (gpioInitialise() < 0)
-		{
-			Logger::WriteLine('\t', Shell::Red("failed"));
-			return;
-		}
+		s_EnableGPIO = enableGPIO;
 
-		Logger::WriteLine('\t', Shell::Green("succeeded"));
+		if (s_EnableGPIO == true)
+		{
+			Logger::WriteLine("Initializing GPIO support...");
+	
+			if (gpioInitialise() < 0)
+			{
+				Logger::WriteLine('\t', Shell::Red("failed"));
+				return;
+			}
+
+			Logger::WriteLine('\t', Shell::Green("succeeded"));
+		}
+		else
+		{
+			Logger::WriteLine("GPIO support not enabled, initialization skipped.");
+		}
+		
 		Logger::WriteLine();
 
 	#endif // defined ENABLE_GPIO
@@ -701,7 +782,10 @@ void ControlsUninitialize()
 	#if defined ENABLE_GPIO
 	
 		// Uninitialize GPIO support.
-		gpioTerminate();
+		if (s_EnableGPIO == true)
+		{
+			gpioTerminate();
+		}
 	
 	#endif // defined ENABLE_GPIO
 }
@@ -726,7 +810,7 @@ bool ControlsCreateControl(ControlConfig const& config)
 {
 	// Check to see whether a control with this name already exists.
 	if (Control::GetHandle(config.m_Name).IsValid() == true)
-	{		
+	{
 		Logger::WriteFormattedLine("Control with name \"%s\" already exists.", config.m_Name);
 		return false;
 	}

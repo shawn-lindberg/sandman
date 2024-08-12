@@ -68,6 +68,15 @@ class Control
 {
 	public:
 
+		// States a control may be in.
+		enum State
+		{
+			kStateIdle = 0,
+			kStateMovingUp,
+			kStateMovingDown,
+			kStateCoolDown,    // A delay after moving before moving can occur again.
+		};
+
 		// Actions a control may be desired to perform.
 		enum Actions
 		{
@@ -114,6 +123,13 @@ class Control
 		{
 			return m_Name;
 		}
+
+		// Get the state.
+		//
+		State GetState() const
+		{
+			return m_State;
+		}
 		
 		// Enable or disable all controls.
 		//
@@ -148,15 +164,6 @@ class Control
 
 		// Constants.
 		static constexpr unsigned int kNameCapacity{ 32u };
-
-		// States a control may be in.
-		enum State
-		{
-			kStateIdle = 0,
-			kStateMovingUp,
-			kStateMovingDown,
-			kStateCoolDown,    // A delay after moving before moving can occur again.
-		};
 
 		// Play a notification for the state.
 		//
@@ -236,9 +243,10 @@ struct ControlAction
 
 // Initialize all of the controls.
 //
-// configs:	Configuration parameters for the controls to add.
+// configs:    Configuration parameters for the controls to add.
+// enableGPIO: Whether to turn on GPIO or not.
 //
-void ControlsInitialize(std::vector<ControlConfig> const& configs);
+void ControlsInitialize(std::vector<ControlConfig> const& configs, bool const enableGPIO);
 
 // Uninitialize all of the controls.
 //

@@ -11,7 +11,7 @@ public:
 
    void testRunStarting(Catch::TestRunInfo const&) override
 	{
-		if (not Logger::Initialize("tests.log"))
+		if (not Logger::Initialize(SANDMAN_TEST_BUILD_DIR "tests.log"))
 		{
 			Catch::cerr() << "The logger failed to initialize.\n";
 			std::exit(EXIT_FAILURE);
@@ -30,17 +30,17 @@ CATCH_REGISTER_LISTENER(TestRunListener)
 TEST_CASE("Test missing config", "[config]")
 {
 	Config config;
-	const bool loaded = config.ReadFromFile("");
+	bool const loaded = config.ReadFromFile("");
 	REQUIRE(loaded == false);
 }
 
 TEST_CASE("Test default config", "[config]")
 {
 	Config config;
-	const bool loaded = config.ReadFromFile("data/sandman.conf");
+	bool const loaded = config.ReadFromFile(SANDMAN_TEST_DATA_DIR "sandman.conf");
 	REQUIRE(loaded == true);
 
-	const std::vector<ControlConfig> controlConfigs = config.GetControlConfigs();
+	std::vector<ControlConfig> const& controlConfigs = config.GetControlConfigs();
 	REQUIRE(controlConfigs.size() == 3);
 	if (controlConfigs.size() > 2)
 	{
@@ -63,19 +63,58 @@ TEST_CASE("Test default config", "[config]")
 			REQUIRE(controlConfigs[2].m_MovingDurationMS == 4000);
 		}
 	}
+
+	REQUIRE(config.GetControlMaxMovingDurationMS() == 100000);
+	REQUIRE(config.GetControlCoolDownDurationMS() == 25);
+
+	std::vector<InputBinding> const& l_InputBindings = config.GetInputBindings();
+	REQUIRE(l_InputBindings.size() == 6);
+	if (l_InputBindings.size() > 5)
+	{
+		{
+			REQUIRE(l_InputBindings[0].m_KeyCode == 310);
+			REQUIRE(std::string(l_InputBindings[0].m_ControlAction.m_ControlName) == "back");
+			REQUIRE(l_InputBindings[0].m_ControlAction.m_Action == Control::kActionMovingUp);
+		}
+		{
+			REQUIRE(l_InputBindings[1].m_KeyCode == 311);
+			REQUIRE(std::string(l_InputBindings[1].m_ControlAction.m_ControlName) == "back");
+			REQUIRE(l_InputBindings[1].m_ControlAction.m_Action == Control::kActionMovingDown);
+		}
+		{
+			REQUIRE(l_InputBindings[2].m_KeyCode == 308);
+			REQUIRE(std::string(l_InputBindings[2].m_ControlAction.m_ControlName) == "legs");
+			REQUIRE(l_InputBindings[2].m_ControlAction.m_Action == Control::kActionMovingUp);
+		}
+		{
+			REQUIRE(l_InputBindings[3].m_KeyCode == 305);
+			REQUIRE(std::string(l_InputBindings[3].m_ControlAction.m_ControlName) == "legs");
+			REQUIRE(l_InputBindings[3].m_ControlAction.m_Action == Control::kActionMovingDown);
+		}
+		{
+			REQUIRE(l_InputBindings[4].m_KeyCode == 307);
+			REQUIRE(std::string(l_InputBindings[4].m_ControlAction.m_ControlName) == "elev");
+			REQUIRE(l_InputBindings[4].m_ControlAction.m_Action == Control::kActionMovingUp);
+		}
+		{
+			REQUIRE(l_InputBindings[5].m_KeyCode == 304);
+			REQUIRE(std::string(l_InputBindings[5].m_ControlAction.m_ControlName) == "elev");
+			REQUIRE(l_InputBindings[5].m_ControlAction.m_Action == Control::kActionMovingDown);
+		}
+	}
 }
 
 TEST_CASE("Test missing schedule", "[schedules]")
 {
 	Schedule schedule;
-	const bool loaded = schedule.ReadFromFile("");
+	bool const loaded = schedule.ReadFromFile("");
 	REQUIRE(loaded == false);
 }
 
 TEST_CASE("Test default (empty) schedule", "[schedules]")
 {
 	Schedule schedule;
-	const bool loaded = schedule.ReadFromFile("data/sandman.sched");
+	bool const loaded = schedule.ReadFromFile(SANDMAN_TEST_DATA_DIR "sandman.sched");
 	REQUIRE(loaded == true);
 	REQUIRE(schedule.IsEmpty() == true);
 }
@@ -83,19 +122,19 @@ TEST_CASE("Test default (empty) schedule", "[schedules]")
 TEST_CASE("Test invalid schedule", "[schedules]")
 {
 	Schedule schedule;
-	const bool loaded = schedule.ReadFromFile("data/invalidJson.sched");
+	bool const loaded = schedule.ReadFromFile(SANDMAN_TEST_DATA_DIR "invalidJson.sched");
 	REQUIRE(loaded == false);
 }
 
 TEST_CASE("Test example schedule", "[schedules]")
 {
 	Schedule schedule;
-	const bool loaded = schedule.ReadFromFile("data/example.sched");
+	bool const loaded = schedule.ReadFromFile(SANDMAN_TEST_DATA_DIR "example.sched");
 	REQUIRE(loaded == true);
 	REQUIRE(schedule.IsEmpty() == false);
 	REQUIRE(schedule.GetNumEvents() == 2);
 
-	const std::vector<ScheduleEvent>& events = schedule.GetEvents();
+	std::vector<ScheduleEvent>& events = schedule.GetEvents();
 	if (events.size() > 1)
 	{
 		REQUIRE(events[0].m_DelaySec == 20);
@@ -105,5 +144,59 @@ TEST_CASE("Test example schedule", "[schedules]")
 		REQUIRE(events[0].m_ControlAction.m_Action == Control::kActionMovingUp);
 		REQUIRE(std::string(events[1].m_ControlAction.m_ControlName) == "legs");
 		REQUIRE(events[1].m_ControlAction.m_Action == Control::kActionMovingDown);
+	}
+}
+
+TEST_CASE("Test controls", "[control]")
+{
+	Config config;
+	bool const loaded = config.ReadFromFile(SANDMAN_TEST_DATA_DIR "sandman.conf");
+	REQUIRE(loaded == true);
+
+	std::vector<ControlConfig> const& controlConfigs = config.GetControlConfigs();
+	REQUIRE(controlConfigs.size() == 3);
+	if (controlConfigs.size() > 2)
+	{
+		// Set up the controls.
+		static constexpr bool kEnableGPIO{ false };
+		ControlsInitialize(controlConfigs, kEnableGPIO);
+
+		Control::SetDurations(config.GetControlMaxMovingDurationMS(), 
+									 config.GetControlCoolDownDurationMS());
+
+		// Test an invalid control.
+		{
+			ControlHandle handle = Control::GetHandle("chicken");
+			REQUIRE(handle.IsValid() == false);
+			Control* control = Control::GetFromHandle(handle);
+			REQUIRE(control == nullptr);
+		}
+
+		ControlHandle legHandle = Control::GetHandle("legs");
+		REQUIRE(legHandle.IsValid() == true);
+		Control* legControl = Control::GetFromHandle(legHandle);
+		REQUIRE(legControl != nullptr);
+		if (legControl != nullptr)
+		{
+			REQUIRE(legControl->GetState() == Control::kStateIdle);
+		}
+
+		ControlHandle backHandle = Control::GetHandle("back");
+		REQUIRE(backHandle.IsValid() == true);
+		Control* backControl = Control::GetFromHandle(backHandle);
+		REQUIRE(backControl != nullptr);
+		if (backControl != nullptr)
+		{
+			REQUIRE(backControl->GetState() == Control::kStateIdle);
+		}
+
+		ControlHandle elevationHandle = Control::GetHandle("elev");
+		REQUIRE(elevationHandle.IsValid() == true);
+		Control* elevationControl = Control::GetFromHandle(elevationHandle);
+		REQUIRE(elevationControl != nullptr);
+		if (elevationControl != nullptr)
+		{
+			REQUIRE(elevationControl->GetState() == Control::kStateIdle);
+		}
 	}
 }
