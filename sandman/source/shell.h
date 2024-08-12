@@ -126,18 +126,24 @@ namespace Shell
 		// objects.
 		void ClearAllAttributes();
 
-		// Print one or more objects to a the logging window,
-		// then clear all attributes and refresh.
+		// Variable-argument write function.
+		// Calls `Write` on each argument.
 		template <typename T, typename... ParamsT>
-		[[gnu::always_inline]] inline void Print(T&& first, ParamsT&& ... arguments)
+		[[gnu::always_inline]] inline void Write(T&& first, ParamsT&& ... arguments)
 		{
+			// Process the first argument.
 			if constexpr (IsAttrWrapper<std::decay_t<T>>)
 			{
 				bool const didPushAttributes{ PushAttributes(first.m_Attributes) };
 
-				std::apply([](auto&&... objects) {
-					Print(std::forward<decltype(objects)>(objects)...);
-				}, first.m_Objects);
+				std::apply
+				(
+					[](auto&&... objects) -> void
+					{
+						return Write(std::forward<decltype(objects)>(objects)...);
+					},
+					first.m_Objects
+				);
 
 				if (didPushAttributes)
 				{
@@ -149,15 +155,26 @@ namespace Shell
 				Write(std::forward<T>(first));
 			}
 
+			// Process the other arguments; if none, clear all attributes and refresh.
 			if constexpr (sizeof...(arguments) > 0u)
 			{
-				return Print(std::forward<ParamsT>(arguments)...);
+				return Write(std::forward<ParamsT>(arguments)...);
 			}
 			else
 			{
 				ClearAllAttributes();
 				Refresh();
 			}
+		}
+
+		// Print one or more objects to the logging window,
+		// then clear all attributes and refresh.
+		template <typename... ParamsT>
+		[[gnu::always_inline]] inline void Print(ParamsT&&... arguments)
+		{
+			Write(std::forward<ParamsT>(arguments)...);
+			ClearAllAttributes();
+			Refresh();
 		}
 
 		// Same as `Print`, but also print a newline character.
