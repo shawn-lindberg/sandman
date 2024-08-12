@@ -109,7 +109,7 @@ void ::Logger::FormatWrite(std::string_view formatString, T&& firstArg, ParamsT&
 				case kFormatInterpolationIndicator:
 					// Write the first argument, then
 					// interpolate the remaining arguments
-					// into the rest of the string.
+					// into the rest of the string recursively.
 
 					Write(std::forward<T>(firstArg));
 					formatString.remove_prefix(++index);
