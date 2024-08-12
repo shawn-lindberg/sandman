@@ -296,10 +296,10 @@ namespace Shell
 			using namespace ColorMatrix;
 
 			ForegroundIndex const foregroundColor(
-				static_cast<Index>(m_ColorIndexPair bitand 0b000111));
+				static_cast<Index>(m_ColorIndexPair bitand 0b000111u));
 
 			BackgroundIndex const backgroundColor(
-				static_cast<Index>((m_ColorIndexPair bitand 0b111000) >> 3u));
+				static_cast<Index>((m_ColorIndexPair bitand 0b111000u) >> 3u));
 
 			Attr const colorPair{ GetPair(foregroundColor, backgroundColor) };
 
