@@ -176,7 +176,7 @@ static bool Initialize()
 			return false;
 		}
 
-		::Logger::GetScreenEchoFlag() = true;
+		::Logger::SetScreenEchoFlag(true);
 	}
 
 	// Read the config.
