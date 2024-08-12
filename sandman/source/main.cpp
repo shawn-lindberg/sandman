@@ -474,8 +474,8 @@ int main(int argc, char** argv)
 		if (s_DaemonMode == false)
 		{
 			Shell::Lock const lock;
-			done = Shell::InputWindow::ProcessSingleUserKey();
-			Shell::CheckResize();
+			done = ::Shell::InputWindow::ProcessSingleUserKey();
+			::Shell::CheckResize();
 		}
 
 		// Process command.
