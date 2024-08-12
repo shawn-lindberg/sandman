@@ -80,7 +80,7 @@ namespace Shell
 		// This should be the same type that Curses `init_pair` takes as parameters.
 		using CursesColorID = short signed int;
 
-		// Even though the Curses color macros be simply be defined
+		// Even though the Curses color macros may simply be defined
 		// as integers zero though seven, not making assumptions
 		// about what the Curses color macros are defined as,
 		// so this function serves as a well defined mapping
