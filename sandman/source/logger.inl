@@ -24,7 +24,7 @@ template <typename T, typename... ParamsT>
 		// Callable to be passed into `std::apply`.
 		auto const writeArgs = [this](auto&&... objects) -> void
 		{
-			this->Write(std::forward<decltype(objects)>(objects)...);
+			return this->Write(std::forward<decltype(objects)>(objects)...);
 		};
 
 		if (m_ScreenEcho)
