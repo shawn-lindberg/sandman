@@ -42,7 +42,7 @@ public:
 	// The output stream is stored internally, and can be written to over the
 	// course of the lifetime of the constructed logger object.
 	//
-	// Since the constructed logger will stored the output stream by reference,
+	// Since the constructed logger will store the output stream by reference,
 	// it is important to ensure that the output stream is not 
 	// destroyed, lest the reference to the output stream that the logger stores be invalidated.
 	[[nodiscard]] Logger(std::ostream& outputStream): m_Buffer(), m_OutputStream(outputStream) {}
@@ -85,11 +85,11 @@ public:
 	// as it writes all characters in the format string to
 	// the buffer.
 	// 
-	// `%$` interpolates the an argument into the format string.
+	// `%$` interpolates an argument into the format string.
 	// `%%` writes a literal percent sign `%` character.
 	//
-	// If interpolation is denoted with `%$` but there are no more arguments
-	// to interpolation, `::Logger::kMissingFormatValue` is written instead.
+	// If interpolation is denoted with `%$` but there are no more arguments left
+	// to interpolate, `::Logger::kMissingFormatValue` is written instead.
 	// 
 	// The arguments are interpolated into the string in the order
 	// that they are passed into this function from left to right.
@@ -101,8 +101,8 @@ public:
 
 	// Object wrapper for formatting.
 	//
-	// Instances of this class can be passed to `Logger::WriteLine`. If so,
-	// the arguments will be interpolated into the
+	// Instances of this class can be passed to `Logger::WriteLine`.
+	// If so, the arguments will be interpolated into the
 	// format string and written to the buffer as if
 	// `Logger::FormatWrite` was called with the arguments
 	// that the `Format` instance was constructed with.
@@ -114,11 +114,11 @@ public:
 
 		// Constructor.
 		//
-		// `%$` interpolates the an argument into the format string.
+		// `%$` interpolates an argument into the format string.
 		// `%%` writes a literal percent sign `%` character.
 		//
 		// If interpolation is denoted with `%$` but there are no more arguments
-		// to interpolation, `::Logger::kMissingFormatValue` is written insteaed.
+		// to interpolate, `::Logger::kMissingFormatValue` is written instead.
 		//
 		// The arguments are interpolated into the string in the order
 		// that they are passed into this function from left to right.
@@ -193,13 +193,15 @@ public:
 	// NOLINTNEXTLINE(readability-identifier-naming)
 	static constexpr bool IsFormat{ ::Logger::Traits::IsFormat<T>{} };
 
-	// Get reference to mutable screen echo flag of the global logger.
 	[[gnu::always_inline]] [[nodiscard]] inline static bool GetScreenEchoFlag()
 	{
 		std::lock_guard const lock(ms_Mutex);
 		return ms_Logger.m_ScreenEcho;
 	}
 
+	/// @brief Toggle whether the logger, in addition to writting to the log file,
+	/// also prints to the screen.
+	/// @warning This does not initialize or uninitialize the shell graphics system.
 	[[gnu::always_inline]] inline static void SetScreenEchoFlag(bool const value)
 	{
 		std::lock_guard const lock(ms_Mutex);
