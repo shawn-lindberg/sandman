@@ -239,4 +239,8 @@ namespace Shell
 		bool ProcessSingleUserKey();
 	}
 
+	// Adjusts the windows to the new dimensions of
+	// the terminal screen if a resize occurred.
+	void CheckResize();
+
 }

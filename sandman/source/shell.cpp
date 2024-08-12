@@ -225,9 +225,13 @@ namespace Shell
 		}
 	}
 
-	inline static void HandleResize()
+	void CheckResize()
 	{
-		LoggingWindow::Println(Red("Window resize is unimplemented."));
+		if (s_ShouldResize)
+		{
+			s_ShouldResize = false;
+			LoggingWindow::Println(Red("Window resize is unimplemented."));
+		}
 	}
 
 	static void InitializeColorFunctionality()
@@ -517,12 +521,6 @@ namespace Shell
 
 	bool InputWindow::ProcessSingleUserKey()
 	{
-		if (s_ShouldResize)
-		{
-			s_ShouldResize = false;
-			HandleResize();
-		}
-
 		// Get one input key from the terminal, if any.
 		switch (int const inputKey{ wgetch(s_Window) }; inputKey)
 		{
