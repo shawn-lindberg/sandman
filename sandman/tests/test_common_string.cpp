@@ -247,12 +247,12 @@ TEST_CASE("`String`", "[.Common][.Common_String]")
 
 			REQUIRE(buffer.Remove(22u));
 
-			for (decltype(buffer)::Data::size_type i{ 0u }; i < ("agile "sv).length(); ++i)
+			for (decltype(buffer)::Data::size_type i{ 0u }; i < "quick "sv.length(); ++i)
 			{
 				REQUIRE(buffer.Remove(4u));
 			}
 
-			REQUIRE(buffer.Insert(17u - ("agile "sv).length(), 'r'));
+			REQUIRE(buffer.Insert(17u - "quick "sv.length(), 'r'));
 
 			REQUIRE(buffer.View() == "The green frog hops over the keen cat."sv);
 		}
