@@ -68,9 +68,9 @@ public:
 	// Return pointer to value at index size minus one. Returns `nullptr` on out of bounds.
 	[[nodiscard]] constexpr T const* GetTop() const
 	{
+		static_assert(std::is_unsigned_v<decltype(m_Size)>);
 		// Unsigned integral underflow is well-defined behavior; it will wrap.
 		// So, it is okay to subtract from size without checking if size is zero.
-		static_assert(std::is_unsigned_v<decltype(m_Size)>);
 		return (*this)[m_Size - 1u];
 	}
 
