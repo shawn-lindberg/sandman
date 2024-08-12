@@ -16,7 +16,7 @@ bool ::Logger::Initialize(char const* const logFileName)
 
 		ms_File.open(logFileName);
 
-		if (not ms_File)
+		if (not ms_File.is_open())
 		{
 			// Failed to open the file.
 			return false;
