@@ -30,8 +30,6 @@ void ::Logger::Uninitialize()
 
 void ::Logger::FormatWrite(std::string_view const formatString)
 {
-	using namespace std::string_view_literals;
-
 	bool escapingCharacter{ false };
 
 	for (char const c : formatString)
