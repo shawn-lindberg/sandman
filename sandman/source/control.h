@@ -111,8 +111,8 @@ class Control
 		// Set the desired action.
 		//
 		// desiredAction:		The desired action.
-		// p_Mode:					The mode of the action.
-		// p_DurationPercent:	(Optional) The percent of the normal duration to perform the action 
+		// mode:					The mode of the action.
+		// durationPercent:	(Optional) The percent of the normal duration to perform the action 
 		//								for.
 		//
 		void SetDesiredAction(Actions desiredAction, Modes mode, unsigned int durationPercent = 100);

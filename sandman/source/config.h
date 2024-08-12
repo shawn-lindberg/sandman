@@ -15,7 +15,7 @@ class Config
 		
 		// Read the configuration from a file.
 		// 
-		// p_ConfigFileName:	The name of the config file.
+		// fileName:	The name of the config file.
 		//
 		// Returns:				True if successful, false otherwise.
 		//

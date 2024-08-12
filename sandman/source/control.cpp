@@ -89,50 +89,50 @@ unsigned int Control::ms_CoolDownDurationMS = MAX_COOL_DOWN_STATE_DURATION_MS;
 
 // Set the given GPIO pin mode to input.
 //
-// p_Pin:	The GPIO pin to set the mode of.
+// pin:	The GPIO pin to set the mode of.
 //
-void SetGPIOPinModeInput(int p_Pin)
+void SetGPIOPinModeInput(int pin)
 {
 	#if defined ENABLE_GPIO
 
 		if (s_EnableGPIO == true)
 		{
-			gpioSetMode(p_Pin, PI_INPUT);
+			gpioSetMode(pin, PI_INPUT);
 		}
 		else
 		{
 			Logger::WriteFormattedLine("Would have set GPIO %d mode to input, but it's not enabled.",
-												p_Pin);
+												pin);
 		}
 
 	#else
 
-		Logger::WriteFormattedLine("A Raspberry Pi would have set GPIO %d mode to input.", p_Pin);
+		Logger::WriteFormattedLine("A Raspberry Pi would have set GPIO %d mode to input.", pin);
 
 	#endif // defined ENABLE_GPIO
 }
 
 // Set the given GPIO pin mode to output.
 //
-// p_Pin:	The GPIO pin to set the mode of.
+// pin:	The GPIO pin to set the mode of.
 //
-void SetGPIOPinModeOutput(int p_Pin)
+void SetGPIOPinModeOutput(int pin)
 {
 	#if defined ENABLE_GPIO
 
 		if (s_EnableGPIO == true)
 		{
-			gpioSetMode(p_Pin, PI_OUTPUT);
+			gpioSetMode(pin, PI_OUTPUT);
 		}
 		else
 		{
 			Logger::WriteFormattedLine("Would have set GPIO %d mode to output, but it's not enabled.",
-												p_Pin);
+												pin);
 		}
 
 	#else
 
-		Logger::WriteFormattedLine("A Raspberry Pi would have set GPIO %d mode to output.", p_Pin);
+		Logger::WriteFormattedLine("A Raspberry Pi would have set GPIO %d mode to output.", pin);
 
 	#endif // defined ENABLE_GPIO
 }

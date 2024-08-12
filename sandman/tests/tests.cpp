@@ -67,39 +67,39 @@ TEST_CASE("Test default config", "[config]")
 	REQUIRE(config.GetControlMaxMovingDurationMS() == 100000);
 	REQUIRE(config.GetControlCoolDownDurationMS() == 25);
 
-	std::vector<InputBinding> const& l_InputBindings = config.GetInputBindings();
-	REQUIRE(l_InputBindings.size() == 6);
-	if (l_InputBindings.size() > 5)
+	std::vector<InputBinding> const& inputBindings = config.GetInputBindings();
+	REQUIRE(inputBindings.size() == 6);
+	if (inputBindings.size() > 5)
 	{
 		{
-			REQUIRE(l_InputBindings[0].m_KeyCode == 310);
-			REQUIRE(std::string(l_InputBindings[0].m_ControlAction.m_ControlName) == "back");
-			REQUIRE(l_InputBindings[0].m_ControlAction.m_Action == Control::kActionMovingUp);
+			REQUIRE(inputBindings[0].m_KeyCode == 310);
+			REQUIRE(std::string(inputBindings[0].m_ControlAction.m_ControlName) == "back");
+			REQUIRE(inputBindings[0].m_ControlAction.m_Action == Control::kActionMovingUp);
 		}
 		{
-			REQUIRE(l_InputBindings[1].m_KeyCode == 311);
-			REQUIRE(std::string(l_InputBindings[1].m_ControlAction.m_ControlName) == "back");
-			REQUIRE(l_InputBindings[1].m_ControlAction.m_Action == Control::kActionMovingDown);
+			REQUIRE(inputBindings[1].m_KeyCode == 311);
+			REQUIRE(std::string(inputBindings[1].m_ControlAction.m_ControlName) == "back");
+			REQUIRE(inputBindings[1].m_ControlAction.m_Action == Control::kActionMovingDown);
 		}
 		{
-			REQUIRE(l_InputBindings[2].m_KeyCode == 308);
-			REQUIRE(std::string(l_InputBindings[2].m_ControlAction.m_ControlName) == "legs");
-			REQUIRE(l_InputBindings[2].m_ControlAction.m_Action == Control::kActionMovingUp);
+			REQUIRE(inputBindings[2].m_KeyCode == 308);
+			REQUIRE(std::string(inputBindings[2].m_ControlAction.m_ControlName) == "legs");
+			REQUIRE(inputBindings[2].m_ControlAction.m_Action == Control::kActionMovingUp);
 		}
 		{
-			REQUIRE(l_InputBindings[3].m_KeyCode == 305);
-			REQUIRE(std::string(l_InputBindings[3].m_ControlAction.m_ControlName) == "legs");
-			REQUIRE(l_InputBindings[3].m_ControlAction.m_Action == Control::kActionMovingDown);
+			REQUIRE(inputBindings[3].m_KeyCode == 305);
+			REQUIRE(std::string(inputBindings[3].m_ControlAction.m_ControlName) == "legs");
+			REQUIRE(inputBindings[3].m_ControlAction.m_Action == Control::kActionMovingDown);
 		}
 		{
-			REQUIRE(l_InputBindings[4].m_KeyCode == 307);
-			REQUIRE(std::string(l_InputBindings[4].m_ControlAction.m_ControlName) == "elev");
-			REQUIRE(l_InputBindings[4].m_ControlAction.m_Action == Control::kActionMovingUp);
+			REQUIRE(inputBindings[4].m_KeyCode == 307);
+			REQUIRE(std::string(inputBindings[4].m_ControlAction.m_ControlName) == "elev");
+			REQUIRE(inputBindings[4].m_ControlAction.m_Action == Control::kActionMovingUp);
 		}
 		{
-			REQUIRE(l_InputBindings[5].m_KeyCode == 304);
-			REQUIRE(std::string(l_InputBindings[5].m_ControlAction.m_ControlName) == "elev");
-			REQUIRE(l_InputBindings[5].m_ControlAction.m_Action == Control::kActionMovingDown);
+			REQUIRE(inputBindings[5].m_KeyCode == 304);
+			REQUIRE(std::string(inputBindings[5].m_ControlAction.m_ControlName) == "elev");
+			REQUIRE(inputBindings[5].m_ControlAction.m_Action == Control::kActionMovingDown);
 		}
 	}
 }
