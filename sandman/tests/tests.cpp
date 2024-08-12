@@ -11,7 +11,7 @@ public:
 
    void testRunStarting(Catch::TestRunInfo const&) override
 	{
-		LoggerInitialize("tests.log");
+		LoggerInitialize(SANDMAN_TEST_BUILD_DIR "tests.log");
 	}
 
 	void testRunEnded(Catch::TestRunStats const&) override
@@ -33,7 +33,7 @@ TEST_CASE("Test missing config", "[config]")
 TEST_CASE("Test default config", "[config]")
 {
 	Config l_Config;
-	bool const l_Loaded = l_Config.ReadFromFile("data/sandman.conf");
+	bool const l_Loaded = l_Config.ReadFromFile(SANDMAN_TEST_DATA_DIR "sandman.conf");
 	REQUIRE(l_Loaded == true);
 
 	std::vector<ControlConfig> const& l_ControlConfigs = l_Config.GetControlConfigs();
@@ -110,7 +110,7 @@ TEST_CASE("Test missing schedule", "[schedules]")
 TEST_CASE("Test default (empty) schedule", "[schedules]")
 {
 	Schedule l_Schedule;
-	bool const l_Loaded = l_Schedule.ReadFromFile("data/sandman.sched");
+	bool const l_Loaded = l_Schedule.ReadFromFile(SANDMAN_TEST_DATA_DIR "sandman.sched");
 	REQUIRE(l_Loaded == true);
 	REQUIRE(l_Schedule.IsEmpty() == true);
 }
@@ -118,14 +118,14 @@ TEST_CASE("Test default (empty) schedule", "[schedules]")
 TEST_CASE("Test invalid schedule", "[schedules]")
 {
 	Schedule l_Schedule;
-	bool const l_Loaded = l_Schedule.ReadFromFile("data/invalidJson.sched");
+	bool const l_Loaded = l_Schedule.ReadFromFile(SANDMAN_TEST_DATA_DIR "invalidJson.sched");
 	REQUIRE(l_Loaded == false);
 }
 
 TEST_CASE("Test example schedule", "[schedules]")
 {
 	Schedule l_Schedule;
-	bool const l_Loaded = l_Schedule.ReadFromFile("data/example.sched");
+	bool const l_Loaded = l_Schedule.ReadFromFile(SANDMAN_TEST_DATA_DIR "example.sched");
 	REQUIRE(l_Loaded == true);
 	REQUIRE(l_Schedule.IsEmpty() == false);
 	REQUIRE(l_Schedule.GetNumEvents() == 2);
@@ -146,7 +146,7 @@ TEST_CASE("Test example schedule", "[schedules]")
 TEST_CASE("Test controls", "[control]")
 {
 	Config l_Config;
-	bool const l_Loaded = l_Config.ReadFromFile("data/sandman.conf");
+	bool const l_Loaded = l_Config.ReadFromFile(SANDMAN_TEST_DATA_DIR "sandman.conf");
 	REQUIRE(l_Loaded == true);
 
 	std::vector<ControlConfig> const& l_ControlConfigs = l_Config.GetControlConfigs();
