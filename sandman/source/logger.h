@@ -194,9 +194,16 @@ public:
 	static constexpr bool IsFormat{ ::Logger::Traits::IsFormat<T>{} };
 
 	// Get reference to mutable screen echo flag of the global logger.
-	[[gnu::always_inline]] [[nodiscard]] inline static bool& GetScreenEchoFlag()
+	[[gnu::always_inline]] [[nodiscard]] inline static bool GetScreenEchoFlag()
 	{
+		std::lock_guard const lock(ms_Mutex);
 		return ms_Logger.m_ScreenEcho;
+	}
+
+	[[gnu::always_inline]] inline static void SetScreenEchoFlag(bool const value)
+	{
+		std::lock_guard const lock(ms_Mutex);
+		ms_Logger.m_ScreenEcho = value;
 	}
 
 	/// @brief Initializes the global logger such that it can write
