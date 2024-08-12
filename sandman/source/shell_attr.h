@@ -103,7 +103,8 @@ namespace Shell
 		}
 
 		// A list of color indices to make it easier to loop over them.
-		inline constexpr std::array kColorList{
+		inline constexpr std::array kList
+		{
 			Index::Black  ,
 			Index::Red    ,
 			Index::Green  ,
@@ -147,8 +148,8 @@ namespace Shell
 			ColorPairID const column{ IntCast(foregroundColor.m_Value) };
 			ColorPairID const row{ IntCast(backgroundColor.m_Value) };
 
-			// Check that it's okay to downcast the `std::size_t` from `size()` to `ColorPairID`.
-			static_assert(kColorList.size() <= 8u and 8u <= std::numeric_limits<ColorPairID>::max());
+			// Check that it's okay to downcast the `std::size_t` from `size()` to `int`.
+			static_assert(kList.size() <= 8u and 8u <= std::numeric_limits<int>::max());
 
 			ColorPairID const colorPairIndex{
 				// Needs to be static cast to a `ColorPairID`
@@ -269,6 +270,20 @@ namespace Shell
 	struct Attr::ColorPair
 	{
 		Attr m_Ancillary;
+
+		// Bit manipulations rely on the assumption that this assertion is true.
+		static_assert([]() constexpr -> bool {
+			ColorMatrix::Index maxColorIndex{ColorMatrix::kList.at(0u)};
+
+			for (ColorMatrix::Index const colorIndex : ColorMatrix::kList)
+			{
+				maxColorIndex = std::max(colorIndex, maxColorIndex);
+			}
+
+			return ::Common::Enum::IntCast(maxColorIndex) == 0b111u;
+		}());
+
+		// Two color pair indices are packed into this value.
 		std::underlying_type_t<ColorMatrix::Index> m_ColorIndexPair;
 
 		[[nodiscard]] constexpr ColorPair operator|(Attr const attributes) const
