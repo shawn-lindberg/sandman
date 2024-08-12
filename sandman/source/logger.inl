@@ -31,13 +31,14 @@ template <typename T, typename... ParamsT>
 			std::string const string(m_Buffer.str());
 
 			// Dump the current data to the output destinations.
-			bool const didPushAttributes{[
-				attributes=firstArg.m_Attributes, stringView=std::string_view(string)]() -> bool
+			bool const didPushAttributes
 			{
-				::Shell::Lock const lock;
-				::Shell::LoggingWindow::Write(stringView);
-				return ::Shell::LoggingWindow::PushAttributes(attributes);
-			}()};
+				[attributes=firstArg.m_Attributes, stringView=std::string_view(string)]() -> bool
+				{
+					::Shell::LoggingWindow::Write(stringView);
+					return ::Shell::LoggingWindow::PushAttributes(attributes);
+				}()
+			};
 			m_OutputStream << string;
 
 			// Clear the buffer.
@@ -46,9 +47,9 @@ template <typename T, typename... ParamsT>
 			// Recursively write the objects in the object wrapper.
 			std::apply(writeArgs, firstArg.m_Objects);
 
-			// Pop the attributes object to remove its affect.
-			if (didPushAttributes) {
-				::Shell::Lock const lock;
+			// Pop the attributes object to remove its effect.
+			if (didPushAttributes)
+			{
 				::Shell::LoggingWindow::PopAttributes();
 			}
 		}
@@ -83,7 +84,6 @@ template <typename T, typename... ParamsT>
 		// Dump current data to output destinations.
 		if (m_ScreenEcho)
 		{
-			::Shell::Lock const lock;
 			::Shell::LoggingWindow::Write(std::string_view(string));
 		}
 		m_OutputStream << string;

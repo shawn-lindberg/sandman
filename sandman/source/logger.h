@@ -218,8 +218,11 @@ public:
 	{
 		using namespace std::string_view_literals;
 
+		// Lock Shell functionality only if screen echo is enabled.
+		Shell::OptionalLock const shellLock(ms_Logger.HasScreenEchoEnabled());
+
 		{
-			std::lock_guard const lock(ms_Mutex);
+			std::lock_guard const loggerLock(ms_Mutex);
 
 			if (std::tm const* const localTime{ ::Common::GetLocalTime() }; localTime != nullptr)
 			{
@@ -235,7 +238,6 @@ public:
 
 		if (ms_Logger.HasScreenEchoEnabled())
 		{
-			::Shell::Lock const lock;
 			::Shell::LoggingWindow::ClearAllAttributes();
 			::Shell::LoggingWindow::Refresh();
 		}

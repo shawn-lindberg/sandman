@@ -10,6 +10,7 @@
 #include <mutex>
 #include <type_traits>
 #include <utility>
+#include <optional>
 
 // This is the standard include directive for NCurses
 // as noted in the "SYNOPSIS" section of the manual page `man 3NCURSES ncurses`.
@@ -29,6 +30,12 @@ namespace Shell
 	{
 		private: std::lock_guard<std::mutex> m_Lock;
 		public: [[nodiscard]] explicit Lock();
+	};
+
+	class [[nodiscard]] OptionalLock final
+	{
+		private: std::optional<Lock> m_Lock;
+		public: [[nodiscard]] explicit OptionalLock(bool const lock);
 	};
 
 	/// @brief Initialize NCurses state and other state necessary for managing the shell.
