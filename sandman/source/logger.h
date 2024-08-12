@@ -234,16 +234,18 @@ public:
 		{
 			std::lock_guard const loggerLock(ms_Mutex);
 
+			// Write the timestamp.
 			if (std::tm const* const localTime{ ::Common::GetLocalTime() }; localTime != nullptr)
 			{
-				ms_Logger.Write(Shell::Cyan(std::put_time(localTime, "%Y/%m/%d %H:%M:%S %Z | ")),
-									 std::forward<ParamsT>(args)..., '\n');
+				ms_Logger.Write(Shell::Cyan(std::put_time(localTime, "%Y/%m/%d %H:%M:%S %Z | ")));
 			}
 			else
 			{
-				ms_Logger.Write(Shell::Cyan("(missing local time) | "sv),
-									 std::forward<ParamsT>(args)..., '\n');
+				ms_Logger.Write(Shell::Cyan("(missing local time) | "sv));
 			}
+
+			// Write the arguments with a trailing newline.
+			ms_Logger.Write(std::forward<ParamsT>(args)..., '\n');
 		}
 
 		if (ms_Logger.HasScreenEchoEnabled())
