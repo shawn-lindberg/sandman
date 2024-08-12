@@ -62,7 +62,8 @@ namespace Shell
 	}
 
 	// Log messages are printed to this window.
-	namespace LoggingWindow {
+	namespace LoggingWindow
+	{
 
 		// Refresh the logging window.
 		//
@@ -78,7 +79,7 @@ namespace Shell
 		// Write a string view.
 		template <typename CharT>
 		std::enable_if_t<std::is_same_v<CharT, char> or std::is_same_v<CharT, chtype>, void>
-			Write(std::basic_string_view<CharT> const string)
+		Write(std::basic_string_view<CharT> const string)
 		{
 			for (CharT const character : string)
 			{
