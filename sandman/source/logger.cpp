@@ -11,16 +11,10 @@ bool ::Logger::Initialize(char const* const logFileName)
 		return false;
 	}
 
+	if (std::lock_guard const lock(ms_Mutex); ms_File.open(logFileName), not ms_File.is_open())
 	{
-		std::lock_guard const lock(ms_Mutex);
-
-		ms_File.open(logFileName);
-
-		if (not ms_File.is_open())
-		{
-			// Failed to open the file.
-			return false;
-		}
+		// Failed to open the file.
+		return false;
 	}
 
 	return true;
