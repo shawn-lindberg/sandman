@@ -177,6 +177,9 @@ private:
 public:
 
 	// Get the global logger.
+	[[deprecated(
+		"Function calls on the returned object reference, while `const`, are not thread-safe."
+	)]]
 	[[nodiscard]] static constexpr Logger const& Get()
 	{
 		return ms_Logger;
