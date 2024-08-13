@@ -167,7 +167,6 @@ static bool Initialize()
 	}
 	else
 	{
-		::Shell::Initialize();
 
 		// Initialize logging.
 		if (::Logger::Initialize(SANDMAN_TEMP_DIR "sandman.log") == false)
@@ -176,6 +175,7 @@ static bool Initialize()
 			return false;
 		}
 
+		::Shell::Initialize();
 		::Logger::SetScreenEchoFlag(true);
 	}
 
