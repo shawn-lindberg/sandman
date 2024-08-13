@@ -39,7 +39,7 @@ public:
 
 	// Construct a logger with a reference to an output stream.
 	//
-	// The output stream is stored internally, and can be written to over the
+	// The output stream is stored internally by reference, and can be written to over the
 	// course of the lifetime of the constructed logger object.
 	//
 	// Since the constructed logger will store the output stream by reference,
