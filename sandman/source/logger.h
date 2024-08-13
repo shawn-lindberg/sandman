@@ -43,7 +43,7 @@ public:
 	// course of the lifetime of the constructed logger object.
 	//
 	// Since the constructed logger will store the output stream by reference,
-	// it is important to ensure that the output stream is not 
+	// it is important to ensure that the output stream is not
 	// destroyed, lest the reference to the output stream that the logger stores be invalidated.
 	[[nodiscard]] Logger(std::ostream& outputStream): m_Buffer(), m_OutputStream(outputStream) {}
 
