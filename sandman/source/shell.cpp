@@ -23,9 +23,6 @@ namespace Shell
 
 	Lock::Lock(): m_Lock(s_Mutex) {};
 
-	OptionalLock::OptionalLock(bool const lock):
-		m_Lock(lock ? std::make_optional<Lock>() : std::nullopt) {}
-
 	// Configure a window with "sensible" defaults.
 	static void ConfigureWindowDefaults(WINDOW* const window)
 	{

@@ -32,14 +32,6 @@ namespace Shell
 		public: [[nodiscard]] explicit Lock();
 	};
 
-	class [[nodiscard]] OptionalLock final
-	{
-		private: std::optional<Lock> m_Lock;
-		public: [[nodiscard]] explicit OptionalLock(bool const lock);
-		public: [[gnu::always_inline]] inline void Relock() { m_Lock.emplace(); }
-		public: [[gnu::always_inline]] inline void Unlock() { m_Lock.reset(); }
-	};
-
 	/// @brief Initialize NCurses state and other state necessary for managing the shell.
 	/// Will register a signal handler for `SIGWINCH`, which will override
 	/// any previous signal handler for `SIGWINCH`. This signal handler is registered

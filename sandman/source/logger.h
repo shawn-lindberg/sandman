@@ -231,7 +231,10 @@ public:
 		std::lock_guard const loggerLock(ms_Mutex);
 
 		// Lock Shell functionality only if screen echo is enabled.
-		Shell::OptionalLock const shellLock(ms_Logger.HasScreenEchoEnabled());
+		std::optional<Shell::Lock> const shellLock
+		(
+			ms_Logger.HasScreenEchoEnabled() ? std::make_optional<Shell::Lock>() : std::nullopt
+		);
 
 		// Write the timestamp.
 		if (std::tm const* const localTime{ ::Common::GetLocalTime() }; localTime != nullptr)
