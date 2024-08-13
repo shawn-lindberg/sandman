@@ -105,7 +105,7 @@ static bool Initialize()
 			return false;
 		}
 
-		// Close stdin, stdou, stderr.
+		// Close stdin, stdout, stderr.
 		close(STDIN_FILENO);
 		close(STDOUT_FILENO);
 		close(STDERR_FILENO);
