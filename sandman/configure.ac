@@ -21,6 +21,7 @@ PKG_PROG_PKG_CONFIG
 AC_CHECK_LIB([rt], [clock_gettime])
 AC_CHECK_LIB([ncurses], [initscr])
 AC_CHECK_LIB([pigpio], [gpioInitialise])
+AC_CHECK_LIB([pigpiod_if2], [pigpio_start])
 AC_CHECK_LIB([mosquitto], [mosquitto_lib_init])
 
 # Check for libxml.

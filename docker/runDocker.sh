@@ -6,13 +6,25 @@
 #docker run --privileged -it \
 #docker run --privileged -d \
 
+# adding /usr/lib/ for libpigpiod_if2.so.1
 docker run --privileged -d \
    --network host \
    --expose 12183 \
-   --mount type=bind,src=/lib/libpigpio.so.1,target=/lib/libpigpio.so.1 \
+   --expose 8888 \
    --mount type=bind,src=/usr/local/var/sandman,target=/usr/local/var/sandman \
    --mount type=bind,src=/usr/local/etc/sandman,target=/usr/local/etc/sandman \
+   --mount type=bind,src=/lib/libpigpio.so.1,target=/lib/libpigpio.so.1 \
+   --mount type=bind,src=/usr/lib/,target=/usr/lib/ \
    sandman_docker:v2 
+
+#docker run --privileged -it \
+#   --network host \
+#   --expose 12183 \
+#   --mount type=bind,src=/lib/libpigpio.so.1,target=/lib/libpigpio.so.1 \
+#   --mount type=bind,src=/usr/local/var/sandman,target=/usr/local/var/sandman \
+#   --mount type=bind,src=/usr/local/etc/sandman,target=/usr/local/etc/sandman \
+#   sandman_docker:v2 
+
 
 # this isn't working, docker ps -a shows container exited
 #docker run --privileged -d \

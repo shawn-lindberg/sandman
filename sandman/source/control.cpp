@@ -5,7 +5,8 @@
 #include <vector>
 
 #if defined ENABLE_GPIO
-	#include <pigpio.h>
+	//#include <pigpio.h>
+	#include <pigpiod_if2.h>
 #endif // defined ENABLE_GPIO
 
 #include "logger.h"
@@ -35,6 +36,8 @@
 
 // Locals
 //
+
+int gpio_pi_id = 0;
 
 // The names of the actions.
 static char const* const s_ControlActionNames[] =
@@ -88,7 +91,10 @@ void SetGPIOPinOn(int p_Pin)
 {
 	#if defined ENABLE_GPIO
 
-		gpioWrite(p_Pin, CONTROL_ON_GPIO_VALUE);
+		//gpioWrite(p_Pin, CONTROL_ON_GPIO_VALUE);
+
+		gpio_write(gpio_pi_id, p_Pin, CONTROL_ON_GPIO_VALUE);
+
 
 	#else
 
@@ -105,7 +111,9 @@ void SetGPIOPinOff(int p_Pin)
 {
 	#if defined ENABLE_GPIO
 	
-		gpioWrite(p_Pin, CONTROL_OFF_GPIO_VALUE);
+		//gpioWrite(p_Pin, CONTROL_OFF_GPIO_VALUE);
+
+		gpio_write(gpio_pi_id, p_Pin, CONTROL_OFF_GPIO_VALUE);
 
 	#else
 
@@ -288,11 +296,14 @@ void Control::Initialize(ControlConfig const& p_Config)
 	m_DownGPIOPin = p_Config.m_DownGPIOPin;
 	
 	#if defined ENABLE_GPIO
-	
-		gpioSetMode(m_UpGPIOPin, PI_OUTPUT);
+
+		set_mode(gpio_pi_id, m_UpGPIOPin, PI_OUTPUT);
+		//gpioSetMode(m_UpGPIOPin, PI_OUTPUT);
 		SetGPIOPinOff(m_UpGPIOPin);
 	
-		gpioSetMode(m_DownGPIOPin, PI_OUTPUT);
+
+		set_mode(gpio_pi_id, m_DownGPIOPin, PI_OUTPUT);
+		//gpioSetMode(m_DownGPIOPin, PI_OUTPUT);
 		SetGPIOPinOff(m_DownGPIOPin);
 
 	#endif // defined ENABLE_GPIO
@@ -311,8 +322,11 @@ void Control::Uninitialize()
 	#if defined ENABLE_GPIO
 
 		// Revert to input.
-		gpioSetMode(m_UpGPIOPin, PI_INPUT);
-		gpioSetMode(m_DownGPIOPin, PI_INPUT);
+		//gpioSetMode(m_UpGPIOPin, PI_INPUT);
+		//gpioSetMode(m_DownGPIOPin, PI_INPUT);
+
+		set_mode(gpio_pi_id, m_UpGPIOPin, PI_INPUT);
+		set_mode(gpio_pi_id, m_DownGPIOPin, PI_INPUT);
 
 	#endif // defined ENABLE_GPIO
 }
@@ -776,15 +790,27 @@ void ControlsInitialize(std::vector<ControlConfig> const& p_Configs)
 {
 	#if defined ENABLE_GPIO
 	
-		LoggerAddMessage("Initializing GPIO support...");
+		LoggerAddMessage("AAGTEST - tpigpio_start - Initializing GPIO support...");
 	
+	/*
 		if (gpioInitialise() < 0)
 		{
 			LoggerAddMessage("\tfailed");
 			return;
 		}
+		*/
 
-		LoggerAddMessage("\tsucceeded");
+
+        gpio_pi_id = 0;
+        // comment this out for now to see if docker comes up
+		//gpio_pi_id = pigpio_start(NULL, NULL);
+		if (gpio_pi_id < 0)
+		{
+			LoggerAddMessage("\tpigpio_start failed");
+			return;
+		}
+
+		LoggerAddMessage("\tAAGTEST - tpigpio_start - succeeded");
 		LoggerAddMessage("");
 
 	#endif // defined ENABLE_GPIO
@@ -810,7 +836,8 @@ void ControlsUninitialize()
 	#if defined ENABLE_GPIO
 	
 		// Uninitialize GPIO support.
-		gpioTerminate();
+		//gpioTerminate();
+		pigpio_stop(gpio_pi_id);
 	
 	#endif // defined ENABLE_GPIO
 }
