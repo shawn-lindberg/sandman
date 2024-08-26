@@ -47,6 +47,15 @@ CheckOptions:
     value: k
   - key: readability-identifier-naming.ConstexprVariableCase
     value: CamelCase
+  - key: readability-identifier-naming.ConstexprVariableIgnoredRegexp
+    # Ignore `constexpr` variables that use Pascal Case.
+    # This is for `constexpr` lambdas.
+    # 
+    # "^": Anchors the pattern to the start of the string.
+    # "[A-Z]": Ensures that the first character is an uppercase letter.
+    # "[a-zA-Z0-9]*": Matches zero or more alphanumeric characters.
+    # "$": Anchors the pattern to the end of the string.
+    value: ^[A-Z][a-zA-Z0-9]*$
 
   - key: readability-identifier-naming.EnumConstantPrefix
     value: k
@@ -67,7 +76,7 @@ CheckOptions:
     value: CamelCase
 
   - key: readability-identifier-naming.GlobalVariablePrefix
-    value: "g_"
+    value: g_
   - key: readability-identifier-naming.GlobalVariableCase
     value: CamelCase
   - key: readability-identifier-naming.GlobalVariableIgnoredRegexp
@@ -95,6 +104,15 @@ CheckOptions:
 
   - key: readability-identifier-naming.LocalVariableCase
     value: camelBack
+  - key: readability-identifier-naming.LocalVariableIgnoredRegexp
+    # Ignore local variables that use Pascal Case.
+    # This is for local lambdas.
+    # 
+    # "^": Anchors the pattern to the start of the string.
+    # "[A-Z]": Ensures that the first character is an uppercase letter.
+    # "[a-zA-Z0-9]*": Matches zero or more alphanumeric characters.
+    # "$": Anchors the pattern to the end of the string.
+    value: ^[A-Z][a-zA-Z0-9]*$
 
   - key: readability-identifier-naming.TemplateParameterCase
     value: CamelCase

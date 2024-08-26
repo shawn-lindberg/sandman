@@ -136,7 +136,7 @@ void OnMessageCallback([[maybe_unused]] mosquitto* mosquittoClient, [[maybe_unus
 	}
 
 	// Helper lambda to save a message to process later.
-	auto saveMessage = [&]()
+	auto SaveMessage = [&]()
 	{
 		// Acquire a lock to protect the received message list.
 		std::lock_guard<std::mutex> messageGuard(s_ReceivedMessagesMutex);
@@ -151,13 +151,13 @@ void OnMessageCallback([[maybe_unused]] mosquitto* mosquittoClient, [[maybe_unus
 	// Only save certain messages to process later.
 	if (topic.find("hermes/dialogueManager/") != std::string::npos)
 	{
-		saveMessage();
+		SaveMessage();
 		return;
 	}
 
 	if (topic.find("hermes/intent/") != std::string::npos) 
 	{
-		saveMessage();
+		SaveMessage();
 		return;
 	}
 }
@@ -375,7 +375,7 @@ static void ProcessDialogueManagerMessage(std::string const& topic,
 
 	if (topic.find("sessionEnded") != std::string::npos)
 	{
-		auto getReason = [&]() -> char const*
+		auto GetReason = [&]() -> char const*
 		{
 			auto const terminationIterator = messageDocument.FindMember("termination");
 
@@ -394,7 +394,7 @@ static void ProcessDialogueManagerMessage(std::string const& topic,
 			return reasonIterator->value.GetString();
 		};
 
-		auto const reason = getReason();
+		auto const reason = GetReason();
 
 		if (reason != nullptr)
 		{
