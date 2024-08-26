@@ -574,10 +574,8 @@ namespace Shell
 				return false;
 
 			default:
-				bool const inputKeyIsPrintable
-				{
-					Common::ASCII::Match(inputKey) and
-					std::isprint<char>(inputKey, std::locale::classic())
+				bool const inputKeyIsPrintable{
+					Common::IsASCII(inputKey) and std::isprint<char>(inputKey, std::locale::classic())
 				};
 
 				// If successfully inserted into the buffer, move the cursor to the right.

@@ -3,9 +3,10 @@
 #include <cstdint>
 #include <type_traits>
 
-namespace Common::ASCII
+namespace Common
 {
-	inline constexpr std::uint_least8_t kMin{ 0u }, kMax{ 127u };
+	inline constexpr std::uint_least8_t kASCIIMinimum{  0u};
+	inline constexpr std::uint_least8_t kASCIIMaximum{127u};
 
 	/// @returns `true` if `character` is a value that fits into the ASCII character set, `false`
 	/// otherwise.
@@ -18,16 +19,16 @@ namespace Common::ASCII
 	///
 	template <typename CharT>
 	[[gnu::always_inline]] [[nodiscard]] constexpr std::enable_if_t<std::is_integral_v<CharT>, bool>
-		Match(CharT const character)
+		IsASCII(CharT const character)
 	{
 		if constexpr (std::is_signed_v<CharT>)
 		{
-			return character >= kMin and character <= kMax;
+			return character >= kASCIIMinimum and character <= kASCIIMaximum;
 		}
 		else
 		{
 			static_assert(std::is_unsigned_v<CharT>);
-			return character <= kMax;
+			return character <= kASCIIMaximum;
 		}
 	}
 }
