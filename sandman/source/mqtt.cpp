@@ -432,14 +432,14 @@ static void ProcessIntentMessage(rapidjson::Document const& intentDocument)
 	char const* confirmationText = nullptr;
 	auto const returnValue = CommandParseTokens(confirmationText, commandTokens);
 
-	if (returnValue == CommandParseTokensReturnTypes::Invalid)
+	if (returnValue == CommandParseTokensReturnTypes::kInvalid)
 	{
 		DialogueManagerEndSession();
 		return;
 	}
 
 	// Handle missing confirmations, if necessary.
-	if (returnValue != CommandParseTokensReturnTypes::MissingConfirmation)
+	if (returnValue != CommandParseTokensReturnTypes::kMissingConfirmation)
 	{
 		return;
 	}

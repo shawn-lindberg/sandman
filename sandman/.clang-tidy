@@ -53,6 +53,8 @@ CheckOptions:
   - key: readability-identifier-naming.EnumConstantCase
     value: CamelCase
 
+  - key: readability-identifier-naming.ScopedEnumConstantPrefix
+    value: k
   - key: readability-identifier-naming.ScopedEnumConstantCase
     value: CamelCase
 

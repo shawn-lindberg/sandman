@@ -48,9 +48,9 @@ struct CommandToken
 // Potential return values from parsing tokens.
 enum class CommandParseTokensReturnTypes
 {
-	Invalid = 0, 
-	Success, 
-	MissingConfirmation, 
+	kInvalid = 0, 
+	kSuccess, 
+	kMissingConfirmation, 
 };
 
 // Functions

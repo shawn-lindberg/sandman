@@ -67,14 +67,14 @@ namespace Shell
 		// Color numeric constants.
 		enum struct Index : std::uint_least8_t
 		{
-			Black   = 0u,
-			Red     = 1u,
-			Green   = 2u,
-			Yellow  = 3u,
-			Blue    = 4u,
-			Magenta = 5u,
-			Cyan    = 6u,
-			White   = 7u,
+			kBlack   = 0u,
+			kRed     = 1u,
+			kGreen   = 2u,
+			kYellow  = 3u,
+			kBlue    = 4u,
+			kMagenta = 5u,
+			kCyan    = 6u,
+			kWhite   = 7u,
 		};
 
 		// This should be the same type that Curses `init_pair` takes as parameters.
@@ -89,14 +89,14 @@ namespace Shell
 		{
 			switch (color)
 			{
-				case Index::Black  : return CursesColorID{COLOR_BLACK  };
-				case Index::Red    : return CursesColorID{COLOR_RED    };
-				case Index::Green  : return CursesColorID{COLOR_GREEN  };
-				case Index::Yellow : return CursesColorID{COLOR_YELLOW };
-				case Index::Blue   : return CursesColorID{COLOR_BLUE   };
-				case Index::Magenta: return CursesColorID{COLOR_MAGENTA};
-				case Index::Cyan   : return CursesColorID{COLOR_CYAN   };
-				case Index::White  : return CursesColorID{COLOR_WHITE  };
+				case Index::kBlack  : return CursesColorID{COLOR_BLACK  };
+				case Index::kRed    : return CursesColorID{COLOR_RED    };
+				case Index::kGreen  : return CursesColorID{COLOR_GREEN  };
+				case Index::kYellow : return CursesColorID{COLOR_YELLOW };
+				case Index::kBlue   : return CursesColorID{COLOR_BLUE   };
+				case Index::kMagenta: return CursesColorID{COLOR_MAGENTA};
+				case Index::kCyan   : return CursesColorID{COLOR_CYAN   };
+				case Index::kWhite  : return CursesColorID{COLOR_WHITE  };
 
 				default: return CursesColorID{};
 			}
@@ -105,14 +105,14 @@ namespace Shell
 		// A list of color indices to make it easier to loop over them.
 		inline constexpr std::array kList
 		{
-			Index::Black  ,
-			Index::Red    ,
-			Index::Green  ,
-			Index::Yellow ,
-			Index::Blue   ,
-			Index::Magenta,
-			Index::Cyan   ,
-			Index::White  ,
+			Index::kBlack  ,
+			Index::kRed    ,
+			Index::kGreen  ,
+			Index::kYellow ,
+			Index::kBlue   ,
+			Index::kMagenta,
+			Index::kCyan   ,
+			Index::kWhite  ,
 		};
 
 		// Gets the name of a color index. This is mainly for debugging.
@@ -122,14 +122,14 @@ namespace Shell
 
 			switch (color)
 			{
-				case Index::Black  : return "Black"   ""sv;
-				case Index::Red    : return "Red"     ""sv;
-				case Index::Green  : return "Green"   ""sv;
-				case Index::Yellow : return "Yellow"  ""sv;
-				case Index::Blue   : return "Blue"    ""sv;
-				case Index::Magenta: return "Magenta" ""sv;
-				case Index::Cyan   : return "Cyan"    ""sv;
-				case Index::White  : return "White"   ""sv;
+				case Index::kBlack  : return "Black"   ""sv;
+				case Index::kRed    : return "Red"     ""sv;
+				case Index::kGreen  : return "Green"   ""sv;
+				case Index::kYellow : return "Yellow"  ""sv;
+				case Index::kBlue   : return "Blue"    ""sv;
+				case Index::kMagenta: return "Magenta" ""sv;
+				case Index::kCyan   : return "Cyan"    ""sv;
+				case Index::kWhite  : return "White"   ""sv;
 
 				default: return "null"sv;
 			}
@@ -207,7 +207,7 @@ namespace Shell
 
 			Attr const colorPair
 			{
-				GetPair(ForegroundIndex(m_ColorIndex), BackgroundIndex(Index::Black))
+				GetPair(ForegroundIndex(m_ColorIndex), BackgroundIndex(Index::kBlack))
 			};
 
 			return m_Ancillary | colorPair;
@@ -245,7 +245,7 @@ namespace Shell
 
 			Attr const colorPair
 			{
-				GetPair(ForegroundIndex(Index::White), BackgroundIndex(m_ColorIndex))
+				GetPair(ForegroundIndex(Index::kWhite), BackgroundIndex(m_ColorIndex))
 			};
 
 			return m_Ancillary | colorPair;
@@ -366,25 +366,25 @@ namespace Shell
 
 		// Foreground color.
 		inline constexpr Attr::ForegroundColor
-			Black      {Normal, ColorMatrix::Index::Black  },
-			Red        {Normal, ColorMatrix::Index::Red    },
-			Green      {Normal, ColorMatrix::Index::Green  },
-			Yellow     {Normal, ColorMatrix::Index::Yellow },
-			Blue       {Normal, ColorMatrix::Index::Blue   },
-			Magenta    {Normal, ColorMatrix::Index::Magenta},
-			Cyan       {Normal, ColorMatrix::Index::Cyan   },
-			White      {Normal, ColorMatrix::Index::White  };
+			Black      {Normal, ColorMatrix::Index::kBlack  },
+			Red        {Normal, ColorMatrix::Index::kRed    },
+			Green      {Normal, ColorMatrix::Index::kGreen  },
+			Yellow     {Normal, ColorMatrix::Index::kYellow },
+			Blue       {Normal, ColorMatrix::Index::kBlue   },
+			Magenta    {Normal, ColorMatrix::Index::kMagenta},
+			Cyan       {Normal, ColorMatrix::Index::kCyan   },
+			White      {Normal, ColorMatrix::Index::kWhite  };
 
 		// Background color.
 		inline constexpr Attr::BackgroundColor
-			BackBlack  {Normal, ColorMatrix::Index::Black  },
-			BackRed    {Normal, ColorMatrix::Index::Red    },
-			BackGreen  {Normal, ColorMatrix::Index::Green  },
-			BackYellow {Normal, ColorMatrix::Index::Yellow },
-			BackBlue   {Normal, ColorMatrix::Index::Blue   },
-			BackMagenta{Normal, ColorMatrix::Index::Magenta},
-			BackCyan   {Normal, ColorMatrix::Index::Cyan   },
-			BackWhite  {Normal, ColorMatrix::Index::White  };
+			BackBlack  {Normal, ColorMatrix::Index::kBlack  },
+			BackRed    {Normal, ColorMatrix::Index::kRed    },
+			BackGreen  {Normal, ColorMatrix::Index::kGreen  },
+			BackYellow {Normal, ColorMatrix::Index::kYellow },
+			BackBlue   {Normal, ColorMatrix::Index::kBlue   },
+			BackMagenta{Normal, ColorMatrix::Index::kMagenta},
+			BackCyan   {Normal, ColorMatrix::Index::kCyan   },
+			BackWhite  {Normal, ColorMatrix::Index::kWhite  };
 
 		// NOLINTEND(readability-identifier-naming)
 	}

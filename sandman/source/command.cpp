@@ -277,7 +277,7 @@ CommandParseTokensReturnTypes CommandParseTokens(char const*& confirmationText,
 				control->SetDesiredAction(action, Control::kModeTimed, durationPercent);
 
 				ReportsAddControlItem(control->GetName(), action, "command");
-				return CommandParseTokensReturnTypes::Success;
+				return CommandParseTokensReturnTypes::kSuccess;
 			}
 			
 			case CommandToken::kTypeStop:
@@ -286,7 +286,7 @@ CommandParseTokensReturnTypes CommandParseTokens(char const*& confirmationText,
 				ControlsStopAll();			
 
 				ReportsAddControlItem("all", Control::kActionStopped, "command");
-				return CommandParseTokensReturnTypes::Success;
+				return CommandParseTokensReturnTypes::kSuccess;
 			}
 			
 			case CommandToken::kTypeSchedule:
@@ -303,12 +303,12 @@ CommandParseTokensReturnTypes CommandParseTokens(char const*& confirmationText,
 				if (token.m_Type == CommandToken::kTypeStart)
 				{
 					ScheduleStart();
-					return CommandParseTokensReturnTypes::Success;
+					return CommandParseTokensReturnTypes::kSuccess;
 				}
 				else if (token.m_Type == CommandToken::kTypeStop)
 				{
 					ScheduleStop();
-					return CommandParseTokensReturnTypes::Success;
+					return CommandParseTokensReturnTypes::kSuccess;
 				}			
 			}
 			break;
@@ -329,7 +329,7 @@ CommandParseTokensReturnTypes CommandParseTokens(char const*& confirmationText,
 				}
 
 				ReportsAddStatusItem();
-				return CommandParseTokensReturnTypes::Success;
+				return CommandParseTokensReturnTypes::kSuccess;
 			}
 
 			case CommandToken::kTypeReboot:
@@ -339,7 +339,7 @@ CommandParseTokensReturnTypes CommandParseTokens(char const*& confirmationText,
 				if (tokenIndex >= tokenCount)
 				{
 					confirmationText = "Are you sure you want to reboot?";
-					return CommandParseTokensReturnTypes::MissingConfirmation;
+					return CommandParseTokensReturnTypes::kMissingConfirmation;
 				}
 
 				token = commandTokens[tokenIndex];
@@ -360,7 +360,7 @@ CommandParseTokensReturnTypes CommandParseTokens(char const*& confirmationText,
 				Logger::WriteFormattedLine("Reboot starting!");
 				NotificationPlay("restarting");
 
-				return CommandParseTokensReturnTypes::Success;
+				return CommandParseTokensReturnTypes::kSuccess;
 			}
 			
 			default:	
@@ -370,7 +370,7 @@ CommandParseTokensReturnTypes CommandParseTokens(char const*& confirmationText,
 		}
 	}
 
-	return CommandParseTokensReturnTypes::Invalid;
+	return CommandParseTokensReturnTypes::kInvalid;
 }
 
 // Take a token string and convert it into a token type, if possible.
