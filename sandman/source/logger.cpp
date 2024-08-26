@@ -4,7 +4,7 @@ std::mutex Logger::ms_Mutex;
 std::ofstream Logger::ms_File;
 Logger Logger::ms_Logger(ms_File);
 
-bool ::Logger::Initialize(char const* const logFileName)
+bool Logger::Initialize(char const* const logFileName)
 {
 	if (logFileName == nullptr)
 	{
@@ -20,7 +20,7 @@ bool ::Logger::Initialize(char const* const logFileName)
 	return true;
 }
 
-void ::Logger::Uninitialize()
+void Logger::Uninitialize()
 {
 	std::lock_guard const lock(ms_Mutex);
 
@@ -28,7 +28,7 @@ void ::Logger::Uninitialize()
 	ms_File.close();
 }
 
-void ::Logger::FormatWrite(std::string_view const formatString)
+void Logger::FormatWrite(std::string_view const formatString)
 {
 	bool escapingCharacter{ false };
 

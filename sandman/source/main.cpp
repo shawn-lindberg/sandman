@@ -175,8 +175,8 @@ static bool Initialize()
 			return false;
 		}
 
-		::Shell::Initialize();
-		::Logger::SetScreenEchoFlag(true);
+		Shell::Initialize();
+		Logger::SetScreenEchoFlag(true);
 	}
 
 	// Read the config.
@@ -264,7 +264,7 @@ static void Uninitialize()
 
 	if (s_DaemonMode == false)
 	{
-		::Shell::Uninitialize();
+		Shell::Uninitialize();
 	}
 }
 
@@ -473,9 +473,9 @@ int main(int argc, char** argv)
 
 		if (s_DaemonMode == false)
 		{
-			::Shell::Lock const lock;
-			done = ::Shell::InputWindow::ProcessSingleUserKey();
-			::Shell::CheckResize();
+			Shell::Lock const lock;
+			done = Shell::InputWindow::ProcessSingleUserKey();
+			Shell::CheckResize();
 		}
 
 		// Process command.

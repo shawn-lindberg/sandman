@@ -144,8 +144,8 @@ namespace Shell
 		constexpr AttributeBundle GetPair(ForegroundIndex const foregroundColor,
 									  BackgroundIndex const backgroundColor)
 		{
-			CursesColorID const column{ ::Common::IntCast(foregroundColor.m_Value) };
-			CursesColorID const row{ ::Common::IntCast(backgroundColor.m_Value) };
+			CursesColorID const column{ Common::IntCast(foregroundColor.m_Value) };
+			CursesColorID const row{ Common::IntCast(backgroundColor.m_Value) };
 
 			static_assert(kList.size() <= std::numeric_limits<int>::max(),
 							  "Check that it's okay to downcast the `std::size_t` from `size()` to `int`");

@@ -1,7 +1,7 @@
 #include "logger.h"
 
 template <typename T, typename... ParamsT>
-[[gnu::always_inline]] inline void ::Logger::Write(T&& firstArg, ParamsT&&... args)
+[[gnu::always_inline]] inline void Logger::Write(T&& firstArg, ParamsT&&... args)
 {
 	static_assert(not std::is_same_v<std::decay_t<T>, Shell::AttributeBundle>,
 					  "Do not pass in attributes directly; instead use an attribute object wrapper.");
@@ -35,8 +35,8 @@ template <typename T, typename... ParamsT>
 			bool const didPushAttributes{
 				[attributes=firstArg.m_Attributes, stringView=std::string_view(string)]() -> bool
 				{
-					::Shell::LoggingWindow::Write(stringView);
-					return ::Shell::LoggingWindow::PushAttributes(attributes);
+					Shell::LoggingWindow::Write(stringView);
+					return Shell::LoggingWindow::PushAttributes(attributes);
 				}()
 			};
 			m_OutputStream << string;
@@ -50,7 +50,7 @@ template <typename T, typename... ParamsT>
 			// Pop the attributes object to remove its effect.
 			if (didPushAttributes)
 			{
-				::Shell::LoggingWindow::PopAttributes();
+				Shell::LoggingWindow::PopAttributes();
 			}
 		}
 		else
@@ -84,7 +84,7 @@ template <typename T, typename... ParamsT>
 		// Dump current data to output destinations.
 		if (m_ScreenEcho)
 		{
-			::Shell::LoggingWindow::Write(std::string_view(string));
+			Shell::LoggingWindow::Write(std::string_view(string));
 		}
 		m_OutputStream << string;
 
@@ -94,7 +94,7 @@ template <typename T, typename... ParamsT>
 }
 
 template <typename T, typename... ParamsT>
-void ::Logger::FormatWrite(std::string_view formatString, T&& firstArg, ParamsT&&... args)
+void Logger::FormatWrite(std::string_view formatString, T&& firstArg, ParamsT&&... args)
 {
 	bool escapingCharacter{false};
 

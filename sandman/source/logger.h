@@ -137,7 +137,7 @@ public:
 		// Calls `::Logger::WriteLine(*this)`.
 		void constexpr WriteLine() const &
 		{
-			return ::Logger::WriteLine(*this);
+			return Logger::WriteLine(*this);
 		}
 
 		// Convenience method.
@@ -145,7 +145,7 @@ public:
 		// Calls `::Logger::WriteLine(std::move(*this))`.
 		void constexpr WriteLine() &&
 		{
-			return ::Logger::WriteLine(std::move(*this));
+			return Logger::WriteLine(std::move(*this));
 		}
 	};
 
@@ -193,7 +193,7 @@ public:
 	// This can be used for compile-time conditional branching.
 	template <typename T>
 	// NOLINTNEXTLINE(readability-identifier-naming)
-	static constexpr bool IsFormat{ ::Logger::Traits::IsFormat<T>{} };
+	static constexpr bool IsFormat{ Logger::Traits::IsFormat<T>{} };
 
 	[[gnu::always_inline]] [[nodiscard]] inline static bool GetScreenEchoFlag()
 	{
@@ -238,7 +238,7 @@ public:
 		);
 
 		// Write the timestamp.
-		if (std::tm const* const localTime{ ::Common::GetLocalTime() }; localTime != nullptr)
+		if (std::tm const* const localTime{ Common::GetLocalTime() }; localTime != nullptr)
 		{
 			ms_Logger.Write(Shell::Cyan(std::put_time(localTime, "%Y/%m/%d %H:%M:%S %Z | ")));
 		}
@@ -253,8 +253,8 @@ public:
 
 		if (ms_Logger.HasScreenEchoEnabled())
 		{
-			::Shell::LoggingWindow::ClearAllAttributes();
-			::Shell::LoggingWindow::Refresh();
+			Shell::LoggingWindow::ClearAllAttributes();
+			Shell::LoggingWindow::Refresh();
 		}
 	}
 
