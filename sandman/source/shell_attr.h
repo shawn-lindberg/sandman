@@ -142,10 +142,8 @@ namespace Shell
 		constexpr Attr GetPair(ForegroundIndex const foregroundColor,
 									  BackgroundIndex const backgroundColor)
 		{
-			using Common::Enum::IntCast;
-
-			CursesColorID const column{ IntCast(foregroundColor.m_Value) };
-			CursesColorID const row{ IntCast(backgroundColor.m_Value) };
+			CursesColorID const column{ ::Common::IntCast(foregroundColor.m_Value) };
+			CursesColorID const row{ ::Common::IntCast(backgroundColor.m_Value) };
 
 			// Check that it's okay to downcast the `std::size_t` from `size()` to `int`.
 			static_assert(kList.size() <= 8u and 8u <= std::numeric_limits<int>::max());
@@ -280,7 +278,7 @@ namespace Shell
 				maxColorIndex = std::max(colorIndex, maxColorIndex);
 			}
 
-			return ::Common::Enum::IntCast(maxColorIndex) == 0b111u;
+			return ::Common::IntCast(maxColorIndex) == 0b111u;
 		}());
 
 		// Two color pair indices are packed into this value.
@@ -326,14 +324,12 @@ namespace Shell
 	Attr::ColorPair operator|(Attr::ForegroundColor const foregroundColor,
 									  Attr::BackgroundColor const backgroundColor)
 	{
-		using Common::Enum::IntCast;
-
 		std::underlying_type_t<ColorMatrix::Index> const colorIndexPair
 		{
 			static_cast<std::underlying_type_t<ColorMatrix::Index>>
 			(
-				IntCast(foregroundColor.m_ColorIndex) bitor
-				(IntCast(backgroundColor.m_ColorIndex) << 3u)
+				::Common::IntCast(foregroundColor.m_ColorIndex) bitor
+				(::Common::IntCast(backgroundColor.m_ColorIndex) << 3u)
 			)
 		};
 

@@ -2,7 +2,7 @@
 
 #include <type_traits>
 
-namespace Common::Enum
+namespace Common
 {
 
 	/// Shorthand for `static_cast<std::underlying_type_t<EnumT>>(enumValue)`.
