@@ -14,30 +14,30 @@ namespace Shell
 {
 
 	// Represents a bundle of character attributes for the Curses library.
-	struct Attr
+	struct AttributeBundle
 	{
 		// Using `chtype` instead of `attr_t` because
 		// `attr_t` seems to be an extension to Curses.
 		using Value = chtype;
 
 		// `Attr::Value` is a type that should be large enough to hold at least `chtype`
-		static_assert(std::numeric_limits<chtype>::max() <= std::numeric_limits<Attr::Value>::max());
-		static_assert(std::numeric_limits<chtype>::min() >= std::numeric_limits<Attr::Value>::min());
+		static_assert(std::numeric_limits<chtype>::max() <= std::numeric_limits<AttributeBundle::Value>::max());
+		static_assert(std::numeric_limits<chtype>::min() >= std::numeric_limits<AttributeBundle::Value>::min());
 
 		Value m_Value;
 
-		[[nodiscard]] constexpr explicit Attr(Value const attributes = Value{ A_NORMAL })
+		[[nodiscard]] constexpr explicit AttributeBundle(Value const attributes = Value{ A_NORMAL })
 			: m_Value{ attributes } {}
 
 		static_assert(std::is_integral_v<Value>);
 
 		template <typename IntT, typename = std::enable_if_t<std::is_integral_v<IntT>>>
-		[[nodiscard]] constexpr explicit Attr(IntT const) = delete;
+		[[nodiscard]] constexpr explicit AttributeBundle(IntT const) = delete;
 
 		// Combine this object with another attributes object.
-		[[nodiscard]] constexpr Attr operator|(Attr const attributes) const
+		[[nodiscard]] constexpr AttributeBundle operator|(AttributeBundle const attributes) const
 		{
-			return Attr(this->m_Value bitor attributes.m_Value);
+			return AttributeBundle(this->m_Value bitor attributes.m_Value);
 		}
 
 		struct ColorPair;
@@ -49,7 +49,7 @@ namespace Shell
 		//
 		// Deduce `Wrapper` type from arguments in `Wrapper` constructor.
 		template <typename... ParamsT>
-		Wrapper(Attr const, ParamsT&&...) -> Wrapper<ParamsT&&...>;
+		Wrapper(AttributeBundle const, ParamsT&&...) -> Wrapper<ParamsT&&...>;
 
 		// Wrap objects.
 		template <typename... ParamsT> [[nodiscard]] constexpr
@@ -139,7 +139,7 @@ namespace Shell
 		struct BackgroundIndex : Common::Box<Index> { using Box::Box; };
 
 		// Get an attribute value that has the foreground color and background color set.
-		constexpr Attr GetPair(ForegroundIndex const foregroundColor,
+		constexpr AttributeBundle GetPair(ForegroundIndex const foregroundColor,
 									  BackgroundIndex const backgroundColor)
 		{
 			CursesColorID const column{ ::Common::IntCast(foregroundColor.m_Value) };
@@ -160,7 +160,7 @@ namespace Shell
 				)
 			};
 
-			return Attr(Attr::Value{ COLOR_PAIR(colorPairIndex) });
+			return AttributeBundle(AttributeBundle::Value{ COLOR_PAIR(colorPairIndex) });
 		}
 
 
@@ -168,13 +168,13 @@ namespace Shell
 
 	// Object wrapper.
 	template <typename... ObjectsT>
-	struct [[nodiscard]] Attr::Wrapper
+	struct [[nodiscard]] AttributeBundle::Wrapper
 	{
 		std::tuple<ObjectsT...> m_Objects;
-		Attr m_Attributes;
+		AttributeBundle m_Attributes;
 
 		template <typename... ParamsT> [[nodiscard]]
-		constexpr explicit Wrapper(Attr const attributes, ParamsT&&... args)
+		constexpr explicit Wrapper(AttributeBundle const attributes, ParamsT&&... args)
 			: m_Objects(std::forward<ParamsT>(args)...), m_Attributes{ attributes } {}
 	};
 
@@ -184,26 +184,26 @@ namespace Shell
 	inline constexpr bool IsAttrWrapper{ false };
 
 	template <typename... ObjectsT>
-	inline constexpr bool IsAttrWrapper<Attr::Wrapper<ObjectsT...>>{ true };
+	inline constexpr bool IsAttrWrapper<AttributeBundle::Wrapper<ObjectsT...>>{ true };
 
 	// NOLINTEND(readability-identifier-naming)
 
-	struct Attr::ForegroundColor
+	struct AttributeBundle::ForegroundColor
 	{
-		Attr m_Ancillary;
+		AttributeBundle m_Ancillary;
 		ColorMatrix::Index m_ColorIndex;
 
 		// Combine an `Attr::ForegroundColor` with an `Attr`.
-		[[nodiscard]] constexpr ForegroundColor operator|(Attr const attributes) const
+		[[nodiscard]] constexpr ForegroundColor operator|(AttributeBundle const attributes) const
 		{
 			return { this->m_Ancillary | attributes, m_ColorIndex };
 		}
 
-		[[nodiscard]] constexpr Attr BuildAttr() const
+		[[nodiscard]] constexpr AttributeBundle BuildAttr() const
 		{
 			using namespace ColorMatrix;
 
-			Attr const colorPair
+			AttributeBundle const colorPair
 			{
 				GetPair(ForegroundIndex(m_ColorIndex), BackgroundIndex(Index::kBlack))
 			};
@@ -222,26 +222,26 @@ namespace Shell
 	};
 
 	[[nodiscard]] constexpr
-	Attr::ForegroundColor operator|(Attr const attributes, Attr::ForegroundColor const color)
+	AttributeBundle::ForegroundColor operator|(AttributeBundle const attributes, AttributeBundle::ForegroundColor const color)
 	{
 		return color | attributes;
 	}
 
-	struct Attr::BackgroundColor
+	struct AttributeBundle::BackgroundColor
 	{
-		Attr m_Ancillary;
+		AttributeBundle m_Ancillary;
 		ColorMatrix::Index m_ColorIndex;
 
-		[[nodiscard]] constexpr BackgroundColor operator|(Attr const attributes) const
+		[[nodiscard]] constexpr BackgroundColor operator|(AttributeBundle const attributes) const
 		{
 			return { this->m_Ancillary | attributes, m_ColorIndex };
 		}
 
-		[[nodiscard]] constexpr Attr BuildAttr() const
+		[[nodiscard]] constexpr AttributeBundle BuildAttr() const
 		{
 			using namespace ColorMatrix;
 
-			Attr const colorPair
+			AttributeBundle const colorPair
 			{
 				GetPair(ForegroundIndex(Index::kWhite), BackgroundIndex(m_ColorIndex))
 			};
@@ -260,14 +260,14 @@ namespace Shell
 	};
 
 	[[nodiscard]] constexpr
-	Attr::BackgroundColor operator|(Attr const attributes, Attr::BackgroundColor const color)
+	AttributeBundle::BackgroundColor operator|(AttributeBundle const attributes, AttributeBundle::BackgroundColor const color)
 	{
 		return color | attributes;
 	}
 
-	struct Attr::ColorPair
+	struct AttributeBundle::ColorPair
 	{
-		Attr m_Ancillary;
+		AttributeBundle m_Ancillary;
 
 		// Bit manipulations rely on the assumption that this assertion is true.
 		static_assert([]() constexpr -> bool {
@@ -284,12 +284,12 @@ namespace Shell
 		// Two color pair indices are packed into this value.
 		std::underlying_type_t<ColorMatrix::Index> m_ColorIndexPair;
 
-		[[nodiscard]] constexpr ColorPair operator|(Attr const attributes) const
+		[[nodiscard]] constexpr ColorPair operator|(AttributeBundle const attributes) const
 		{
 			return { this->m_Ancillary | attributes, m_ColorIndexPair };
 		}
 
-		[[nodiscard]] constexpr Attr BuildAttr() const
+		[[nodiscard]] constexpr AttributeBundle BuildAttr() const
 		{
 			using namespace ColorMatrix;
 
@@ -299,7 +299,7 @@ namespace Shell
 			BackgroundIndex const backgroundColor(
 				static_cast<Index>((m_ColorIndexPair bitand 0b111000u) >> 3u));
 
-			Attr const colorPair{ GetPair(foregroundColor, backgroundColor) };
+			AttributeBundle const colorPair{ GetPair(foregroundColor, backgroundColor) };
 
 			return m_Ancillary | colorPair;
 		}
@@ -315,14 +315,14 @@ namespace Shell
 	};
 
 	[[nodiscard]] constexpr
-	Attr::ColorPair operator|(Attr const attributes, Attr::ColorPair const colorPair)
+	AttributeBundle::ColorPair operator|(AttributeBundle const attributes, AttributeBundle::ColorPair const colorPair)
 	{
 		return colorPair | attributes;
 	}
 
 	[[nodiscard]] constexpr
-	Attr::ColorPair operator|(Attr::ForegroundColor const foregroundColor,
-									  Attr::BackgroundColor const backgroundColor)
+	AttributeBundle::ColorPair operator|(AttributeBundle::ForegroundColor const foregroundColor,
+									  AttributeBundle::BackgroundColor const backgroundColor)
 	{
 		std::underlying_type_t<ColorMatrix::Index> const colorIndexPair
 		{
@@ -337,8 +337,8 @@ namespace Shell
 	}
 
 	[[nodiscard]] constexpr
-	Attr::ColorPair operator|(Attr::BackgroundColor const backgroundColor,
-									  Attr::ForegroundColor const foregroundColor)
+	AttributeBundle::ColorPair operator|(AttributeBundle::BackgroundColor const backgroundColor,
+									  AttributeBundle::ForegroundColor const foregroundColor)
 	{
 		return foregroundColor | backgroundColor;
 	}
@@ -349,7 +349,7 @@ namespace Shell
 		// NOLINTBEGIN(readability-identifier-naming)
 
 		// Character attribute.
-		inline constexpr Attr
+		inline constexpr AttributeBundle
 			Normal     (A_NORMAL                           ),
 			Highlight  (A_STANDOUT                         ),
 			Underline  (A_UNDERLINE                        ),
@@ -361,7 +361,7 @@ namespace Shell
 			Italic     (A_ITALIC                           );
 
 		// Foreground color.
-		inline constexpr Attr::ForegroundColor
+		inline constexpr AttributeBundle::ForegroundColor
 			Black      {Normal, ColorMatrix::Index::kBlack  },
 			Red        {Normal, ColorMatrix::Index::kRed    },
 			Green      {Normal, ColorMatrix::Index::kGreen  },
@@ -372,7 +372,7 @@ namespace Shell
 			White      {Normal, ColorMatrix::Index::kWhite  };
 
 		// Background color.
-		inline constexpr Attr::BackgroundColor
+		inline constexpr AttributeBundle::BackgroundColor
 			BackBlack  {Normal, ColorMatrix::Index::kBlack  },
 			BackRed    {Normal, ColorMatrix::Index::kRed    },
 			BackGreen  {Normal, ColorMatrix::Index::kGreen  },

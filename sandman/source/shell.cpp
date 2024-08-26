@@ -79,7 +79,7 @@ namespace Shell
 
 	template <bool kFlag>
 	[[gnu::always_inline]] inline static void SetCharAttr(WINDOW* const window, Y const y,
-																			X const x, Attr::Value const attributes)
+																			X const x, AttributeBundle::Value const attributes)
 	{
 		chtype const character{ mvwinch(window, y.m_Value, x.m_Value) };
 
@@ -98,7 +98,7 @@ namespace Shell
 		// This window is where messages from the logger are written to.
 		static WINDOW* s_Window = nullptr;
 
-		static std::stack<Attr> s_AttributeStack;
+		static std::stack<AttributeBundle> s_AttributeStack;
 
 		void Refresh() { wrefresh(s_Window); }
 
@@ -106,7 +106,7 @@ namespace Shell
 
 		void Write(char const* const string) { waddstr(s_Window, string); }
 
-		[[nodiscard]] bool PushAttributes(Attr const attributes)
+		[[nodiscard]] bool PushAttributes(AttributeBundle const attributes)
 		{
 			s_AttributeStack.push(attributes);
 

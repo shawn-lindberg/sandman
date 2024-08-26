@@ -3,7 +3,7 @@
 template <typename T, typename... ParamsT>
 [[gnu::always_inline]] inline void ::Logger::Write(T&& firstArg, ParamsT&&... args)
 {
-	static_assert(not std::is_same_v<std::decay_t<T>, Shell::Attr>,
+	static_assert(not std::is_same_v<std::decay_t<T>, Shell::AttributeBundle>,
 					  "Do not pass in attributes directly; instead use an attribute object wrapper.");
 
 	if constexpr (Logger::IsFormat<std::decay_t<T>>)

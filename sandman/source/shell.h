@@ -102,7 +102,7 @@ namespace Shell
 		}
 
 		// Use `PushAttributes` instead.
-		void Write(Attr const attributes) = delete;
+		void Write(AttributeBundle const attributes) = delete;
 
 		// This function is deleted to stop attempts to write integral types with the expectation
 		// that they will be formatted as decimal numbers on the logging window;
@@ -113,7 +113,7 @@ namespace Shell
 		// Push an attribute object and apply the attributes.
 		//
 		// Returns `true` on success, `false` otherwise.
-		bool PushAttributes(Attr const attributes);
+		bool PushAttributes(AttributeBundle const attributes);
 
 		// Pop an attribute object and revert to the previous attribute object's attributes.
 		// If there is no previoues attribute object, revert to no attributes being applied.
