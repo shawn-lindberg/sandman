@@ -233,8 +233,7 @@ public:
 		std::lock_guard const loggerLock(ms_Mutex);
 
 		// Lock Shell functionality only if screen echo is enabled.
-		std::optional<Shell::Lock> const shellLock
-		(
+		std::optional<Shell::Lock> const shellLock(
 			ms_Logger.HasScreenEchoEnabled() ? std::make_optional<Shell::Lock>() : std::nullopt
 		);
 

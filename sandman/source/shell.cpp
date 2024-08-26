@@ -271,8 +271,7 @@ namespace Shell
 			{
 				static constexpr decltype(colorPairID) kExclusiveUpperLimit
 				{
-					std::min
-					(
+					std::min(
 						decltype(colorPairID){ 256 }, std::numeric_limits<decltype(colorPairID)>::max()
 					)
 				};
@@ -585,8 +584,7 @@ namespace Shell
 				}
 				else
 				{
-					LoggingWindow::Println
-					(
+					LoggingWindow::Println(
 						Red("Can't write '", static_cast<chtype>(inputKey), "' into the input buffer.")
 					);
 				}

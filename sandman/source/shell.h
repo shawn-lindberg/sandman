@@ -133,8 +133,7 @@ namespace Shell
 			{
 				bool const didPushAttributes{ PushAttributes(first.m_Attributes) };
 
-				std::apply
-				(
+				std::apply(
 					[](auto&&... objects) -> void
 					{
 						return Write(std::forward<decltype(objects)>(objects)...);

@@ -10,8 +10,7 @@ template <typename T, typename... ParamsT>
 	{
 		// If the first argument is a `Logger::Format` object,
 		// then forward the arguments to a call to `Logger::FormatWrite`.
-		std::apply
-		(
+		std::apply(
 			[this, formatString=firstArg.m_FormatString](auto&&... objects) -> void
 			{
 				return this->FormatWrite(formatString, std::forward<decltype(objects)>(objects)...);
@@ -98,8 +97,7 @@ template <typename T, typename... ParamsT>
 template <typename T, typename... ParamsT>
 void ::Logger::FormatWrite(std::string_view formatString, T&& firstArg, ParamsT&&... args)
 {
-	for
-	(
+	for (
 		auto [index, escapingCharacter] = std::tuple{std::string_view::size_type{ 0u }, false};
 		index < formatString.size();
 		++index
