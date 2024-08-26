@@ -16,10 +16,7 @@
 
 namespace Shell
 {
-	namespace
-	{
-		static std::mutex s_Mutex;
-	}
+	static std::mutex s_Mutex;
 
 	Lock::Lock(): m_Lock(s_Mutex) {};
 
