@@ -28,8 +28,10 @@ namespace Shell
 
 	class [[nodiscard]] Lock final
 	{
-		private: std::lock_guard<std::mutex> m_Lock;
-		public: [[nodiscard]] explicit Lock();
+		private:
+			std::lock_guard<std::mutex> m_Lock;
+		public:
+			[[nodiscard]] explicit Lock();
 	};
 
 	/// @brief Initialize NCurses state and other state necessary for managing the shell.
