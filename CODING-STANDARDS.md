@@ -16,7 +16,7 @@ Always use tabs instead of spaces. The tab width is three characters.
 
 ### Naming
 
-Class and function names should follow this style:
+Class, function, and lambda names should follow this style:
 
 ```cpp
 class EveryWordCapitalized
@@ -28,41 +28,53 @@ struct AcronymsAllCapitalizedJSON
 };
 
 bool MyJSONFunction();
+
+auto MyLambda = [](float argument)
+{
+
+};
 ```
 
 Constants and enumeration values should follow this style:
 
 ```cpp
-#define EVERY_WORD_CAPITALIZED_WITH_UNDERSCORES_BETWEEN
+#define kFollowedByEveryWordCapitalized 1
 
-constexpr int MY_INTEGER_CONSTANT = 0;
+constexpr int kMyIntegerConstant = 0;
 
 enum MyEnum
 {
-   MY_VALUE
+   kMyValue
 };
 ```
 
-Variables generally follow the same style as classes and functions, but always have a prefix:
+However, if a define is used not as a constant value but, for example, for conditional compilation it should use the following style:
+
+```cpp
+#define ENABLE_DEBUG_CODE
+```
+
+
+Variables generally use camel case, but sometimes have a prefix:
 
 ```cpp
 // Global.
-float g_MyGlobalVariable = 0.0f;
+float g_myGlobalVariable = 0.0f;
 
 // Static.
-static bool s_MyStaticVariable = false;
+static bool s_myStaticVariable = false;
 
 // Member variable in a structure or class.
-unsigned int m_MyMemberVariable = 1;
+unsigned int m_myMemberVariable = 1;
 
 // Static member variables.
-unsigned int ms_WidgetCount = 0;
+unsigned int ms_widgetCount = 0;
 
 // Function parameters.
-void MyFunction(float p_FunctionParameter);
+void MyFunction(float functionParameter);
 
 // Local variables inside a function/lambda.
-bool l_ShouldContinue = false;
+bool shouldContinue = false;
 ```
 
 ### Formatting
@@ -70,7 +82,7 @@ bool l_ShouldContinue = false;
 Braces should always go on their own line.
 
 ```cpp
-if (l_Done == true)
+if (done == true)
 {
    // Do stuff.
 }
@@ -78,37 +90,61 @@ if (l_Done == true)
 No omission of braces.
 
 ```cpp
-if (l_Done == true)
-   s_Exit = true; // Wrong.
+if (done == true)
+   s_exit = true; // Wrong.
 ```
 
 Regarding spaces, binary and tertiary operators should always have spaces between them like this:
 
 ```cpp
-int l_Score = l_Multiplier * (l_Points + l_Bonus);
+int score = multiplier * (points + bonus);
 ```
 
 Unary operators should not have spaces.
 
 ```cpp
-int l_Negative = -l_Positive;
+int negative = -positive;
 ```
 
 Pointer and reference specifiers go with the type, not the variable. They also shouldn't float:
 
 ```cpp
-MyClass* l_MyPointer = nullptr; // Right.
-MyClass *l_MyPointer = nullptr; // Wrong.
-MyClass * l_MyPointer = nullptr; // Wrong.
+MyClass* myPointer = nullptr; // Right.
+MyClass *myPointer = nullptr; // Wrong.
+MyClass * myPointer = nullptr; // Wrong.
 ```
 
 `const` should always be to the right of the thing that is constant.
 
 ```cpp
 // Both the characters and the pointer are constant.
-char const* const l_String = "Yep";
+char const* const string = "Yep";
 
-bool const l_DoCoolThings = true;
+bool const doCoolThings = true;
+```
+
+Inside of a switch, cases should use braces if they contain more than a control flow statement. Indicate fall through cases.
+
+```cpp
+switch (myValue)
+{
+   case 0: // Fall through.
+   case 1:
+      {
+         MyFunction1();
+         myCounter++;
+      }
+      break;
+
+   case 2:
+      {
+         MyFunction2();
+      }
+      break;
+
+   default:
+      return;
+}
 ```
 
 ### Wrapping
@@ -119,32 +155,66 @@ Wrap after operators, not before.
 
 ```cpp
 // Right.
-float const l_Average = l_Total /
-                        l_Count;
+float const average = total /
+                      count;
+float const average = 
+   total / count;
 
 // Wrong.
-float const l_Average = l_Total
-                        / l_Count;
+float const average = total
+                      / count;
+float const average
+   = total / count;
 ```
 
 Try to fit as many function arguments on each line as possible.
 
 ```cpp
 // Right.
-void MyExtremelySuperDuperLongFunctionNameWithArguments(float p_Argument1, float p_Argument2,
-                                                        float p_Argument3);
+void MyExtremelySuperDuperLongFunctionNameWithArguments(float argument1, float argument2,
+                                                        float argument3);
 
 // Wrong.
-void MyExtremelySuperDuperLongFunctionNameWithArguments(float p_Argument1,
-                                                        float p_Argument2,
-                                                        float p_Argument3);
+void MyExtremelySuperDuperLongFunctionNameWithArguments(float argument1,
+                                                        float argument2,
+                                                        float argument3);
 ```
 
 Also please notice that the wrapped lines are aligned.
 
+Don't break a line with parentheses.
+
+```cpp
+// Wrong.
+MyFunction(
+   argument1, argument2
+);
+
+// Wrong.
+MyFunction
+   (
+      argument1, argument2
+   );
+```
+
 String literals that are too long to fit on a line should be separated like follows.
 
 ```cpp
-static char const* s_String = "This is a very long and descriptive string which has no other "
+static char const* s_string = "This is a very long and descriptive string which has no other "
                               "purpose than to demonstrate how to wrap a string literal.";
+```
+
+There are cases where following these wrapping rules will exceed the column width. Wrapping rules take priority.
+
+### Other
+
+Only declare one variable or constant per line.
+
+```cpp
+// Right.
+int myVariable1;
+int myVariable2;
+
+// Wrong.
+int myVariable1, myVariable2;
 ```
