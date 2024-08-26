@@ -2,7 +2,6 @@
 
 #include "command.h"
 #include "logger.h"
-#include "common/stack.h"
 #include "common/ascii.h"
 #include "common/string.h"
 
@@ -13,6 +12,7 @@
 #include <locale>
 #include <unordered_map>
 #include <vector>
+#include <stack>
 
 namespace Shell
 {
@@ -98,7 +98,7 @@ namespace Shell
 		// This window is where messages from the logger are written to.
 		static WINDOW* s_Window = nullptr;
 
-		static Common::Stack<Attr, kMaxAttributeObjectCount> s_AttributeStack;
+		static std::stack<Attr> s_AttributeStack;
 
 		void Refresh() { wrefresh(s_Window); }
 
@@ -108,28 +108,24 @@ namespace Shell
 
 		[[nodiscard]] bool PushAttributes(Attr const attributes)
 		{
-			if (s_AttributeStack.Push(attributes))
-			{
-				// Set attributes.
-				wattrset(s_Window, attributes.m_Value);
+			s_AttributeStack.push(attributes);
 
-				// Success.
-				return true;
-			}
-			else
-			{
-				// Failure.
-				return false;
-			}
+			// Set attributes.
+			wattrset(s_Window, attributes.m_Value);
+
+			// Success.
+			return true;
 		}
 
 		void PopAttributes()
 		{
-			s_AttributeStack.Pop();
+			if (not s_AttributeStack.empty()) {
+				s_AttributeStack.pop();
+			}
 
-			if (Attr const* const attributes(s_AttributeStack.GetTop()); attributes != nullptr)
+			if (not s_AttributeStack.empty())
 			{
-				wattrset(s_Window, attributes->m_Value);
+				wattrset(s_Window, s_AttributeStack.top().m_Value);
 			}
 			else
 			{
@@ -139,7 +135,7 @@ namespace Shell
 
 		void ClearAllAttributes()
 		{
-			s_AttributeStack.Clear();
+			s_AttributeStack = {}; // clear the stack
 			wattrset(s_Window, Normal.m_Value);
 		}
 

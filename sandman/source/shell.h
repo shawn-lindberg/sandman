@@ -110,10 +110,6 @@ namespace Shell
 		template <typename IntT>
 		std::enable_if_t<std::is_integral_v<IntT>, void> Write(IntT const) = delete;
 
-		// The maximum amount of attribute objects that the stack can contain.
-		// (Each attribute object can still contain several Curses attributes though.)
-		inline constexpr std::size_t kMaxAttributeObjectCount{ 1u << 7u };
-
 		// Push an attribute object and apply the attributes.
 		//
 		// Returns `true` on success, `false` otherwise.
