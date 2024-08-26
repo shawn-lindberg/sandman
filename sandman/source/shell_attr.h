@@ -328,44 +328,36 @@ namespace Shell
 
 	inline namespace CharacterAttributeObjectWrapperFactories
 	{
-
-		// NOLINTBEGIN(readability-identifier-naming)
-
 		// Character attribute.
-		inline constexpr AttributeBundle
-			Normal     (A_NORMAL                           ),
-			Highlight  (A_STANDOUT                         ),
-			Underline  (A_UNDERLINE                        ),
-			FlipColor  (A_REVERSE                          ),
-			Blink      (A_BLINK                            ),
-			Dim        (A_DIM                              ),
-			Bold       (A_BOLD                             ),
-			Invisible  (A_INVIS                            ),
-			Italic     (A_ITALIC                           );
+		inline constexpr AttributeBundle Normal   (A_NORMAL   );
+		inline constexpr AttributeBundle Highlight(A_STANDOUT );
+		inline constexpr AttributeBundle Underline(A_UNDERLINE);
+		inline constexpr AttributeBundle FlipColor(A_REVERSE  );
+		inline constexpr AttributeBundle Blink    (A_BLINK    );
+		inline constexpr AttributeBundle Dim      (A_DIM      );
+		inline constexpr AttributeBundle Bold     (A_BOLD     );
+		inline constexpr AttributeBundle Invisible(A_INVIS    );
+		inline constexpr AttributeBundle Italic   (A_ITALIC   );
 
 		// Foreground color.
-		inline constexpr AttributeBundle::ForegroundColor
-			Black      {Normal, ColorMatrix::ForegroundIndex{ColorMatrix::Index::kBlack  }},
-			Red        {Normal, ColorMatrix::ForegroundIndex{ColorMatrix::Index::kRed    }},
-			Green      {Normal, ColorMatrix::ForegroundIndex{ColorMatrix::Index::kGreen  }},
-			Yellow     {Normal, ColorMatrix::ForegroundIndex{ColorMatrix::Index::kYellow }},
-			Blue       {Normal, ColorMatrix::ForegroundIndex{ColorMatrix::Index::kBlue   }},
-			Magenta    {Normal, ColorMatrix::ForegroundIndex{ColorMatrix::Index::kMagenta}},
-			Cyan       {Normal, ColorMatrix::ForegroundIndex{ColorMatrix::Index::kCyan   }},
-			White      {Normal, ColorMatrix::ForegroundIndex{ColorMatrix::Index::kWhite  }};
+		inline constexpr AttributeBundle::ForegroundColor Black  {Normal, ColorMatrix::ForegroundIndex{ColorMatrix::Index::kBlack  }};
+		inline constexpr AttributeBundle::ForegroundColor Red    {Normal, ColorMatrix::ForegroundIndex{ColorMatrix::Index::kRed    }};
+		inline constexpr AttributeBundle::ForegroundColor Green  {Normal, ColorMatrix::ForegroundIndex{ColorMatrix::Index::kGreen  }};
+		inline constexpr AttributeBundle::ForegroundColor Yellow {Normal, ColorMatrix::ForegroundIndex{ColorMatrix::Index::kYellow }};
+		inline constexpr AttributeBundle::ForegroundColor Blue   {Normal, ColorMatrix::ForegroundIndex{ColorMatrix::Index::kBlue   }};
+		inline constexpr AttributeBundle::ForegroundColor Magenta{Normal, ColorMatrix::ForegroundIndex{ColorMatrix::Index::kMagenta}};
+		inline constexpr AttributeBundle::ForegroundColor Cyan   {Normal, ColorMatrix::ForegroundIndex{ColorMatrix::Index::kCyan   }};
+		inline constexpr AttributeBundle::ForegroundColor White  {Normal, ColorMatrix::ForegroundIndex{ColorMatrix::Index::kWhite  }};
 
 		// Background color.
-		inline constexpr AttributeBundle::BackgroundColor
-			BackBlack  {Normal, ColorMatrix::BackgroundIndex{ColorMatrix::Index::kBlack  }},
-			BackRed    {Normal, ColorMatrix::BackgroundIndex{ColorMatrix::Index::kRed    }},
-			BackGreen  {Normal, ColorMatrix::BackgroundIndex{ColorMatrix::Index::kGreen  }},
-			BackYellow {Normal, ColorMatrix::BackgroundIndex{ColorMatrix::Index::kYellow }},
-			BackBlue   {Normal, ColorMatrix::BackgroundIndex{ColorMatrix::Index::kBlue   }},
-			BackMagenta{Normal, ColorMatrix::BackgroundIndex{ColorMatrix::Index::kMagenta}},
-			BackCyan   {Normal, ColorMatrix::BackgroundIndex{ColorMatrix::Index::kCyan   }},
-			BackWhite  {Normal, ColorMatrix::BackgroundIndex{ColorMatrix::Index::kWhite  }};
-
-		// NOLINTEND(readability-identifier-naming)
+		inline constexpr AttributeBundle::BackgroundColor BackBlack  {Normal, ColorMatrix::BackgroundIndex{ColorMatrix::Index::kBlack  }};
+		inline constexpr AttributeBundle::BackgroundColor BackRed    {Normal, ColorMatrix::BackgroundIndex{ColorMatrix::Index::kRed    }};
+		inline constexpr AttributeBundle::BackgroundColor BackGreen  {Normal, ColorMatrix::BackgroundIndex{ColorMatrix::Index::kGreen  }};
+		inline constexpr AttributeBundle::BackgroundColor BackYellow {Normal, ColorMatrix::BackgroundIndex{ColorMatrix::Index::kYellow }};
+		inline constexpr AttributeBundle::BackgroundColor BackBlue   {Normal, ColorMatrix::BackgroundIndex{ColorMatrix::Index::kBlue   }};
+		inline constexpr AttributeBundle::BackgroundColor BackMagenta{Normal, ColorMatrix::BackgroundIndex{ColorMatrix::Index::kMagenta}};
+		inline constexpr AttributeBundle::BackgroundColor BackCyan   {Normal, ColorMatrix::BackgroundIndex{ColorMatrix::Index::kCyan   }};
+		inline constexpr AttributeBundle::BackgroundColor BackWhite  {Normal, ColorMatrix::BackgroundIndex{ColorMatrix::Index::kWhite  }};
 	}
 
 } // namespace Shell
