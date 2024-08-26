@@ -278,19 +278,19 @@ namespace Shell
 	public:
 
 		AttributeBundle m_Ancillary;
-		ColorMatrix::ForegroundIndex foregroundColor;
-		ColorMatrix::BackgroundIndex backgroundColor;
+		ColorMatrix::ForegroundIndex m_ForegroundColor;
+		ColorMatrix::BackgroundIndex m_BackgroundColor;
 
 		[[nodiscard]] constexpr ColorPair operator|(AttributeBundle const attributes) const
 		{
-			return { this->m_Ancillary | attributes, foregroundColor, backgroundColor };
+			return { this->m_Ancillary | attributes, m_ForegroundColor, m_BackgroundColor };
 		}
 
 		[[nodiscard]] constexpr AttributeBundle BuildAttr() const
 		{
 			using namespace ColorMatrix;
 
-			AttributeBundle const colorPair{ GetPair(foregroundColor, backgroundColor) };
+			AttributeBundle const colorPair{ GetPair(m_ForegroundColor, m_BackgroundColor) };
 
 			return m_Ancillary | colorPair;
 		}
