@@ -71,7 +71,8 @@ public:
 	template <typename T, typename... ParamsT>
 	[[gnu::always_inline]] inline void Write(T&& firstArg, ParamsT&&... args);
 
-	static constexpr char kFormatEscapeIndicator{ '%' }, kFormatInterpolationIndicator{ '$' };
+	static constexpr char kFormatEscapeIndicator{ '%' };
+	static constexpr char kFormatInterpolationIndicator{ '$' };
 
 	static constexpr std::string_view kMissingFormatValue = "`null`";
 
