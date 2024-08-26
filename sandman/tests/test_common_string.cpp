@@ -17,10 +17,10 @@ inline namespace Debug
 		{
 			if (i == buffer.GetLength()) { outputStream << '@'; continue; }
 			CharT const c{ buffer.GetData().at(i) };
-			switch (c)
-			{
-				case '\0': outputStream << '0'; break;
-				default: outputStream << c; break;
+			if (c == '\0') {
+				outputStream << '0';
+			} else {
+				outputStream << c;
 			}
 		}
 		outputStream << ']';
