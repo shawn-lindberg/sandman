@@ -32,8 +32,7 @@ template <typename T, typename... ParamsT>
 			std::string const string(m_Buffer.str());
 
 			// Dump the current data to the output destinations.
-			bool const didPushAttributes
-			{
+			bool const didPushAttributes{
 				[attributes=firstArg.m_Attributes, stringView=std::string_view(string)]() -> bool
 				{
 					::Shell::LoggingWindow::Write(stringView);
