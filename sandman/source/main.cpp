@@ -169,7 +169,7 @@ static bool Initialize()
 	{
 
 		// Initialize logging.
-		if (::Logger::Initialize(SANDMAN_TEMP_DIR "sandman.log") == false)
+		if (Logger::Initialize(SANDMAN_TEMP_DIR "sandman.log") == false)
 		{
 			s_ExitCode = 1;
 			return false;
