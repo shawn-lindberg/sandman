@@ -178,15 +178,6 @@ private:
 
 public:
 
-	// Get the global logger.
-	[[deprecated(
-		"Function calls on the returned object reference, while `const`, are not thread-safe."
-	)]]
-	[[nodiscard]] static constexpr Logger const& Get()
-	{
-		return ms_Logger;
-	}
-
 	// Is `true` if `T` is a type that is a variant of the `Format` template class;
 	// is `false` otherwise.
 	//

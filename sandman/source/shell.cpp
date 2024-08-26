@@ -136,8 +136,6 @@ namespace Shell
 			wattrset(s_Window, Normal.m_Value);
 		}
 
-		WINDOW* Get() { return s_Window; }
-
 		static void Initialize()
 		{
 			s_Window = newwin(
@@ -161,8 +159,6 @@ namespace Shell
 	{
 		// This window is where user input is echoed to.
 		static WINDOW* s_Window = nullptr;
-
-		WINDOW* Get() { return s_Window; }
 
 		template <bool kFlag>
 		[[gnu::always_inline]] inline static void SetCharHighlight(X const positionX)

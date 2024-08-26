@@ -182,23 +182,6 @@ namespace Shell
 			Print(std::forward<ParamsT>(arguments)..., chtype{'\n'});
 		}
 
-		/// @brief Get the pointer to the logging window.
-		///
-		/// @attention Do not call this function before having called `Shell::Initialize`
-		/// successfully.
-		///
-		/// @return NCurses window pointer
-		///
-		/// @warning If `Shell::Initialize` has not been called successfully, this function likely
-		/// returns `nullptr`. Otherwise, the pointer returned by this function is valid until
-		/// `Shell::Uninitialize` is called.
-		///
-		/// @note The logging window is the region on the terminal where the logger outputs characters
-		/// to. After `Shell::Initialize` is called successfully, this function always returns the
-		/// same pointer.
-		///
-		[[deprecated("Manage this window through other functions.")]] [[nodiscard]] WINDOW* Get();
-
 	} // namespace LoggingWindow
 
 	// User input is echoed to this window.
@@ -210,23 +193,6 @@ namespace Shell
 
 		// The input window will have a height of 3.
 		inline constexpr int kRowCount{ 3 };
-
-		/// @brief Get the pointer to the input window.
-		///
-		/// @attention Do not call this function before having called `Shell::Initialize`
-		/// successfully.
-		///
-		/// @return NCurses window pointer
-		///
-		/// @warning If `Shell::Initialize` has not been called successfully, this function likely
-		/// returns returns `nullptr`. Otherwise, the pointer returned by this function is valid until
-		/// `Shell::Uninitialize` is called.
-		///
-		/// @note The input window is the region on the terminal where the user input is echoed to.
-		/// After `Shell::Initialize` is called successfully, this function always returns the same
-		/// pointer.
-		///
-		[[deprecated("Manage this window through other functions.")]] [[nodiscard]] WINDOW* Get();
 
 		// Maximum length of a string that can be submitted as input in the input window.
 		inline constexpr std::size_t kMaxInputStringLength{ 1u << 7u };
