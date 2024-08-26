@@ -208,16 +208,11 @@ namespace Shell
 
 		extern "C" void WindowChangeSignalHandler(int const signal)
 		{
-			switch (signal)
-			{
-				#ifdef SIGWINCH
-				case SIGWINCH:
-					s_ShouldResize = true;
-					return;
-				#endif
-				default:
-					return;
+			#ifdef SIGWINCH
+			if (signal == SIGWINCH) {
+				s_ShouldResize = true;
 			}
+			#endif
 		}
 	}
 
