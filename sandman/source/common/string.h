@@ -90,7 +90,8 @@ class Common::String
 				m_OnStringUpdate(index, m_Data[index] = character);
 
 				// Increment the string length and null terminate the string.
-				m_Data[++m_StringLength] = '\0';
+				++m_StringLength;
+				m_Data[m_StringLength] = '\0';
 
 				// Success.
 				return true;
@@ -112,7 +113,8 @@ class Common::String
 				m_OnStringUpdate(m_StringLength, m_Data[m_StringLength] = character);
 
 				// Update the string length and null terminate the string.
-				m_Data[++m_StringLength] = '\0';
+				++m_StringLength;
+				m_Data[m_StringLength] = '\0';
 
 				// Success.
 				return true;
@@ -155,7 +157,8 @@ class Common::String
 
 				// One character was removed, so decrement the string length by one.
 				// Also, null terminate the string.
-				m_Data[--m_StringLength] = '\0';
+				--m_StringLength;
+				m_Data[m_StringLength] = '\0';
 
 				// Call the event listener.
 				m_OnDecrementStringLength(m_StringLength);
