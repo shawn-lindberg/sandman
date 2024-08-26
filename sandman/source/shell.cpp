@@ -435,11 +435,9 @@ namespace Shell
 		}
 
 		template <typename CursorMovementT>
-		[[gnu::always_inline]] inline static
-		std::enable_if_t<
-			std::is_same_v<CursorMovementT, Left> or std::is_same_v<CursorMovementT, Right>,
-			void
-		> BumpCursor()
+		[[gnu::always_inline]] inline static std::enable_if_t<
+			std::is_same_v<CursorMovementT, Left> or std::is_same_v<CursorMovementT, Right>, void>
+			BumpCursor()
 		{
 			static constexpr CursorMovementT kNext{};
 			SetCharHighlight<false>(X(s_Cursor));
