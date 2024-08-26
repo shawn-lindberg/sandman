@@ -119,11 +119,12 @@ void ::Logger::FormatWrite(std::string_view formatString, T&& firstArg, ParamsT&
 		else if (character == kFormatEscapeIndicator and not escapingCharacter)
 		{
 			escapingCharacter = true;
+			continue;
 		}
 		else
 		{
 			Write(character);
-			escapingCharacter = false;
 		}
+		escapingCharacter = false;
 	}
 }

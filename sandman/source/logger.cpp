@@ -32,34 +32,22 @@ void ::Logger::FormatWrite(std::string_view const formatString)
 {
 	bool escapingCharacter{ false };
 
-	for (char const c : formatString)
+	for (char const character : formatString)
 	{
-		if (escapingCharacter)
+		if (escapingCharacter and character == kFormatInterpolationIndicator)
 		{
-			switch (c)
-			{
-				case kFormatInterpolationIndicator:
-					// Don't have any arguments to write, so write a placeholder.
-					Write(kMissingFormatValue);
-					break;
-				default:
-					// An escaped character that isn't special is simply written.
-					Write(c);
-					break;
-			}
-			escapingCharacter = false;
+			// Don't have any arguments to write, so write a placeholder.
+			Write(kMissingFormatValue);
+		}
+		else if (character == kFormatEscapeIndicator and not escapingCharacter)
+		{
+			escapingCharacter = true;
+			continue;
 		}
 		else
 		{
-			switch (c)
-			{
-				case kFormatEscapeIndicator:
-					escapingCharacter = true;
-					break;
-				default:
-					Write(c);
-					break;
-			}
+			Write(character);
 		}
+		escapingCharacter = false;
 	}
 }
