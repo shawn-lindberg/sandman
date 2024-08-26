@@ -127,8 +127,8 @@ namespace Shell
 
 		// Variable-argument write function.
 		// Calls `Write` on each argument.
-		template <typename T, typename... ParamsT>
-		[[gnu::always_inline]] inline void Write(T&& first, ParamsT&& ... arguments)
+		template <typename T, typename... ParametersT>
+		[[gnu::always_inline]] inline void Write(T&& first, ParametersT&& ... arguments)
 		{
 			// Process the first argument.
 			if constexpr (IsAttrWrapper<std::decay_t<T>>)
@@ -156,7 +156,7 @@ namespace Shell
 			// Process the other arguments; if none, clear all attributes and refresh.
 			if constexpr (sizeof...(arguments) > 0u)
 			{
-				return Write(std::forward<ParamsT>(arguments)...);
+				return Write(std::forward<ParametersT>(arguments)...);
 			}
 			else
 			{
@@ -167,10 +167,10 @@ namespace Shell
 
 		// Print one or more objects to the logging window,
 		// then clear all attributes and refresh.
-		template <typename... ParamsT>
-		[[gnu::always_inline]] inline void Print(ParamsT&&... arguments)
+		template <typename... ParametersT>
+		[[gnu::always_inline]] inline void Print(ParametersT&&... arguments)
 		{
-			Write(std::forward<ParamsT>(arguments)...);
+			Write(std::forward<ParametersT>(arguments)...);
 			ClearAllAttributes();
 			Refresh();
 		}

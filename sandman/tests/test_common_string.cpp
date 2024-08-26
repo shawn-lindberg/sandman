@@ -41,10 +41,10 @@ inline namespace Debug
 		return outputStream.str();
 	}
 
-	template <typename... ParamsT>
-	static void Println(ParamsT&&... args)
+	template <typename... ParametersT>
+	static void PrintLine(ParametersT&&... args)
 	{
-		(Catch::cout() << ... << std::forward<ParamsT>(args)) << '\n';
+		(Catch::cout() << ... << std::forward<ParametersT>(args)) << '\n';
 	}
 
 } // namespace Debug

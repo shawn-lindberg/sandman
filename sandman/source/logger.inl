@@ -1,7 +1,7 @@
 #include "logger.h"
 
-template <typename T, typename... ParamsT>
-[[gnu::always_inline]] inline void Logger::Write(T&& firstArg, ParamsT&&... args)
+template <typename T, typename... ParametersT>
+[[gnu::always_inline]] inline void Logger::Write(T&& firstArg, ParametersT&&... args)
 {
 	static_assert(not std::is_same_v<std::decay_t<T>, Shell::AttributeBundle>,
 					  "Do not pass in attributes directly; instead use an attribute object wrapper.");
@@ -70,7 +70,7 @@ template <typename T, typename... ParamsT>
 	if constexpr (sizeof...(args) > 0u)
 	{
 		// Recursively write the remaining arguments.
-		return Write(std::forward<ParamsT>(args)...);
+		return Write(std::forward<ParametersT>(args)...);
 	}
 	else
 	{
@@ -93,8 +93,8 @@ template <typename T, typename... ParamsT>
 	}
 }
 
-template <typename T, typename... ParamsT>
-void Logger::FormatWrite(std::string_view formatString, T&& firstArg, ParamsT&&... args)
+template <typename T, typename... ParametersT>
+void Logger::FormatWrite(std::string_view formatString, T&& firstArg, ParametersT&&... args)
 {
 	bool escapingCharacter{false};
 
@@ -113,7 +113,7 @@ void Logger::FormatWrite(std::string_view formatString, T&& firstArg, ParamsT&&.
 			formatString.remove_prefix(index);
 
 			// Recursion.
-			return FormatWrite(formatString, std::forward<ParamsT>(args)...);
+			return FormatWrite(formatString, std::forward<ParametersT>(args)...);
 		}
 		else if (character == kFormatEscapeIndicator and not escapingCharacter)
 		{

@@ -214,7 +214,7 @@ namespace Shell
 		if (s_ShouldResize)
 		{
 			s_ShouldResize = false;
-			LoggingWindow::Println(Red("Window resize is unimplemented."));
+			LoggingWindow::PrintLine(Red("Window resize is unimplemented."));
 		}
 	}
 
@@ -452,7 +452,7 @@ namespace Shell
 			if (not bufferView.empty())
 			{
 				// Echo the command back.
-				LoggingWindow::Println(Cyan(chtype{'\"'}), bufferView, Cyan(chtype{'\"'}));
+				LoggingWindow::PrintLine(Cyan(chtype{'\"'}), bufferView, Cyan(chtype{'\"'}));
 			}
 
 			// Parse a command.
@@ -481,7 +481,7 @@ namespace Shell
 					// Reset cursor, just to be safe.
 					s_Cursor = 0u;
 
-					LoggingWindow::Println(Magenta("Refreshed the screen."));
+					LoggingWindow::PrintLine(Magenta("Refreshed the screen."));
 
 					return false;
 				}}
@@ -544,7 +544,7 @@ namespace Shell
 				return HandleSubmitString();
 
 			case '\n':
-				LoggingWindow::Println(Red("Unexpectedly got a newline character from user input."));
+				LoggingWindow::PrintLine(Red("Unexpectedly got a newline character from user input."));
 				return false;
 
 			// These "Ctrl" characters are usually handled by the terminal,
@@ -552,7 +552,7 @@ namespace Shell
 			case Key::Ctrl<'C'>:
 			case Key::Ctrl<'Z'>:
 				// (Most likely unreachable.)
-				LoggingWindow::Println(Red(
+				LoggingWindow::PrintLine(Red(
 					"Unexpectedly got a `Ctrl` character '", static_cast<chtype>(inputKey),
 					"' from user input."
 				));
@@ -570,7 +570,7 @@ namespace Shell
 				}
 				else
 				{
-					LoggingWindow::Println(
+					LoggingWindow::PrintLine(
 						Red("Can't write '", static_cast<chtype>(inputKey), "' into the input buffer.")
 					);
 				}

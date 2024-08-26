@@ -50,16 +50,16 @@ namespace Shell
 		// Deduction guide.
 		//
 		// Deduce `Wrapper` type from arguments in `Wrapper` constructor.
-		template <typename... ParamsT>
-		Wrapper(AttributeBundle const, ParamsT&&...) -> Wrapper<ParamsT&&...>;
+		template <typename... ParametersT>
+		Wrapper(AttributeBundle const, ParametersT&&...) -> Wrapper<ParametersT&&...>;
 
 		// Wrap objects.
-		template <typename... ParamsT> [[nodiscard]] constexpr
-		Wrapper<ParamsT&&...> operator()(ParamsT&&... args) const
+		template <typename... ParametersT> [[nodiscard]] constexpr
+		Wrapper<ParametersT&&...> operator()(ParametersT&&... args) const
 		{
 			static_assert(sizeof...(args) > 0u,
 							  "Calling this function without any arguments is probably a mistake.");
-			return Wrapper(*this, std::forward<ParamsT>(args)...);
+			return Wrapper(*this, std::forward<ParametersT>(args)...);
 		}
 
 	};
@@ -177,9 +177,9 @@ namespace Shell
 		std::tuple<ObjectsT...> m_Objects;
 		AttributeBundle m_Attributes;
 
-		template <typename... ParamsT> [[nodiscard]]
-		constexpr explicit Wrapper(AttributeBundle const attributes, ParamsT&&... args)
-			: m_Objects(std::forward<ParamsT>(args)...), m_Attributes{ attributes } {}
+		template <typename... ParametersT> [[nodiscard]]
+		constexpr explicit Wrapper(AttributeBundle const attributes, ParametersT&&... args)
+			: m_Objects(std::forward<ParametersT>(args)...), m_Attributes{ attributes } {}
 	};
 
 	// NOLINTBEGIN(readability-identifier-naming)
@@ -217,13 +217,13 @@ namespace Shell
 			return m_Ancillary | colorPair;
 		}
 
-		template <typename... ParamsT>
-		[[nodiscard]] constexpr Wrapper<ParamsT&&...> operator()(ParamsT&&... args) const
+		template <typename... ParametersT>
+		[[nodiscard]] constexpr Wrapper<ParametersT&&...> operator()(ParametersT&&... args) const
 		{
 			static_assert(sizeof...(args) > 0u,
 							  "Calling this function without any arguments is probably a mistake.");
 
-			return Wrapper(this->BuildAttr(), std::forward<ParamsT>(args)...);
+			return Wrapper(this->BuildAttr(), std::forward<ParametersT>(args)...);
 		}
 	};
 
@@ -257,13 +257,13 @@ namespace Shell
 			return m_Ancillary | colorPair;
 		}
 
-		template <typename... ParamsT>
-		[[nodiscard]] constexpr Wrapper<ParamsT&&...> operator()(ParamsT&&... args) const
+		template <typename... ParametersT>
+		[[nodiscard]] constexpr Wrapper<ParametersT&&...> operator()(ParametersT&&... args) const
 		{
 			static_assert(sizeof...(args) > 0u,
 							  "Calling this function without any arguments is probably a mistake.");
 
-			return Wrapper(this->BuildAttr(), std::forward<ParamsT>(args)...);
+			return Wrapper(this->BuildAttr(), std::forward<ParametersT>(args)...);
 		}
 	};
 
@@ -295,13 +295,13 @@ namespace Shell
 			return m_Ancillary | colorPair;
 		}
 
-		template <typename... ParamsT>
-		[[nodiscard]] constexpr Wrapper<ParamsT&&...> operator()(ParamsT&&... args) const
+		template <typename... ParametersT>
+		[[nodiscard]] constexpr Wrapper<ParametersT&&...> operator()(ParametersT&&... args) const
 		{
 			static_assert(sizeof...(args) > 0u,
 							  "Calling this function without any arguments is probably a mistake.");
 
-			return Wrapper(this->BuildAttr(), std::forward<ParamsT>(args)...);
+			return Wrapper(this->BuildAttr(), std::forward<ParametersT>(args)...);
 		}
 	};
 

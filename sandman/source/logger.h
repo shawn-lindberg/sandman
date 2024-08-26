@@ -68,8 +68,8 @@ public:
 	// then flushes the data to the output destinations.
 	//
 	// The internal buffer should be empty after every call to this function.
-	template <typename T, typename... ParamsT>
-	[[gnu::always_inline]] inline void Write(T&& firstArg, ParamsT&&... args);
+	template <typename T, typename... ParametersT>
+	[[gnu::always_inline]] inline void Write(T&& firstArg, ParametersT&&... args);
 
 	static constexpr char kFormatEscapeIndicator{ '%' };
 	static constexpr char kFormatInterpolationIndicator{ '$' };
@@ -98,8 +98,8 @@ public:
 	//
 	// If there are more arguments than there are interpolation indicators `%$`
 	// in the format string, the extra arguments are ignored.
-	template <typename T, typename... ParamsT>
-	void FormatWrite(std::string_view formatString, T&& firstArg, ParamsT&&... args);
+	template <typename T, typename... ParametersT>
+	void FormatWrite(std::string_view formatString, T&& firstArg, ParametersT&&... args);
 
 	// Object wrapper for formatting.
 	//
@@ -127,9 +127,9 @@ public:
 		//
 		// If there are more arguments than there are interpolation indicators `%$`
 		// in the format string, the extra arguments are ignored.
-		template <typename... ParamsT>
-		[[nodiscard]] explicit Format(std::string_view const formatString, ParamsT&&... args)
-			: m_Objects(std::forward<ParamsT>(args)...),
+		template <typename... ParametersT>
+		[[nodiscard]] explicit Format(std::string_view const formatString, ParametersT&&... args)
+			: m_Objects(std::forward<ParametersT>(args)...),
 			  m_FormatString(formatString) {}
 
 		// Convenience method.
@@ -152,8 +152,8 @@ public:
 	// Deduction guide.
 	// 
 	// Deduce the type of a `Format` object from the arguments passed to its constructor.
-	template <typename... ParamsT>
-	Format(std::string_view const, ParamsT&&...) -> Format<ParamsT&&...>;
+	template <typename... ParametersT>
+	Format(std::string_view const, ParametersT&&...) -> Format<ParametersT&&...>;
 
 private:
 
@@ -218,8 +218,8 @@ public:
 	// Using the global logger's `Write` method,
 	// writes a string composed of a timestamp followed by
 	// the arguments of this function followed by a newline character `'\n'`.
-	template <typename... ParamsT>
-	[[gnu::always_inline]] inline static void WriteLine(ParamsT&&... args)
+	template <typename... ParametersT>
+	[[gnu::always_inline]] inline static void WriteLine(ParametersT&&... args)
 	{
 		std::lock_guard const loggerLock(ms_Mutex);
 
@@ -240,7 +240,7 @@ public:
 		}
 
 		// Write the arguments with a trailing newline character.
-		ms_Logger.Write(std::forward<ParamsT>(args)..., '\n');
+		ms_Logger.Write(std::forward<ParametersT>(args)..., '\n');
 
 		if (ms_Logger.HasScreenEchoEnabled())
 		{
