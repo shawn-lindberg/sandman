@@ -176,10 +176,10 @@ namespace Shell
 		}
 
 		// Same as `Print`, but also print a newline character.
-		template <typename... ParamsT>
-		[[gnu::always_inline]] inline void Println(ParamsT&&... arguments)
+		template <typename... ParametersT>
+		[[gnu::always_inline]] inline void PrintLine(ParametersT&&... arguments)
 		{
-			Print(std::forward<ParamsT>(arguments)..., chtype{'\n'});
+			Print(std::forward<ParametersT>(arguments)..., chtype{'\n'});
 		}
 
 	} // namespace LoggingWindow
