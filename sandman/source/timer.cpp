@@ -11,9 +11,9 @@
 
 // Get the current time.
 //
-// timePoint:	(Output) The current time.
+// time:	(Output) The current time.
 //
-void TimerGetCurrent(Time& timePoint)
+void TimerGetCurrent(Time& time)
 {
 	#if defined (_WIN32)
 
@@ -28,8 +28,8 @@ void TimerGetCurrent(Time& timePoint)
 		QueryPerformanceFrequency(&frequency);
 	
 		// Convert to our form.
-		timePoint.m_Seconds = ticks.QuadPart / frequency.QuadPart;
-		timePoint.m_Nanoseconds = ((ticks.QuadPart % frequency.QuadPart) * 1000000000) / 
+		time.m_Seconds = ticks.QuadPart / frequency.QuadPart;
+		time.m_Nanoseconds = ((ticks.QuadPart % frequency.QuadPart) * 1000000000) / 
 			frequency.QuadPart;
 		
 	#elif defined (__linux__)
@@ -38,8 +38,8 @@ void TimerGetCurrent(Time& timePoint)
 		timespec timeValue;
 		clock_gettime(CLOCK_REALTIME, &timeValue);
 
-		timePoint.m_Seconds = timeValue.tv_sec;
-		timePoint.m_Nanoseconds = timeValue.tv_nsec;
+		time.m_Seconds = timeValue.tv_sec;
+		time.m_Nanoseconds = timeValue.tv_nsec;
 
 	#endif // defined (_WIN32)
 }
