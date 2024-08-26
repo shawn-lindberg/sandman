@@ -29,7 +29,7 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
       -Wall                    # Enable most common warnings
       -Wextra                  # Enable additional warnings
       -Werror                  # Treat warnings as errors
-      -Wpedantic                # Enforce strict ISO C++ compliance
+      -Wpedantic               # Enforce strict ISO C++ compliance
       -Wshadow                 # Warn when a variable shadows another
       -Wnon-virtual-dtor       # Warn if a class with virtual functions has a non-virtual destructor
       -Wold-style-cast         # Warn about old-style casts
