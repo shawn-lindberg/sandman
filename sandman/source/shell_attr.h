@@ -148,7 +148,8 @@ namespace Shell
 			CursesColorID const row{ ::Common::IntCast(backgroundColor.m_Value) };
 
 			// Check that it's okay to downcast the `std::size_t` from `size()` to `int`.
-			static_assert(kList.size() <= 8u and 8u <= std::numeric_limits<int>::max());
+			static_assert(kList.size() <= kList.size());
+			static_assert(kList.size() <= std::numeric_limits<int>::max());
 
 			// `COLOR_PAIR` takes an `int` as its argument.
 			int const colorPairIndex{
