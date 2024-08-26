@@ -147,9 +147,8 @@ namespace Shell
 			CursesColorID const column{ ::Common::IntCast(foregroundColor.m_Value) };
 			CursesColorID const row{ ::Common::IntCast(backgroundColor.m_Value) };
 
-			// Check that it's okay to downcast the `std::size_t` from `size()` to `int`.
-			static_assert(kList.size() <= kList.size());
-			static_assert(kList.size() <= std::numeric_limits<int>::max());
+			static_assert(kList.size() <= std::numeric_limits<int>::max(),
+							  "Check that it's okay to downcast the `std::size_t` from `size()` to `int`");
 
 			// `COLOR_PAIR` takes an `int` as its argument.
 			int const colorPairIndex{
@@ -198,7 +197,7 @@ namespace Shell
 	public:
 
 		AttributeBundle m_Ancillary;
-		ColorMatrix::Index m_ColorIndex;
+		ColorMatrix::ForegroundIndex m_ColorIndex;
 
 		// Combine an `Attr::ForegroundColor` with an `Attr`.
 		[[nodiscard]] constexpr ForegroundColor operator|(AttributeBundle const attributes) const
@@ -239,7 +238,7 @@ namespace Shell
 	public:
 
 		AttributeBundle m_Ancillary;
-		ColorMatrix::Index m_ColorIndex;
+		ColorMatrix::BackgroundIndex m_ColorIndex;
 
 		[[nodiscard]] constexpr BackgroundColor operator|(AttributeBundle const attributes) const
 		{
@@ -279,36 +278,17 @@ namespace Shell
 	public:
 
 		AttributeBundle m_Ancillary;
-
-		// Bit manipulations rely on the assumption that this assertion is true.
-		static_assert([]() constexpr -> bool {
-			ColorMatrix::Index maxColorIndex{ColorMatrix::kList.at(0u)};
-
-			for (ColorMatrix::Index const colorIndex : ColorMatrix::kList)
-			{
-				maxColorIndex = std::max(colorIndex, maxColorIndex);
-			}
-
-			return ::Common::IntCast(maxColorIndex) == 0b111u;
-		}());
-
-		// Two color pair indices are packed into this value.
-		std::underlying_type_t<ColorMatrix::Index> m_ColorIndexPair;
+		ColorMatrix::ForegroundIndex foregroundColor;
+		ColorMatrix::BackgroundIndex backgroundColor;
 
 		[[nodiscard]] constexpr ColorPair operator|(AttributeBundle const attributes) const
 		{
-			return { this->m_Ancillary | attributes, m_ColorIndexPair };
+			return { this->m_Ancillary | attributes, foregroundColor, backgroundColor };
 		}
 
 		[[nodiscard]] constexpr AttributeBundle BuildAttr() const
 		{
 			using namespace ColorMatrix;
-
-			ForegroundIndex const foregroundColor(
-				static_cast<Index>(m_ColorIndexPair bitand 0b000111u));
-
-			BackgroundIndex const backgroundColor(
-				static_cast<Index>((m_ColorIndexPair bitand 0b111000u) >> 3u));
 
 			AttributeBundle const colorPair{ GetPair(foregroundColor, backgroundColor) };
 
@@ -325,26 +305,18 @@ namespace Shell
 		}
 	};
 
-	[[nodiscard]] constexpr
-	AttributeBundle::ColorPair operator|(AttributeBundle const attributes, AttributeBundle::ColorPair const colorPair)
+	[[nodiscard]] constexpr AttributeBundle::ColorPair
+		operator|(AttributeBundle const attributes, AttributeBundle::ColorPair const colorPair)
 	{
 		return colorPair | attributes;
 	}
 
-	[[nodiscard]] constexpr
-	AttributeBundle::ColorPair operator|(AttributeBundle::ForegroundColor const foregroundColor,
-									  AttributeBundle::BackgroundColor const backgroundColor)
+	[[nodiscard]] constexpr AttributeBundle::ColorPair
+		operator|(AttributeBundle::ForegroundColor const foregroundColor,
+					 AttributeBundle::BackgroundColor const backgroundColor)
 	{
-		std::underlying_type_t<ColorMatrix::Index> const colorIndexPair
-		{
-			static_cast<std::underlying_type_t<ColorMatrix::Index>>
-			(
-				::Common::IntCast(foregroundColor.m_ColorIndex) bitor
-				(::Common::IntCast(backgroundColor.m_ColorIndex) << 3u)
-			)
-		};
-
-		return { foregroundColor.m_Ancillary | backgroundColor.m_Ancillary, colorIndexPair };
+		return { foregroundColor.m_Ancillary | backgroundColor.m_Ancillary,
+					foregroundColor.m_ColorIndex, backgroundColor.m_ColorIndex };
 	}
 
 	[[nodiscard]] constexpr
@@ -373,25 +345,25 @@ namespace Shell
 
 		// Foreground color.
 		inline constexpr AttributeBundle::ForegroundColor
-			Black      {Normal, ColorMatrix::Index::kBlack  },
-			Red        {Normal, ColorMatrix::Index::kRed    },
-			Green      {Normal, ColorMatrix::Index::kGreen  },
-			Yellow     {Normal, ColorMatrix::Index::kYellow },
-			Blue       {Normal, ColorMatrix::Index::kBlue   },
-			Magenta    {Normal, ColorMatrix::Index::kMagenta},
-			Cyan       {Normal, ColorMatrix::Index::kCyan   },
-			White      {Normal, ColorMatrix::Index::kWhite  };
+			Black      {Normal, ColorMatrix::ForegroundIndex{ColorMatrix::Index::kBlack  }},
+			Red        {Normal, ColorMatrix::ForegroundIndex{ColorMatrix::Index::kRed    }},
+			Green      {Normal, ColorMatrix::ForegroundIndex{ColorMatrix::Index::kGreen  }},
+			Yellow     {Normal, ColorMatrix::ForegroundIndex{ColorMatrix::Index::kYellow }},
+			Blue       {Normal, ColorMatrix::ForegroundIndex{ColorMatrix::Index::kBlue   }},
+			Magenta    {Normal, ColorMatrix::ForegroundIndex{ColorMatrix::Index::kMagenta}},
+			Cyan       {Normal, ColorMatrix::ForegroundIndex{ColorMatrix::Index::kCyan   }},
+			White      {Normal, ColorMatrix::ForegroundIndex{ColorMatrix::Index::kWhite  }};
 
 		// Background color.
 		inline constexpr AttributeBundle::BackgroundColor
-			BackBlack  {Normal, ColorMatrix::Index::kBlack  },
-			BackRed    {Normal, ColorMatrix::Index::kRed    },
-			BackGreen  {Normal, ColorMatrix::Index::kGreen  },
-			BackYellow {Normal, ColorMatrix::Index::kYellow },
-			BackBlue   {Normal, ColorMatrix::Index::kBlue   },
-			BackMagenta{Normal, ColorMatrix::Index::kMagenta},
-			BackCyan   {Normal, ColorMatrix::Index::kCyan   },
-			BackWhite  {Normal, ColorMatrix::Index::kWhite  };
+			BackBlack  {Normal, ColorMatrix::BackgroundIndex{ColorMatrix::Index::kBlack  }},
+			BackRed    {Normal, ColorMatrix::BackgroundIndex{ColorMatrix::Index::kRed    }},
+			BackGreen  {Normal, ColorMatrix::BackgroundIndex{ColorMatrix::Index::kGreen  }},
+			BackYellow {Normal, ColorMatrix::BackgroundIndex{ColorMatrix::Index::kYellow }},
+			BackBlue   {Normal, ColorMatrix::BackgroundIndex{ColorMatrix::Index::kBlue   }},
+			BackMagenta{Normal, ColorMatrix::BackgroundIndex{ColorMatrix::Index::kMagenta}},
+			BackCyan   {Normal, ColorMatrix::BackgroundIndex{ColorMatrix::Index::kCyan   }},
+			BackWhite  {Normal, ColorMatrix::BackgroundIndex{ColorMatrix::Index::kWhite  }};
 
 		// NOLINTEND(readability-identifier-naming)
 	}
