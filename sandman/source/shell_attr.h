@@ -14,8 +14,10 @@ namespace Shell
 {
 
 	// Represents a bundle of character attributes for the Curses library.
-	struct AttributeBundle
+	class AttributeBundle
 	{
+	public:
+
 		// Using `chtype` instead of `attr_t` because
 		// `attr_t` seems to be an extension to Curses.
 		using Value = chtype;
@@ -40,10 +42,10 @@ namespace Shell
 			return AttributeBundle(this->m_Value bitor attributes.m_Value);
 		}
 
-		struct ColorPair;
-		struct ForegroundColor;
-		struct BackgroundColor;
-		template <typename...> struct Wrapper;
+		class ColorPair;
+		class ForegroundColor;
+		class BackgroundColor;
+		template <typename...> class Wrapper;
 
 		// Deduction guide.
 		//
@@ -168,8 +170,10 @@ namespace Shell
 
 	// Object wrapper.
 	template <typename... ObjectsT>
-	struct [[nodiscard]] AttributeBundle::Wrapper
+	class [[nodiscard]] AttributeBundle::Wrapper
 	{
+	public:
+
 		std::tuple<ObjectsT...> m_Objects;
 		AttributeBundle m_Attributes;
 
@@ -188,8 +192,10 @@ namespace Shell
 
 	// NOLINTEND(readability-identifier-naming)
 
-	struct AttributeBundle::ForegroundColor
+	class AttributeBundle::ForegroundColor
 	{
+	public:
+
 		AttributeBundle m_Ancillary;
 		ColorMatrix::Index m_ColorIndex;
 
@@ -227,8 +233,10 @@ namespace Shell
 		return color | attributes;
 	}
 
-	struct AttributeBundle::BackgroundColor
+	class AttributeBundle::BackgroundColor
 	{
+	public:
+
 		AttributeBundle m_Ancillary;
 		ColorMatrix::Index m_ColorIndex;
 
@@ -265,8 +273,10 @@ namespace Shell
 		return color | attributes;
 	}
 
-	struct AttributeBundle::ColorPair
+	class AttributeBundle::ColorPair
 	{
+	public:
+
 		AttributeBundle m_Ancillary;
 
 		// Bit manipulations rely on the assumption that this assertion is true.
