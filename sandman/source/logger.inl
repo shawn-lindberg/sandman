@@ -97,48 +97,33 @@ template <typename T, typename... ParamsT>
 template <typename T, typename... ParamsT>
 void ::Logger::FormatWrite(std::string_view formatString, T&& firstArg, ParamsT&&... args)
 {
-	for (
-		auto [index, escapingCharacter] = std::tuple{std::string_view::size_type{ 0u }, false};
-		index < formatString.size();
-		++index
-	)
+	bool escapingCharacter{false};
+
+	for (std::string_view::size_type index{0u}; index < formatString.size(); ++index)
 	{
-		char const c{ formatString[index] };
+		char const character{ formatString[index] };
 
-		if (escapingCharacter)
+		if (escapingCharacter and character == kFormatInterpolationIndicator)
 		{
-			switch (c)
-			{
-				case kFormatInterpolationIndicator:
-					// Write the first argument, then
-					// interpolate the remaining arguments
-					// into the rest of the string recursively.
+			// Write the first argument, then
+			// interpolate the remaining arguments
+			// into the rest of the string recursively.
 
-					Write(std::forward<T>(firstArg));
-					formatString.remove_prefix(++index);
+			Write(std::forward<T>(firstArg));
+			++index;
+			formatString.remove_prefix(index);
 
-					// Recursion.
-					return FormatWrite(formatString, std::forward<ParamsT>(args)...);
-
-				default:
-					// An escaped character that isn't special is simply written.
-					Write(c);
-					break;
-			}
-			escapingCharacter = false;
+			// Recursion.
+			return FormatWrite(formatString, std::forward<ParamsT>(args)...);
+		}
+		else if (character == kFormatEscapeIndicator and not escapingCharacter)
+		{
+			escapingCharacter = true;
 		}
 		else
 		{
-			switch (c)
-			{
-				case kFormatEscapeIndicator:
-					escapingCharacter = true;
-					break;
-				default:
-					Write(c);
-					break;
-			}
+			Write(character);
+			escapingCharacter = false;
 		}
 	}
-
 }
