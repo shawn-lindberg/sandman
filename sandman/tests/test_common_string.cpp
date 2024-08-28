@@ -54,7 +54,7 @@ namespace Require
 {
 	// The next character after the string content should always be the null character.
 	template <typename CharT, std::size_t kN>
-	static void StringNullTerminated(Common::String<CharT, kN> const& buffer)
+	static void StringIsNullTerminated(Common::String<CharT, kN> const& buffer)
 	{
 		INFO('\"' << buffer.GetData().data() << "\" with string length " << buffer.GetLength()
 					 << " is not null terminated correctly. "
@@ -101,7 +101,7 @@ namespace Require
 			}
 			{
 				INFO("The string was not correctly null terminated.");
-				Require::StringNullTerminated(buffer);
+				Require::StringIsNullTerminated(buffer);
 			}
 		}
 
@@ -112,7 +112,7 @@ namespace Require
 
 		{
 			INFO("After removed characters, the buffer string is not correctly null terminated.");
-			Require::StringNullTerminated(buffer);
+			Require::StringIsNullTerminated(buffer);
 		}
 
 		for (std::string_view::size_type offset{ 0u }; offset < string.size(); ++offset)
@@ -128,7 +128,7 @@ namespace Require
 
 		{
 			INFO("After inserted characters, the buffer string is not correctly null terminated.");
-			Require::StringNullTerminated(buffer);
+			Require::StringIsNullTerminated(buffer);
 		}
 	};
 } // namespace Require
@@ -201,7 +201,7 @@ TEST_CASE("`String`", "[.Common][.Common_String]")
 			REQUIRE(buffer.GetLength() == ++insertCount);
 		}
 
-		Require::StringNullTerminated(buffer);
+		Require::StringIsNullTerminated(buffer);
 
 		// Pushing characters to the front of the buffer should work like pushing to a stack.
 		REQUIRE(buffer.View() == kForwardSentence);
@@ -217,7 +217,7 @@ TEST_CASE("`String`", "[.Common][.Common_String]")
 			{
 				REQUIRE_FALSE(buffer.Insert(0u, character));
 			}
-			Require::StringNullTerminated(buffer);
+			Require::StringIsNullTerminated(buffer);
 
 			// Remains unchanged.
 			REQUIRE(buffer.View() == kForwardSentence);
@@ -226,7 +226,7 @@ TEST_CASE("`String`", "[.Common][.Common_String]")
 		SECTION("clear")
 		{
 			buffer.Clear();
-			Require::StringNullTerminated(buffer);
+			Require::StringIsNullTerminated(buffer);
 			REQUIRE(buffer.View() == ""sv);
 		}
 
