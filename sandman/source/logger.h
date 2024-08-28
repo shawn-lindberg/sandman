@@ -303,7 +303,7 @@ public:
 	template <std::size_t kCapacity = kDefaultFormatBufferCapacity, typename AttributesT>
 	[[gnu::format(printf, 2, 3)]]
 	static std::enable_if_t<std::is_class_v<std::decay_t<AttributesT>>, bool>
-	WriteFormattedLine(AttributesT const attributes, char const* const format, ...)
+		WriteFormattedLine(AttributesT const attributes, char const* const format, ...)
 	{
 		std::va_list argumentList;
 		va_start(argumentList, format);
