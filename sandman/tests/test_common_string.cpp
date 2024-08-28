@@ -5,51 +5,6 @@
 #include <sstream>
 #include <type_traits>
 
-#if false
-inline namespace Debug
-{
-
-	template <typename CharT, std::size_t kN>
-	std::ostream& operator<<(std::ostream& outputStream, Common::String<CharT, kN> const& buffer)
-	{
-		outputStream << "Buffer[";
-		for (typename Common::String<CharT, kN>::Data::size_type i{ 0u }; i < kN; ++i)
-		{
-			if (i == buffer.GetLength()) { outputStream << '@'; continue; }
-			CharT const c{ buffer.GetData().at(i) };
-			if (c == '\0') {
-				outputStream << '0';
-			} else {
-				outputStream << c;
-			}
-		}
-		outputStream << ']';
-		return outputStream;
-	}
-
-	template <typename>
-	static constexpr bool kIsCharBuffer{ false };
-
-	template <typename CharT, std::size_t kN>
-	static constexpr bool kIsCharBuffer<Common::String<CharT, kN>>{ true };
-
-	template <typename T>
-	[[nodiscard]] std::string ToString(T&& object)
-	{
-		std::ostringstream outputStream;
-		outputStream << std::forward<T>(object);
-		return outputStream.str();
-	}
-
-	template <typename... ParametersT>
-	static void PrintLine(ParametersT&&... args)
-	{
-		(Catch::cout() << ... << std::forward<ParametersT>(args)) << '\n';
-	}
-
-} // namespace Debug
-#endif
-
 namespace Require
 {
 	// The next character after the string content should always be the null character.
