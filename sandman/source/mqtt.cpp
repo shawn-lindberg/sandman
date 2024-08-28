@@ -93,7 +93,7 @@ static bool MQTTSubscribeTopic(mosquitto* mosquittoClient, const char* topic)
 // userData:				The user data associated with the client instance.
 // returnCode:			The return code of the connection response.
 //
-void OnConnectCallback(mosquitto* mosquittoClient, [[maybe_unused]] void* userData, int returnCode)
+void OnConnectCallback(mosquitto* mosquittoClient, void* /* userData */, int returnCode)
 {
 	if (returnCode != MOSQ_ERR_SUCCESS)
 	{
@@ -117,7 +117,7 @@ void OnConnectCallback(mosquitto* mosquittoClient, [[maybe_unused]] void* userDa
 // userData:				The user data associated with the client instance.
 // message:				The message data that was received.
 //
-void OnMessageCallback([[maybe_unused]] mosquitto* mosquittoClient, [[maybe_unused]] void* userData,
+void OnMessageCallback(mosquitto* /* mosquittoClient */, void* /* userData */,
 							  mosquitto_message const* message)
 {
 	const auto* payloadString = reinterpret_cast<char*>(message->payload);
