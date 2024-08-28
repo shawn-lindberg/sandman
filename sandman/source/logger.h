@@ -228,8 +228,10 @@ public:
 			ms_Logger.HasScreenEchoEnabled() ? std::make_optional<Shell::Lock>() : std::nullopt
 		);
 
+		std::tm const* const localTime{ Common::GetLocalTime() };
+
 		// Write the timestamp.
-		if (std::tm const* const localTime{ Common::GetLocalTime() }; localTime != nullptr)
+		if (localTime != nullptr)
 		{
 			ms_Logger.Write(Shell::Cyan(std::put_time(localTime, "%Y/%m/%d %H:%M:%S %Z | ")));
 		}
