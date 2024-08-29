@@ -190,18 +190,22 @@ void Input::Process()
 			
 		m_DeviceOpenHasFailed = false;
 	}
-	
+
 	// Read up to 64 input events at a time.
-	static unsigned int const s_EventsToReadCount = 64;
-	input_event events[s_EventsToReadCount];
+	static constexpr std::size_t kEventsToReadCount{64};
+	input_event events[kEventsToReadCount];
 	static constexpr std::size_t kEventSize{sizeof(input_event)};
-	static auto const s_EventBufferSize = s_EventsToReadCount * kEventSize;
-	
-	auto const readCount = read(m_DeviceFileHandle, events, s_EventBufferSize);
-	
+	static constexpr std::size_t kEventBufferSize{kEventsToReadCount * kEventSize};
+
+	static_assert(kEventBufferSize <= SSIZE_MAX,
+					  "In `man 'read(2)'`, DESCRIPTION: "
+					  "\"According to POSIX.1, if count is greater than SSIZE_MAX, "
+					  "the result is implementation-defined; see NOTES for the upper limit on Linux.\"");
+	auto const readCount = read(m_DeviceFileHandle, events, kEventBufferSize);
+
 	// I think maybe this would happen if the device got disconnected?
 	if (readCount < 0)
-	{		
+	{
 		// When we are in nonblocking mode, this "error" means that there was no data and 
 		// we need to check the device again.
 		if (errno == EAGAIN)
