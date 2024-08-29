@@ -36,8 +36,7 @@ class Common::String
 		Common::NonNull<OnDecrementStringLengthListener> m_OnDecrementStringLength;
 
 	public:
-		static_assert(std::tuple_size_v<Data> > 0u,
-						  "Assert can subtract from size without underflow.");
+		static_assert(std::tuple_size_v<Data> > 0u, "Assert can subtract from size without underflow.");
 
 		// The last position is reserved for the null character.
 		static constexpr typename Data::size_type kMaxStringLength{ std::tuple_size_v<Data> - 1u };

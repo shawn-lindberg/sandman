@@ -1,7 +1,9 @@
 #pragma once
 
-/// Wrapper around a pointer that is not null.
-namespace Common { template <typename> class NonNull; }
+namespace Common {
+	/// Wrapper around a pointer that is not null.
+	template <typename> class NonNull;
+}
 
 // Wrapper around a function pointer that is not null.
 // If initialized with a null pointer, the internal pointer value is not set to null pointer;
