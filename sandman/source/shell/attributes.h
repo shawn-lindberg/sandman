@@ -45,21 +45,21 @@ namespace Shell
 		class ColorPair;
 		class ForegroundColor;
 		class BackgroundColor;
-		template <typename...> class Wrapper;
+		template <typename...> class ObjectBundle;
 
 		// Deduction guide.
 		//
-		// Deduce `Wrapper` type from arguments in `Wrapper` constructor.
+		// Deduce `ObjectBundle` type from arguments in `ObjectBundle` constructor.
 		template <typename... ParametersT>
-		Wrapper(AttributeBundle const, ParametersT&&...) -> Wrapper<ParametersT&&...>;
+		ObjectBundle(AttributeBundle const, ParametersT&&...) -> ObjectBundle<ParametersT&&...>;
 
 		// Wrap objects.
 		template <typename... ParametersT> [[nodiscard]] constexpr
-		Wrapper<ParametersT&&...> operator()(ParametersT&&... args) const
+		ObjectBundle<ParametersT&&...> operator()(ParametersT&&... args) const
 		{
 			static_assert(sizeof...(args) > 0u,
 							  "Calling this function without any arguments is probably a mistake.");
-			return Wrapper(*this, std::forward<ParametersT>(args)...);
+			return ObjectBundle(*this, std::forward<ParametersT>(args)...);
 		}
 
 	};
@@ -170,7 +170,7 @@ namespace Shell
 
 	// Object wrapper.
 	template <typename... ObjectsT>
-	class [[nodiscard]] AttributeBundle::Wrapper
+	class [[nodiscard]] AttributeBundle::ObjectBundle
 	{
 	public:
 
@@ -178,17 +178,17 @@ namespace Shell
 		AttributeBundle m_Attributes;
 
 		template <typename... ParametersT> [[nodiscard]]
-		constexpr explicit Wrapper(AttributeBundle const attributes, ParametersT&&... args)
+		constexpr explicit ObjectBundle(AttributeBundle const attributes, ParametersT&&... args)
 			: m_Objects(std::forward<ParametersT>(args)...), m_Attributes{ attributes } {}
 	};
 
 	// NOLINTBEGIN(readability-identifier-naming)
 
 	template <typename>
-	inline constexpr bool IsAttrWrapper{ false };
+	inline constexpr bool IsObjectBundle{ false };
 
 	template <typename... ObjectsT>
-	inline constexpr bool IsAttrWrapper<AttributeBundle::Wrapper<ObjectsT...>>{ true };
+	inline constexpr bool IsObjectBundle<AttributeBundle::ObjectBundle<ObjectsT...>>{ true };
 
 	// NOLINTEND(readability-identifier-naming)
 
@@ -218,12 +218,12 @@ namespace Shell
 		}
 
 		template <typename... ParametersT>
-		[[nodiscard]] constexpr Wrapper<ParametersT&&...> operator()(ParametersT&&... args) const
+		[[nodiscard]] constexpr ObjectBundle<ParametersT&&...> operator()(ParametersT&&... args) const
 		{
 			static_assert(sizeof...(args) > 0u,
 							  "Calling this function without any arguments is probably a mistake.");
 
-			return Wrapper(this->BuildAttr(), std::forward<ParametersT>(args)...);
+			return ObjectBundle(this->BuildAttr(), std::forward<ParametersT>(args)...);
 		}
 	};
 
@@ -258,12 +258,12 @@ namespace Shell
 		}
 
 		template <typename... ParametersT>
-		[[nodiscard]] constexpr Wrapper<ParametersT&&...> operator()(ParametersT&&... args) const
+		[[nodiscard]] constexpr ObjectBundle<ParametersT&&...> operator()(ParametersT&&... args) const
 		{
 			static_assert(sizeof...(args) > 0u,
 							  "Calling this function without any arguments is probably a mistake.");
 
-			return Wrapper(this->BuildAttr(), std::forward<ParametersT>(args)...);
+			return ObjectBundle(this->BuildAttr(), std::forward<ParametersT>(args)...);
 		}
 	};
 
@@ -296,12 +296,12 @@ namespace Shell
 		}
 
 		template <typename... ParametersT>
-		[[nodiscard]] constexpr Wrapper<ParametersT&&...> operator()(ParametersT&&... args) const
+		[[nodiscard]] constexpr ObjectBundle<ParametersT&&...> operator()(ParametersT&&... args) const
 		{
 			static_assert(sizeof...(args) > 0u,
 							  "Calling this function without any arguments is probably a mistake.");
 
-			return Wrapper(this->BuildAttr(), std::forward<ParametersT>(args)...);
+			return ObjectBundle(this->BuildAttr(), std::forward<ParametersT>(args)...);
 		}
 	};
 

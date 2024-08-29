@@ -126,11 +126,11 @@ namespace Shell
 		void ClearAllAttributes();
 
 		// Variable-argument write function.
-		template <typename T, typename... ParametersT>
-		[[gnu::always_inline]] inline void Write(T&& first, ParametersT&& ... arguments)
+		template <typename FirstT, typename... ParametersT>
+		[[gnu::always_inline]] inline void Write(FirstT&& first, ParametersT&& ... arguments)
 		{
 			// Process the first argument.
-			if constexpr (IsAttrWrapper<std::decay_t<T>>)
+			if constexpr (IsObjectBundle<std::decay_t<FirstT>>)
 			{
 				bool const didPushAttributes{ PushAttributes(first.m_Attributes) };
 
@@ -149,7 +149,7 @@ namespace Shell
 			}
 			else
 			{
-				Write(std::forward<T>(first));
+				Write(std::forward<FirstT>(first));
 			}
 
 			// Process the other arguments; if none, clear all attributes and refresh.

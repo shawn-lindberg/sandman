@@ -1,24 +1,26 @@
 #include "logger.h"
 
-template <typename T, typename... ParametersT>
-[[gnu::always_inline]] inline void Logger::Write(T&& firstArg, ParametersT&&... args)
+template <typename FirstT, typename... ParametersT>
+[[gnu::always_inline]] inline void Logger::Write(FirstT&& first, ParametersT&&... arguments)
 {
-	static_assert(not std::is_same_v<std::decay_t<T>, Shell::AttributeBundle>,
+	// Decayed type of the first argument.
+
+	static_assert(not std::is_same_v<std::decay_t<FirstT>, Shell::AttributeBundle>,
 					  "Do not pass in attributes directly; instead use an attribute object wrapper.");
 
-	if constexpr (Logger::IsFormat<std::decay_t<T>>)
+	if constexpr (Logger::IsFormat<std::decay_t<FirstT>>)
 	{
 		// If the first argument is a `Logger::Format` object,
 		// then forward the arguments to a call to `Logger::FormatWrite`.
 		std::apply(
-			[this, formatString=firstArg.m_FormatString](auto&&... objects) -> void
+			[this, formatString=first.m_FormatString](auto&&... objects) -> void
 			{
 				return this->FormatWrite(formatString, std::forward<decltype(objects)>(objects)...);
 			},
-			firstArg.m_Objects
+			first.m_Objects
 		);
 	}
-	else if constexpr (Shell::IsAttrWrapper<std::decay_t<T>>)
+	else if constexpr (Shell::IsObjectBundle<std::decay_t<FirstT>>)
 	{
 		// Callable to be passed into `std::apply`.
 		auto const writeArgs = [this](auto&&... objects) -> void
@@ -33,7 +35,7 @@ template <typename T, typename... ParametersT>
 
 			// Dump the current data to the output destinations.
 			bool const didPushAttributes{
-				[attributes=firstArg.m_Attributes, stringView=std::string_view(string)]() -> bool
+				[attributes=first.m_Attributes, stringView=std::string_view(string)]() -> bool
 				{
 					Shell::LoggingWindow::Write(stringView);
 					return Shell::LoggingWindow::PushAttributes(attributes);
@@ -45,7 +47,7 @@ template <typename T, typename... ParametersT>
 			m_Buffer.str("");
 
 			// Recursively write the objects in the object wrapper.
-			std::apply(writeArgs, firstArg.m_Objects);
+			std::apply(writeArgs, first.m_Objects);
 
 			// Pop the attributes object to remove its effect.
 			if (didPushAttributes)
@@ -57,20 +59,20 @@ template <typename T, typename... ParametersT>
 		{
 			// If screen echo is not enabled, simply recursively write the objects in the
 			// object wrapper.
-			std::apply(writeArgs, firstArg.m_Objects);
+			std::apply(writeArgs, first.m_Objects);
 		}
 	}
 	else
 	{
 		// If the first argument is not a special parameter,
 		// simply write it to the buffer.
-		m_Buffer << std::forward<T>(firstArg);
+		m_Buffer << std::forward<FirstT>(first);
 	}
 
-	if constexpr (sizeof...(args) > 0u)
+	if constexpr (sizeof...(arguments) > 0u)
 	{
 		// Recursively write the remaining arguments.
-		return Write(std::forward<ParametersT>(args)...);
+		return Write(std::forward<ParametersT>(arguments)...);
 	}
 	else
 	{
@@ -93,8 +95,8 @@ template <typename T, typename... ParametersT>
 	}
 }
 
-template <typename T, typename... ParametersT>
-void Logger::FormatWrite(std::string_view formatString, T&& firstArg, ParametersT&&... args)
+template <typename FirstT, typename... ParametersT>
+void Logger::FormatWrite(std::string_view formatString, FirstT&& first, ParametersT&&... arguments)
 {
 	bool escapingCharacter{false};
 
@@ -108,12 +110,12 @@ void Logger::FormatWrite(std::string_view formatString, T&& firstArg, Parameters
 			// interpolate the remaining arguments
 			// into the rest of the string recursively.
 
-			Write(std::forward<T>(firstArg));
+			Write(std::forward<FirstT>(first));
 			++index;
 			formatString.remove_prefix(index);
 
 			// Recursion.
-			return FormatWrite(formatString, std::forward<ParametersT>(args)...);
+			return FormatWrite(formatString, std::forward<ParametersT>(arguments)...);
 		}
 		else if (character == kFormatEscapeIndicator and not escapingCharacter)
 		{

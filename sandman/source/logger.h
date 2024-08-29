@@ -68,8 +68,8 @@ public:
 	// then flushes the data to the output destinations.
 	//
 	// The internal buffer should be empty after every call to this function.
-	template <typename T, typename... ParametersT>
-	[[gnu::always_inline]] inline void Write(T&& firstArg, ParametersT&&... args);
+	template <typename FirstT, typename... ParametersT>
+	[[gnu::always_inline]] inline void Write(FirstT&& firstArg, ParametersT&&... args);
 
 	static constexpr char kFormatEscapeIndicator{ '%' };
 	static constexpr char kFormatInterpolationIndicator{ '$' };
@@ -98,8 +98,8 @@ public:
 	//
 	// If there are more arguments than there are interpolation indicators `%$`
 	// in the format string, the extra arguments are ignored.
-	template <typename T, typename... ParametersT>
-	void FormatWrite(std::string_view formatString, T&& firstArg, ParametersT&&... args);
+	template <typename FirstT, typename... ParametersT>
+	void FormatWrite(std::string_view formatString, FirstT&& firstArg, ParametersT&&... args);
 
 	// Object wrapper for formatting.
 	//
