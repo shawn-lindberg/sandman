@@ -176,7 +176,7 @@ static bool Initialize()
 		}
 
 		Shell::Initialize();
-		Logger::SetScreenEchoFlag(true);
+		Logger::SetEchoToScreen(true);
 	}
 
 	// Read the config.

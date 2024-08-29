@@ -182,7 +182,7 @@ public:
 	// NOLINTNEXTLINE(readability-identifier-naming)
 	static constexpr bool IsFormat{ Logger::Traits::IsFormat<T>{} };
 
-	[[gnu::always_inline]] [[nodiscard]] inline static bool GetScreenEchoFlag()
+	[[gnu::always_inline]] [[nodiscard]] inline static bool GetEchoToScreen()
 	{
 		std::lock_guard const lock(ms_Mutex);
 		return ms_Logger.m_ScreenEcho;
@@ -191,7 +191,7 @@ public:
 	/// @brief Toggle whether the logger, in addition to writting to the log file,
 	/// also prints to the screen.
 	/// @warning This does not initialize or uninitialize the shell graphics system.
-	[[gnu::always_inline]] inline static void SetScreenEchoFlag(bool const value)
+	[[gnu::always_inline]] inline static void SetEchoToScreen(bool const value)
 	{
 		std::lock_guard const lock(ms_Mutex);
 		ms_Logger.m_ScreenEcho = value;
