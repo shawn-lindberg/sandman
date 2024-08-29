@@ -126,7 +126,6 @@ namespace Shell
 		void ClearAllAttributes();
 
 		// Variable-argument write function.
-		// Calls `Write` on each argument.
 		template <typename T, typename... ParametersT>
 		[[gnu::always_inline]] inline void Write(T&& first, ParametersT&& ... arguments)
 		{

@@ -133,16 +133,12 @@ public:
 			  m_FormatString(formatString) {}
 
 		// Convenience method.
-		//
-		// Calls `::Logger::WriteLine(*this)`.
 		void constexpr WriteLine() const &
 		{
 			return Logger::WriteLine(*this);
 		}
 
 		// Convenience method.
-		//
-		// Calls `::Logger::WriteLine(std::move(*this))`.
 		void constexpr WriteLine() &&
 		{
 			return Logger::WriteLine(std::move(*this));
@@ -262,9 +258,6 @@ public:
 	// Pass `nullptr` as the attributes parameter to not use any attributes.
 	//
 	// Returns `true` on success, `false` otherwise.
-	//
-	// Internally calls `std::vsnprintf` to format the data,
-	// then calls `::Logger::WriteLine` to write the data.
 	template <std::size_t kCapacity = kDefaultFormatBufferCapacity, typename AttributesT>
 	[[gnu::format(printf, 2, 0)]] static std::enable_if_t<
 		std::is_null_pointer_v<std::decay_t<AttributesT>> or
@@ -299,9 +292,6 @@ public:
 	// the global logger with a trailing newline character `'\n'`.
 	//
 	// Returns `true` on success, `false` otherwise.
-	//
-	// Internally calls
-	// `::Logger::WriteFormattedVarArgsListLine(AttributesT, char const* const, std::va_list)`.
 	template <std::size_t kCapacity = kDefaultFormatBufferCapacity, typename AttributesT>
 	[[gnu::format(printf, 2, 3)]]
 	static std::enable_if_t<std::is_class_v<std::decay_t<AttributesT>>, bool>
@@ -324,9 +314,6 @@ public:
 	// trailing newline character `'\n'`.
 	//
 	// Returns `true` on success, `false` otherwise.
-	//
-	// Internally calls
-	// `::Logger::WriteFormattedVarArgsListLine(std::nullptr_t, char const* const, std::va_list)`.
 	template <std::size_t kCapacity = kDefaultFormatBufferCapacity>
 	[[gnu::format(printf, 1, 2)]] static bool WriteFormattedLine(char const* const format, ...)
 	{
