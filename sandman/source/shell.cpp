@@ -3,7 +3,7 @@
 #include "command.h"
 #include "logger.h"
 #include "common/ascii.h"
-#include "common/string.h"
+#include "shell/input_window_eventful_buffer.h"
 
 #include <algorithm>
 #include <csignal>
@@ -379,16 +379,16 @@ namespace Shell
 
 	namespace InputWindow
 	{
-		using Buffer = Common::String<char, kMaxInputStringLength>;
+		using BufferT = EventfulBuffer<char, kMaxInputStringLength>;
 
 		// User keyboard input is stored here.
-		static Buffer s_Buffer(
-			Buffer::OnStringUpdateListener{[](Buffer::Data::size_type const index,
-														 Buffer::Data::value_type const character) -> void
+		static BufferT s_Buffer(
+			BufferT::OnStringUpdateListener{[](BufferT::Data::size_type const index,
+														 BufferT::Data::value_type const character) -> void
 			{
 				mvwaddch(s_Window, kCursorStartY, kCursorStartX + index, character);
 			}},
-			Buffer::OnClearListener{[]() -> void
+			BufferT::OnClearListener{[]() -> void
 			{
 				// Move the cursor back to the start of the input region,
 				// in fact, to the front of the line to be sure (x = 0).
@@ -404,14 +404,14 @@ namespace Shell
 					 // Use default horizontal character.
 					 0);
 			}},
-			Buffer::OnDecrementStringLengthListener{[](Buffer::Data::size_type const newStringLength
+			BufferT::OnDecrementStringLengthListener{[](BufferT::Data::size_type const newStringLength
 																	) -> void
 			{
 				mvwaddch(s_Window, kCursorStartY, kCursorStartX + newStringLength, ' ');
 			}}
 		);
 
-		Buffer const& GetBuffer() { return s_Buffer; }
+		BufferT const& GetBuffer() { return s_Buffer; }
 
 		using FastCursor = std::uint_fast8_t;
 

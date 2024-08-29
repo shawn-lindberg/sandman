@@ -1,4 +1,4 @@
-#include "common/string.h"
+#include "shell/input_window_eventful_buffer.h"
 
 #include "catch_amalgamated.hpp"
 
@@ -9,7 +9,7 @@ namespace Require
 {
 	// The next character after the string content should always be the null character.
 	template <typename CharT, std::size_t kN>
-	static void StringIsNullTerminated(Common::String<CharT, kN> const& buffer)
+	static void StringIsNullTerminated(Shell::InputWindow::EventfulBuffer<CharT, kN> const& buffer)
 	{
 		INFO('\"' << buffer.GetData().data() << "\" with string length " << buffer.GetLength()
 					 << " is not null terminated correctly. "
@@ -19,8 +19,8 @@ namespace Require
 	}
 
 	template <typename CharT, std::size_t kN>
-	static void ReplaceString(Common::String<CharT, kN>& buffer,
-									  typename Common::String<CharT, kN>::Data::size_type const index,
+	static void ReplaceString(Shell::InputWindow::EventfulBuffer<CharT, kN>& buffer,
+									  typename Shell::InputWindow::EventfulBuffer<CharT, kN>::Data::size_type const index,
 									  std::string_view const string)
 	{
 		INFO("Attempt to replace position " << index << " with \"" << string << "\".");
@@ -88,7 +88,7 @@ namespace Require
 	};
 } // namespace Require
 
-TEST_CASE("`String`", "[.Common][.Common_String]")
+TEST_CASE("`Shell, Input Window, Eventful Buffer`", "[.shell]")
 {
 	using namespace std::string_view_literals;
 
@@ -99,7 +99,7 @@ TEST_CASE("`String`", "[.Common][.Common_String]")
 
 	// Initialize buffer with size of the sentence plus one for null character terminator.
 	static constexpr std::size_t kBufferCapacity{ kBackwardSentence.size() + 1u };
-	Common::String<char, kBufferCapacity> buffer;
+	Shell::InputWindow::EventfulBuffer<char, kBufferCapacity> buffer;
 
 	SECTION("properly initialized")
 	{

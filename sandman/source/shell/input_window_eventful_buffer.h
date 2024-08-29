@@ -5,14 +5,13 @@
 #include <type_traits>
 #include <string_view>
 
-#include "./non_null.h"
+#include "common/non_null.h"
 
-namespace Common { template <typename, std::size_t> class String; }
+namespace Shell::InputWindow { template <typename, std::size_t> class EventfulBuffer; }
 
-/// Fixed sized eventful string.
-/// (`std::string` is dynamically sized.)
+/// Fixed sized eventful buffer.
 template <typename CharT, std::size_t kCapacity>
-class Common::String
+class Shell::InputWindow::EventfulBuffer
 {
 	static_assert(std::is_integral_v<CharT>);
 
@@ -51,11 +50,11 @@ class Common::String
 			return m_StringLength;
 		}
 
-		explicit constexpr String() = default;
+		explicit constexpr EventfulBuffer() = default;
 
 		// Construct a string with events.
 		// Pass a null pointer to ignore an event.
-		explicit constexpr String(
+		explicit constexpr EventfulBuffer(
 			OnStringUpdateListener          const onStringUpdateListener          ,
 			OnClearListener                 const onClearListener                 ,
 			OnDecrementStringLengthListener const onDecrementStringLengthListener):
@@ -66,7 +65,7 @@ class Common::String
 
 		// Insert a character at any valid index in the string.
 		// Can insert a character at the end by inserting at
-		// index string length; that is what `String::Push` does.
+		// index string length; that is what `EventfulBuffer::Push` does.
 		//
 		// Inserting a character pushes all characters after it one position to the right.
 		constexpr bool Insert(typename Data::size_type const index, CharT const character)
