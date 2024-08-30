@@ -120,10 +120,10 @@ namespace Shell
 		// Gets the name of a color index. This is mainly for debugging.
 		constexpr std::string_view GetName(Index const color)
 		{
-			using namespace std::string_view_literals;
-
 			switch (color)
 			{
+				using namespace std::string_view_literals;
+
 				case Index::kBlack  : return "Black"   ""sv;
 				case Index::kRed    : return "Red"     ""sv;
 				case Index::kGreen  : return "Green"   ""sv;
