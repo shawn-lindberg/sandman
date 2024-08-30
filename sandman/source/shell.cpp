@@ -503,25 +503,26 @@ namespace Shell
 	bool InputWindow::ProcessSingleUserKey()
 	{
 		// Get one input key from the terminal, if any.
-		switch (int const inputKey{ wgetch(s_Window) }; inputKey)
+		switch (int const inputKey{ wgetch(s_Window) })
 		{
 			// No input.
-			case ERR:
-				return false;
+			case ERR: return false;
 
 			// "Ctrl+D", EOT (End of Transmission), should gracefully quit.
-			case Key::Ctrl<'D'>:
-				return true;
+			case Key::Ctrl<'D'>: return true;
 
 			case KEY_LEFT:
+			{
 				// If the curser has space to move left, move it left.
 				if (s_Cursor > 0u)
 				{
 					BumpCursor<Left>();
 				}
 				return false;
+			}
 
 			case KEY_RIGHT:
+			{
 				// If the cursor has space to move right, including the position of the null character,
 				// move right.
 				if (s_Cursor < s_Buffer.GetLength())
@@ -529,8 +530,10 @@ namespace Shell
 					BumpCursor<Right>();
 				}
 				return false;
+			}
 
 			case KEY_BACKSPACE:
+			{
 				// If successfully removed a character, move the cursor left.
 				// (Unsigned `int` underflow is defined to wrap.)
 				if (s_Buffer.Remove(s_Cursor - 1u))
@@ -538,27 +541,32 @@ namespace Shell
 					BumpCursor<Left>();
 				}
 				return false;
+			}
 
 			// User is submitting the line.
-			case '\r':
-				return HandleSubmitString();
+			case '\r': return HandleSubmitString();
 
 			case '\n':
+			{
 				LoggingWindow::PrintLine(Red("Unexpectedly got a newline character from user input."));
 				return false;
+			}
 
 			// These "Ctrl" characters are usually handled by the terminal,
 			// so they are usually not sent to the program.
-			case Key::Ctrl<'C'>:
+			case Key::Ctrl<'C'>: [[fallthrough]];
 			case Key::Ctrl<'Z'>:
+			{
 				// (Most likely unreachable.)
 				LoggingWindow::PrintLine(Red(
 					"Unexpectedly got a `Ctrl` character '", static_cast<chtype>(inputKey),
 					"' from user input."
 				));
 				return false;
+			}
 
 			default:
+			{
 				bool const inputKeyIsPrintable{
 					Common::IsASCII(inputKey) and std::isprint<char>(inputKey, std::locale::classic())
 				};
@@ -576,6 +584,7 @@ namespace Shell
 				}
 
 				return false;
+			}
 		}
 	}
 
