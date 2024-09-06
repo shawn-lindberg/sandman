@@ -9,7 +9,7 @@
 #include <iomanip>
 
 #include "shell.h"
-#include "common/get_local_time.h"
+#include "common/time_util.h"
 #include "common/implicitly.h"
 
 class Logger
