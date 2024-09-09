@@ -11,12 +11,16 @@ public:
 
    void testRunStarting(Catch::TestRunInfo const&) override
 	{
-		LoggerInitialize(SANDMAN_TEST_BUILD_DIR "tests.log");
+		if (not Logger::Initialize(SANDMAN_TEST_BUILD_DIR "tests.log"))
+		{
+			Catch::cerr() << "The logger failed to initialize.\n";
+			std::exit(EXIT_FAILURE);
+		}
 	}
 
 	void testRunEnded(Catch::TestRunStats const&) override
 	{
-		LoggerUninitialize();
+		Logger::Uninitialize();
 	}
 };
 
@@ -25,174 +29,174 @@ CATCH_REGISTER_LISTENER(TestRunListener)
 
 TEST_CASE("Test missing config", "[config]")
 {
-	Config l_Config;
-	bool const l_Loaded = l_Config.ReadFromFile("");
-	REQUIRE(l_Loaded == false);
+	Config config;
+	bool const loaded = config.ReadFromFile("");
+	REQUIRE(loaded == false);
 }
 
 TEST_CASE("Test default config", "[config]")
 {
-	Config l_Config;
-	bool const l_Loaded = l_Config.ReadFromFile(SANDMAN_TEST_DATA_DIR "sandman.conf");
-	REQUIRE(l_Loaded == true);
+	Config config;
+	bool const loaded = config.ReadFromFile(SANDMAN_TEST_DATA_DIR "sandman.conf");
+	REQUIRE(loaded == true);
 
-	std::vector<ControlConfig> const& l_ControlConfigs = l_Config.GetControlConfigs();
-	REQUIRE(l_ControlConfigs.size() == 3);
-	if (l_ControlConfigs.size() > 2)
+	std::vector<ControlConfig> const& controlConfigs = config.GetControlConfigs();
+	REQUIRE(controlConfigs.size() == 3);
+	if (controlConfigs.size() > 2)
 	{
 		{
-			REQUIRE(std::string(l_ControlConfigs[0].m_Name) == "back");
-			REQUIRE(l_ControlConfigs[0].m_UpGPIOPin == 20);
-			REQUIRE(l_ControlConfigs[0].m_DownGPIOPin == 16);
-			REQUIRE(l_ControlConfigs[0].m_MovingDurationMS == 7000);
+			REQUIRE(std::string(controlConfigs[0].m_Name) == "back");
+			REQUIRE(controlConfigs[0].m_UpGPIOPin == 20);
+			REQUIRE(controlConfigs[0].m_DownGPIOPin == 16);
+			REQUIRE(controlConfigs[0].m_MovingDurationMS == 7000);
 		}
 		{
-			REQUIRE(std::string(l_ControlConfigs[1].m_Name) == "legs");
-			REQUIRE(l_ControlConfigs[1].m_UpGPIOPin == 13);
-			REQUIRE(l_ControlConfigs[1].m_DownGPIOPin == 26);
-			REQUIRE(l_ControlConfigs[1].m_MovingDurationMS == 4000);
+			REQUIRE(std::string(controlConfigs[1].m_Name) == "legs");
+			REQUIRE(controlConfigs[1].m_UpGPIOPin == 13);
+			REQUIRE(controlConfigs[1].m_DownGPIOPin == 26);
+			REQUIRE(controlConfigs[1].m_MovingDurationMS == 4000);
 		}	
 		{
-			REQUIRE(std::string(l_ControlConfigs[2].m_Name) == "elev");
-			REQUIRE(l_ControlConfigs[2].m_UpGPIOPin == 5);
-			REQUIRE(l_ControlConfigs[2].m_DownGPIOPin == 19);
-			REQUIRE(l_ControlConfigs[2].m_MovingDurationMS == 4000);
+			REQUIRE(std::string(controlConfigs[2].m_Name) == "elev");
+			REQUIRE(controlConfigs[2].m_UpGPIOPin == 5);
+			REQUIRE(controlConfigs[2].m_DownGPIOPin == 19);
+			REQUIRE(controlConfigs[2].m_MovingDurationMS == 4000);
 		}
 	}
 
-	REQUIRE(l_Config.GetControlMaxMovingDurationMS() == 100000);
-	REQUIRE(l_Config.GetControlCoolDownDurationMS() == 25);
+	REQUIRE(config.GetControlMaxMovingDurationMS() == 100000);
+	REQUIRE(config.GetControlCoolDownDurationMS() == 25);
 
-	std::vector<InputBinding> const& l_InputBindings = l_Config.GetInputBindings();
-	REQUIRE(l_InputBindings.size() == 6);
-	if (l_InputBindings.size() > 5)
+	std::vector<InputBinding> const& inputBindings = config.GetInputBindings();
+	REQUIRE(inputBindings.size() == 6);
+	if (inputBindings.size() > 5)
 	{
 		{
-			REQUIRE(l_InputBindings[0].m_KeyCode == 310);
-			REQUIRE(std::string(l_InputBindings[0].m_ControlAction.m_ControlName) == "back");
-			REQUIRE(l_InputBindings[0].m_ControlAction.m_Action == Control::ACTION_MOVING_UP);
+			REQUIRE(inputBindings[0].m_KeyCode == 310);
+			REQUIRE(std::string(inputBindings[0].m_ControlAction.m_ControlName) == "back");
+			REQUIRE(inputBindings[0].m_ControlAction.m_Action == Control::kActionMovingUp);
 		}
 		{
-			REQUIRE(l_InputBindings[1].m_KeyCode == 311);
-			REQUIRE(std::string(l_InputBindings[1].m_ControlAction.m_ControlName) == "back");
-			REQUIRE(l_InputBindings[1].m_ControlAction.m_Action == Control::ACTION_MOVING_DOWN);
+			REQUIRE(inputBindings[1].m_KeyCode == 311);
+			REQUIRE(std::string(inputBindings[1].m_ControlAction.m_ControlName) == "back");
+			REQUIRE(inputBindings[1].m_ControlAction.m_Action == Control::kActionMovingDown);
 		}
 		{
-			REQUIRE(l_InputBindings[2].m_KeyCode == 308);
-			REQUIRE(std::string(l_InputBindings[2].m_ControlAction.m_ControlName) == "legs");
-			REQUIRE(l_InputBindings[2].m_ControlAction.m_Action == Control::ACTION_MOVING_UP);
+			REQUIRE(inputBindings[2].m_KeyCode == 308);
+			REQUIRE(std::string(inputBindings[2].m_ControlAction.m_ControlName) == "legs");
+			REQUIRE(inputBindings[2].m_ControlAction.m_Action == Control::kActionMovingUp);
 		}
 		{
-			REQUIRE(l_InputBindings[3].m_KeyCode == 305);
-			REQUIRE(std::string(l_InputBindings[3].m_ControlAction.m_ControlName) == "legs");
-			REQUIRE(l_InputBindings[3].m_ControlAction.m_Action == Control::ACTION_MOVING_DOWN);
+			REQUIRE(inputBindings[3].m_KeyCode == 305);
+			REQUIRE(std::string(inputBindings[3].m_ControlAction.m_ControlName) == "legs");
+			REQUIRE(inputBindings[3].m_ControlAction.m_Action == Control::kActionMovingDown);
 		}
 		{
-			REQUIRE(l_InputBindings[4].m_KeyCode == 307);
-			REQUIRE(std::string(l_InputBindings[4].m_ControlAction.m_ControlName) == "elev");
-			REQUIRE(l_InputBindings[4].m_ControlAction.m_Action == Control::ACTION_MOVING_UP);
+			REQUIRE(inputBindings[4].m_KeyCode == 307);
+			REQUIRE(std::string(inputBindings[4].m_ControlAction.m_ControlName) == "elev");
+			REQUIRE(inputBindings[4].m_ControlAction.m_Action == Control::kActionMovingUp);
 		}
 		{
-			REQUIRE(l_InputBindings[5].m_KeyCode == 304);
-			REQUIRE(std::string(l_InputBindings[5].m_ControlAction.m_ControlName) == "elev");
-			REQUIRE(l_InputBindings[5].m_ControlAction.m_Action == Control::ACTION_MOVING_DOWN);
+			REQUIRE(inputBindings[5].m_KeyCode == 304);
+			REQUIRE(std::string(inputBindings[5].m_ControlAction.m_ControlName) == "elev");
+			REQUIRE(inputBindings[5].m_ControlAction.m_Action == Control::kActionMovingDown);
 		}
 	}
 }
 
 TEST_CASE("Test missing schedule", "[schedules]")
 {
-	Schedule l_Schedule;
-	bool const l_Loaded = l_Schedule.ReadFromFile("");
-	REQUIRE(l_Loaded == false);
+	Schedule schedule;
+	bool const loaded = schedule.ReadFromFile("");
+	REQUIRE(loaded == false);
 }
 
 TEST_CASE("Test default (empty) schedule", "[schedules]")
 {
-	Schedule l_Schedule;
-	bool const l_Loaded = l_Schedule.ReadFromFile(SANDMAN_TEST_DATA_DIR "sandman.sched");
-	REQUIRE(l_Loaded == true);
-	REQUIRE(l_Schedule.IsEmpty() == true);
+	Schedule schedule;
+	bool const loaded = schedule.ReadFromFile(SANDMAN_TEST_DATA_DIR "sandman.sched");
+	REQUIRE(loaded == true);
+	REQUIRE(schedule.IsEmpty() == true);
 }
 
 TEST_CASE("Test invalid schedule", "[schedules]")
 {
-	Schedule l_Schedule;
-	bool const l_Loaded = l_Schedule.ReadFromFile(SANDMAN_TEST_DATA_DIR "invalidJson.sched");
-	REQUIRE(l_Loaded == false);
+	Schedule schedule;
+	bool const loaded = schedule.ReadFromFile(SANDMAN_TEST_DATA_DIR "invalidJson.sched");
+	REQUIRE(loaded == false);
 }
 
 TEST_CASE("Test example schedule", "[schedules]")
 {
-	Schedule l_Schedule;
-	bool const l_Loaded = l_Schedule.ReadFromFile(SANDMAN_TEST_DATA_DIR "example.sched");
-	REQUIRE(l_Loaded == true);
-	REQUIRE(l_Schedule.IsEmpty() == false);
-	REQUIRE(l_Schedule.GetNumEvents() == 2);
+	Schedule schedule;
+	bool const loaded = schedule.ReadFromFile(SANDMAN_TEST_DATA_DIR "example.sched");
+	REQUIRE(loaded == true);
+	REQUIRE(schedule.IsEmpty() == false);
+	REQUIRE(schedule.GetNumEvents() == 2);
 
-	std::vector<ScheduleEvent>& l_Events = l_Schedule.GetEvents();
-	if (l_Events.size() > 1)
+	std::vector<ScheduleEvent>& events = schedule.GetEvents();
+	if (events.size() > 1)
 	{
-		REQUIRE(l_Events[0].m_DelaySec == 20);
-		REQUIRE(l_Events[1].m_DelaySec == 25);
+		REQUIRE(events[0].m_DelaySec == 20);
+		REQUIRE(events[1].m_DelaySec == 25);
 
-		REQUIRE(std::string(l_Events[0].m_ControlAction.m_ControlName) == "legs");
-		REQUIRE(l_Events[0].m_ControlAction.m_Action == Control::ACTION_MOVING_UP);
-		REQUIRE(std::string(l_Events[1].m_ControlAction.m_ControlName) == "legs");
-		REQUIRE(l_Events[1].m_ControlAction.m_Action == Control::ACTION_MOVING_DOWN);
+		REQUIRE(std::string(events[0].m_ControlAction.m_ControlName) == "legs");
+		REQUIRE(events[0].m_ControlAction.m_Action == Control::kActionMovingUp);
+		REQUIRE(std::string(events[1].m_ControlAction.m_ControlName) == "legs");
+		REQUIRE(events[1].m_ControlAction.m_Action == Control::kActionMovingDown);
 	}
 }
 
 TEST_CASE("Test controls", "[control]")
 {
-	Config l_Config;
-	bool const l_Loaded = l_Config.ReadFromFile(SANDMAN_TEST_DATA_DIR "sandman.conf");
-	REQUIRE(l_Loaded == true);
+	Config config;
+	bool const loaded = config.ReadFromFile(SANDMAN_TEST_DATA_DIR "sandman.conf");
+	REQUIRE(loaded == true);
 
-	std::vector<ControlConfig> const& l_ControlConfigs = l_Config.GetControlConfigs();
-	REQUIRE(l_ControlConfigs.size() == 3);
-	if (l_ControlConfigs.size() > 2)
+	std::vector<ControlConfig> const& controlConfigs = config.GetControlConfigs();
+	REQUIRE(controlConfigs.size() == 3);
+	if (controlConfigs.size() > 2)
 	{
 		// Set up the controls.
-		bool const l_EnableGPIO = false;
-		ControlsInitialize(l_ControlConfigs, l_EnableGPIO);
+		static constexpr bool kEnableGPIO{ false };
+		ControlsInitialize(controlConfigs, kEnableGPIO);
 
-		Control::SetDurations(l_Config.GetControlMaxMovingDurationMS(), 
-									 l_Config.GetControlCoolDownDurationMS());
+		Control::SetDurations(config.GetControlMaxMovingDurationMS(), 
+									 config.GetControlCoolDownDurationMS());
 
 		// Test an invalid control.
 		{
-			ControlHandle l_Handle = Control::GetHandle("chicken");
-			REQUIRE(l_Handle.IsValid() == false);
-			Control* l_Control = Control::GetFromHandle(l_Handle);
-			REQUIRE(l_Control == nullptr);
+			ControlHandle handle = Control::GetHandle("chicken");
+			REQUIRE(handle.IsValid() == false);
+			Control* control = Control::GetFromHandle(handle);
+			REQUIRE(control == nullptr);
 		}
 
-		ControlHandle l_LegHandle = Control::GetHandle("legs");
-		REQUIRE(l_LegHandle.IsValid() == true);
-		Control* l_LegControl = Control::GetFromHandle(l_LegHandle);
-		REQUIRE(l_LegControl != nullptr);
-		if (l_LegControl != nullptr)
+		ControlHandle legHandle = Control::GetHandle("legs");
+		REQUIRE(legHandle.IsValid() == true);
+		Control* legControl = Control::GetFromHandle(legHandle);
+		REQUIRE(legControl != nullptr);
+		if (legControl != nullptr)
 		{
-			REQUIRE(l_LegControl->GetState() == Control::STATE_IDLE);
+			REQUIRE(legControl->GetState() == Control::kStateIdle);
 		}
 
-		ControlHandle l_BackHandle = Control::GetHandle("back");
-		REQUIRE(l_BackHandle.IsValid() == true);
-		Control* l_BackControl = Control::GetFromHandle(l_BackHandle);
-		REQUIRE(l_BackControl != nullptr);
-		if (l_BackControl != nullptr)
+		ControlHandle backHandle = Control::GetHandle("back");
+		REQUIRE(backHandle.IsValid() == true);
+		Control* backControl = Control::GetFromHandle(backHandle);
+		REQUIRE(backControl != nullptr);
+		if (backControl != nullptr)
 		{
-			REQUIRE(l_BackControl->GetState() == Control::STATE_IDLE);
+			REQUIRE(backControl->GetState() == Control::kStateIdle);
 		}
 
-		ControlHandle l_ElevationHandle = Control::GetHandle("elev");
-		REQUIRE(l_ElevationHandle.IsValid() == true);
-		Control* l_ElevationControl = Control::GetFromHandle(l_ElevationHandle);
-		REQUIRE(l_ElevationControl != nullptr);
-		if (l_ElevationControl != nullptr)
+		ControlHandle elevationHandle = Control::GetHandle("elev");
+		REQUIRE(elevationHandle.IsValid() == true);
+		Control* elevationControl = Control::GetFromHandle(elevationHandle);
+		REQUIRE(elevationControl != nullptr);
+		if (elevationControl != nullptr)
 		{
-			REQUIRE(l_ElevationControl->GetState() == Control::STATE_IDLE);
+			REQUIRE(elevationControl->GetState() == Control::kStateIdle);
 		}
 	}
 }

@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include <cstddef>
 
 #include "rapidjson/document.h"
 
@@ -14,31 +15,31 @@ struct CommandToken
 	// Types of command tokens.
 	enum Types
 	{
-		TYPE_INVALID = -1,
+		kTypeInvalid = -1,
 
-		TYPE_BACK,
-		TYPE_LEGS,
-		TYPE_ELEVATION,
-		TYPE_RAISE,
-		TYPE_LOWER,
-		TYPE_STOP,
-		TYPE_SCHEDULE,
-		TYPE_START,
-		TYPE_STATUS,
-		TYPE_REBOOT, 
-		TYPE_YES, 
-		TYPE_NO, 
+		kTypeBack,
+		kTypeLegs,
+		kTypeElevation,
+		kTypeRaise,
+		kTypeLower,
+		kTypeStop,
+		kTypeSchedule,
+		kTypeStart,
+		kTypeStatus,
+		kTypeReboot, 
+		kTypeYes, 
+		kTypeNo, 
 		
-		TYPE_NOT_PARAMETER_COUNT, 
+		kTypeNotParameterCount, 
 		
 		// The following command tokens are parameters.
-		TYPE_INTEGER = TYPE_NOT_PARAMETER_COUNT, 
+		kTypeInteger = kTypeNotParameterCount, 
 		
-		TYPE_COUNT,
+		kTypeCount,
 	};
 
 	// The type of the token.
-	Types m_Type = TYPE_INVALID;
+	Types m_Type = kTypeInvalid;
 
 	// The value of the integer parameter, if relevant.
 	unsigned int m_Parameter = 0u;
@@ -47,9 +48,9 @@ struct CommandToken
 // Potential return values from parsing tokens.
 enum class CommandParseTokensReturnTypes
 {
-	INVALID = 0, 
-	SUCCESS, 
-	MISSING_CONFIRMATION, 
+	kInvalid = 0, 
+	kSuccess, 
+	kMissingConfirmation, 
 };
 
 // Functions
@@ -57,9 +58,9 @@ enum class CommandParseTokensReturnTypes
 
 // Initialize the system.
 //
-// p_Input:	The input device.
+// input:	The input device.
 //
-void CommandInitialize(class Input const& p_Input);
+void CommandInitialize(class Input const& input);
 
 // Uninitialize the system.
 //
@@ -71,36 +72,36 @@ void CommandProcess();
 
 // Parse the command tokens into commands.
 //
-// p_CommandTokens:	All of the potential tokens for the command.
+// commandTokens:	All of the potential tokens for the command.
 //
 // Returns:	A value signifying the result of the parsing.
 //
-CommandParseTokensReturnTypes CommandParseTokens(std::vector<CommandToken> const& p_CommandTokens);
+CommandParseTokensReturnTypes CommandParseTokens(std::vector<CommandToken> const& commandTokens);
 
 // Parse the command tokens into commands.
 //
-// p_ConfirmationText:	(Output) In cases with missing confirmation, this is the confirmation 
+// confirmationText:	(Output) In cases with missing confirmation, this is the confirmation 
 // 	 						prompt.
-// p_CommandTokens:		All of the potential tokens for the command.
+// commandTokens:		All of the potential tokens for the command.
 //
 // Returns:	A value signifying the result of the parsing.
 //
-CommandParseTokensReturnTypes CommandParseTokens(char const*& p_ConfirmationText, 
-	std::vector<CommandToken> const& p_CommandTokens);
+CommandParseTokensReturnTypes CommandParseTokens(char const*& confirmationText, 
+	std::vector<CommandToken> const& commandTokens);
 
 // Take a command string and turn it into a list of tokens.
 //
-// p_CommandTokens:	(Output) The resulting command tokens, in order.
-// p_CommandString:	The command string to tokenize.
+// commandTokens:	(Output) The resulting command tokens, in order.
+// commandString:	The command string to tokenize.
 //
-void CommandTokenizeString(std::vector<CommandToken>& p_CommandTokens, 
-	std::string const& p_CommandString);
+void CommandTokenizeString(std::vector<CommandToken>& commandTokens, 
+	std::string const& commandString);
 
 // Take a command JSON document and turn it into a list of tokens.
 //
-// p_CommandTokens:		(Input/Output) The resulting command tokens, in order. If there was a 
+// commandTokens:		(Input/Output) The resulting command tokens, in order. If there was a 
 // 							command pending confirmation, the corresponding tokens will be passed in.
-// p_CommandDocument:	The command document to tokenize.
+// commandDocument:	The command document to tokenize.
 //
-void CommandTokenizeJSONDocument(std::vector<CommandToken>& p_CommandTokens, 
-	rapidjson::Document const& p_CommandDocument);
+void CommandTokenizeJSONDocument(std::vector<CommandToken>& commandTokens, 
+	rapidjson::Document const& commandDocument);

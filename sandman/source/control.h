@@ -21,21 +21,21 @@ class ControlHandle
 		//
 		bool IsValid() const
 		{
-			return (m_UID != ms_InvalidUID);
+			return (m_UID != kInvalidUID);
 		}
 				
 	private:
 	
 		// Make this constructor private so that non-friends can only construct invalid handles.
-		ControlHandle(unsigned short p_UID);
+		ControlHandle(unsigned short uID);
 		
 		friend class Control;
 		
 		// The invalid unique identifier for a control.
-		static constexpr unsigned short ms_InvalidUID = 0xFFFF;
+		static constexpr unsigned short kInvalidUID{ 0xFFFF };
 		
 		// The unique identifier for the control.
-		unsigned short m_UID = ms_InvalidUID;
+		unsigned short m_UID = kInvalidUID;
 };
 
 // Configuration parameters to initialize a control.
@@ -43,22 +43,22 @@ struct ControlConfig
 {
 	// Read a control config from JSON. 
 	//
-	// p_Object:	The JSON object representing a control config.
+	// object:	The JSON object representing a control config.
 	//
 	// Returns:		True if the config was read successfully, false otherwise.
 	//
-	bool ReadFromJSON(rapidjson::Value const& p_Object);
+	bool ReadFromJSON(rapidjson::Value const& object);
 
 	// Constants.
-	static constexpr unsigned int ms_ControlNameCapacity = 32;
-	
+	static constexpr unsigned int kControlNameCapacity{32u};
+
 	// The name of the control.
-	char m_Name[ms_ControlNameCapacity];
+	char m_Name[kControlNameCapacity];
 
 	// The GPIO pins to use.
 	int m_UpGPIOPin;
 	int m_DownGPIOPin;
-	
+
 	// The duration of the moving state (in milliseconds) for this control.
 	unsigned int m_MovingDurationMS;
 };
@@ -71,34 +71,34 @@ class Control
 		// States a control may be in.
 		enum State
 		{
-			STATE_IDLE = 0,
-			STATE_MOVING_UP,
-			STATE_MOVING_DOWN,
-			STATE_COOL_DOWN,    // A delay after moving before moving can occur again.
+			kStateIdle = 0,
+			kStateMovingUp,
+			kStateMovingDown,
+			kStateCoolDown,    // A delay after moving before moving can occur again.
 		};
 
 		// Actions a control may be desired to perform.
 		enum Actions
 		{
-			ACTION_STOPPED = 0,
-			ACTION_MOVING_UP,
-			ACTION_MOVING_DOWN,
+			kActionStopped = 0,
+			kActionMovingUp,
+			kActionMovingDown,
 			
-			NUM_ACTIONS,
+			kNumActions,
 		};
 
 		// Movement modes, either manual or timed for now.
 		enum Modes
 		{
-			MODE_MANUAL = 0, 
-			MODE_TIMED,
+			kModeManual = 0, 
+			kModeTimed,
 		};
 		
 		// Handle initialization.
 		//
-		// p_Config:	Configuration parameters for the control.
+		// config:	Configuration parameters for the control.
 		//
-		void Initialize(ControlConfig const& p_Config);
+		void Initialize(ControlConfig const& config);
 
 		// Handle uninitialization.
 		//
@@ -110,13 +110,12 @@ class Control
 
 		// Set the desired action.
 		//
-		// p_DesiredAction:		The desired action.
-		// p_Mode:					The mode of the action.
-		// p_DurationPercent:	(Optional) The percent of the normal duration to perform the action 
+		// desiredAction:		The desired action.
+		// mode:					The mode of the action.
+		// durationPercent:	(Optional) The percent of the normal duration to perform the action 
 		//								for.
 		//
-		void SetDesiredAction(Actions p_DesiredAction, Modes p_Mode, 
-			unsigned int p_DurationPercent = 100);
+		void SetDesiredAction(Actions desiredAction, Modes mode, unsigned int durationPercent = 100);
 
 		// Get the name.
 		//
@@ -134,44 +133,44 @@ class Control
 		
 		// Enable or disable all controls.
 		//
-		// p_Enable:	Whether to enable or disable all controls.
+		// enable:	Whether to enable or disable all controls.
 		//
-		static void Enable(bool p_Enable);
+		static void Enable(bool enable);
 		
 		// Set the durations.
 		//
-		// p_MovingDurationMS:		Duration of the moving state (in milliseconds).
-		// p_CoolDownDurationMS:	Duration of the cool down state (in milliseconds).
+		// movingDurationMS:		Duration of the moving state (in milliseconds).
+		// coolDownDurationMS:	Duration of the cool down state (in milliseconds).
 		//
-		static void SetDurations(unsigned int p_MovingDurationMS, unsigned int p_CoolDownDurationMS);
+		static void SetDurations(unsigned int movingDurationMS, unsigned int coolDownDurationMS);
 		
 		// Attempt to get the handle of a control based on its name.
 		//
-		// p_Name:	The unique name of the control.
+		// name:	The unique name of the control.
 		//
 		// Returns:	A handle to the control, or an invalid handle if one with the given name could not be found.
 		//
-		static ControlHandle GetHandle(char const* p_Name);
+		static ControlHandle GetHandle(char const* name);
 
 		// Look up a control from its handle.
 		//
-		// p_Handle:	A handle to the control.
+		// handle:	A handle to the control.
 		//
 		// Returns:		The control, or null if the handle is not valid.
 		//
-		static Control* GetFromHandle(ControlHandle const& p_Handle);
+		static Control* GetFromHandle(ControlHandle const& handle);
 		
 	private:
 
 		// Constants.
-		static constexpr unsigned int ms_NameCapacity = 32;
+		static constexpr unsigned int kNameCapacity{ 32u };
 
 		// Play a notification for the state.
 		//
 		void PlayNotification();
 		
 		// The name of the control.
-		char m_Name[ms_NameCapacity];
+		char m_Name[kNameCapacity];
 		
 		// The control state.
 		State m_State;
@@ -209,15 +208,15 @@ struct ControlAction
 	
 	// A constructor for emplacing.
 	// 
-	ControlAction(char const* p_ControlName, Control::Actions p_Action);
+	ControlAction(char const* controlName, Control::Actions action);
 
 	// Read a control action from JSON. 
 	//
-	// p_Object:	The JSON object representing a control action.
+	// object:	The JSON object representing a control action.
 	//
 	// Returns:		True if the action was read successfully, false otherwise.
 	//
-	bool ReadFromJSON(rapidjson::Value const& p_Object);
+	bool ReadFromJSON(rapidjson::Value const& object);
 
 	// Attempt to get the control corresponding to the control action.
 	//
@@ -226,16 +225,16 @@ struct ControlAction
 	Control* GetControl();
 	
 	// Constants.
-	static constexpr unsigned int ms_ControlNameCapacity = 32;
+	static constexpr unsigned int kControlNameCapacity{ 32u };
 	
 	// The name of the control to manipulate.
-	char					m_ControlName[ms_ControlNameCapacity];
+	char m_ControlName[kControlNameCapacity];
 	
 	// The action for the control.
-	Control::Actions	m_Action;
+	Control::Actions m_Action;
 	
 	// A handle to the control for fast lookup.
-	ControlHandle		m_ControlHandle;
+	ControlHandle m_ControlHandle;
 };
 
 
@@ -244,10 +243,10 @@ struct ControlAction
 
 // Initialize all of the controls.
 //
-// p_Configs:		Configuration parameters for the controls to add.
-// p_EnableGPIO:	Whether to turn on GPIO or not.
+// configs:    Configuration parameters for the controls to add.
+// enableGPIO: Whether to turn on GPIO or not.
 //
-void ControlsInitialize(std::vector<ControlConfig> const& p_Configs, bool const p_EnableGPIO);
+void ControlsInitialize(std::vector<ControlConfig> const& configs, bool const enableGPIO);
 
 // Uninitialize all of the controls.
 //
@@ -259,11 +258,11 @@ void ControlsProcess();
 
 // Create a new control with the provided config. Control names must be unique.
 //
-// p_Config:	Configuration parameters for the control.
+// config:	Configuration parameters for the control.
 //
 // Returns:		True if the control was successfully created, false otherwise.
 //
-bool ControlsCreateControl(ControlConfig const& p_Config);
+bool ControlsCreateControl(ControlConfig const& config);
 
 // Stop all of the controls.
 //

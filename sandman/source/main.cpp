@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <cctype>
 #include <cstdio>
 #include <ctime>
@@ -15,7 +16,7 @@
 #include "input.h"
 #include "logger.h"
 #include "mqtt.h"
-#include "ncurses_ui.h"
+#include "shell.h"
 #include "notification.h"
 #include "reports.h"
 #include "schedule.h"
@@ -56,17 +57,17 @@ static bool Initialize()
 		std::printf("Initializing as a daemon.\n");
 
 		// Fork a child off of the parent process.
-		auto const l_ProcessID = fork();
+		auto const processID = fork();
 
 		// Legitimate failure.
-		if (l_ProcessID < 0)
+		if (processID < 0)
 		{
 			s_ExitCode = 1;
 			return false;
 		}
 
 		// The parent gets the ID of the child and exits.
-		if (l_ProcessID > 0)
+		if (processID > 0)
 		{
 			s_ExitCode = 1;
 			return false;
@@ -78,18 +79,18 @@ static bool Initialize()
 		umask(0);
 
 		// Initialize logging.
-		if (LoggerInitialize(SANDMAN_TEMP_DIR "sandman.log") == false)
+		if (Logger::Initialize(SANDMAN_TEMP_DIR "sandman.log") == false)
 		{
 			s_ExitCode = 1;
 			return false;
 		}
 
 		// Need a new session ID.
-		auto const l_SessionID = setsid();
+		auto const sessionID = setsid();
 
-		if (l_SessionID < 0)
+		if (sessionID < 0)
 		{
-			LoggerAddMessage("Failed to get new session ID for daemon.");
+			Logger::WriteLine(Shell::Red("Failed to get new session ID for daemon."));
 			s_ExitCode = 1;
 			return false;
 		}
@@ -97,13 +98,14 @@ static bool Initialize()
 		// Change the current working directory.
 		if (chdir(SANDMAN_TEMP_DIR) < 0)
 		{
-			LoggerAddMessage("Failed to change working directory to \"%s\" ID for daemon.",
-								  SANDMAN_TEMP_DIR);
+			Logger::WriteFormattedLine(Shell::Red,
+												"Failed to change working directory to \"%s\" ID for daemon.",
+												SANDMAN_TEMP_DIR);
 			s_ExitCode = 1;
 			return false;
 		}
 
-		// Close stdin, stdou, stderr.
+		// Close stdin, stdout, stderr.
 		close(STDIN_FILENO);
 		close(STDOUT_FILENO);
 		close(STDERR_FILENO);
@@ -121,7 +123,7 @@ static bool Initialize()
 
 		if (s_ListeningSocket < 0)
 		{
-			LoggerAddMessage("Failed to create listening socket.");
+			Logger::WriteLine(Shell::Red("Failed to create listening socket."));
 			s_ExitCode = 1;
 			return false;
 		}
@@ -129,26 +131,26 @@ static bool Initialize()
 		// Set to non-blocking.
 		if (fcntl(s_ListeningSocket, F_SETFL, O_NONBLOCK) < 0)
 		{
-			LoggerAddMessage("Failed to make listening socket non-blocking.");
+			Logger::WriteLine(Shell::Red("Failed to make listening socket non-blocking."));
 			s_ExitCode = 1;
 			return false;
 		}
 
-		sockaddr_un l_ListeningAddress;
+		sockaddr_un listeningAddress;
 		{
-			l_ListeningAddress.sun_family = AF_UNIX;
-			std::strncpy(l_ListeningAddress.sun_path, SANDMAN_TEMP_DIR "sandman.sock",
-							 sizeof(l_ListeningAddress.sun_path) - 1);
+			listeningAddress.sun_family = AF_UNIX;
+			std::strncpy(listeningAddress.sun_path, SANDMAN_TEMP_DIR "sandman.sock",
+							 sizeof(listeningAddress.sun_path) - 1);
 		}
 
 		// Unlink the file if needed.
-		unlink(l_ListeningAddress.sun_path);
+		unlink(listeningAddress.sun_path);
 
 		// Bind the socket to the file.
-		if (bind(s_ListeningSocket, reinterpret_cast<sockaddr*>(&l_ListeningAddress),
+		if (bind(s_ListeningSocket, reinterpret_cast<sockaddr*>(&listeningAddress),
 					sizeof(sockaddr_un)) < 0)
 		{
-			LoggerAddMessage("Failed to bind listening socket.");
+			Logger::WriteLine(Shell::Red("Failed to bind listening socket."));
 			s_ExitCode = 1;
 			return false;
 		}
@@ -156,7 +158,7 @@ static bool Initialize()
 		// Mark the socket for listening.
 		if (listen(s_ListeningSocket, 5) < 0)
 		{
-			LoggerAddMessage("Failed to mark listening socket to listen.");
+			Logger::WriteLine(Shell::Red("Failed to mark listening socket to listen."));
 			s_ExitCode = 1;
 			return false;
 		}
@@ -165,21 +167,21 @@ static bool Initialize()
 	}
 	else
 	{
-		NCurses::Initialize();
 
 		// Initialize logging.
-		if (LoggerInitialize(SANDMAN_TEMP_DIR "sandman.log") == false)
+		if (Logger::Initialize(SANDMAN_TEMP_DIR "sandman.log") == false)
 		{
 			s_ExitCode = 1;
 			return false;
 		}
 
-		LoggerEchoToScreen(true);
+		Shell::Initialize();
+		Logger::SetEchoToScreen(true);
 	}
 
 	// Read the config.
-	Config l_Config;
-	if (l_Config.ReadFromFile(SANDMAN_CONFIG_DIR "sandman.conf") == false)
+	Config config;
+	if (config.ReadFromFile(SANDMAN_CONFIG_DIR "sandman.conf") == false)
 	{
 		s_ExitCode = 1;
 		return false;
@@ -193,12 +195,12 @@ static bool Initialize()
 	}
 
 	// Initialize controls.
-	bool const l_EnableGPIO = false;
-	ControlsInitialize(l_Config.GetControlConfigs(), l_EnableGPIO);
+	static constexpr bool kEnableGPIO{ false };
+	ControlsInitialize(config.GetControlConfigs(), kEnableGPIO);
 
 	// Set control durations.
-	Control::SetDurations(l_Config.GetControlMaxMovingDurationMS(),
-								 l_Config.GetControlCoolDownDurationMS());
+	Control::SetDurations(config.GetControlMaxMovingDurationMS(),
+								 config.GetControlCoolDownDurationMS());
 
 	// Enable all controls.
 	Control::Enable(true);
@@ -207,7 +209,7 @@ static bool Initialize()
 	s_ControlsInitialized = true;
 
 	// Initialize the input device.
-	s_Input.Initialize(l_Config.GetInputDeviceName(), l_Config.GetInputBindings());
+	s_Input.Initialize(config.GetInputDeviceName(), config.GetInputBindings());
 
 	// Initialize the schedule.
 	ScheduleInitialize();
@@ -258,11 +260,11 @@ static void Uninitialize()
 	s_Input.Uninitialize();
 
 	// Uninitialize logging.
-	LoggerUninitialize();
+	Logger::Uninitialize();
 
 	if (s_DaemonMode == false)
 	{
-		NCurses::Uninitialize();
+		Shell::Uninitialize();
 	}
 }
 
@@ -273,129 +275,132 @@ static void Uninitialize()
 static bool ProcessSocketCommunication()
 {
 	// Attempt to accept an incoming connection.
-	auto const l_ConnectionSocket = accept(s_ListeningSocket, nullptr, nullptr);
+	auto const connectionSocket = accept(s_ListeningSocket, nullptr, nullptr);
 
-	if (l_ConnectionSocket < 0)
+	if (connectionSocket < 0)
 	{
 		return false;
 	}
 
 	// Got a connection.
-	LoggerAddMessage("Got a new connection.");
+	Logger::WriteFormattedLine("Got a new connection.");
 
 	// Try to read data.
-	static constexpr unsigned int l_MessageBufferCapacity = 100;
-	char l_MessageBuffer[l_MessageBufferCapacity];
+	static constexpr std::size_t kMessageBufferCapacity{ 100u };
+	char messageBuffer[kMessageBufferCapacity];
 
-	auto const l_NumReceivedBytes =
-		recv(l_ConnectionSocket, l_MessageBuffer, l_MessageBufferCapacity - 1, 0);
+	// Assert can subtract one from this without underflow.
+	static_assert(kMessageBufferCapacity >= 1u);
 
-	if (l_NumReceivedBytes <= 0)
+	auto const numReceivedBytes = recv(connectionSocket, messageBuffer,
+												  kMessageBufferCapacity - 1u, 0);
+
+	if (numReceivedBytes <= 0)
 	{
-		LoggerAddMessage("Connection closed, error receiving.");
+		Logger::WriteFormattedLine("Connection closed, error receiving.");
 
 		// Close the connection.
-		close(l_ConnectionSocket);
+		close(connectionSocket);
 		return false;
 	}
 
 	// Terminate.
-	l_MessageBuffer[l_NumReceivedBytes] = '\0';
+	messageBuffer[numReceivedBytes] = '\0';
 
-	LoggerAddMessage("Received \"%s\".", l_MessageBuffer);
+	Logger::WriteFormattedLine("Received \"%s\".", messageBuffer);
 
 	// Handle the message, if necessary.
-	auto l_Done = false;
+	auto done = false;
 
-	if (std::strcmp(l_MessageBuffer, "shutdown") == 0)
+	if (std::strcmp(messageBuffer, "shutdown") == 0)
 	{
-		l_Done = true;
+		done = true;
 	}
 	else
 	{
 		// Parse a command.
 
 		// Tokenize the message.
-		std::vector<CommandToken> l_CommandTokens;
-		CommandTokenizeString(l_CommandTokens, l_MessageBuffer);
+		std::vector<CommandToken> commandTokens;
+		CommandTokenizeString(commandTokens, messageBuffer);
 
 		// Parse command tokens.
-		CommandParseTokens(l_CommandTokens);
+		CommandParseTokens(commandTokens);
 	}
 
-	LoggerAddMessage("Connection closed.");
+	Logger::WriteFormattedLine("Connection closed.");
 
 	// Close the connection.
-	close(l_ConnectionSocket);
+	close(connectionSocket);
 
-	return l_Done;
+	return done;
 }
 
 // Send a message to the daemon process.
 //
-// p_Message:	The message to send.
+// message:	The message to send.
 //
-static void SendMessageToDaemon(char const* p_Message)
+static void SendMessageToDaemon(char const* message)
 {
 	// Create a sending socket.
-	auto const l_SendingSocket = socket(AF_UNIX, SOCK_STREAM, 0);
+	auto const sendingSocket = socket(AF_UNIX, SOCK_STREAM, 0);
 
-	if (l_SendingSocket < 0)
+	if (sendingSocket < 0)
 	{
 		std::printf("Failed to create sending socket.\n");
 		return;
 	}
 
-	sockaddr_un l_SendingAddress;
+	sockaddr_un sendingAddress;
 	{
-		l_SendingAddress.sun_family = AF_UNIX;
-		std::strncpy(l_SendingAddress.sun_path, SANDMAN_TEMP_DIR "sandman.sock",
-						 sizeof(l_SendingAddress.sun_path) - 1);
+		sendingAddress.sun_family = AF_UNIX;
+		std::strncpy(sendingAddress.sun_path, SANDMAN_TEMP_DIR "sandman.sock",
+						 sizeof(sendingAddress.sun_path) - 1);
 	}
 
 	// Attempt to connect to the daemon.
-	if (connect(l_SendingSocket, reinterpret_cast<sockaddr*>(&l_SendingAddress),
+	if (connect(sendingSocket, reinterpret_cast<sockaddr*>(&sendingAddress),
 					sizeof(sockaddr_un)) < 0)
 	{
 		std::printf("Failed to connect to the daemon.\n");
-		close(l_SendingSocket);
+		close(sendingSocket);
 		return;
 	}
 
 	// Send the message.
-	if (send(l_SendingSocket, p_Message, std::strlen(p_Message), 0) < 0)
+	if (send(sendingSocket, message, std::strlen(message), 0) < 0)
 	{
-		std::printf("Failed to send \"%s\" message to the daemon.\n", p_Message);
-		close(l_SendingSocket);
+		std::printf("Failed to send \"%s\" message to the daemon.\n", message);
+		close(sendingSocket);
 		return;
 	}
 
-	std::printf("Sent \"%s\" message to the daemon.\n", p_Message);
+	std::printf("Sent \"%s\" message to the daemon.\n", message);
 
 	// Close the connection.
-	close(l_SendingSocket);
+	close(sendingSocket);
 }
 
 // Handle the commandline arguments.
 //
-//	p_Arguments:		The argument list.
-// p_ArgumentCount:	The number of arguments in the list.
+//	arguments:		The argument list.
+// argumentCount:	The number of arguments in the list.
 //
 // Returns:	True if the program should exit, false if it should continue.
 //
-static bool HandleCommandLine(char** p_Arguments, unsigned int p_ArgumentCount)
+static bool HandleCommandLine(char** arguments, unsigned int argumentCount)
 {
-	for (unsigned int l_ArgumentIndex = 0; l_ArgumentIndex < p_ArgumentCount; l_ArgumentIndex++)
+	for (unsigned int argumentIndex = 0; argumentIndex < argumentCount; argumentIndex++)
 	{
-		auto const* l_Argument = p_Arguments[l_ArgumentIndex];
+		auto const* argument = arguments[argumentIndex];
 
 		// Start as a daemon?
-		if (std::strcmp(l_Argument, "--daemon") == 0)
+		if (std::strcmp(argument, "--daemon") == 0)
 		{
 			s_DaemonMode = true;
 			break;
 		}
-		else if (std::strcmp(l_Argument, "--shutdown") == 0)
+		else if (std::strcmp(argument, "--shutdown") == 0)
 		{
 			SendMessageToDaemon("shutdown");
 			return true;
@@ -405,35 +410,37 @@ static bool HandleCommandLine(char** p_Arguments, unsigned int p_ArgumentCount)
 			// We are going to see if there is a command to send to the daemon.
 			static char const* s_CommandPrefix = "--command=";
 
-			auto const* l_CommandStringStart = std::strstr(l_Argument, s_CommandPrefix);
+			auto const* commandStringStart = std::strstr(argument, s_CommandPrefix);
 
-			if (l_CommandStringStart != nullptr)
+			if (commandStringStart != nullptr)
 			{
 				// Skip the command prefix.
-				l_CommandStringStart += std::strlen(s_CommandPrefix);
+				commandStringStart += std::strlen(s_CommandPrefix);
 
-				static constexpr unsigned int l_CommandBufferCapacity = 100;
-				char l_CommandBuffer[l_CommandBufferCapacity];
+				static constexpr std::size_t kCommandBufferCapacity{ 100u };
+				char commandBuffer[kCommandBufferCapacity];
+
+				static_assert(kCommandBufferCapacity >= 1u);
 
 				// Copy only the actual command.
-				std::strncpy(l_CommandBuffer, l_CommandStringStart, l_CommandBufferCapacity - 1);
-				l_CommandBuffer[l_CommandBufferCapacity - 1] = '\0';
+				std::strncpy(commandBuffer, commandStringStart, kCommandBufferCapacity - 1u);
+				commandBuffer[kCommandBufferCapacity - 1] = '\0';
 
 				// Replace '_' with ' '.
-				auto* l_CurrentCharacter = l_CommandBuffer;
+				auto* currentCharacter = commandBuffer;
 
-				while (*l_CurrentCharacter != '\0')
+				while (*currentCharacter != '\0')
 				{
-					if (*l_CurrentCharacter == '_')
+					if (*currentCharacter == '_')
 					{
-						*l_CurrentCharacter = ' ';
+						*currentCharacter = ' ';
 					}
 
-					l_CurrentCharacter++;
+					currentCharacter++;
 				}
 
 				// Send the command to the daemon.
-				SendMessageToDaemon(l_CommandBuffer);
+				SendMessageToDaemon(commandBuffer);
 				return true;
 			}
 		}
@@ -457,23 +464,18 @@ int main(int argc, char** argv)
 		return s_ExitCode;
 	}
 
-	// Store a keyboard input here.
-	static constexpr unsigned int l_KeyboardInputBufferCapacity = 128;
-	char l_KeyboardInputBuffer[l_KeyboardInputBufferCapacity];
-	unsigned int l_KeyboardInputBufferSize = 0;
-
-	auto l_Done = false;
-	while (l_Done == false)
+	auto done = false;
+	while (done == false)
 	{
 		// We're gonna track the framerate.
-		Time l_FrameStartTime;
-		TimerGetCurrent(l_FrameStartTime);
+		Time frameStartTime;
+		TimerGetCurrent(frameStartTime);
 
 		if (s_DaemonMode == false)
 		{
-			// Process keyboard input.
-			l_Done = NCurses::ProcessKeyboardInput(l_KeyboardInputBuffer, l_KeyboardInputBufferSize,
-																l_KeyboardInputBufferCapacity);
+			Shell::Lock const lock;
+			done = Shell::InputWindow::ProcessSingleUserKey();
+			Shell::CheckResize();
 		}
 
 		// Process command.
@@ -497,32 +499,32 @@ int main(int argc, char** argv)
 		if (s_DaemonMode == true)
 		{
 			// Process socket communication.
-			l_Done = ProcessSocketCommunication();
+			done = ProcessSocketCommunication();
 		}
 
 		// Get the duration of the frame in nanoseconds.
-		Time l_FrameEndTime;
-		TimerGetCurrent(l_FrameEndTime);
+		Time frameEndTime;
+		TimerGetCurrent(frameEndTime);
 
-		float const l_FrameDurationMS = TimerGetElapsedMilliseconds(l_FrameStartTime, l_FrameEndTime);
-		auto const l_FrameDurationNS = static_cast<unsigned long>(l_FrameDurationMS * 1.0e6f);
+		float const frameDurationMS = TimerGetElapsedMilliseconds(frameStartTime, frameEndTime);
+		auto const frameDurationNS = static_cast<unsigned long>(frameDurationMS * 1.0e6f);
 
 		// If the frame is shorter than the duration corresponding to the desired framerate, sleep the
 		// difference off.
-		unsigned long const l_TargetFrameDurationNS = 1000000000 / 60;
+		unsigned long const targetFrameDurationNS = 1000000000 / 60;
 
-		if (l_FrameDurationNS < l_TargetFrameDurationNS)
+		if (frameDurationNS < targetFrameDurationNS)
 		{
-			timespec l_SleepTime;
-			l_SleepTime.tv_sec = 0;
-			l_SleepTime.tv_nsec = l_TargetFrameDurationNS - l_FrameDurationNS;
+			timespec sleepTime;
+			sleepTime.tv_sec = 0;
+			sleepTime.tv_nsec = targetFrameDurationNS - frameDurationNS;
 
-			timespec l_RemainingTime;
-			nanosleep(&l_SleepTime, &l_RemainingTime);
+			timespec remainingTime;
+			nanosleep(&sleepTime, &remainingTime);
 		}
 	}
 
-	LoggerAddMessage("Uninitializing.");
+	Logger::WriteFormattedLine("Uninitializing.");
 
 	// Cleanup.
 	Uninitialize();

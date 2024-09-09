@@ -44,30 +44,30 @@ static const std::map<std::string, std::string>	s_NotificationIDToSpeechTextMap 
 
 // Play a notification.
 // 
-// p_ID:	The ID of the notification to play.
+// iD:	The ID of the notification to play.
 // 
-void NotificationPlay(std::string const& p_ID)
+void NotificationPlay(std::string const& iD)
 {
 	// Try to find it in the map.
-	auto const l_ResultIterator = s_NotificationIDToSpeechTextMap.find(p_ID);
+	auto const resultIterator = s_NotificationIDToSpeechTextMap.find(iD);
 
-	if (l_ResultIterator == s_NotificationIDToSpeechTextMap.end()) 
+	if (resultIterator == s_NotificationIDToSpeechTextMap.end()) 
 	{
-		LoggerAddMessage("Tried to play an invalid notification \"%s\".", p_ID.c_str());
+		Logger::WriteFormattedLine("Tried to play an invalid notification \"%s\".", iD.c_str());
 		return;
 	}
 
-	auto const& l_SpeechText = l_ResultIterator->second;
+	auto const& speechText = resultIterator->second;
 
 	// Generate the notification.
-	MQTTNotification(l_SpeechText);
+	MQTTNotification(speechText);
 }
 
 // Get the time that the last notification finished.
 //
-// p_Time:	(Output) The last time.
+// time:	(Output) The last time.
 //
-void NotificationGetLastPlayFinishedTime(Time& p_Time)
+void NotificationGetLastPlayFinishedTime(Time& time)
 {
-	MQTTGetLastTextToSpeechFinishedTime(p_Time);
+	MQTTGetLastTextToSpeechFinishedTime(time);
 }

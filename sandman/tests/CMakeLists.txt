@@ -1,4 +1,4 @@
-add_executable(tests catch_amalgamated.cpp tests.cpp)
+add_executable(tests catch_amalgamated.cpp tests.cpp test_shell_input_window_buffer.cpp)
 
 target_compile_definitions(tests 
                            PUBLIC SANDMAN_TEST_DATA_DIR="${CMAKE_BINARY_DIR}/data/"

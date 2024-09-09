@@ -21,18 +21,18 @@ void MQTTProcess();
 
 // Generates and publishes a message to cause the provided text to be spoken.
 //
-// p_Text:	The text that should be spoken.
+// text:	The text that should be spoken.
 //
-void MQTTTextToSpeech(std::string const& p_Text);
+void MQTTTextToSpeech(std::string const& text);
 
 // Causes a spoken notification.
 //
-// p_Text:	The notification text.
+// text:	The notification text.
 //
-void MQTTNotification(std::string const& p_Text);
+void MQTTNotification(std::string const& text);
 
 // Get the time that the last text-to-speech finished.
 //
-// p_Time:	(Output) The last time.
+// time:	(Output) The last time.
 //
-void MQTTGetLastTextToSpeechFinishedTime(Time& p_Time);
+void MQTTGetLastTextToSpeechFinishedTime(Time& time);

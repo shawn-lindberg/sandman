@@ -1,7 +1,7 @@
 include(GNUInstallDirs)
 
-set(SOURCE_FILES command.cpp config.cpp control.cpp input.cpp logger.cpp mqtt.cpp ncurses_ui.cpp 
-    notification.cpp reports.cpp schedule.cpp timer.cpp)
+set(SOURCE_FILES command.cpp config.cpp control.cpp input.cpp logger.cpp mqtt.cpp notification.cpp
+	 reports.cpp schedule.cpp shell.cpp timer.cpp)
 add_library(sandman_lib STATIC ${SOURCE_FILES})
 add_executable(sandman main.cpp)
 
@@ -24,7 +24,28 @@ find_package(Curses REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(Mosquitto IMPORTED_TARGET libmosquitto REQUIRED)
 
-target_compile_options(sandman_lib PUBLIC -Wall -Werror)
+if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+   target_compile_options(sandman_lib PUBLIC 
+      -Wall                    # Enable most common warnings
+      -Wextra                  # Enable additional warnings
+      -Werror                  # Treat warnings as errors
+      -Wpedantic               # Enforce strict ISO C++ compliance
+      -Wshadow                 # Warn when a variable shadows another
+      -Wnon-virtual-dtor       # Warn if a class with virtual functions has a non-virtual destructor
+      -Wold-style-cast         # Warn about old-style casts
+      -Woverloaded-virtual     # Warn if a virtual function is overloaded
+      # -Wsign-conversion      # Warn on implicit conversions that change sign
+      -Wformat=1               # Warn about format string issues
+      -Wfloat-equal            # Warn if floating-point values are compared for equality
+		-Wimplicit-fallthrough   # Warn if switch case fallthrough not marked with `[[fallthrough]]`
+   )
+
+   # `-Wformat=2` would warn about non literal format strings.
+
+else()
+   message(WARNING "Not using GNU compiler or Clang compiler.")
+endif()
+
 target_include_directories(sandman_lib PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 #target_include_directories(sandman_lib PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
 

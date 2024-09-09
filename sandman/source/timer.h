@@ -14,19 +14,19 @@ struct Time
 	// The portion of the time in nanoseconds.
 	uint64_t m_Nanoseconds = 0;	
 
-	friend auto operator<(const Time& p_Left, const Time& p_Right)
+	friend auto operator<(const Time& left, const Time& right)
 	{
-		if (p_Left.m_Seconds != p_Right.m_Seconds)
+		if (left.m_Seconds != right.m_Seconds)
 		{
-			return p_Left.m_Seconds < p_Right.m_Seconds;
+			return left.m_Seconds < right.m_Seconds;
 		}
 
-		return p_Left.m_Nanoseconds < p_Right.m_Nanoseconds;
+		return left.m_Nanoseconds < right.m_Nanoseconds;
 	}
 
-	friend auto operator>(const Time& p_Left, const Time& p_Right)
+	friend auto operator>(const Time& left, const Time& right)
 	{
-		return p_Right < p_Left;
+		return right < left;
 	}
 
 };
@@ -36,14 +36,14 @@ struct Time
 
 // Get the current time.
 //
-// p_Time:	(Output) The current time.
+// time:	(Output) The current time.
 //
-void TimerGetCurrent(Time& p_Time);
+void TimerGetCurrent(Time& time);
 
 // Get the elapsed time in milliseconds between two times.
 // Note: Will return -1 if the end time is less than the start time.
 //
-// p_StartTime:	Start time.
-// p_EndTime:		End time.
+// startTime:	Start time.
+// endTime:		End time.
 //
-float TimerGetElapsedMilliseconds(Time const& p_StartTime, Time const& p_EndTime);
+float TimerGetElapsedMilliseconds(Time const& startTime, Time const& endTime);

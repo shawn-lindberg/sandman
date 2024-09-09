@@ -1,10 +1,10 @@
 #include "input.h"
 
-#include <stdarg.h>
-#include <stdio.h>
-#include <string.h>
+#include <cstdarg>
+#include <cstdio>
+#include <cstring>
 
-#include <errno.h>
+#include <cerrno>
 #include <fcntl.h>
 #include <linux/input.h>
 #include <sys/ioctl.h>
@@ -38,46 +38,46 @@
 
 // Read an input binding from JSON. 
 //
-// p_Object:	The JSON object representing a binding.
+// object:	The JSON object representing a binding.
 //	
 // Returns:		True if the binding was read successfully, false otherwise.
 //
-bool InputBinding::ReadFromJSON(rapidjson::Value const& p_Object)	
+bool InputBinding::ReadFromJSON(rapidjson::Value const& object)	
 {
-	if (p_Object.IsObject() == false)
+	if (object.IsObject() == false)
 	{
 		return false;
 	}
 
 	// There must be a keycode.
-	auto const l_KeyCodeIterator = p_Object.FindMember("keyCode");
+	auto const keyCodeIterator = object.FindMember("keyCode");
 
-	if (l_KeyCodeIterator == p_Object.MemberEnd())
+	if (keyCodeIterator == object.MemberEnd())
 	{
-		LoggerAddMessage("Input binding is missing a key code.");
+		Logger::WriteFormattedLine("Input binding is missing a key code.");
 		return false;
 	}
 
-	if (l_KeyCodeIterator->value.IsInt() == false)
+	if (keyCodeIterator->value.IsInt() == false)
 	{
-		LoggerAddMessage("Input binding has a key code, but it is not an integer.");
+		Logger::WriteFormattedLine("Input binding has a key code, but it is not an integer.");
 		return false;
 	}
 
-	m_KeyCode = l_KeyCodeIterator->value.GetInt();
+	m_KeyCode = keyCodeIterator->value.GetInt();
 
 	// We must also have a control action.
-	auto const l_ControlActionIterator = p_Object.FindMember("controlAction");
+	auto const controlActionIterator = object.FindMember("controlAction");
 
-	if (l_ControlActionIterator == p_Object.MemberEnd())
+	if (controlActionIterator == object.MemberEnd())
 	{
-		LoggerAddMessage("Input binding is missing a control action.");
+		Logger::WriteFormattedLine("Input binding is missing a control action.");
 		return false;
 	}
 	
-	if (m_ControlAction.ReadFromJSON(l_ControlActionIterator->value) == false) 
+	if (m_ControlAction.ReadFromJSON(controlActionIterator->value) == false) 
 	{
-		LoggerAddMessage("Input binding has a control action, but it could not be parsed.");
+		Logger::WriteFormattedLine("Input binding has a control action, but it could not be parsed.");
 		return false;
 	}
 
@@ -88,39 +88,39 @@ bool InputBinding::ReadFromJSON(rapidjson::Value const& p_Object)
 
 // Handle initialization.
 //
-// p_DeviceName:	The name of the input device that this will manage.
-// p_Bindings:		A list of input bindings.
+// deviceName:	The name of the input device that this will manage.
+// bindings:		A list of input bindings.
 //
-void Input::Initialize(char const* p_DeviceName, std::vector<InputBinding> const& p_Bindings)
+void Input::Initialize(char const* deviceName, std::vector<InputBinding> const& bindings)
 {
 	// Copy the device name.
-	strncpy(m_DeviceName, p_DeviceName, ms_DeviceNameCapacity - 1);
-	m_DeviceName[ms_DeviceNameCapacity - 1] = '\0';
+	strncpy(m_DeviceName, deviceName, kDeviceNameCapacity - 1);
+	m_DeviceName[kDeviceNameCapacity - 1] = '\0';
 	
 	// Populate the input bindings.
-	m_Bindings = p_Bindings;
+	m_Bindings = bindings;
 	
 	// Use the bindings to populate the input to action mapping.
-	for (const auto& l_Binding : m_Bindings) 
+	for (const auto& binding : m_Bindings) 
 	{
 		// Blindly insert. If the same key is bound more than once, the mapping will get overwritten 
 		// with the last occurrence.
-		m_InputToActionMap[l_Binding.m_KeyCode] = l_Binding.m_ControlAction;
+		m_InputToActionMap[binding.m_KeyCode] = binding.m_ControlAction;
 	}
 	
 	// Display what we initialized.
-	LoggerAddMessage("Initialized input device \'%s\' with input bindings:", m_DeviceName);
+	Logger::WriteFormattedLine("Initialized input device \'%s\' with input bindings:", m_DeviceName);
 	
-	for (auto const& l_Binding : m_Bindings) 
+	for (auto const& binding : m_Bindings) 
 	{
-		auto* const l_ActionText = 
-			(l_Binding.m_ControlAction.m_Action == Control::Actions::ACTION_MOVING_UP) ? "up" : "down";
+		auto* const actionText = 
+			(binding.m_ControlAction.m_Action == Control::Actions::kActionMovingUp) ? "up" : "down";
 		
-		LoggerAddMessage("\tCode %i -> %s, %s", l_Binding.m_KeyCode, 
-			l_Binding.m_ControlAction.m_ControlName, l_ActionText);
+		Logger::WriteFormattedLine("\tCode %i -> %s, %s", binding.m_KeyCode, 
+			binding.m_ControlAction.m_ControlName, actionText);
 	}
 	
-	LoggerAddEmptyLine();
+	Logger::WriteLine();
 }
 
 // Handle uninitialization.
@@ -136,20 +136,20 @@ void Input::Uninitialize()
 void Input::Process()
 {
 	// See if we need to open the device.
-	if (m_DeviceFileHandle == ms_InvalidFileHandle) {
+	if (m_DeviceFileHandle == kInvalidFileHandle) {
 		
 		// If we have failed before, see whether we have waited long enough before trying to open 
 		// again.
 		if (m_DeviceOpenHasFailed == true)
 		{		
 			// Get elapsed time since the last failure.
-			Time l_CurrentTime;
-			TimerGetCurrent(l_CurrentTime);
+			Time currentTime;
+			TimerGetCurrent(currentTime);
 
-			auto const l_ElapsedTimeMS = TimerGetElapsedMilliseconds(m_LastDeviceOpenFailTime, 
-				l_CurrentTime);
+			auto const elapsedTimeMS = TimerGetElapsedMilliseconds(m_LastDeviceOpenFailTime, 
+				currentTime);
 			
-			if (l_ElapsedTimeMS < ms_DeviceOpenRetryDelayMS)
+			if (elapsedTimeMS < kDeviceOpenRetryDelayMS)
 			{
 				return;
 			}
@@ -162,14 +162,13 @@ void Input::Process()
 		{
 			// Record the time of the last open failure.
 			TimerGetCurrent(m_LastDeviceOpenFailTime);
-			
-			CloseDevice(true, "Failed to open input device \'%s\'", m_DeviceName);						
+			CloseDevice(true, "Failed to open input device \'%s\'", m_DeviceName);
 			return;
 		}
 		
 		// Try to get the name.
-		char l_Name[256];
-		if (ioctl(m_DeviceFileHandle, EVIOCGNAME(sizeof(l_Name)), l_Name) < 0)
+		char name[256];
+		if (ioctl(m_DeviceFileHandle, EVIOCGNAME(sizeof(name)), name) < 0)
 		{	
 			// Record the time of the last open failure.
 			TimerGetCurrent(m_LastDeviceOpenFailTime);
@@ -177,32 +176,36 @@ void Input::Process()
 			CloseDevice(true, "Failed to get name for input device \'%s\'", m_DeviceName);
 		}
 		
-		LoggerAddMessage("Input device \'%s\' is a \'%s\'", m_DeviceName, l_Name);
+		Logger::WriteFormattedLine("Input device \'%s\' is a \'%s\'", m_DeviceName, name);
 		
 		// More device information.
-		unsigned short l_DeviceID[4];
-		ioctl(m_DeviceFileHandle, EVIOCGID, l_DeviceID);
+		unsigned short deviceID[4];
+		ioctl(m_DeviceFileHandle, EVIOCGID, deviceID);
 		
-		LoggerAddMessage("Input device bus 0x%x, vendor 0x%x, product 0x%x, version 0x%x.", 
-			l_DeviceID[ID_BUS], l_DeviceID[ID_VENDOR], l_DeviceID[ID_PRODUCT], l_DeviceID[ID_VERSION]);
+		Logger::WriteFormattedLine("Input device bus 0x%x, vendor 0x%x, product 0x%x, version 0x%x.", 
+			deviceID[ID_BUS], deviceID[ID_VENDOR], deviceID[ID_PRODUCT], deviceID[ID_VERSION]);
 			
 		// Play controller connected notification.
 		NotificationPlay("control_connected");
 			
 		m_DeviceOpenHasFailed = false;
 	}
-	
+
 	// Read up to 64 input events at a time.
-	static unsigned int const s_EventsToReadCount = 64;
-	input_event l_Events[s_EventsToReadCount];
-	static auto constexpr s_EventSize = sizeof(input_event);
-	static auto const s_EventBufferSize = s_EventsToReadCount * s_EventSize;
-	
-	auto const l_ReadCount = read(m_DeviceFileHandle, l_Events, s_EventBufferSize);
-	
+	static constexpr std::size_t kEventsToReadCount{64};
+	input_event events[kEventsToReadCount];
+	static constexpr std::size_t kEventSize{sizeof(input_event)};
+	static constexpr std::size_t kEventBufferSize{kEventsToReadCount * kEventSize};
+
+	static_assert(kEventBufferSize <= SSIZE_MAX,
+					  "In `man 'read(2)'`, DESCRIPTION: "
+					  "\"According to POSIX.1, if count is greater than SSIZE_MAX, "
+					  "the result is implementation-defined; see NOTES for the upper limit on Linux.\"");
+	auto const readCount = read(m_DeviceFileHandle, events, kEventBufferSize);
+
 	// I think maybe this would happen if the device got disconnected?
-	if (l_ReadCount < 0)
-	{		
+	if (readCount < 0)
+	{
 		// When we are in nonblocking mode, this "error" means that there was no data and 
 		// we need to check the device again.
 		if (errno == EAGAIN)
@@ -215,47 +218,47 @@ void Input::Process()
 	}
 	
 	// Process each of the input events.
-	auto const l_EventCount = l_ReadCount / s_EventSize;
-	for (unsigned int l_EventIndex = 0; l_EventIndex < l_EventCount; l_EventIndex++)
+	auto const eventCount = readCount / kEventSize;
+	for (unsigned int eventIndex = 0; eventIndex < eventCount; eventIndex++)
 	{
-		auto const& l_Event = l_Events[l_EventIndex];
+		auto const& event = events[eventIndex];
 		
 		// We are only handling keys/buttons for now.
-		if (l_Event.type != EV_KEY)
+		if (event.type != EV_KEY)
 		{
 			continue;
 		}
 		
-		//LoggerAddMessage("Input event type %i, code %i, value %i", l_Event.type, l_Event.code, 
-		//	l_Event.value);
+		//Logger::WriteFormattedLine("Input event type %i, code %i, value %i", event.type, event.code, 
+		//	event.value);
 			
 		// Try to find a control action corresponding to this input.
-		auto l_Result = m_InputToActionMap.find(l_Event.code);
+		auto result = m_InputToActionMap.find(event.code);
 		
-		if (l_Result == m_InputToActionMap.end())
+		if (result == m_InputToActionMap.end())
 		{
 			continue;
 		}
 		
 		// The action is the second member of the pair.
-		auto& l_ControlAction = l_Result->second;
+		auto& controlAction = result->second;
 	
 		// Try to find the corresponding control.
-		auto* l_Control = l_ControlAction.GetControl();
+		auto* control = controlAction.GetControl();
 		
-		if (l_Control == nullptr) {
+		if (control == nullptr) {
 			
-			LoggerAddMessage("Couldn't find control \'%s\' mapped to key code %i.", 
-				l_ControlAction.m_ControlName, l_Event.code);
+			Logger::WriteFormattedLine("Couldn't find control \'%s\' mapped to key code %i.", 
+				controlAction.m_ControlName, event.code);
 			continue;
 		}
 		
 		// Translate whether the key was pressed or not into the appropriate action.
-		auto const l_Action = (l_Event.value == 1) ? l_ControlAction.m_Action : 
-			Control::Actions::ACTION_STOPPED;
+		auto const action = (event.value == 1) ? controlAction.m_Action : 
+			Control::Actions::kActionStopped;
 			
 		// Manipulate the control.
-		l_Control->SetDesiredAction(l_Action, Control::Modes::MODE_MANUAL);
+		control->SetDesiredAction(action, Control::Modes::kModeManual);
 	}	
 }
 
@@ -263,26 +266,26 @@ void Input::Process()
 //
 bool Input::IsConnected() const
 {
-	return (m_DeviceFileHandle != ms_InvalidFileHandle);
+	return (m_DeviceFileHandle != kInvalidFileHandle);
 }
 		
 // Close the input device.
 // 
-// p_WasFailure:	Whether the device is being closed due to a failure or not.
-// p_Format:		Standard printf format string.
+// wasFailure:	Whether the device is being closed due to a failure or not.
+// format:		Standard printf format string.
 // ...:				Standard printf arguments.
 //
-void Input::CloseDevice(bool p_WasFailure, char const* p_Format, ...)
+void Input::CloseDevice(bool wasFailure, char const* format, ...)
 {
 	// Close the device.
-	if (m_DeviceFileHandle != ms_InvalidFileHandle)
+	if (m_DeviceFileHandle != kInvalidFileHandle)
 	{
 		close(m_DeviceFileHandle);
-		m_DeviceFileHandle = ms_InvalidFileHandle;
+		m_DeviceFileHandle = kInvalidFileHandle;
 	}
 			
 	// Only log a message/play sound on failure.
-	if (p_WasFailure == false) {
+	if (wasFailure == false) {
 		return;
 	}
 	
@@ -295,12 +298,12 @@ void Input::CloseDevice(bool p_WasFailure, char const* p_Format, ...)
 	m_DeviceOpenHasFailed = true;	
 	
 	// Log the message.
-	va_list l_Arguments;
-	va_start(l_Arguments, p_Format);
+	va_list arguments;
+	va_start(arguments, format);
 
-	LoggerAddMessage(p_Format, l_Arguments);	
-	
-	va_end(l_Arguments);
+	Logger::WriteFormattedVarArgsListLine(Shell::Red, format, arguments);
+
+	va_end(arguments);
 		
 	// Play controller disconnected notification.
 	NotificationPlay("control_disconnected");

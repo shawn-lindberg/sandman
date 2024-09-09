@@ -4,42 +4,42 @@
 	#include <Windows.h>
 #endif // defined (_WIN32)
 
-#include <time.h>
+#include <ctime>
 
 // Functions
 //
 
 // Get the current time.
 //
-// p_Time:	(Output) The current time.
+// time:	(Output) The current time.
 //
-void TimerGetCurrent(Time& p_Time)
+void TimerGetCurrent(Time& time)
 {
 	#if defined (_WIN32)
 
 		// NOTE - STL 2011/10/31 - This can fail.
-		LARGE_INTEGER l_Ticks;
-		QueryPerformanceCounter(&l_Ticks);
+		LARGE_INTEGER ticks;
+		QueryPerformanceCounter(&ticks);
 
 		// Get tick frequency in ticks/second.
 		// NOTE - STL 2012/11/11 - It's inefficient to call this each time. 
 		// NOTE - STL 2011/10/31 - This can fail.
-		LARGE_INTEGER l_Frequency;
-		QueryPerformanceFrequency(&l_Frequency);
+		LARGE_INTEGER frequency;
+		QueryPerformanceFrequency(&frequency);
 	
 		// Convert to our form.
-		p_Time.m_Seconds = l_Ticks.QuadPart / l_Frequency.QuadPart;
-		p_Time.m_Nanoseconds = ((l_Ticks.QuadPart % l_Frequency.QuadPart) * 1000000000) / 
-			l_Frequency.QuadPart;
+		time.m_Seconds = ticks.QuadPart / frequency.QuadPart;
+		time.m_Nanoseconds = ((ticks.QuadPart % frequency.QuadPart) * 1000000000) / 
+			frequency.QuadPart;
 		
 	#elif defined (__linux__)
 
 		// NOTE - STL 2012/09/23 - This can fail.
-		timespec l_Time;
-		clock_gettime(CLOCK_REALTIME, &l_Time);
+		timespec timeValue;
+		clock_gettime(CLOCK_REALTIME, &timeValue);
 
-		p_Time.m_Seconds = l_Time.tv_sec;
-		p_Time.m_Nanoseconds = l_Time.tv_nsec;
+		time.m_Seconds = timeValue.tv_sec;
+		time.m_Nanoseconds = timeValue.tv_nsec;
 
 	#endif // defined (_WIN32)
 }
@@ -47,38 +47,39 @@ void TimerGetCurrent(Time& p_Time)
 // Get the elapsed time in milliseconds between to times.
 // Note: Will return -1 if the end time is less than the start time.
 //
-// p_StartTime:	Start time.
-// p_EndTime:		End time.
+// startTime:	Start time.
+// endTime:		End time.
 //
-float TimerGetElapsedMilliseconds(Time const& p_StartTime, Time const& p_EndTime)
+float TimerGetElapsedMilliseconds(Time const& startTime, Time const& endTime)
 {
 	// For now just return a negative sentinel if the end time is before the start time.
-	if (p_EndTime < p_StartTime)
+	if (endTime < startTime)
 	{
 		return -1.0f;
 	}
 
 	// Calculate the elapsed time.
-	Time l_ElapsedTime;
+	Time elapsedTime;
 	
-	l_ElapsedTime.m_Seconds = p_EndTime.m_Seconds - p_StartTime.m_Seconds;
+	elapsedTime.m_Seconds = endTime.m_Seconds - startTime.m_Seconds;
 	
 	// Did the nanoseconds wrap into seconds?
-	if (p_EndTime.m_Nanoseconds < p_StartTime.m_Nanoseconds)
+	if (endTime.m_Nanoseconds < startTime.m_Nanoseconds)
 	{
 		// Borrow a second.
-		l_ElapsedTime.m_Seconds--;
+		elapsedTime.m_Seconds--;
 		
 		// Add a billion nanoseconds in exchange.
-		l_ElapsedTime.m_Nanoseconds = p_EndTime.m_Nanoseconds + (1000000000 - p_StartTime.m_Nanoseconds);
+		elapsedTime.m_Nanoseconds = endTime.m_Nanoseconds + (1000000000 - startTime.m_Nanoseconds);
 	}
 	else
 	{
-		l_ElapsedTime.m_Nanoseconds = p_EndTime.m_Nanoseconds - p_StartTime.m_Nanoseconds;
+		elapsedTime.m_Nanoseconds = endTime.m_Nanoseconds - startTime.m_Nanoseconds;
 	}
 	
 	// Convert to milliseconds.
-	float const l_ElapsedTimeMS = (1.0e3f * l_ElapsedTime.m_Seconds) + 
-		(l_ElapsedTime.m_Nanoseconds / 1.0e6f);
-	return l_ElapsedTimeMS;
+	float const elapsedTimeMS = (1.0e3f * elapsedTime.m_Seconds) +
+										 (elapsedTime.m_Nanoseconds / 1.0e6f);
+
+	return elapsedTimeMS;
 }

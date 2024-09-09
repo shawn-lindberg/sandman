@@ -20,12 +20,15 @@ Checks: >
 
 WarningsAsErrors: "*"
 
+HeaderFilterRegex: '.*sandman\/source\/[^\/]*\.h$'
+
 CheckOptions:
 
-  # Case of things that create new scopes and unscoped Enums.
   - key: readability-identifier-naming.ClassCase
     value: CamelCase
   - key: readability-identifier-naming.StructCase
+    value: CamelCase
+  - key: readability-identifier-naming.UnionCase
     value: CamelCase
   - key: readability-identifier-naming.FunctionCase
     value: CamelCase
@@ -34,25 +37,46 @@ CheckOptions:
   - key: readability-identifier-naming.NamespaceCase
     value: CamelCase
 
-    # Case of constants and macros.
+  - key: readability-identifier-naming.FunctionCase
+    value: CamelCase
+
+  - key: readability-identifier-naming.MethodCase
+    value: CamelCase
+
+  - key: readability-identifier-naming.ConstexprVariablePrefix
+    value: k
   - key: readability-identifier-naming.ConstexprVariableCase
-    value: UPPER_CASE
+    value: CamelCase
+  - key: readability-identifier-naming.ConstexprVariableIgnoredRegexp
+    # Ignore `constexpr` variables that use Pascal Case.
+    # This is for `constexpr` lambdas.
+    # 
+    # "^": Anchors the pattern to the start of the string.
+    # "[A-Z]": Ensures that the first character is an uppercase letter.
+    # "[a-zA-Z0-9]*": Matches zero or more alphanumeric characters.
+    # "$": Anchors the pattern to the end of the string.
+    value: ^[A-Z][a-zA-Z0-9]*$
+
+  - key: readability-identifier-naming.EnumConstantPrefix
+    value: k
   - key: readability-identifier-naming.EnumConstantCase
-    value: UPPER_CASE
+    value: CamelCase
+
+  - key: readability-identifier-naming.ScopedEnumConstantPrefix
+    value: k
   - key: readability-identifier-naming.ScopedEnumConstantCase
-    value: UPPER_CASE
+    value: CamelCase
+
   - key: readability-identifier-naming.MacroDefinitionCase
     value: UPPER_CASE
 
-    # Static variables that in in a scope.
   - key: readability-identifier-naming.StaticVariablePrefix
     value: s_
   - key: readability-identifier-naming.StaticVariableCase
     value: CamelCase
 
-    # Global variables.
   - key: readability-identifier-naming.GlobalVariablePrefix
-    value: "g_"
+    value: g_
   - key: readability-identifier-naming.GlobalVariableCase
     value: CamelCase
   - key: readability-identifier-naming.GlobalVariableIgnoredRegexp
@@ -65,26 +89,39 @@ CheckOptions:
     # "$": Anchors the pattern to the end of the string.
     value: ^s_[A-Z][a-zA-Z0-9]*$
 
-    # Member variables.
   - key: readability-identifier-naming.MemberPrefix
     value: m_
   - key: readability-identifier-naming.MemberCase
     value: CamelCase
 
-    # Class Member variables.
   - key: readability-identifier-naming.ClassMemberPrefix
     value: ms_
   - key: readability-identifier-naming.ClassMemberCase
     value: CamelCase
 
-    # Parameters.
-  - key: readability-identifier-naming.ParameterPrefix
-    value: p_
   - key: readability-identifier-naming.ParameterCase
-    value: CamelCase
+    value: camelBack
 
-    # Local variables.
-  - key: readability-identifier-naming.LocalVariablePrefix
-    value: l_
   - key: readability-identifier-naming.LocalVariableCase
+    value: camelBack
+  - key: readability-identifier-naming.LocalVariableIgnoredRegexp
+    # Ignore local variables that use Pascal Case.
+    # This is for local lambdas.
+    # 
+    # "^": Anchors the pattern to the start of the string.
+    # "[A-Z]": Ensures that the first character is an uppercase letter.
+    # "[a-zA-Z0-9]*": Matches zero or more alphanumeric characters.
+    # "$": Anchors the pattern to the end of the string.
+    value: ^[A-Z][a-zA-Z0-9]*$
+
+  - key: readability-identifier-naming.TemplateParameterCase
     value: CamelCase
+  - key: readability-identifier-naming.TemplateParameterSuffix
+    value: T
+  - key: readability-identifier-naming.TemplateParameterIgnoredRegexp
+    value: ^T$
+
+  - key: readability-identifier-naming.ValueTemplateParameterCase
+    value: CamelCase
+  - key: readability-identifier-naming.ValueTemplateParameterPrefix
+    value: k
