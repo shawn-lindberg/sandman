@@ -238,7 +238,7 @@ namespace Shell
 		// "It is good practice to call this routine right after `initscr`."
 		start_color();
 
-		if (COLORS < decltype(COLORS){kList.size()})
+		if (COLORS < decltype(COLORS){kColorList.size()})
 		{
 			// Doesn't support the standard colors; do something.
 			return;
@@ -255,9 +255,9 @@ namespace Shell
 		// above the call to `init_pair` for some sources.
 		CursesColorID colorPairID{ 1 };
 
-		for (Index const backgroundColor : kList)
+		for (Index const backgroundColor : kColorList)
 		{
-			for (Index const foregroundColor : kList)
+			for (Index const foregroundColor : kColorList)
 			{
 				static constexpr decltype(colorPairID) kExclusiveUpperLimit
 				{

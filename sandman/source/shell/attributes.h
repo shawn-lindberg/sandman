@@ -104,7 +104,7 @@ namespace Shell
 		}
 
 		// A list of color indices to make it easier to loop over them.
-		inline constexpr std::array kList
+		inline constexpr std::array kColorList
 		{
 			Index::kBlack  ,
 			Index::kRed    ,
@@ -142,7 +142,7 @@ namespace Shell
 			CursesColorID const column{ GetColorID(foregroundColor) };
 			CursesColorID const row   { GetColorID(backgroundColor) };
 
-			static_assert(kList.size() <= std::numeric_limits<int>::max(),
+			static_assert(kColorList.size() <= std::numeric_limits<int>::max(),
 							  "Check that it's okay to downcast the `std::size_t` from `size()` to `int`");
 
 			// `COLOR_PAIR` takes an `int` as its argument.
@@ -151,7 +151,7 @@ namespace Shell
 				// because operations on `short` integral types
 				// will implicitly promote to non `short` types.
 				static_cast<int>(
-					int{ row } * int{ kList.size() } + int{ column }
+					int{ row } * int{ kColorList.size() } + int{ column }
 					// Add an offset of 1 because color pair 0 is reserved as the default color pair.
 					+ int{ 1 }
 				)
