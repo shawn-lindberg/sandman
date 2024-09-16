@@ -255,9 +255,9 @@ namespace Shell
 		// above the call to `init_pair` for some sources.
 		CursesColorID colorPairID{ 1 };
 
-		for (Key const backgroundColor : kColorList)
+		for (ColorMatrix::Key const backgroundColor : kColorList)
 		{
-			for (Key const foregroundColor : kColorList)
+			for (ColorMatrix::Key const foregroundColor : kColorList)
 			{
 				static constexpr decltype(colorPairID) kExclusiveUpperLimit
 				{
