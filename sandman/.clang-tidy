@@ -20,8 +20,6 @@ Checks: >
 
 WarningsAsErrors: "*"
 
-HeaderFilterRegex: '.*sandman\/source\/[^\/]*\.h$'
-
 CheckOptions:
 
   - key: readability-identifier-naming.ClassCase
