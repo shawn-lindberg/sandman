@@ -180,9 +180,6 @@ class Shell::InputWindow::EventfulBuffer
 
 			// Call the event listener.
 			m_OnClear();
-
-			// Success.
-			return static_cast<void>(true);
 		}
 
 		// Return a string view of the string data.
