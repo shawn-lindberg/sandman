@@ -63,6 +63,8 @@ public:
 		return m_ScreenEcho;
 	}
 
+protected:
+
 	// "Lower-level" write function.
 	// This simply writes data to the internal buffer,
 	// then flushes the data to the output destinations.
@@ -100,6 +102,8 @@ public:
 	// in the format string, the extra arguments are ignored.
 	template <typename FirstT, typename... ParametersT>
 	void FormatWrite(std::string_view formatString, FirstT&& firstArg, ParametersT&&... args);
+
+public:
 
 	// Object wrapper for formatting.
 	//
