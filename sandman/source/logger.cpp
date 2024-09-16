@@ -40,7 +40,7 @@ void Logger::FormatWrite(std::string_view const formatString)
 
 	for (char const character : formatString)
 	{
-		if (escapingCharacter and character == kFormatInterpolationIndicator)
+		if (escapingCharacter and character == kFormatSubstitutionIndicator)
 		{
 			// Don't have any arguments to write, so write a placeholder.
 			Write(kMissingFormatValue);

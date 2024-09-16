@@ -104,10 +104,10 @@ void Logger::FormatWrite(std::string_view formatString, FirstT&& first, Paramete
 	{
 		char const character{ formatString[index] };
 
-		if (escapingCharacter and character == kFormatInterpolationIndicator)
+		if (escapingCharacter and character == kFormatSubstitutionIndicator)
 		{
 			// Write the first argument, then
-			// interpolate the remaining arguments
+			// substitute the remaining arguments
 			// into the rest of the string recursively.
 
 			Write(std::forward<FirstT>(first));

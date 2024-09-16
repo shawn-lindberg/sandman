@@ -72,7 +72,7 @@ public:
 	[[gnu::always_inline]] inline void Write(FirstT&& firstArg, ParametersT&&... args);
 
 	static constexpr char kFormatEscapeIndicator{ '%' };
-	static constexpr char kFormatInterpolationIndicator{ '$' };
+	static constexpr char kFormatSubstitutionIndicator{ '$' };
 
 	static constexpr std::string_view kMissingFormatValue = "`null`";
 
@@ -82,21 +82,21 @@ public:
 	void FormatWrite(std::string_view const formatString);
 
 	// "Lower-level" format write function.
-	// 
-	// Interpolates arguments into the format string
+	//
+	// Substitutes arguments into the format string
 	// as it writes all characters in the format string to
 	// the buffer.
-	// 
-	// `%$` interpolates an argument into the format string.
+	//
+	// `%$` substitutes an argument into the format string.
 	// `%%` writes a literal percent sign `%` character.
 	//
-	// If interpolation is denoted with `%$` but there are no more arguments left
-	// to interpolate, `::Logger::kMissingFormatValue` is written instead.
-	// 
-	// The arguments are interpolated into the string in the order
+	// If substitution is denoted with `%$` but there are no more arguments left
+	// to substitute, `::Logger::kMissingFormatValue` is written instead.
+	//
+	// The arguments are substituted into the string in the order
 	// that they are passed into this function from left to right.
 	//
-	// If there are more arguments than there are interpolation indicators `%$`
+	// If there are more arguments than there are substitution indicators `%$`
 	// in the format string, the extra arguments are ignored.
 	template <typename FirstT, typename... ParametersT>
 	void FormatWrite(std::string_view formatString, FirstT&& firstArg, ParametersT&&... args);
@@ -104,7 +104,7 @@ public:
 	// Object wrapper for formatting.
 	//
 	// Instances of this class can be passed to `Logger::WriteLine`.
-	// If so, the arguments will be interpolated into the
+	// If so, the arguments will be substituted into the
 	// format string and written to the buffer as if
 	// `Logger::FormatWrite` was called with the arguments
 	// that the `Format` instance was constructed with.
@@ -116,16 +116,16 @@ public:
 
 		// Constructor.
 		//
-		// `%$` interpolates an argument into the format string.
+		// `%$` substitutes an argument into the format string.
 		// `%%` writes a literal percent sign `%` character.
 		//
-		// If interpolation is denoted with `%$` but there are no more arguments
-		// to interpolate, `::Logger::kMissingFormatValue` is written instead.
+		// If substitution is denoted with `%$` but there are no more arguments
+		// to substitute, `::Logger::kMissingFormatValue` is written instead.
 		//
-		// The arguments are interpolated into the string in the order
+		// The arguments are substituted into the string in the order
 		// that they are passed into this function from left to right.
 		//
-		// If there are more arguments than there are interpolation indicators `%$`
+		// If there are more arguments than there are substitution indicators `%$`
 		// in the format string, the extra arguments are ignored.
 		template <typename... ParametersT>
 		[[nodiscard]] explicit Format(std::string_view const formatString, ParametersT&&... args)
