@@ -1,7 +1,6 @@
 #pragma once
 
 #include "common/enum.h"
-#include "common/box.h"
 #include "shell/attributes.h"
 
 #include <array>

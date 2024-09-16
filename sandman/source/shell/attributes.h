@@ -1,6 +1,5 @@
 #pragma once
 
-#include "common/box.h"
 #include "common/enum.h"
 
 #include <cstdint>
@@ -137,15 +136,11 @@ namespace Shell
 			}
 		}
 
-		struct ForegroundIndex : Common::Box<Index> { using Box::Box; };
-		struct BackgroundIndex : Common::Box<Index> { using Box::Box; };
-
 		// Get an attribute value that has the foreground color and background color set.
-		constexpr AttributeBundle GetPair(ForegroundIndex const foregroundColor,
-									  BackgroundIndex const backgroundColor)
+		constexpr AttributeBundle GetPair(Index const foregroundColor, Index const backgroundColor)
 		{
-			CursesColorID const column{ Common::IntCast(foregroundColor.m_Value) };
-			CursesColorID const row{ Common::IntCast(backgroundColor.m_Value) };
+			CursesColorID const column{ GetColorID(foregroundColor) };
+			CursesColorID const row   { GetColorID(backgroundColor) };
 
 			static_assert(kList.size() <= std::numeric_limits<int>::max(),
 							  "Check that it's okay to downcast the `std::size_t` from `size()` to `int`");
@@ -197,7 +192,7 @@ namespace Shell
 	public:
 
 		AttributeBundle m_Ancillary;
-		ColorMatrix::ForegroundIndex m_ColorIndex;
+		ColorMatrix::Index m_ColorIndex;
 
 		// Combine an `Attr::ForegroundColor` with an `Attr`.
 		[[nodiscard]] constexpr ForegroundColor operator|(AttributeBundle const attributes) const
@@ -209,10 +204,7 @@ namespace Shell
 		{
 			using namespace ColorMatrix;
 
-			AttributeBundle const colorPair
-			{
-				GetPair(ForegroundIndex(m_ColorIndex), BackgroundIndex(Index::kBlack))
-			};
+			AttributeBundle const colorPair(GetPair(m_ColorIndex, Index::kBlack));
 
 			return m_Ancillary | colorPair;
 		}
@@ -238,7 +230,7 @@ namespace Shell
 	public:
 
 		AttributeBundle m_Ancillary;
-		ColorMatrix::BackgroundIndex m_ColorIndex;
+		ColorMatrix::Index m_ColorIndex;
 
 		[[nodiscard]] constexpr BackgroundColor operator|(AttributeBundle const attributes) const
 		{
@@ -249,10 +241,7 @@ namespace Shell
 		{
 			using namespace ColorMatrix;
 
-			AttributeBundle const colorPair
-			{
-				GetPair(ForegroundIndex(Index::kWhite), BackgroundIndex(m_ColorIndex))
-			};
+			AttributeBundle const colorPair(GetPair(Index::kWhite, m_ColorIndex));
 
 			return m_Ancillary | colorPair;
 		}
@@ -278,8 +267,8 @@ namespace Shell
 	public:
 
 		AttributeBundle m_Ancillary;
-		ColorMatrix::ForegroundIndex m_ForegroundColor;
-		ColorMatrix::BackgroundIndex m_BackgroundColor;
+		ColorMatrix::Index m_ForegroundColor;
+		ColorMatrix::Index m_BackgroundColor;
 
 		[[nodiscard]] constexpr ColorPair operator|(AttributeBundle const attributes) const
 		{
@@ -290,7 +279,7 @@ namespace Shell
 		{
 			using namespace ColorMatrix;
 
-			AttributeBundle const colorPair{ GetPair(m_ForegroundColor, m_BackgroundColor) };
+			AttributeBundle const colorPair(GetPair(m_ForegroundColor, m_BackgroundColor));
 
 			return m_Ancillary | colorPair;
 		}
@@ -340,24 +329,24 @@ namespace Shell
 		inline constexpr AttributeBundle Italic   (A_ITALIC   );
 
 		// Foreground color.
-		inline constexpr AttributeBundle::ForegroundColor Black  {Normal, ColorMatrix::ForegroundIndex{ColorMatrix::Index::kBlack  }};
-		inline constexpr AttributeBundle::ForegroundColor Red    {Normal, ColorMatrix::ForegroundIndex{ColorMatrix::Index::kRed    }};
-		inline constexpr AttributeBundle::ForegroundColor Green  {Normal, ColorMatrix::ForegroundIndex{ColorMatrix::Index::kGreen  }};
-		inline constexpr AttributeBundle::ForegroundColor Yellow {Normal, ColorMatrix::ForegroundIndex{ColorMatrix::Index::kYellow }};
-		inline constexpr AttributeBundle::ForegroundColor Blue   {Normal, ColorMatrix::ForegroundIndex{ColorMatrix::Index::kBlue   }};
-		inline constexpr AttributeBundle::ForegroundColor Magenta{Normal, ColorMatrix::ForegroundIndex{ColorMatrix::Index::kMagenta}};
-		inline constexpr AttributeBundle::ForegroundColor Cyan   {Normal, ColorMatrix::ForegroundIndex{ColorMatrix::Index::kCyan   }};
-		inline constexpr AttributeBundle::ForegroundColor White  {Normal, ColorMatrix::ForegroundIndex{ColorMatrix::Index::kWhite  }};
+		inline constexpr AttributeBundle::ForegroundColor Black  {Normal, ColorMatrix::Index::kBlack  };
+		inline constexpr AttributeBundle::ForegroundColor Red    {Normal, ColorMatrix::Index::kRed    };
+		inline constexpr AttributeBundle::ForegroundColor Green  {Normal, ColorMatrix::Index::kGreen  };
+		inline constexpr AttributeBundle::ForegroundColor Yellow {Normal, ColorMatrix::Index::kYellow };
+		inline constexpr AttributeBundle::ForegroundColor Blue   {Normal, ColorMatrix::Index::kBlue   };
+		inline constexpr AttributeBundle::ForegroundColor Magenta{Normal, ColorMatrix::Index::kMagenta};
+		inline constexpr AttributeBundle::ForegroundColor Cyan   {Normal, ColorMatrix::Index::kCyan   };
+		inline constexpr AttributeBundle::ForegroundColor White  {Normal, ColorMatrix::Index::kWhite  };
 
 		// Background color.
-		inline constexpr AttributeBundle::BackgroundColor BackBlack  {Normal, ColorMatrix::BackgroundIndex{ColorMatrix::Index::kBlack  }};
-		inline constexpr AttributeBundle::BackgroundColor BackRed    {Normal, ColorMatrix::BackgroundIndex{ColorMatrix::Index::kRed    }};
-		inline constexpr AttributeBundle::BackgroundColor BackGreen  {Normal, ColorMatrix::BackgroundIndex{ColorMatrix::Index::kGreen  }};
-		inline constexpr AttributeBundle::BackgroundColor BackYellow {Normal, ColorMatrix::BackgroundIndex{ColorMatrix::Index::kYellow }};
-		inline constexpr AttributeBundle::BackgroundColor BackBlue   {Normal, ColorMatrix::BackgroundIndex{ColorMatrix::Index::kBlue   }};
-		inline constexpr AttributeBundle::BackgroundColor BackMagenta{Normal, ColorMatrix::BackgroundIndex{ColorMatrix::Index::kMagenta}};
-		inline constexpr AttributeBundle::BackgroundColor BackCyan   {Normal, ColorMatrix::BackgroundIndex{ColorMatrix::Index::kCyan   }};
-		inline constexpr AttributeBundle::BackgroundColor BackWhite  {Normal, ColorMatrix::BackgroundIndex{ColorMatrix::Index::kWhite  }};
+		inline constexpr AttributeBundle::BackgroundColor BackBlack  {Normal, ColorMatrix::Index::kBlack  };
+		inline constexpr AttributeBundle::BackgroundColor BackRed    {Normal, ColorMatrix::Index::kRed    };
+		inline constexpr AttributeBundle::BackgroundColor BackGreen  {Normal, ColorMatrix::Index::kGreen  };
+		inline constexpr AttributeBundle::BackgroundColor BackYellow {Normal, ColorMatrix::Index::kYellow };
+		inline constexpr AttributeBundle::BackgroundColor BackBlue   {Normal, ColorMatrix::Index::kBlue   };
+		inline constexpr AttributeBundle::BackgroundColor BackMagenta{Normal, ColorMatrix::Index::kMagenta};
+		inline constexpr AttributeBundle::BackgroundColor BackCyan   {Normal, ColorMatrix::Index::kCyan   };
+		inline constexpr AttributeBundle::BackgroundColor BackWhite  {Normal, ColorMatrix::Index::kWhite  };
 	}
 
 } // namespace Shell
