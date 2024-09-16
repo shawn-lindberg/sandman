@@ -98,15 +98,15 @@ public:
 	template <typename... ParametersT>
 	Format(std::string_view const, ParametersT&&...) -> Format<ParametersT&&...>;
 
-	// Is `true` if `T` is a type that is a variant of the `Format` template class;
-	// is `false` otherwise.
+	// This trait is `true` if `T` is a type that is a variant of the `Format` template class;
+	// it's `false` otherwise.
 	//
 	// This can be used for compile-time conditional branching.
 	template <typename>
-	struct IsFormat : Common::Implicitly<false> {};
+	struct IsFormatter : Common::Implicitly<false> {};
 
 	template <typename... ObjectsT>
-	struct IsFormat<Format<ObjectsT...>> : Common::Implicitly<true> {};
+	struct IsFormatter<Format<ObjectsT...>> : Common::Implicitly<true> {};
 
 	[[gnu::always_inline]] [[nodiscard]] inline static bool GetEchoToScreen()
 	{
