@@ -68,11 +68,11 @@ class Shell::InputWindow::EventfulBuffer
 		// index string length; that is what `PushBack` does.
 		//
 		// Inserting a character pushes all characters after it one position to the right.
-		constexpr bool Insert(typename Data::size_type const index, CharT const character)
+		constexpr bool Insert(typename Data::size_type const insertionIndex, CharT const character)
 		{
 			// Can insert at any index in the string or at the end if index is string length.
 			// Can only insert a character if the string is not at maximum capacity.
-			if (not(index <= m_stringLength and m_stringLength < kMaxStringLength))
+			if (not(insertionIndex <= m_stringLength and m_stringLength < kMaxStringLength))
 			{
 				// Failure.
 				return false;
@@ -80,16 +80,15 @@ class Shell::InputWindow::EventfulBuffer
 
 			// Starting from the index of the null terminator which is at
 			// index string length, will iterate leftward shifting each character
-			// to the right by one position until reached index to insert
-			// the the new character at.
-			for (typename Data::size_type i{ m_stringLength }; i > index; --i)
+			// to the right by one position until reached index to insert the new character at.
+			for (typename Data::size_type index{ m_stringLength }; index > insertionIndex; --index)
 			{
-				m_onStringUpdate(i, m_data[i] = m_data[i - 1u]);
+				m_onStringUpdate(index, m_data[index] = m_data[index - 1u]);
 			}
 
 			// Use assignment to insert the character at a position.
 			// Also call the event listener.
-			m_onStringUpdate(index, m_data[index] = character);
+			m_onStringUpdate(insertionIndex, m_data[insertionIndex] = character);
 
 			// Increment the string length and null terminate the string.
 			++m_stringLength;
