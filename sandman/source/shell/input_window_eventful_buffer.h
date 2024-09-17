@@ -122,18 +122,18 @@ class Shell::InputWindow::EventfulBuffer
 		}
 
 		// Remove character at an index.
-		constexpr bool Remove(typename Data::size_type const index)
+		constexpr bool Remove(typename Data::size_type const removalIndex)
 		{
 			// Can only remove if the index is a valid position in the string; 
 			// the index must be strictly less than the string length.
 			// The index cannot be equal to the string length because the string length is the
 			// the position where the null character currently is,
 			// and the null character should not be removed.
-			if (index < m_stringLength)
+			if (removalIndex < m_stringLength)
 			{
 				// Starting from the index of the character to remove,
 				// will iterate rightward shifting each character to the left by one position,
-				// until but not including he null character string terminator at the index of
+				// until but not including the null character string terminator at the index of
 				// string length.
 				// 
 				// Since started from index of character to remove,
@@ -145,11 +145,11 @@ class Shell::InputWindow::EventfulBuffer
 				// and the smallest the removal index can be is zero, so
 				// string length must be at least one here.
 				// So it is okay to subtract one from the string length here.
-				for (typename Data::size_type i{ index }; i < m_stringLength - 1u; ++i)
+				for (typename Data::size_type index{ removalIndex }; index < m_stringLength - 1u; ++index)
 				{
 					// Replace the character at the current index with the
 					// character to the right;
-					m_onStringUpdate(i, m_data[i] = m_data[i + 1u]);
+					m_onStringUpdate(index, m_data[index] = m_data[index + 1u]);
 				}
 
 				// One character was removed, so decrement the string length by one.
