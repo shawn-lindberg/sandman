@@ -16,9 +16,9 @@
 
 namespace Shell
 {
-	static std::recursive_mutex s_Mutex;
+	static std::recursive_mutex s_mutex;
 
-	Lock::Lock(): m_Lock(s_Mutex) {};
+	Lock::Lock(): m_lock(s_mutex) {};
 
 	// Configure a window with "sensible" defaults.
 	static void ConfigureWindowDefaults(WINDOW* const window)
@@ -95,22 +95,22 @@ namespace Shell
 	namespace LoggingWindow
 	{
 		// This window is where messages from the logger are written to.
-		static WINDOW* s_Window = nullptr;
+		static WINDOW* s_window{nullptr};
 
-		static std::stack<AttributeBundle> s_AttributeStack;
+		static std::stack<AttributeBundle> s_attributeStack;
 
-		void Refresh() { wrefresh(s_Window); }
+		void Refresh() { wrefresh(s_window); }
 
-		void Write(chtype const character) { waddch(s_Window, character); }
+		void Write(chtype const character) { waddch(s_window, character); }
 
-		void Write(char const* const string) { waddstr(s_Window, string); }
+		void Write(char const* const string) { waddstr(s_window, string); }
 
 		[[nodiscard]] bool PushAttributes(AttributeBundle const attributes)
 		{
-			s_AttributeStack.push(attributes);
+			s_attributeStack.push(attributes);
 
 			// Set attributes.
-			wattrset(s_Window, attributes.m_Value);
+			wattrset(s_window, attributes.m_value);
 
 			// Success.
 			return true;
@@ -118,29 +118,29 @@ namespace Shell
 
 		void PopAttributes()
 		{
-			if (not s_AttributeStack.empty()) {
-				s_AttributeStack.pop();
+			if (not s_attributeStack.empty()) {
+				s_attributeStack.pop();
 			}
 
-			if (not s_AttributeStack.empty())
+			if (not s_attributeStack.empty())
 			{
-				wattrset(s_Window, s_AttributeStack.top().m_Value);
+				wattrset(s_window, s_attributeStack.top().m_value);
 			}
 			else
 			{
-				wattrset(s_Window, Normal.m_Value);
+				wattrset(s_window, Normal.m_value);
 			}
 		}
 
 		void ClearAllAttributes()
 		{
-			s_AttributeStack = {}; // clear the stack
-			wattrset(s_Window, Normal.m_Value);
+			s_attributeStack = {}; // clear the stack
+			wattrset(s_window, Normal.m_value);
 		}
 
 		static void Initialize()
 		{
-			s_Window = newwin(
+			s_window = newwin(
 				// height (line count)
 				LINES - InputWindow::kRowCount,
 				// width
@@ -150,28 +150,28 @@ namespace Shell
 				// left-hand corner x
 				0);
 
-			ConfigureWindowDefaults(s_Window);
+			ConfigureWindowDefaults(s_window);
 
 			// Scroll when cursor is moved off the edge of the window.
-			scrollok(s_Window, TRUE);
+			scrollok(s_window, TRUE);
 		}
 	} // namespace LoggingWindow
 
 	namespace InputWindow
 	{
 		// This window is where user input is echoed to.
-		static WINDOW* s_Window = nullptr;
+		static WINDOW* s_window{nullptr};
 
 		template <bool kFlag>
 		[[gnu::always_inline]] inline static void SetCharHighlight(int const positionX)
 		{
 			int const offsetX{ positionX };
-			SetCharAttr<kFlag>(s_Window, kCursorStartY, kCursorStartX + offsetX, A_STANDOUT);
+			SetCharAttr<kFlag>(s_window, kCursorStartY, kCursorStartX + offsetX, A_STANDOUT);
 		}
 
 		static void Initialize()
 		{
-			s_Window = newwin(
+			s_window = newwin(
 				// height (line count)
 				kRowCount,
 				// width
@@ -181,17 +181,17 @@ namespace Shell
 				// left-hand corner x
 				0);
 
-			ConfigureWindowDefaults(s_Window);
+			ConfigureWindowDefaults(s_window);
 
 			// Draw a border on the window.
-			box(s_Window,
+			box(s_window,
 				 // use default vertical character
 				 0,
 				 // use default horizontal character
 				 0);
 
 			// Move the cursor to the corner.
-			wmove(s_Window, kCursorStartY, kCursorStartX);
+			wmove(s_window, kCursorStartY, kCursorStartX);
 
 			SetCharHighlight<true>(0u);
 		}
@@ -199,13 +199,13 @@ namespace Shell
 
 	namespace
 	{
-		static std::sig_atomic_t volatile s_ShouldResize{ false };
+		static std::sig_atomic_t volatile s_shouldResize{ false };
 
 		extern "C" void WindowChangeSignalHandler(int const signal)
 		{
 			#ifdef SIGWINCH
 			if (signal == SIGWINCH) {
-				s_ShouldResize = true;
+				s_shouldResize = true;
 			}
 			#endif
 		}
@@ -213,9 +213,9 @@ namespace Shell
 
 	void CheckResize()
 	{
-		if (s_ShouldResize)
+		if (s_shouldResize)
 		{
-			s_ShouldResize = false;
+			s_shouldResize = false;
 			LoggingWindow::PrintLine(Red("Window resize is unimplemented."));
 		}
 	}
@@ -255,9 +255,9 @@ namespace Shell
 		// above the call to `init_pair` for some sources.
 		CursesColorID colorPairID{ 1 };
 
-		for (ColorMatrix::Key const backgroundColor : kColorList)
+		for (ColorMatrix::ColorID const backgroundColor : kColorList)
 		{
-			for (ColorMatrix::Key const foregroundColor : kColorList)
+			for (ColorMatrix::ColorID const foregroundColor : kColorList)
 			{
 				static constexpr decltype(colorPairID) kExclusiveUpperLimit
 				{
@@ -302,7 +302,7 @@ namespace Shell
 				// to be set if the routine `assume_default_colors` is called. This implies
 				// that without the NCurses extension, it cannot be set.
 				//
-				init_pair(colorPairID, GetColorID(foregroundColor), GetColorID(backgroundColor));
+				init_pair(colorPairID, GetCursesColorID(foregroundColor), GetCursesColorID(backgroundColor));
 
 				// Don't put the increment in call to `init_pair` in case it is a macro.
 				// Sometimes Curses functions are macros.
@@ -370,11 +370,11 @@ namespace Shell
 
 	void Uninitialize()
 	{
-		delwin(LoggingWindow::s_Window);
-		LoggingWindow::s_Window = nullptr;
+		delwin(LoggingWindow::s_window);
+		LoggingWindow::s_window = nullptr;
 
-		delwin(InputWindow::s_Window);
-		InputWindow::s_Window = nullptr;
+		delwin(InputWindow::s_window);
+		InputWindow::s_window = nullptr;
 
 		endwin();
 	}
@@ -384,44 +384,47 @@ namespace Shell
 		using BufferT = EventfulBuffer<char, kMaxInputStringLength>;
 
 		// User keyboard input is stored here.
-		static BufferT s_Buffer(
-			BufferT::OnStringUpdateListener{[](BufferT::Data::size_type const index,
-														 BufferT::Data::value_type const character) -> void
+		static BufferT s_buffer(
+			BufferT::OnStringUpdateListener{[](
+				BufferT::Data::size_type const index,
+				BufferT::Data::value_type const character
+			) -> void
 			{
-				mvwaddch(s_Window, kCursorStartY, kCursorStartX + index, character);
+				mvwaddch(s_window, kCursorStartY, kCursorStartX + index, character);
 			}},
 			BufferT::OnClearListener{[]() -> void
 			{
 				// Move the cursor back to the start of the input region,
 				// in fact, to the front of the line to be sure (x = 0).
-				wmove(s_Window, kCursorStartY, 0u);
+				wmove(s_window, kCursorStartY, 0u);
 
 				// "Window clear to end of line": clear the line.
-				wclrtoeol(s_Window);
+				wclrtoeol(s_window);
 
 				// Redraw the border.
-				box(s_Window,
+				box(s_window,
 					 // Use default vertical character.
 					 0,
 					 // Use default horizontal character.
 					 0);
 			}},
-			BufferT::OnDecrementStringLengthListener{[](BufferT::Data::size_type const newStringLength
-																	) -> void
+			BufferT::OnDecrementStringLengthListener{[](
+				BufferT::Data::size_type const newStringLength
+			) -> void
 			{
-				mvwaddch(s_Window, kCursorStartY, kCursorStartX + newStringLength, ' ');
+				mvwaddch(s_window, kCursorStartY, kCursorStartX + newStringLength, ' ');
 			}}
 		);
 
-		BufferT const& GetBuffer() { return s_Buffer; }
+		BufferT const& GetBuffer() { return s_buffer; }
 
 		using FastCursor = std::uint_fast8_t;
 
 		// The position for where to insert and remove in the input buffer.
-		static FastCursor s_Cursor{ 0u };
+		static FastCursor s_cursor{ 0u };
 
 		static_assert(std::is_unsigned_v<FastCursor> and
-						  std::numeric_limits<FastCursor>::max() >= s_Buffer.kMaxStringLength,
+						  std::numeric_limits<FastCursor>::max() >= s_buffer.kMaxStringLength,
 						  "The input buffer cursor must be able to represent "
 						  "all valid positions in the input buffer string for insertion, "
 						  "including the exclusive end position where the current null character is.");
@@ -442,14 +445,36 @@ namespace Shell
 			BumpCursor()
 		{
 			static constexpr CursorMovementT kNext{};
-			SetCharHighlight<false>(s_Cursor);
-			SetCharHighlight<true>(s_Cursor = kNext(s_Cursor, static_cast<FastCursor>(1u)));
+			SetCharHighlight<false>(s_cursor);
+			SetCharHighlight<true>(s_cursor = kNext(s_cursor, static_cast<FastCursor>(1u)));
 		}
+
+		static std::unordered_map<std::string_view, bool (*)()> const s_dispatchTable
+		{
+			{"quit"sv, []() constexpr -> bool {
+				// Return boolean `true` denoting that the program should stop running.
+				return true;
+			}},
+			{""sv, []() -> bool {
+				redrawwin(LoggingWindow::s_window);
+				redrawwin(InputWindow::s_window);
+
+				wrefresh(LoggingWindow::s_window);
+				wrefresh(InputWindow::s_window);
+
+				// Reset cursor, just to be safe.
+				s_cursor = 0u;
+
+				LoggingWindow::PrintLine(Magenta("Refreshed the screen."));
+
+				return false;
+			}}
+		};
 
 		static bool HandleSubmitString()
 		{
 
-			std::string_view const bufferView(s_Buffer.View());
+			std::string_view const bufferView(s_buffer.View());
 
 			if (not bufferView.empty())
 			{
@@ -461,42 +486,29 @@ namespace Shell
 			{
 				// Tokenize the string.
 				std::vector<CommandToken> commandTokens;
-				CommandTokenizeString(commandTokens, s_Buffer.GetData().data());
+				CommandTokenizeString(commandTokens, s_buffer.GetData().data());
 
 				// Parse command tokens.
 				CommandParseTokens(commandTokens);
 			}
 
-			static std::unordered_map<std::string_view, bool (*)()> const s_DispatchTable
-			{
-				{"quit"sv, []() constexpr -> bool {
-					// Return boolean `true` denoting that the program should stop running.
-					return true;
-				}},
-				{""sv, []() -> bool {
-					redrawwin(LoggingWindow::s_Window);
-					redrawwin(InputWindow::s_Window);
-
-					wrefresh(LoggingWindow::s_Window);
-					wrefresh(InputWindow::s_Window);
-
-					// Reset cursor, just to be safe.
-					s_Cursor = 0u;
-
-					LoggingWindow::PrintLine(Magenta("Refreshed the screen."));
-
-					return false;
-				}}
-			};
-
 			// Handle dispatch.
 			{
-				auto const dispatchEntry(s_DispatchTable.find(bufferView));
+				auto const dispatchEntry(s_dispatchTable.find(bufferView));
 
-				s_Buffer.Clear();
-				SetCharHighlight<true>(s_Cursor = 0u);
+				s_buffer.Clear();
+				SetCharHighlight<true>(s_cursor = 0u);
 
-				return dispatchEntry != s_DispatchTable.end() ? dispatchEntry->second() : false;
+				if (dispatchEntry == s_dispatchTable.end())
+				{
+					return false;
+				}
+
+				auto const operation{ dispatchEntry->second };
+
+				bool const shouldQuit{ operation() };
+
+				return shouldQuit;
 			}
 		}
 
@@ -505,7 +517,7 @@ namespace Shell
 	bool InputWindow::ProcessSingleUserKey()
 	{
 		// Get one input key from the terminal, if any.
-		switch (int const inputKey{ wgetch(s_Window) })
+		switch (int const inputKey{ wgetch(s_window) })
 		{
 			// No input.
 			case ERR: return false;
@@ -516,7 +528,7 @@ namespace Shell
 			case KEY_LEFT:
 			{
 				// If the curser has space to move left, move it left.
-				if (s_Cursor > 0u)
+				if (s_cursor > 0u)
 				{
 					BumpCursor<Left>();
 				}
@@ -527,7 +539,7 @@ namespace Shell
 			{
 				// If the cursor has space to move right, including the position of the null character,
 				// move right.
-				if (s_Cursor < s_Buffer.GetLength())
+				if (s_cursor < s_buffer.GetLength())
 				{
 					BumpCursor<Right>();
 				}
@@ -538,7 +550,7 @@ namespace Shell
 			{
 				// If successfully removed a character, move the cursor left.
 				// (Unsigned `int` underflow is defined to wrap.)
-				if (s_Buffer.Remove(s_Cursor - 1u))
+				if (s_buffer.Remove(s_cursor - 1u))
 				{
 					BumpCursor<Left>();
 				}
@@ -574,7 +586,7 @@ namespace Shell
 				};
 
 				// If successfully inserted into the buffer, move the cursor to the right.
-				if (inputKeyIsPrintable and s_Buffer.Insert(s_Cursor, inputKey))
+				if (inputKeyIsPrintable and s_buffer.Insert(s_cursor, inputKey))
 				{
 					BumpCursor<Right>();
 				}

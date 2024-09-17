@@ -20,7 +20,7 @@
 
 Config::Config()
 {
-	m_InputDeviceName[0] = '\0';
+	m_inputDeviceName[0] = '\0';
 }
 
 // Read the configuration from a file.
@@ -113,7 +113,7 @@ bool Config::ReadControlSettingsFromJSON(rapidjson::Value const& object)
 	{
 		if (maxMovingIterator->value.IsInt() == true)
 		{
-			m_ControlMaxMovingDurationMS = maxMovingIterator->value.GetInt();
+			m_controlMaxMovingDurationMS = maxMovingIterator->value.GetInt();
 		}
 	}
 
@@ -124,12 +124,12 @@ bool Config::ReadControlSettingsFromJSON(rapidjson::Value const& object)
 	{
 		if (coolDownIterator->value.IsInt() == true)
 		{
-			m_ControlCoolDownDurationMS = coolDownIterator->value.GetInt();
+			m_controlCoolDownDurationMS = coolDownIterator->value.GetInt();
 		}
 	}
 
 	// A controls array is required, but it may be empty.
-	m_ControlConfigs.clear();
+	m_controlConfigs.clear();
 
 	auto const controlsIterator = object.FindMember("controls");
 
@@ -156,7 +156,7 @@ bool Config::ReadControlSettingsFromJSON(rapidjson::Value const& object)
 		}
 
 		// If we successfully read a control config, add it to the list.
-		m_ControlConfigs.push_back(controlConfig);
+		m_controlConfigs.push_back(controlConfig);
 	}
 
 	return true;
@@ -226,11 +226,11 @@ bool Config::ReadInputSettingsFromJSON(rapidjson::Value const& object)
 	}
 	
 	// Copy no more than the amount of text the buffer can hold.
-	strncpy(m_InputDeviceName, deviceIterator->value.GetString(), sizeof(m_InputDeviceName) - 1);
-	m_InputDeviceName[sizeof(m_InputDeviceName) - 1] = '\0';
+	strncpy(m_inputDeviceName, deviceIterator->value.GetString(), sizeof(m_inputDeviceName) - 1);
+	m_inputDeviceName[sizeof(m_inputDeviceName) - 1] = '\0';
 
 	// We must have a bindings array, but it can be empty.
-	m_InputBindings.clear();
+	m_inputBindings.clear();
 
 	auto const bindingsIterator = inputDevice.FindMember("bindings");
 
@@ -257,7 +257,7 @@ bool Config::ReadInputSettingsFromJSON(rapidjson::Value const& object)
 		}
 
 		// If we successfully read a binding, add it to the list.
-		m_InputBindings.push_back(binding);
+		m_inputBindings.push_back(binding);
 	}
 
 	return true;

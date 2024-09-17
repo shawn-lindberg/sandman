@@ -9,19 +9,19 @@
 struct Time
 {
 	// The portion of the time in seconds.
-	uint64_t m_Seconds = 0;
+	uint64_t m_seconds = 0;
 	
 	// The portion of the time in nanoseconds.
-	uint64_t m_Nanoseconds = 0;	
+	uint64_t m_nanoseconds = 0;	
 
 	friend auto operator<(const Time& left, const Time& right)
 	{
-		if (left.m_Seconds != right.m_Seconds)
+		if (left.m_seconds != right.m_seconds)
 		{
-			return left.m_Seconds < right.m_Seconds;
+			return left.m_seconds < right.m_seconds;
 		}
 
-		return left.m_Nanoseconds < right.m_Nanoseconds;
+		return left.m_nanoseconds < right.m_nanoseconds;
 	}
 
 	friend auto operator>(const Time& left, const Time& right)

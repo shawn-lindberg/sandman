@@ -30,7 +30,7 @@ namespace Shell
 	class [[nodiscard]] Lock final
 	{
 		private:
-			std::lock_guard<std::recursive_mutex> m_Lock;
+			std::lock_guard<std::recursive_mutex> m_lock;
 		public:
 			[[nodiscard]] explicit Lock();
 	};
@@ -133,14 +133,14 @@ namespace Shell
 			// Process the first argument.
 			if constexpr (IsObjectBundle<std::decay_t<FirstT>>)
 			{
-				bool const didPushAttributes{ PushAttributes(first.m_Attributes) };
+				bool const didPushAttributes{ PushAttributes(first.m_attributes) };
 
 				std::apply(
 					[](auto&&... objects) -> void
 					{
 						return Write(std::forward<decltype(objects)>(objects)...);
 					},
-					first.m_Objects
+					first.m_objects
 				);
 
 				if (didPushAttributes)

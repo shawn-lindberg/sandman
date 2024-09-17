@@ -19,7 +19,7 @@
 //
 
 // Names for each command token.
-static char const* const s_CommandTokenNames[] = 
+static constexpr char const* const kCommandTokenNames[] = 
 {
 	"back",			// kTypeBack
 	"legs",			// kTypeLegs
@@ -38,7 +38,7 @@ static char const* const s_CommandTokenNames[] =
 };
 
 // A mapping between token names and token type.
-static const std::map<std::string, CommandToken::Types>	s_CommandTokenNameToTypeMap = 
+static std::map<std::string, CommandToken::Types> const s_commandTokenNameToTypeMap = 
 {
 	{ "back", 		CommandToken::kTypeBack }, 
 	{ "legs",		CommandToken::kTypeLegs },
@@ -59,18 +59,18 @@ static const std::map<std::string, CommandToken::Types>	s_CommandTokenNameToType
 };
 
 // Keep handles to the controls.
-static ControlHandle s_BackControlHandle;
-static ControlHandle s_LegsControlHandle;
-static ControlHandle s_ElevationControlHandle;
+static ControlHandle s_backControlHandle;
+static ControlHandle s_legsControlHandle;
+static ControlHandle s_elevationControlHandle;
 
 // Keep a handle to the input.
-static Input const* s_Input = nullptr;
+static Input const* s_input = nullptr;
 
 // Signals whether we are in the process of rebooting.
-static bool s_Rebooting = false;
+static bool s_rebooting = false;
 
 // Keep track of when we started the reboot process so we can time the delay.
-static Time s_RebootDelayStartTime;
+static Time s_rebootDelayStartTime;
 
 // Functions
 //
@@ -81,14 +81,14 @@ static Time s_RebootDelayStartTime;
 //
 void CommandInitialize(Input const& input)
 {
-	s_Input = &input;
+	s_input = &input;
 }
 
 // Uninitialize the system.
 //
 void CommandUninitialize()
 {
-	s_Input = nullptr;
+	s_input = nullptr;
 }
 
 // Process the system.
@@ -96,7 +96,7 @@ void CommandUninitialize()
 void CommandProcess()
 {
 	// At the moment we only have per frame processing for rebooting.
-	if (s_Rebooting == false)
+	if (s_rebooting == false)
 	{
 		return;
 	}
@@ -105,7 +105,7 @@ void CommandProcess()
 	// paths.
 	static constexpr auto DoReboot = []() -> void
 	{
-		s_Rebooting = false;
+		s_rebooting = false;
 
 		Logger::WriteLine("Rebooting!");
 
@@ -117,7 +117,7 @@ void CommandProcess()
 	Time notificationFinishedTime;
 	NotificationGetLastPlayFinishedTime(notificationFinishedTime);
 
-	if (notificationFinishedTime > s_RebootDelayStartTime) 
+	if (notificationFinishedTime > s_rebootDelayStartTime) 
 	{
 		DoReboot();
 		return;
@@ -127,7 +127,7 @@ void CommandProcess()
 	Time rebootDelayCurrentTime;
 	TimerGetCurrent(rebootDelayCurrentTime);
 	
-	float const durationMS = TimerGetElapsedMilliseconds(s_RebootDelayStartTime, 
+	float const durationMS = TimerGetElapsedMilliseconds(s_rebootDelayStartTime, 
 																		  rebootDelayCurrentTime);
 
 	auto const durationSeconds{static_cast<unsigned long>(durationMS) / 1'000};
@@ -169,7 +169,7 @@ CommandParseTokensReturnTypes CommandParseTokens(char const*& confirmationText,
 	{
 		// Parse commands.
 		auto token = commandTokens[tokenIndex];
-		switch (token.m_Type)
+		switch (token.m_type)
 		{
 			case CommandToken::kTypeBack:			// Fall through...
 			case CommandToken::kTypeLegs:			// Fall through...
@@ -178,48 +178,48 @@ CommandParseTokensReturnTypes CommandParseTokens(char const*& confirmationText,
 				// Try to access the control corresponding to the command token.
 				Control* control = nullptr;
 				
-				switch (token.m_Type)
+				switch (token.m_type)
 				{
 					case CommandToken::kTypeBack:
 					{
 						// Try to find the control.
-						if (s_BackControlHandle.IsValid() == false)
+						if (s_backControlHandle.IsValid() == false)
 						{
-							s_BackControlHandle = Control::GetHandle("back");
+							s_backControlHandle = Control::GetHandle("back");
 						}
 						
-						control = Control::GetFromHandle(s_BackControlHandle);
+						control = Control::GetFromHandle(s_backControlHandle);
 					}
 					break;
 					
 					case CommandToken::kTypeLegs:
 					{
 						// Try to find the control.
-						if (s_LegsControlHandle.IsValid() == false)
+						if (s_legsControlHandle.IsValid() == false)
 						{
-							s_LegsControlHandle = Control::GetHandle("legs");
+							s_legsControlHandle = Control::GetHandle("legs");
 						}
 						
-						control = Control::GetFromHandle(s_LegsControlHandle);
+						control = Control::GetFromHandle(s_legsControlHandle);
 					}
 					break;
 					
 					case CommandToken::kTypeElevation:
 					{
 						// Try to find the control.
-						if (s_ElevationControlHandle.IsValid() == false)
+						if (s_elevationControlHandle.IsValid() == false)
 						{
-							s_ElevationControlHandle = Control::GetHandle("elev");
+							s_elevationControlHandle = Control::GetHandle("elev");
 						}
 			
-						control = Control::GetFromHandle(s_ElevationControlHandle);
+						control = Control::GetFromHandle(s_elevationControlHandle);
 					}
 					break;
 					
 					default:
 					{
 						Logger::WriteFormattedLine("Unrecognized token \"%s\" trying to process a control movement "
-							"command.", s_CommandTokenNames[token.m_Type]);
+							"command.", kCommandTokenNames[token.m_type]);
 					}
 					break;
 				}
@@ -241,11 +241,11 @@ CommandParseTokensReturnTypes CommandParseTokens(char const*& confirmationText,
 				// Try to get the action which should be performed on the control.
 				auto action = Control::kActionStopped;
 				
-				if (token.m_Type == CommandToken::kTypeRaise)
+				if (token.m_type == CommandToken::kTypeRaise)
 				{
 					action = Control::kActionMovingUp;
 				}
-				else if (token.m_Type == CommandToken::kTypeLower)
+				else if (token.m_type == CommandToken::kTypeLower)
 				{
 					action = Control::kActionMovingDown;
 				}
@@ -264,9 +264,9 @@ CommandParseTokensReturnTypes CommandParseTokens(char const*& confirmationText,
 				{
 					auto const nextToken = commandTokens[nextTokenIndex];
 					
-					if (nextToken.m_Type == CommandToken::kTypeInteger)
+					if (nextToken.m_type == CommandToken::kTypeInteger)
 					{
-						durationPercent = nextToken.m_Parameter;
+						durationPercent = nextToken.m_parameter;
 						
 						// Actually consume this token.
 						tokenIndex++;
@@ -300,12 +300,12 @@ CommandParseTokensReturnTypes CommandParseTokens(char const*& confirmationText,
 				
 				token = commandTokens[tokenIndex];
 			
-				if (token.m_Type == CommandToken::kTypeStart)
+				if (token.m_type == CommandToken::kTypeStart)
 				{
 					ScheduleStart();
 					return CommandParseTokensReturnTypes::kSuccess;
 				}
-				else if (token.m_Type == CommandToken::kTypeStop)
+				else if (token.m_type == CommandToken::kTypeStop)
 				{
 					ScheduleStop();
 					return CommandParseTokensReturnTypes::kSuccess;
@@ -323,7 +323,7 @@ CommandParseTokensReturnTypes CommandParseTokens(char const*& confirmationText,
 					NotificationPlay("schedule_running");
 				}
 				
-				if ((s_Input != nullptr) && (s_Input->IsConnected() == true))
+				if ((s_input != nullptr) && (s_input->IsConnected() == true))
 				{
 					NotificationPlay("control_connected");
 				}
@@ -345,7 +345,7 @@ CommandParseTokensReturnTypes CommandParseTokens(char const*& confirmationText,
 				token = commandTokens[tokenIndex];
 
 				// Only a positive confirmation is accepted.
-				if (token.m_Type != CommandToken::kTypeYes)
+				if (token.m_type != CommandToken::kTypeYes)
 				{
 					Logger::WriteFormattedLine("Ignoring reboot command because it was not followed by "
 														"a positive confirmation.");
@@ -354,8 +354,8 @@ CommandParseTokensReturnTypes CommandParseTokens(char const*& confirmationText,
 				}
 
 				// Kick off the reboot.
-				s_Rebooting = true;
-				TimerGetCurrent(s_RebootDelayStartTime);
+				s_rebooting = true;
+				TimerGetCurrent(s_rebootDelayStartTime);
 
 				Logger::WriteFormattedLine("Reboot starting!");
 				NotificationPlay("restarting");
@@ -382,9 +382,9 @@ CommandParseTokensReturnTypes CommandParseTokens(char const*& confirmationText,
 static CommandToken::Types CommandConvertStringToTokenType(std::string const& tokenString)
 {
 	// Try to find it in the map.
-	auto const resultIterator = s_CommandTokenNameToTypeMap.find(tokenString);
+	auto const resultIterator = s_commandTokenNameToTypeMap.find(tokenString);
 
-	if (resultIterator == s_CommandTokenNameToTypeMap.end()) 
+	if (resultIterator == s_commandTokenNameToTypeMap.end()) 
 	{		
 		// No match.
 		return CommandToken::kTypeInvalid;
@@ -423,22 +423,22 @@ void CommandTokenizeString(std::vector<CommandToken>& commandTokens,
 
 		// Match the token string to a token (with no parameter) if possible.
 		CommandToken token;
-		token.m_Type = CommandConvertStringToTokenType(tokenString);
+		token.m_type = CommandConvertStringToTokenType(tokenString);
 
 		// If we couldn't turn it into a plain old token, see if it is a parameter token.
-		if (token.m_Type == CommandToken::kTypeInvalid)
+		if (token.m_type == CommandToken::kTypeInvalid)
 		{
 			std::string_view const tokenStringView(tokenString);
 
-			// Attempt to parse the string into a number; save result into `token.m_Parameter`.
+			// Attempt to parse the string into a number; save result into `token.m_parameter`.
 			auto const [endPointer, errorCode] = std::from_chars(tokenStringView.begin(),
 																				  tokenStringView.end(),
-																				  token.m_Parameter);
+																				  token.m_parameter);
 
 			// Check if successfully parsed to number and matched whole string.
 			if (errorCode == std::errc() and endPointer == tokenStringView.end())
 			{
-				token.m_Type = CommandToken::kTypeInteger;
+				token.m_type = CommandToken::kTypeInteger;
 			}
 
 		}
@@ -460,8 +460,8 @@ void CommandTokenizeString(std::vector<CommandToken>& commandTokens,
 //
 struct SlotNameValue
 {
-	std::string	m_Name;
-	std::string	m_Value;
+	std::string	m_name;
+	std::string	m_value;
 };
 
 // Extract the slots from a JSON document.
@@ -526,8 +526,8 @@ static void CommandExtractSlotsFromJSONDocument(std::vector<SlotNameValue>& extr
 		
 		// Now that we found the name and the value, we can add it to the output.
 		SlotNameValue extractedSlot;
-		extractedSlot.m_Name = slotName.GetString();
-		extractedSlot.m_Value = slotValue.GetString();
+		extractedSlot.m_name = slotName.GetString();
+		extractedSlot.m_value = slotValue.GetString();
 
 		extractedSlots.push_back(extractedSlot);
 	}
@@ -581,13 +581,13 @@ void CommandTokenizeJSONDocument(std::vector<CommandToken>& commandTokens,
 		for (auto const& slot : slots)
 		{			
 			// This is the response slot.
-			if (slot.m_Name.compare("response") == 0)
+			if (slot.m_name.compare("response") == 0)
 			{
-				responseToken.m_Type = CommandConvertStringToTokenType(slot.m_Value);
+				responseToken.m_type = CommandConvertStringToTokenType(slot.m_value);
 			}		
 		}	
 
-		if (responseToken.m_Type == CommandToken::kTypeInvalid)
+		if (responseToken.m_type == CommandToken::kTypeInvalid)
 		{
 			// It's important in this case that we clear the command tokens so that we don't attempt 
 			// to process the pending command.
@@ -620,7 +620,7 @@ void CommandTokenizeJSONDocument(std::vector<CommandToken>& commandTokens,
 
 		// For status, we only have to output the status token.
 		CommandToken token;
-		token.m_Type = CommandToken::kTypeStatus;
+		token.m_type = CommandToken::kTypeStatus;
 
 		commandTokens.push_back(token);
 		return;
@@ -639,22 +639,22 @@ void CommandTokenizeJSONDocument(std::vector<CommandToken>& commandTokens,
 		for (auto const& slot : slots)
 		{
 			// This is the part slot.
-			if (slot.m_Name.compare("name") == 0)
+			if (slot.m_name.compare("name") == 0)
 			{
-				partToken.m_Type = CommandConvertStringToTokenType(slot.m_Value);
+				partToken.m_type = CommandConvertStringToTokenType(slot.m_value);
 				continue;
 			}
 
 			// This is the direction slot.
-			if (slot.m_Name.compare("direction") == 0)
+			if (slot.m_name.compare("direction") == 0)
 			{
-				directionToken.m_Type = CommandConvertStringToTokenType(slot.m_Value);
+				directionToken.m_type = CommandConvertStringToTokenType(slot.m_value);
 				continue;
 			}			
 		}	
 
-		if ((partToken.m_Type == CommandToken::kTypeInvalid) || 
-			(directionToken.m_Type == CommandToken::kTypeInvalid))
+		if ((partToken.m_type == CommandToken::kTypeInvalid) || 
+			(directionToken.m_type == CommandToken::kTypeInvalid))
 		{
 			Logger::WriteFormattedLine("Couldn't recognize a %s intent because of invalid parameters.", 
 				intentName);
@@ -677,21 +677,21 @@ void CommandTokenizeJSONDocument(std::vector<CommandToken>& commandTokens,
 
 		// We are looking to fill out one token, what to do to the schedule.
 		CommandToken scheduleToken;
-		scheduleToken.m_Type = CommandToken::kTypeSchedule;
+		scheduleToken.m_type = CommandToken::kTypeSchedule;
 
 		CommandToken actionToken;
 
 		for (auto const& slot : slots)
 		{
 			// This is the action slot.
-			if (slot.m_Name.compare("action") == 0)
+			if (slot.m_name.compare("action") == 0)
 			{
-				actionToken.m_Type = CommandConvertStringToTokenType(slot.m_Value);
+				actionToken.m_type = CommandConvertStringToTokenType(slot.m_value);
 				continue;
 			}		
 		}	
 
-		if (actionToken.m_Type == CommandToken::kTypeInvalid)
+		if (actionToken.m_type == CommandToken::kTypeInvalid)
 		{
 			Logger::WriteFormattedLine("Couldn't recognize a %s intent because of invalid parameters.", 
 				intentName);
@@ -712,7 +712,7 @@ void CommandTokenizeJSONDocument(std::vector<CommandToken>& commandTokens,
 
 		// For reboot, we only have to output the reboot token.
 		CommandToken token;
-		token.m_Type = CommandToken::kTypeReboot;
+		token.m_type = CommandToken::kTypeReboot;
 
 		commandTokens.push_back(token);
 		return;

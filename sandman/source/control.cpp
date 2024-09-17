@@ -37,7 +37,7 @@
 //
 
 // The names of the actions.
-static char const* const s_ControlActionNames[] =
+static char const* const s_controlActionNames[] =
 {
 	"stopped",		// kActionStopped
 	"moving up",	// kActionMovingUp
@@ -45,14 +45,14 @@ static char const* const s_ControlActionNames[] =
 };
 
 // The names of the modes.
-static char const* const s_ControlModeNames[] =
+static constexpr char const* const kControlModeNames[] =
 {
 	"manual",		// kModeManual
 	"timed",		// kModeTimed
 };
 
 // The names of the states.
-static char const* const s_ControlStateNames[] =
+static constexpr char const* const kControlStateNames[] =
 {
 	"idle",			// kStateIdle
 	"moving up",	// kStateMovingUp
@@ -61,7 +61,7 @@ static char const* const s_ControlStateNames[] =
 };
 
 // The notification names of the states.
-static char const* const s_ControlStateNotificationNames[] =
+static constexpr char const* const kControlStateNotificationNames[] =
 {
 	"",				// kStateIdle
 	"moving_up",	// kStateMovingUp
@@ -70,19 +70,19 @@ static char const* const s_ControlStateNotificationNames[] =
 };
 
 // A list of registered controls.
-static std::vector<Control> s_Controls;
+static std::vector<Control> s_controls;
 
 #if defined ENABLE_GPIO
 
 	// Whether controls can use GPIO or not.
-	static bool s_EnableGPIO = true;
+	static bool s_enableGPIO = true;
 
 #endif // defined ENABLE_GPIO
 
 // Control members
 
-unsigned int Control::ms_MaxMovingDurationMS = MAX_MOVING_STATE_DURATION_MS;
-unsigned int Control::ms_CoolDownDurationMS = MAX_COOL_DOWN_STATE_DURATION_MS;
+unsigned int Control::ms_maxMovingDurationMS = MAX_MOVING_STATE_DURATION_MS;
+unsigned int Control::ms_coolDownDurationMS = MAX_COOL_DOWN_STATE_DURATION_MS;
 
 // Functions
 //
@@ -95,7 +95,7 @@ void SetGPIOPinModeInput(int pin)
 {
 	#if defined ENABLE_GPIO
 
-		if (s_EnableGPIO == true)
+		if (s_enableGPIO == true)
 		{
 			gpioSetMode(pin, PI_INPUT);
 		}
@@ -120,7 +120,7 @@ void SetGPIOPinModeOutput(int pin)
 {
 	#if defined ENABLE_GPIO
 
-		if (s_EnableGPIO == true)
+		if (s_enableGPIO == true)
 		{
 			gpioSetMode(pin, PI_OUTPUT);
 		}
@@ -145,7 +145,7 @@ void SetGPIOPinOn(int pin)
 {
 	#if defined ENABLE_GPIO
 
-		if (s_EnableGPIO == true)
+		if (s_enableGPIO == true)
 		{
 			gpioWrite(pin, CONTROL_ON_GPIO_VALUE);
 		}
@@ -169,7 +169,7 @@ void SetGPIOPinOff(int pin)
 {
 	#if defined ENABLE_GPIO
 	
-		if (s_EnableGPIO == true)
+		if (s_enableGPIO == true)
 		{
 			gpioWrite(pin, CONTROL_OFF_GPIO_VALUE);
 		}
@@ -188,7 +188,7 @@ void SetGPIOPinOff(int pin)
 // ControlHandle members
 
 // A private constructor.
-ControlHandle::ControlHandle(unsigned short uID) : m_UID(uID)
+ControlHandle::ControlHandle(unsigned short uID) : m_uID(uID)
 {
 }
 
@@ -222,8 +222,8 @@ bool ControlConfig::ReadFromJSON(rapidjson::Value const& object)
 	}
 	
 	// Copy no more than the amount of text the buffer can hold.
-	strncpy(m_Name, nameIterator->value.GetString(), sizeof(m_Name) - 1);
-	m_Name[sizeof(m_Name) - 1] = '\0';
+	strncpy(m_name, nameIterator->value.GetString(), sizeof(m_name) - 1);
+	m_name[sizeof(m_name) - 1] = '\0';
 
 	// We must have an up pin.
 	auto const upPinIterator = object.FindMember("upPin");
@@ -240,7 +240,7 @@ bool ControlConfig::ReadFromJSON(rapidjson::Value const& object)
 		return false;
 	}
 
-	m_UpGPIOPin = upPinIterator->value.GetInt();
+	m_upGPIOPin = upPinIterator->value.GetInt();
 
 	// We must also have a down pin.
 	auto const downPinIterator = object.FindMember("downPin");
@@ -257,7 +257,7 @@ bool ControlConfig::ReadFromJSON(rapidjson::Value const& object)
 		return false;
 	}
 
-	m_DownGPIOPin = downPinIterator->value.GetInt();
+	m_downGPIOPin = downPinIterator->value.GetInt();
 
 	// We might also have a moving duration.
 	auto const movingDurationIterator = object.FindMember("movingDurationMS");
@@ -266,7 +266,7 @@ bool ControlConfig::ReadFromJSON(rapidjson::Value const& object)
 	{
 		if (movingDurationIterator->value.IsInt() == true)
 		{
-			m_MovingDurationMS = movingDurationIterator->value.GetInt();
+			m_movingDurationMS = movingDurationIterator->value.GetInt();
 		}
 	}
 
@@ -282,29 +282,29 @@ bool ControlConfig::ReadFromJSON(rapidjson::Value const& object)
 void Control::Initialize(ControlConfig const& config)
 {
 	// Copy the name.
-	strncpy(m_Name, config.m_Name, kNameCapacity - 1);
-	m_Name[kNameCapacity - 1] = '\0';
+	strncpy(m_name, config.m_name, kNameCapacity - 1);
+	m_name[kNameCapacity - 1] = '\0';
 	
-	m_State = kStateIdle;
-	TimerGetCurrent(m_StateStartTime);
-	m_DesiredAction = kActionStopped;
+	m_state = kStateIdle;
+	TimerGetCurrent(m_stateStartTime);
+	m_desiredAction = kActionStopped;
 
 	// Setup the pins and set them to off.
-	m_UpGPIOPin = config.m_UpGPIOPin;
-	m_DownGPIOPin = config.m_DownGPIOPin;
+	m_upGPIOPin = config.m_upGPIOPin;
+	m_downGPIOPin = config.m_downGPIOPin;
 	
-	SetGPIOPinModeOutput(m_UpGPIOPin);
-	SetGPIOPinModeOutput(m_DownGPIOPin);
+	SetGPIOPinModeOutput(m_upGPIOPin);
+	SetGPIOPinModeOutput(m_downGPIOPin);
 	
-	SetGPIOPinOff(m_UpGPIOPin);
-	SetGPIOPinOff(m_DownGPIOPin);
+	SetGPIOPinOff(m_upGPIOPin);
+	SetGPIOPinOff(m_downGPIOPin);
 	
 	// Set the individual control moving duration.
-	m_StandardMovingDurationMS = config.m_MovingDurationMS;
+	m_standardMovingDurationMS = config.m_movingDurationMS;
 
 	Logger::WriteFormattedLine("Initialized control \'%s\' with GPIO pins (up %i, "
 										"down %i) and duration %i ms.",
-										m_Name, m_UpGPIOPin, m_DownGPIOPin, m_StandardMovingDurationMS);
+										m_name, m_upGPIOPin, m_downGPIOPin, m_standardMovingDurationMS);
 }
 
 // Handle uninitialization.
@@ -312,8 +312,8 @@ void Control::Initialize(ControlConfig const& config)
 void Control::Uninitialize()
 {
 	// Revert to input.
-	SetGPIOPinModeInput(m_UpGPIOPin);
-	SetGPIOPinModeInput(m_DownGPIOPin);
+	SetGPIOPinModeInput(m_upGPIOPin);
+	SetGPIOPinModeInput(m_downGPIOPin);
 }
 
 // Process a tick.
@@ -321,40 +321,40 @@ void Control::Uninitialize()
 void Control::Process()
 {
 	// Handle state transitions.
-	switch (m_State) 
+	switch (m_state) 
 	{
 		case kStateIdle:
 		{
 			// Wait until moving is desired to transition.
-			if (m_DesiredAction == kActionStopped) {
+			if (m_desiredAction == kActionStopped) {
 				break;
 			}
 
 			// Transition to moving.
-			if (m_DesiredAction == kActionMovingUp)
+			if (m_desiredAction == kActionMovingUp)
 			{
-				m_State = kStateMovingUp;
+				m_state = kStateMovingUp;
 
 				// Set the pin to on.
-				SetGPIOPinOn(m_UpGPIOPin);
+				SetGPIOPinOn(m_upGPIOPin);
 			}
 			else
 			{
-				m_State = kStateMovingDown;
+				m_state = kStateMovingDown;
 
 				// Set the pin to on.
-				SetGPIOPinOn(m_DownGPIOPin);
+				SetGPIOPinOn(m_downGPIOPin);
 			}
 			
 			// Play the notification.
 			PlayNotification();
 			
 			// Record when the state transition timer began.
-			TimerGetCurrent(m_StateStartTime);
+			TimerGetCurrent(m_stateStartTime);
 
 			Logger::WriteFormattedLine(
-				"Control \"%s\": State transition from \"%s\" to \"%s\" triggered.", m_Name,
-				s_ControlStateNames[kStateIdle], s_ControlStateNames[m_State]);
+				"Control \"%s\": State transition from \"%s\" to \"%s\" triggered.", m_name,
+				kControlStateNames[kStateIdle], kControlStateNames[m_state]);
 		}
 		break;
 
@@ -365,94 +365,94 @@ void Control::Process()
 			Time currentTime;
 			TimerGetCurrent(currentTime);
 
-			auto const elapsedTimeMS = TimerGetElapsedMilliseconds(m_StateStartTime, currentTime);
+			auto const elapsedTimeMS = TimerGetElapsedMilliseconds(m_stateStartTime, currentTime);
 
 			// Get the action corresponding to this state, as well as the one for the opposite state.
-			auto const matchingAction = (m_State == kStateMovingUp) ? kActionMovingUp : 
+			auto const matchingAction = (m_state == kStateMovingUp) ? kActionMovingUp : 
 				kActionMovingDown;
-			auto const oppositeAction = (m_State == kStateMovingUp) ? kActionMovingDown : 
+			auto const oppositeAction = (m_state == kStateMovingUp) ? kActionMovingDown : 
 				kActionMovingUp;
 			
 			// Wait until the desired action no longer matches or the time limit has run out.
-			if ((m_DesiredAction == matchingAction) && (elapsedTimeMS < m_MovingDurationMS))
+			if ((m_desiredAction == matchingAction) && (elapsedTimeMS < m_movingDurationMS))
 			{
 				break;
 			}
 
 			// We are about to change the state, so keep track of the old one.
-			auto const oldState = m_State;
+			auto const oldState = m_state;
 			
-			if (m_DesiredAction == oppositeAction)
+			if (m_desiredAction == oppositeAction)
 			{
 				// Transition to the opposite state.
-				auto const oppositeState = (m_State == kStateMovingUp) ? kStateMovingDown :
+				auto const oppositeState = (m_state == kStateMovingUp) ? kStateMovingDown :
 					kStateMovingUp;
-				m_State = oppositeState;
+				m_state = oppositeState;
 
 				// Flip the pins.
-				auto const oldStatePin = (m_State == kStateMovingDown) ? m_UpGPIOPin : 
-					m_DownGPIOPin;
-				auto const newStatePin = (m_State == kStateMovingDown) ? m_DownGPIOPin : 
-					m_UpGPIOPin;
+				auto const oldStatePin = (m_state == kStateMovingDown) ? m_upGPIOPin : 
+					m_downGPIOPin;
+				auto const newStatePin = (m_state == kStateMovingDown) ? m_downGPIOPin : 
+					m_upGPIOPin;
 				SetGPIOPinOff(oldStatePin);
 				SetGPIOPinOn(newStatePin);
 			}
 			else
 			{
 				// Transition to cool down.
-				m_State = kStateCoolDown;
+				m_state = kStateCoolDown;
 
 				// Set the pins to off.
-				SetGPIOPinOff(m_UpGPIOPin);
-				SetGPIOPinOff(m_DownGPIOPin);
+				SetGPIOPinOff(m_upGPIOPin);
+				SetGPIOPinOff(m_downGPIOPin);
 			}
 			
 			// Play the notification.
 			PlayNotification();
 			
 			// Record when the state transition timer began.
-			TimerGetCurrent(m_StateStartTime);
+			TimerGetCurrent(m_stateStartTime);
 
 			Logger::WriteFormattedLine(
-				"Control \"%s\": State transition from \"%s\" to \"%s\" triggered.", m_Name,
-				s_ControlStateNames[oldState], s_ControlStateNames[m_State]);
+				"Control \"%s\": State transition from \"%s\" to \"%s\" triggered.", m_name,
+				kControlStateNames[oldState], kControlStateNames[m_state]);
 		}
 		break;
 
 		case kStateCoolDown:
 		{
 			// Clear the desired action.
-			m_DesiredAction = kActionStopped;
+			m_desiredAction = kActionStopped;
 
 			// Get elapsed time since state start.
 			Time currentTime;
 			TimerGetCurrent(currentTime);
 
-			auto const elapsedTimeMS = TimerGetElapsedMilliseconds(m_StateStartTime, currentTime);
+			auto const elapsedTimeMS = TimerGetElapsedMilliseconds(m_stateStartTime, currentTime);
 
 			// Wait until the time limit has run out.
-			if (elapsedTimeMS < ms_CoolDownDurationMS)
+			if (elapsedTimeMS < ms_coolDownDurationMS)
 			{
 				break;
 			}
 
 			// Transition to idle.
-			m_State = kStateIdle;
+			m_state = kStateIdle;
 
 			// Set the pins to off.
-			SetGPIOPinOff(m_UpGPIOPin);
-			SetGPIOPinOff(m_DownGPIOPin);
+			SetGPIOPinOff(m_upGPIOPin);
+			SetGPIOPinOff(m_downGPIOPin);
 
 			Logger::WriteFormattedLine(
-				"Control \"%s\": State transition from \"%s\" to \"%s\" triggered.", m_Name,
-				s_ControlStateNames[kStateCoolDown], s_ControlStateNames[m_State]);
+				"Control \"%s\": State transition from \"%s\" to \"%s\" triggered.", m_name,
+				kControlStateNames[kStateCoolDown], kControlStateNames[m_state]);
 		}
 		break;
 
 		default:
 		{
-			Logger::WriteFormattedLine("Control \"%d\": Unrecognized state %s in Process()", m_State,
-												m_Name);
+			Logger::WriteFormattedLine("Control \"%d\": Unrecognized state %s in Process()", m_state,
+												m_name);
 		}
 		break;
 	}
@@ -468,30 +468,30 @@ void Control::Process()
 void Control::SetDesiredAction(Actions desiredAction, Modes mode, unsigned int durationPercent)
 {
 	static_assert(
-		std::is_same_v<decltype(durationPercent), decltype(CommandToken::m_Parameter)>,
-		"Assert the type of `durationPercent` is the same as the type of `CommandToken::m_Parameter`. "
-		"Currently, the main purpose of `CommandToken::m_Parameter` is to be used as `durationPercent`, "
+		std::is_same_v<decltype(durationPercent), decltype(CommandToken::m_parameter)>,
+		"Assert the type of `durationPercent` is the same as the type of `CommandToken::m_parameter`. "
+		"Currently, the main purpose of `CommandToken::m_parameter` is to be used as `durationPercent`, "
 		"so this assertion serves as a notification for if the types become unsynchronized.");
 
-	m_DesiredAction = desiredAction;
-	m_Mode = mode;
+	m_desiredAction = desiredAction;
+	m_mode = mode;
 
-	if (m_Mode == kModeTimed)
+	if (m_mode == kModeTimed)
 	{
 		// Set the current moving duration based on the requested percentage of the standard amount.
 		auto const durationFraction = std::min(durationPercent, 100u) / 100.0f;
-		m_MovingDurationMS =
-			static_cast<unsigned int>(m_StandardMovingDurationMS * durationFraction);
+		m_movingDurationMS =
+			static_cast<unsigned int>(m_standardMovingDurationMS * durationFraction);
 	}
 	else
 	{
-		m_MovingDurationMS = ms_MaxMovingDurationMS;
+		m_movingDurationMS = ms_maxMovingDurationMS;
 	}
 
 	Logger::WriteFormattedLine(
 		"Control \"%s\": Setting desired action to \"%s\" with mode \"%s\" and "
 		"duration %i ms.",
-		m_Name, s_ControlActionNames[desiredAction], s_ControlModeNames[mode], m_MovingDurationMS);
+		m_name, s_controlActionNames[desiredAction], kControlModeNames[mode], m_movingDurationMS);
 }
 
 // Enable or disable all controls.
@@ -524,8 +524,8 @@ void Control::Enable(bool enable)
 //
 void Control::SetDurations(unsigned int movingDurationMS, unsigned int coolDownDurationMS)
 {
-	ms_MaxMovingDurationMS = movingDurationMS;
-	ms_CoolDownDurationMS = coolDownDurationMS;
+	ms_maxMovingDurationMS = movingDurationMS;
+	ms_coolDownDurationMS = coolDownDurationMS;
 
 	Logger::WriteFormattedLine("Control durations set to moving - %i ms, cool down - %i ms.",
 										movingDurationMS, coolDownDurationMS);
@@ -541,10 +541,10 @@ ControlHandle Control::GetHandle(char const* name)
 {
 	ControlHandle handle;
 	
-	auto const controlCount = static_cast<unsigned short>(s_Controls.size());
+	auto const controlCount = static_cast<unsigned short>(s_controls.size());
 	for (unsigned short controlIndex = 0; controlIndex < controlCount; controlIndex++)
 	{
-		auto const& control = s_Controls[controlIndex];
+		auto const& control = s_controls[controlIndex];
 		
 		// Look for a control with the matching name.
 		if (strcmp(control.GetName(), name) != 0)
@@ -553,7 +553,7 @@ ControlHandle Control::GetHandle(char const* name)
 		}
 		
 		// Found it, return the handle.
-		handle.m_UID = controlIndex;
+		handle.m_uID = controlIndex;
 		break;
 	}
 	
@@ -575,14 +575,14 @@ Control* Control::GetFromHandle(ControlHandle const& handle)
 		return nullptr;
 	}
 	
-	auto const controlCount = static_cast<unsigned short>(s_Controls.size());
-	if (handle.m_UID >= controlCount)
+	auto const controlCount = static_cast<unsigned short>(s_controls.size());
+	if (handle.m_uID >= controlCount)
 	{
 		return nullptr;
 	}
 	
 	// Seems we have a valid handle, return the control.
-	return &(s_Controls[handle.m_UID]);
+	return &(s_controls[handle.m_uID]);
 }
 		
 // Play a notification for the state.
@@ -590,7 +590,7 @@ Control* Control::GetFromHandle(ControlHandle const& handle)
 void Control::PlayNotification()
 {
 	// Do not play a notification if the mode is manual.
-	if (m_Mode == kModeManual)
+	if (m_mode == kModeManual)
 	{
 		return;
 	}
@@ -598,8 +598,8 @@ void Control::PlayNotification()
 	// Build the notification name.
 	static constexpr std::size_t kNotificationNameCapacity{ 128u };
 	char notificationName[kNotificationNameCapacity];
-	std::snprintf(notificationName, kNotificationNameCapacity, "%s_%s", m_Name,
-		s_ControlStateNotificationNames[m_State]);
+	std::snprintf(notificationName, kNotificationNameCapacity, "%s_%s", m_name,
+		kControlStateNotificationNames[m_state]);
 
 	NotificationPlay(notificationName);
 }
@@ -609,11 +609,11 @@ void Control::PlayNotification()
 // A constructor for emplacing.
 // 
 ControlAction::ControlAction(char const* controlName, Control::Actions action)
-	: m_Action(action)
+	: m_action(action)
 {
 	// Copy the control name.
-	std::strncpy(m_ControlName, controlName, kControlNameCapacity - 1);
-	m_ControlName[kControlNameCapacity - 1] = '\0';
+	std::strncpy(m_controlName, controlName, kControlNameCapacity - 1);
+	m_controlName[kControlNameCapacity - 1] = '\0';
 }
 
 // Try to find a control action that matches the input text.
@@ -626,7 +626,7 @@ ControlAction::ControlAction(char const* controlName, Control::Actions action)
 auto GetControlActionFromString(Control::Actions& action, char const* inputText)
 {
 	// The names of the actions.
-	static char const* const s_ActionNames[] =
+	static constexpr char const* const kActionNames[] =
 	{
 		"stop",	// kActionStopped
 		"up",		// kActionMovingUp
@@ -638,9 +638,9 @@ auto GetControlActionFromString(Control::Actions& action, char const* inputText)
 	for (unsigned int actionIndex = 0; actionIndex < actionCount; actionIndex++)
 	{
 		// Compare the text to the action name.
-		auto const* actionName = s_ActionNames[actionIndex];
+		auto const* actionName = kActionNames[actionIndex];
 			
-		if (strncmp(inputText, actionName, strlen(actionName)) != 0)			
+		if (std::strncmp(inputText, actionName, std::strlen(actionName)) != 0)
 		{
 			continue;
 		}
@@ -683,8 +683,8 @@ bool ControlAction::ReadFromJSON(rapidjson::Value const& object)
 	}
 	
 	// Copy no more than the amount of text the buffer can hold.
-	strncpy(m_ControlName, controlIterator->value.GetString(), sizeof(m_ControlName) - 1);
-	m_ControlName[sizeof(m_ControlName) - 1] = '\0';
+	strncpy(m_controlName, controlIterator->value.GetString(), sizeof(m_controlName) - 1);
+	m_controlName[sizeof(m_controlName) - 1] = '\0';
 
 	// We must also have an action.
 	auto const actionIterator = object.FindMember("action");
@@ -702,7 +702,7 @@ bool ControlAction::ReadFromJSON(rapidjson::Value const& object)
 	}
 
 	// Try to get the corresponding action.
-	if (GetControlActionFromString(m_Action, actionIterator->value.GetString()) == false)
+	if (GetControlActionFromString(m_action, actionIterator->value.GetString()) == false)
 	{
 		Logger::WriteFormattedLine("Control action has an unrecognized action.");
 		return false;
@@ -718,12 +718,12 @@ bool ControlAction::ReadFromJSON(rapidjson::Value const& object)
 Control* ControlAction::GetControl()
 {
 	// Look up the handle, if we haven't done that yet.
-	if (m_ControlHandle.IsValid() == false) {
-		m_ControlHandle = Control::GetHandle(m_ControlName);
+	if (m_controlHandle.IsValid() == false) {
+		m_controlHandle = Control::GetHandle(m_controlName);
 	}
 	
 	// Try to find the control.
-	return Control::GetFromHandle(m_ControlHandle);
+	return Control::GetFromHandle(m_controlHandle);
 }
 	
 // Functions
@@ -738,9 +738,9 @@ void ControlsInitialize(std::vector<ControlConfig> const& configs, bool const en
 {
 	#if defined ENABLE_GPIO
 	
-		s_EnableGPIO = enableGPIO;
+		s_enableGPIO = enableGPIO;
 
-		if (s_EnableGPIO == true)
+		if (s_enableGPIO == true)
 		{
 			Logger::WriteLine("Initializing GPIO support...");
 	
@@ -771,18 +771,18 @@ void ControlsInitialize(std::vector<ControlConfig> const& configs, bool const en
 //
 void ControlsUninitialize()
 {
-	for (auto& control : s_Controls)
+	for (auto& control : s_controls)
 	{
 		control.Uninitialize();
 	}
 	
 	// Get rid of all of the controls.
-	s_Controls.clear();
+	s_controls.clear();
 
 	#if defined ENABLE_GPIO
 	
 		// Uninitialize GPIO support.
-		if (s_EnableGPIO == true)
+		if (s_enableGPIO == true)
 		{
 			gpioTerminate();
 		}
@@ -794,7 +794,7 @@ void ControlsUninitialize()
 //
 void ControlsProcess()
 {
-	for (auto& control : s_Controls)
+	for (auto& control : s_controls)
 	{
 		control.Process();
 	}	
@@ -809,17 +809,17 @@ void ControlsProcess()
 bool ControlsCreateControl(ControlConfig const& config)
 {
 	// Check to see whether a control with this name already exists.
-	if (Control::GetHandle(config.m_Name).IsValid() == true)
+	if (Control::GetHandle(config.m_name).IsValid() == true)
 	{
-		Logger::WriteFormattedLine("Control with name \"%s\" already exists.", config.m_Name);
+		Logger::WriteFormattedLine("Control with name \"%s\" already exists.", config.m_name);
 		return false;
 	}
 	
 	// Add a new control.
-	s_Controls.emplace_back(Control());
+	s_controls.emplace_back(Control());
 	
 	// Then, initialize it.
-	auto& control = s_Controls.back();
+	auto& control = s_controls.back();
 	control.Initialize(config);
 	
 	return true;
@@ -829,7 +829,7 @@ bool ControlsCreateControl(ControlConfig const& config)
 //
 void ControlsStopAll()
 {
-	for (auto& control : s_Controls)
+	for (auto& control : s_controls)
 	{
 		control.SetDesiredAction(Control::kActionStopped, Control::kModeManual);
 	}

@@ -27,29 +27,29 @@
 struct PendingItem
 {
 	// The time the item was added.
-	time_t m_RawTime;
+	time_t m_rawTime;
 
 	// The string version of the JSON description of the item to put into the report.
-	std::string	m_EventString;
+	std::string	m_eventString;
 };
 
 // Locals
 //
 
 // Used to enforce serialization of messages.
-std::mutex s_ReportMutex;
+std::mutex s_reportMutex;
 
 // The file to report to.
-static FILE* s_ReportFile = nullptr;
+static FILE* s_reportFile = nullptr;
 
 // The string representing the date of the currently open report file.
-static std::string s_ReportDateString;
+static std::string s_reportDateString;
 
 // A list of items to add to the report when we are able to.
-static std::vector<PendingItem> s_PendingItemList;
+static std::vector<PendingItem> s_pendingItemList;
 
 // The names of the actions.
-static char const* const s_ControlActionNames[] =
+static constexpr std::array kControlActionNames =
 {
 	"stop",			// kActionStopped
 	"move up",		// kActionMovingUp
@@ -124,21 +124,21 @@ static void ReportsOpenFile()
 	auto const currentReportDateString = ReportsGetEffectiveDate();
 
 	// If the correct file is open, we don't need to do anything else.
-	if ((s_ReportFile != nullptr) && (s_ReportDateString.compare(currentReportDateString) == 0))
+	if ((s_reportFile != nullptr) && (s_reportDateString.compare(currentReportDateString) == 0))
 	{
 		return;
 	}
 
 	// If necessary, close the previous file.
-	if (s_ReportFile != nullptr)
+	if (s_reportFile != nullptr)
 	{
-		Logger::WriteFormattedLine("Closing report file for %s.", s_ReportDateString.c_str());
+		Logger::WriteFormattedLine("Closing report file for %s.", s_reportDateString.c_str());
 
-		fclose(s_ReportFile);
-		s_ReportFile = nullptr;
+		fclose(s_reportFile);
+		s_reportFile = nullptr;
 	}
 
-	s_ReportDateString = "";
+	s_reportDateString = "";
 
 	std::string const reportFileName = SANDMAN_TEMP_DIR "reports/sandman" + 
 		currentReportDateString + ".rpt";
@@ -148,16 +148,16 @@ static void ReportsOpenFile()
 	
 	// Note: There are other ways to check for file existence, but we don't care about optimal 
 	// performance here.
-	s_ReportFile = fopen(reportFileName.c_str(), "r");
+	s_reportFile = fopen(reportFileName.c_str(), "r");
 	
-	if (s_ReportFile != nullptr) {
+	if (s_reportFile != nullptr) {
 
 		// If we were able to open it, it must exist. So update the flag and close it so we can open 
 		// it in the correct mode.
 		reportAlreadyExisted = true;
 
-		fclose(s_ReportFile);
-		s_ReportFile = nullptr;
+		fclose(s_reportFile);
+		s_reportFile = nullptr;
 	}
 
 	// Open the file for appending.
@@ -165,9 +165,9 @@ static void ReportsOpenFile()
 		"Creating", reportFileName.c_str());
 
 	// This mode works regardless of whether the file exists or not.
-	s_ReportFile = fopen(reportFileName.c_str(), "a");
+	s_reportFile = fopen(reportFileName.c_str(), "a");
 
-	if (s_ReportFile == nullptr)
+	if (s_reportFile == nullptr)
 	{
 		Logger::WriteLine('\t', Shell::Red("failed"));
 		return;
@@ -176,7 +176,7 @@ static void ReportsOpenFile()
 	Logger::WriteLine('\t', Shell::Green("succeeded"));
 
 	// Now that we have successfully opened the file, update the date string.
-	s_ReportDateString = currentReportDateString;
+	s_reportDateString = currentReportDateString;
 
 	// If this is a new report file, write out the header.
 	if (reportAlreadyExisted == true)
@@ -205,10 +205,10 @@ static void ReportsOpenFile()
 	headerDocument.Accept(headerWriter);
  
 	// Write the whole thing.
-	fputs(headerBuffer.GetString(), s_ReportFile);
+	fputs(headerBuffer.GetString(), s_reportFile);
 
 	// fputs doesn't add a newline, do it now.
-	fputs("\n", s_ReportFile);
+	fputs("\n", s_reportFile);
 }
 
 // Initialize the reports.
@@ -216,15 +216,15 @@ static void ReportsOpenFile()
 void ReportsInitialize()
 {
 	// Acquire a lock for the rest of the function.
-	const std::lock_guard<std::mutex> reportGuard(s_ReportMutex);
+	const std::lock_guard<std::mutex> reportGuard(s_reportMutex);
 
 	Logger::WriteFormattedLine("Initializing reports...");
 
 	// Initialize the file.
-	s_ReportFile = nullptr;
+	s_reportFile = nullptr;
 
 	// An empty string indicates that we don't have a report file open.
-	s_ReportDateString = "";
+	s_reportDateString = "";
 
 	// Open the correct file for now.
 	ReportsOpenFile();
@@ -235,15 +235,15 @@ void ReportsInitialize()
 void ReportsUninitialize()
 {
 	// Acquire a lock for the rest of the function.
-	const std::lock_guard<std::mutex> reportGuard(s_ReportMutex);
+	const std::lock_guard<std::mutex> reportGuard(s_reportMutex);
 
 	// Close the file.
-	if (s_ReportFile != nullptr)
+	if (s_reportFile != nullptr)
 	{
-		fclose(s_ReportFile);
+		fclose(s_reportFile);
 	}
 
-	s_ReportFile = nullptr;
+	s_reportFile = nullptr;
 }
 
 // Write an item into the report.
@@ -256,7 +256,7 @@ static void ReportsWriteItem(PendingItem const& item)
 	char timeStringBuffer[kTimeStringBufferCapacity];
 
 	// Get the time.
-	auto* localTime = localtime(&item.m_RawTime);
+	auto* localTime = localtime(&item.m_rawTime);
 
 	// Put the date and time in the buffer in 2012/09/23 17:44:05 CDT format.
 	strftime(timeStringBuffer, kTimeStringBufferCapacity, "%Y/%m/%d %H:%M:%S %Z", localTime);
@@ -269,13 +269,13 @@ static void ReportsWriteItem(PendingItem const& item)
 
 	// Parse the event string back into JSON.
 	rapidjson::Document eventDocument;
-	eventDocument.Parse(item.m_EventString.c_str());
+	eventDocument.Parse(item.m_eventString.c_str());
 
 	if (eventDocument.HasParseError() == true)
 	{
 		Logger::WriteFormattedLine(Shell::Red,
 											"Failed to convert report event string back into JSON \"%s\".",
-											item.m_EventString.c_str());
+											item.m_eventString.c_str());
 		return;
 	}
 
@@ -299,10 +299,10 @@ static void ReportsWriteItem(PendingItem const& item)
 	itemDocument.Accept(itemWriter);
  	
 	// Write the whole thing.
-	fputs(itemBuffer.GetString(), s_ReportFile);
+	fputs(itemBuffer.GetString(), s_reportFile);
 
 	// fputs doesn't add a newline, do it now.
-	fputs("\n", s_ReportFile);
+	fputs("\n", s_reportFile);
 }
 
 // Process the reports.
@@ -310,20 +310,20 @@ static void ReportsWriteItem(PendingItem const& item)
 void ReportsProcess()
 {
 	// Acquire a lock for the rest of the function.
-	const std::lock_guard<std::mutex> reportGuard(s_ReportMutex);
+	const std::lock_guard<std::mutex> reportGuard(s_reportMutex);
 
-	if (s_ReportFile != nullptr)
+	if (s_reportFile != nullptr)
 	{
 		// We are going to write out any pending items first, before we check whether we need to 
 		// switch the file.
-		for (auto const& item : s_PendingItemList)
+		for (auto const& item : s_pendingItemList)
 		{
 			ReportsWriteItem(item);
 		}
 
-		s_PendingItemList.clear();
+		s_pendingItemList.clear();
 
-		fflush(s_ReportFile);
+		fflush(s_reportFile);
 	}
 
 	// Make sure we have the correct file open.
@@ -337,13 +337,13 @@ void ReportsProcess()
 static void ReportsAddItem(std::string const& eventString)
 {
 	// Acquire a lock for the rest of the function.
-	const std::lock_guard<std::mutex> reportGuard(s_ReportMutex);
+	const std::lock_guard<std::mutex> reportGuard(s_reportMutex);
 
 	PendingItem pendingItem;
-	pendingItem.m_RawTime = time(nullptr);
-	pendingItem.m_EventString = eventString;
+	pendingItem.m_rawTime = time(nullptr);
+	pendingItem.m_eventString = eventString;
 
-	s_PendingItemList.push_back(pendingItem);
+	s_pendingItemList.push_back(pendingItem);
 }
 
 // Add an item to the report corresponding to a control event.
@@ -377,7 +377,7 @@ void ReportsAddControlItem(std::string const& controlName, Control::Actions cons
 		rapidjson::Value(rapidjson::StringRef(controlName.c_str())), itemAllocator);
 
 	itemDocument.AddMember("action", 
-		rapidjson::Value(rapidjson::StringRef(s_ControlActionNames[action])), itemAllocator);
+		rapidjson::Value(rapidjson::StringRef(kControlActionNames[action])), itemAllocator);
 
 	itemDocument.AddMember("source", 
 		rapidjson::Value(rapidjson::StringRef(sourceName.c_str())), itemAllocator);

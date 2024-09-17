@@ -17,7 +17,7 @@
 //
 
 // A map from identifiers to notification speech text.
-static const std::map<std::string, std::string>	s_NotificationIDToSpeechTextMap = 
+static const std::map<std::string, std::string>	s_notificationIDToSpeechTextMap = 
 {
 	{ "initialized", 				"Sandman initialized" },
 	{ "running",					"Sandman is running" },
@@ -49,9 +49,9 @@ static const std::map<std::string, std::string>	s_NotificationIDToSpeechTextMap 
 void NotificationPlay(std::string const& iD)
 {
 	// Try to find it in the map.
-	auto const resultIterator = s_NotificationIDToSpeechTextMap.find(iD);
+	auto const resultIterator = s_notificationIDToSpeechTextMap.find(iD);
 
-	if (resultIterator == s_NotificationIDToSpeechTextMap.end()) 
+	if (resultIterator == s_notificationIDToSpeechTextMap.end()) 
 	{
 		Logger::WriteFormattedLine("Tried to play an invalid notification \"%s\".", iD.c_str());
 		return;

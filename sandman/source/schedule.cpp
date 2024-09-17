@@ -24,15 +24,15 @@
 //
 
 // Whether the system is initialized.
-static bool s_ScheduleInitialized = false;
+static bool s_scheduleInitialized = false;
 
 // The current spot in the schedule.
-static unsigned int s_ScheduleIndex = UINT_MAX;
+static unsigned int s_scheduleIndex = UINT_MAX;
 
 // The time the delay for the next event began.
-static Time s_ScheduleDelayStartTime;
+static Time s_scheduleDelayStartTime;
 
-static Schedule s_Schedule;
+static Schedule s_schedule;
 
 // Functions
 //
@@ -68,7 +68,7 @@ bool ScheduleEvent::ReadFromJSON(rapidjson::Value const& object)
 		return false;
 	}
 
-	m_DelaySec = delayIterator->value.GetInt();
+	m_delaySec = delayIterator->value.GetInt();
 
 	// We must also have a control action.
 	auto const controlActionIterator = object.FindMember("controlAction");
@@ -79,7 +79,7 @@ bool ScheduleEvent::ReadFromJSON(rapidjson::Value const& object)
 		return false;
 	}
 
-	if (m_ControlAction.ReadFromJSON(controlActionIterator->value) == false) 
+	if (m_controlAction.ReadFromJSON(controlActionIterator->value) == false) 
 	{
 		Logger::WriteFormattedLine("Schedule event control action could not be parsed.");
 		return false;
@@ -98,7 +98,7 @@ bool ScheduleEvent::ReadFromJSON(rapidjson::Value const& object)
 //
 bool Schedule::ReadFromFile(char const* fileName)
 {
-	m_Events.clear();
+	m_events.clear();
 
 	auto* scheduleFile = fopen(fileName, "r");
 
@@ -152,7 +152,7 @@ bool Schedule::ReadFromFile(char const* fileName)
 		}
 					
 		// If we successfully read the event, add it to the list.
-		m_Events.push_back(event);
+		m_events.push_back(event);
 	}
 							
 	fclose(scheduleFile);
@@ -163,14 +163,14 @@ bool Schedule::ReadFromFile(char const* fileName)
 //
 bool Schedule::IsEmpty() const
 {
-	return (m_Events.size() == 0);
+	return (m_events.size() == 0);
 }
 
 // Gets the number of events in the schedule.
 //
 size_t Schedule::GetNumEvents() const
 {
-	return m_Events.size();
+	return m_events.size();
 }
 
 // Get the events in the schedule.
@@ -178,20 +178,20 @@ size_t Schedule::GetNumEvents() const
 //
 std::vector<ScheduleEvent>& Schedule::GetEvents()
 {
-	return m_Events;
+	return m_events;
 }
 
 // Functions
 //
 
 // Load the schedule from a file.
-// 
+//
 static bool ScheduleLoad()
 {
 	// Open the schedule file.
-	static auto const* const s_ScheduleFileName = SANDMAN_CONFIG_DIR "sandman.sched";
+	static constexpr auto const* kScheduleFileName = SANDMAN_CONFIG_DIR "sandman.sched";
 
-	return s_Schedule.ReadFromFile(s_ScheduleFileName);
+	return s_schedule.ReadFromFile(kScheduleFileName);
 }
 
 // Write the loaded schedule to the logger.
@@ -201,17 +201,17 @@ static void ScheduleLogLoaded()
 	// Now write out the schedule.
 	Logger::WriteFormattedLine("The following schedule is loaded:");
 	
-	if (s_Schedule.IsEmpty())
+	if (s_schedule.IsEmpty())
 	{
 		Logger::WriteFormattedLine("\t<empty>");
 		Logger::WriteLine();
 		return;
 	}
 
-	for (auto const& event : s_Schedule.GetEvents())
+	for (auto const& event : s_schedule.GetEvents())
 	{
 		// Split the delay into multiple units.
-		auto delaySec = event.m_DelaySec;
+		auto delaySec = event.m_delaySec;
 		
 		auto const delayHours = delaySec / 3600;
 		delaySec %= 3600;
@@ -219,12 +219,12 @@ static void ScheduleLogLoaded()
 		auto const delayMin = delaySec / 60;
 		delaySec %= 60;
 		
-		auto const* actionText = (event.m_ControlAction.m_Action == Control::kActionMovingUp) ? 
+		auto const* actionText = (event.m_controlAction.m_action == Control::kActionMovingUp) ? 
 			"up" : "down";
 			
 		// Print the event.
 		Logger::WriteFormattedLine("\t+%01ih %02im %02is -> %s, %s", delayHours, delayMin, 
-			delaySec, event.m_ControlAction.m_ControlName, actionText);
+			delaySec, event.m_controlAction.m_controlName, actionText);
 	}
 	
 	Logger::WriteLine();
@@ -234,7 +234,7 @@ static void ScheduleLogLoaded()
 //
 void ScheduleInitialize()
 {	
-	s_ScheduleIndex = UINT_MAX;
+	s_scheduleIndex = UINT_MAX;
 	
 	Logger::WriteFormattedLine("Initializing the schedule...");
 
@@ -251,19 +251,19 @@ void ScheduleInitialize()
 	// Log the schedule that just got loaded.
 	ScheduleLogLoaded();
 	
-	s_ScheduleInitialized = true;
+	s_scheduleInitialized = true;
 }
 
 // Uninitialize the schedule.
 // 
 void ScheduleUninitialize()
 {
-	if (s_ScheduleInitialized == false)
+	if (s_scheduleInitialized == false)
 	{
 		return;
 	}
 	
-	s_ScheduleInitialized = false;
+	s_scheduleInitialized = false;
 }
 
 // Start the schedule.
@@ -274,7 +274,7 @@ void ScheduleStart()
 	ReportsAddScheduleItem("start");
 
 	// Make sure it's initialized.
-	if (s_ScheduleInitialized == false)
+	if (s_scheduleInitialized == false)
 	{
 		return;
 	}
@@ -285,8 +285,8 @@ void ScheduleStart()
 		return;
 	}
 	
-	s_ScheduleIndex = 0;
-	TimerGetCurrent(s_ScheduleDelayStartTime);
+	s_scheduleIndex = 0;
+	TimerGetCurrent(s_scheduleDelayStartTime);
 	
 	// Notify.
 	NotificationPlay("schedule_start");
@@ -302,7 +302,7 @@ void ScheduleStop()
 	ReportsAddScheduleItem("stop");
 
 	// Make sure it's initialized.
-	if (s_ScheduleInitialized == false)
+	if (s_scheduleInitialized == false)
 	{
 		return;
 	}
@@ -313,7 +313,7 @@ void ScheduleStop()
 		return;
 	}
 	
-	s_ScheduleIndex = UINT_MAX;
+	s_scheduleIndex = UINT_MAX;
 	
 	// Notify.
 	NotificationPlay("schedule_stop");
@@ -325,7 +325,7 @@ void ScheduleStop()
 //
 bool ScheduleIsRunning()
 {
-	return (s_ScheduleIndex != UINT_MAX);
+	return (s_scheduleIndex != UINT_MAX);
 }
 
 // Process the schedule.
@@ -333,7 +333,7 @@ bool ScheduleIsRunning()
 void ScheduleProcess()
 {
 	// Make sure it's initialized.
-	if (s_ScheduleInitialized == false)
+	if (s_scheduleInitialized == false)
 	{
 		return;
 	}
@@ -345,7 +345,7 @@ void ScheduleProcess()
 	}
 
 	// No need to do anything for schedules with zero events.
-	auto const scheduleEventCount = static_cast<unsigned int>(s_Schedule.GetNumEvents());
+	auto const scheduleEventCount = static_cast<unsigned int>(s_schedule.GetNumEvents());
 	if (scheduleEventCount == 0)
 	{
 		return;
@@ -356,43 +356,43 @@ void ScheduleProcess()
 	TimerGetCurrent(currentTime);
 
 	auto const elapsedTimeSec = 
-		TimerGetElapsedMilliseconds(s_ScheduleDelayStartTime, currentTime) / 1000.0f;
+		TimerGetElapsedMilliseconds(s_scheduleDelayStartTime, currentTime) / 1000.0f;
 
 	// Time up?
-	auto& event = s_Schedule.GetEvents()[s_ScheduleIndex];
+	auto& event = s_schedule.GetEvents()[s_scheduleIndex];
 	
-	if (elapsedTimeSec < event.m_DelaySec)
+	if (elapsedTimeSec < event.m_delaySec)
 	{
 		return;
 	}
 	
 	// Move to the next event.
-	s_ScheduleIndex = (s_ScheduleIndex + 1) % scheduleEventCount;
+	s_scheduleIndex = (s_scheduleIndex + 1) % scheduleEventCount;
 	
 	// Set the new delay start time.
-	TimerGetCurrent(s_ScheduleDelayStartTime);
+	TimerGetCurrent(s_scheduleDelayStartTime);
 	
 	// Sanity check the event.
-	if (event.m_ControlAction.m_Action >= Control::kNumActions)
+	if (event.m_controlAction.m_action >= Control::kNumActions)
 	{
-		Logger::WriteFormattedLine("Schedule moving to event %i.", s_ScheduleIndex);
+		Logger::WriteFormattedLine("Schedule moving to event %i.", s_scheduleIndex);
 		return;
 	}
 
 	// Try to find the control to perform the action.
-	auto* control = event.m_ControlAction.GetControl();
+	auto* control = event.m_controlAction.GetControl();
 	
 	if (control == nullptr) {
 		
 		Logger::WriteFormattedLine("Schedule couldn't find control \"%s\". Moving to event %i.", 
-			event.m_ControlAction.m_ControlName, s_ScheduleIndex);
+			event.m_controlAction.m_controlName, s_scheduleIndex);
 		return;
 	}
 		
 	// Perform the action.
-	control->SetDesiredAction(event.m_ControlAction.m_Action, Control::kModeTimed);
+	control->SetDesiredAction(event.m_controlAction.m_action, Control::kModeTimed);
 	
-	ReportsAddControlItem(control->GetName(), event.m_ControlAction.m_Action, "schedule");
+	ReportsAddControlItem(control->GetName(), event.m_controlAction.m_action, "schedule");
 
-	Logger::WriteFormattedLine("Schedule moving to event %i.", s_ScheduleIndex);
+	Logger::WriteFormattedLine("Schedule moving to event %i.", s_scheduleIndex);
 }

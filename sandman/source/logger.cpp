@@ -1,8 +1,8 @@
 #include "logger.h"
 
-std::mutex Logger::ms_Mutex;
-std::ofstream Logger::ms_File;
-Logger Logger::ms_Logger(ms_File);
+std::mutex Logger::ms_mutex;
+std::ofstream Logger::ms_file;
+Logger Logger::ms_logger(ms_file);
 
 bool Logger::Initialize(char const* const logFileName)
 {
@@ -12,11 +12,11 @@ bool Logger::Initialize(char const* const logFileName)
 	}
 
 	{
-		std::lock_guard const lock(ms_Mutex);
+		std::lock_guard const lock(ms_mutex);
 
-		ms_File.open(logFileName);
+		ms_file.open(logFileName);
 
-		if (not ms_File.is_open())
+		if (not ms_file.is_open())
 		{
 			// Failed to open the file.
 			return false;
@@ -28,10 +28,10 @@ bool Logger::Initialize(char const* const logFileName)
 
 void Logger::Uninitialize()
 {
-	std::lock_guard const lock(ms_Mutex);
+	std::lock_guard const lock(ms_mutex);
 
 	// Closing the file stream also flushes any remaining data to the file.
-	ms_File.close();
+	ms_file.close();
 }
 
 void Logger::FormatWrite(std::string_view const formatString)

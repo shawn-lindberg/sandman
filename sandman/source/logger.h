@@ -26,24 +26,24 @@ public:
 	// it is important to ensure that the output stream is not
 	// destroyed, lest the reference to the output stream that the logger stores be invalidated.
 	[[nodiscard]] explicit Logger(std::ostream& outputStream)
-		: m_Buffer(),
-		  m_OutputStream(outputStream)
+		: m_buffer(),
+		  m_outputStream(outputStream)
 	{
 	}
 
 	[[nodiscard]] constexpr std::ostringstream const& GetBuffer() const
 	{
-		return m_Buffer;
+		return m_buffer;
 	}
 
 	[[nodiscard]] constexpr std::ostream const& GetOutputStream() const
 	{
-		return m_OutputStream;
+		return m_outputStream;
 	}
 
 	[[nodiscard]] constexpr bool HasScreenEchoEnabled() const
 	{
-		return m_ScreenEcho;
+		return m_screenEcho;
 	}
 
 	// Object wrapper for formatting.
@@ -56,8 +56,8 @@ public:
 	template <typename... ObjectsT>
 	struct Format
 	{
-		std::tuple<ObjectsT...> m_Objects;
-		std::string_view m_FormatString;
+		std::tuple<ObjectsT...> m_objects;
+		std::string_view m_formatString;
 
 		// Constructor.
 		//
@@ -74,8 +74,8 @@ public:
 		// in the format string, the extra arguments are ignored.
 		template <typename... ParametersT>
 		[[nodiscard]] explicit Format(std::string_view const formatString, ParametersT&&... args)
-			: m_Objects(std::forward<ParametersT>(args)...),
-			  m_FormatString(formatString)
+			: m_objects(std::forward<ParametersT>(args)...),
+			  m_formatString(formatString)
 		{
 		}
 
@@ -110,8 +110,8 @@ public:
 
 	[[gnu::always_inline]] [[nodiscard]] inline static bool GetEchoToScreen()
 	{
-		std::lock_guard const lock(ms_Mutex);
-		return ms_Logger.m_ScreenEcho;
+		std::lock_guard const lock(ms_mutex);
+		return ms_logger.m_screenEcho;
 	}
 
 	/// @brief Toggle whether the logger, in addition to writting to the log file,
@@ -119,8 +119,8 @@ public:
 	/// @warning This does not initialize or uninitialize the shell graphics system.
 	[[gnu::always_inline]] inline static void SetEchoToScreen(bool const value)
 	{
-		std::lock_guard const lock(ms_Mutex);
-		ms_Logger.m_ScreenEcho = value;
+		std::lock_guard const lock(ms_mutex);
+		ms_logger.m_screenEcho = value;
 	}
 
 	/// @brief Initializes the global logger such that it can write
@@ -143,29 +143,29 @@ public:
 	template <typename... ParametersT>
 	[[gnu::always_inline]] inline static void WriteLine(ParametersT&&... args)
 	{
-		std::lock_guard const loggerLock(ms_Mutex);
+		std::lock_guard const loggerLock(ms_mutex);
 
 		// Lock Shell functionality only if screen echo is enabled.
 		std::optional<Shell::Lock> const shellLock(
-			ms_Logger.HasScreenEchoEnabled() ? std::make_optional<Shell::Lock>() : std::nullopt);
+			ms_logger.HasScreenEchoEnabled() ? std::make_optional<Shell::Lock>() : std::nullopt);
 
 		std::tm const* const localTime{ Common::GetLocalTime() };
 
 		// Write the timestamp.
 		if (localTime != nullptr)
 		{
-			ms_Logger.Write(Shell::Cyan(std::put_time(localTime, "%Y/%m/%d %H:%M:%S %Z | ")));
+			ms_logger.Write(Shell::Cyan(std::put_time(localTime, "%Y/%m/%d %H:%M:%S %Z | ")));
 		}
 		else
 		{
 			using namespace std::string_view_literals;
-			ms_Logger.Write(Shell::Cyan("(missing local time) | "sv));
+			ms_logger.Write(Shell::Cyan("(missing local time) | "sv));
 		}
 
 		// Write the arguments with a trailing newline character.
-		ms_Logger.Write(std::forward<ParametersT>(args)..., '\n');
+		ms_logger.Write(std::forward<ParametersT>(args)..., '\n');
 
-		if (ms_Logger.HasScreenEchoEnabled())
+		if (ms_logger.HasScreenEchoEnabled())
 		{
 			Shell::LoggingWindow::ClearAllAttributes();
 			Shell::LoggingWindow::Refresh();
@@ -301,10 +301,10 @@ private:
 	// String data is first stored here before being sent to output
 	// in order to transform the data into string form which both
 	// the shell graphics system and the output stream understand.
-	std::ostringstream m_Buffer;
+	std::ostringstream m_buffer;
 
 	// Main output destination of the logger to write data to.
-	std::ostream& m_OutputStream;
+	std::ostream& m_outputStream;
 
 	// Flag governing whether this logger should write to
 	// shell graphics. This is `false` by default.
@@ -312,16 +312,16 @@ private:
 	// Only the global logger should be able to have this set to true
 	// through a global accessor method. Other loggers should not
 	// be able to set this variable with their member public interface.
-	bool m_ScreenEcho{ false };
+	bool m_screenEcho{ false };
 
 	// Global logger.
-	static Logger ms_Logger;
+	static Logger ms_logger;
 
 	// Mutex for global logger.
-	static std::mutex ms_Mutex;
+	static std::mutex ms_mutex;
 
 	// The file that the global logger writes to.
-	static std::ofstream ms_File;
+	static std::ofstream ms_file;
 };
 
 #include "logger.inl"

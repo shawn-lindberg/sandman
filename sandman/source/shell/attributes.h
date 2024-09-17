@@ -25,10 +25,10 @@ namespace Shell
 		static_assert(std::numeric_limits<chtype>::max() <= std::numeric_limits<AttributeBundle::Value>::max());
 		static_assert(std::numeric_limits<chtype>::min() >= std::numeric_limits<AttributeBundle::Value>::min());
 
-		Value m_Value;
+		Value m_value;
 
 		[[nodiscard]] constexpr explicit AttributeBundle(Value const attributes = Value{ A_NORMAL })
-			: m_Value{ attributes } {}
+			: m_value{ attributes } {}
 
 		static_assert(std::is_integral_v<Value>);
 
@@ -38,7 +38,7 @@ namespace Shell
 		// Combine this object with another attributes object.
 		[[nodiscard]] constexpr AttributeBundle operator|(AttributeBundle const attributes) const
 		{
-			return AttributeBundle(this->m_Value bitor attributes.m_Value);
+			return AttributeBundle(this->m_value bitor attributes.m_value);
 		}
 
 		class ColorPair;
@@ -66,7 +66,7 @@ namespace Shell
 	namespace ColorMatrix
 	{
 		// Color numeric constants.
-		enum struct Key : std::uint_least8_t
+		enum struct ColorID : std::uint_least8_t
 		{
 			kBlack   = 0u,
 			kRed     = 1u,
@@ -86,18 +86,18 @@ namespace Shell
 		// about what the Curses color macros are defined as,
 		// so this function serves as a well defined mapping
 		// from numeric constants to the Curses color macros.
-		constexpr CursesColorID GetColorID(Key const color)
+		constexpr CursesColorID GetCursesColorID(ColorID const color)
 		{
 			switch (color)
 			{
-				case Key::kBlack  : return CursesColorID{COLOR_BLACK  };
-				case Key::kRed    : return CursesColorID{COLOR_RED    };
-				case Key::kGreen  : return CursesColorID{COLOR_GREEN  };
-				case Key::kYellow : return CursesColorID{COLOR_YELLOW };
-				case Key::kBlue   : return CursesColorID{COLOR_BLUE   };
-				case Key::kMagenta: return CursesColorID{COLOR_MAGENTA};
-				case Key::kCyan   : return CursesColorID{COLOR_CYAN   };
-				case Key::kWhite  : return CursesColorID{COLOR_WHITE  };
+				case ColorID::kBlack  : return CursesColorID{COLOR_BLACK  };
+				case ColorID::kRed    : return CursesColorID{COLOR_RED    };
+				case ColorID::kGreen  : return CursesColorID{COLOR_GREEN  };
+				case ColorID::kYellow : return CursesColorID{COLOR_YELLOW };
+				case ColorID::kBlue   : return CursesColorID{COLOR_BLUE   };
+				case ColorID::kMagenta: return CursesColorID{COLOR_MAGENTA};
+				case ColorID::kCyan   : return CursesColorID{COLOR_CYAN   };
+				case ColorID::kWhite  : return CursesColorID{COLOR_WHITE  };
 
 				default: return CursesColorID{};
 			}
@@ -106,41 +106,41 @@ namespace Shell
 		// A list of color indices to make it easier to loop over them.
 		inline constexpr std::array kColorList
 		{
-			Key::kBlack  ,
-			Key::kRed    ,
-			Key::kGreen  ,
-			Key::kYellow ,
-			Key::kBlue   ,
-			Key::kMagenta,
-			Key::kCyan   ,
-			Key::kWhite  ,
+			ColorID::kBlack  ,
+			ColorID::kRed    ,
+			ColorID::kGreen  ,
+			ColorID::kYellow ,
+			ColorID::kBlue   ,
+			ColorID::kMagenta,
+			ColorID::kCyan   ,
+			ColorID::kWhite  ,
 		};
 
 		// Gets the name of a color index. This is mainly for debugging.
-		constexpr std::string_view GetName(Key const color)
+		constexpr std::string_view GetName(ColorID const color)
 		{
 			switch (color)
 			{
 				using namespace std::string_view_literals;
 
-				case Key::kBlack  : return "Black"   ""sv;
-				case Key::kRed    : return "Red"     ""sv;
-				case Key::kGreen  : return "Green"   ""sv;
-				case Key::kYellow : return "Yellow"  ""sv;
-				case Key::kBlue   : return "Blue"    ""sv;
-				case Key::kMagenta: return "Magenta" ""sv;
-				case Key::kCyan   : return "Cyan"    ""sv;
-				case Key::kWhite  : return "White"   ""sv;
+				case ColorID::kBlack  : return "Black"   ""sv;
+				case ColorID::kRed    : return "Red"     ""sv;
+				case ColorID::kGreen  : return "Green"   ""sv;
+				case ColorID::kYellow : return "Yellow"  ""sv;
+				case ColorID::kBlue   : return "Blue"    ""sv;
+				case ColorID::kMagenta: return "Magenta" ""sv;
+				case ColorID::kCyan   : return "Cyan"    ""sv;
+				case ColorID::kWhite  : return "White"   ""sv;
 
 				default: return "null"sv;
 			}
 		}
 
 		// Get an attribute value that has the foreground color and background color set.
-		constexpr AttributeBundle GetPair(Key const foregroundColor, Key const backgroundColor)
+		constexpr AttributeBundle GetPair(ColorID const foregroundColor, ColorID const backgroundColor)
 		{
-			CursesColorID const column{ GetColorID(foregroundColor) };
-			CursesColorID const row   { GetColorID(backgroundColor) };
+			CursesColorID const column{ GetCursesColorID(foregroundColor) };
+			CursesColorID const row   { GetCursesColorID(backgroundColor) };
 
 			static_assert(kColorList.size() <= std::numeric_limits<int>::max(),
 							  "Check that it's okay to downcast the `std::size_t` from `size()` to `int`");
@@ -169,12 +169,12 @@ namespace Shell
 	{
 	public:
 
-		std::tuple<ObjectsT...> m_Objects;
-		AttributeBundle m_Attributes;
+		std::tuple<ObjectsT...> m_objects;
+		AttributeBundle m_attributes;
 
 		template <typename... ParametersT> [[nodiscard]]
 		constexpr explicit ObjectBundle(AttributeBundle const attributes, ParametersT&&... args)
-			: m_Objects(std::forward<ParametersT>(args)...), m_Attributes{ attributes } {}
+			: m_objects(std::forward<ParametersT>(args)...), m_attributes{ attributes } {}
 	};
 
 	// NOLINTBEGIN(readability-identifier-naming)
@@ -191,22 +191,22 @@ namespace Shell
 	{
 	public:
 
-		AttributeBundle m_Ancillary;
-		ColorMatrix::Key m_ColorIndex;
+		AttributeBundle m_ancillary;
+		ColorMatrix::ColorID m_colorIndex;
 
 		// Combine an `Attr::ForegroundColor` with an `Attr`.
 		[[nodiscard]] constexpr ForegroundColor operator|(AttributeBundle const attributes) const
 		{
-			return { this->m_Ancillary | attributes, m_ColorIndex };
+			return { this->m_ancillary | attributes, m_colorIndex };
 		}
 
 		[[nodiscard]] constexpr AttributeBundle BuildAttr() const
 		{
 			using namespace ColorMatrix;
 
-			AttributeBundle const colorPair(GetPair(m_ColorIndex, Key::kBlack));
+			AttributeBundle const colorPair(GetPair(m_colorIndex, ColorMatrix::ColorID::kBlack));
 
-			return m_Ancillary | colorPair;
+			return m_ancillary | colorPair;
 		}
 
 		template <typename... ParametersT>
@@ -229,21 +229,21 @@ namespace Shell
 	{
 	public:
 
-		AttributeBundle m_Ancillary;
-		ColorMatrix::Key m_ColorIndex;
+		AttributeBundle m_ancillary;
+		ColorMatrix::ColorID m_colorIndex;
 
 		[[nodiscard]] constexpr BackgroundColor operator|(AttributeBundle const attributes) const
 		{
-			return { this->m_Ancillary | attributes, m_ColorIndex };
+			return { this->m_ancillary | attributes, m_colorIndex };
 		}
 
 		[[nodiscard]] constexpr AttributeBundle BuildAttr() const
 		{
 			using namespace ColorMatrix;
 
-			AttributeBundle const colorPair(GetPair(Key::kWhite, m_ColorIndex));
+			AttributeBundle const colorPair(GetPair(ColorMatrix::ColorID::kWhite, m_colorIndex));
 
-			return m_Ancillary | colorPair;
+			return m_ancillary | colorPair;
 		}
 
 		template <typename... ParametersT>
@@ -266,22 +266,22 @@ namespace Shell
 	{
 	public:
 
-		AttributeBundle m_Ancillary;
-		ColorMatrix::Key m_ForegroundColor;
-		ColorMatrix::Key m_BackgroundColor;
+		AttributeBundle m_ancillary;
+		ColorMatrix::ColorID m_foregroundColor;
+		ColorMatrix::ColorID m_backgroundColor;
 
 		[[nodiscard]] constexpr ColorPair operator|(AttributeBundle const attributes) const
 		{
-			return { this->m_Ancillary | attributes, m_ForegroundColor, m_BackgroundColor };
+			return { this->m_ancillary | attributes, m_foregroundColor, m_backgroundColor };
 		}
 
 		[[nodiscard]] constexpr AttributeBundle BuildAttr() const
 		{
 			using namespace ColorMatrix;
 
-			AttributeBundle const colorPair(GetPair(m_ForegroundColor, m_BackgroundColor));
+			AttributeBundle const colorPair(GetPair(m_foregroundColor, m_backgroundColor));
 
-			return m_Ancillary | colorPair;
+			return m_ancillary | colorPair;
 		}
 
 		template <typename... ParametersT>
@@ -304,8 +304,8 @@ namespace Shell
 		operator|(AttributeBundle::ForegroundColor const foregroundColor,
 					 AttributeBundle::BackgroundColor const backgroundColor)
 	{
-		return { foregroundColor.m_Ancillary | backgroundColor.m_Ancillary,
-					foregroundColor.m_ColorIndex, backgroundColor.m_ColorIndex };
+		return { foregroundColor.m_ancillary | backgroundColor.m_ancillary,
+					foregroundColor.m_colorIndex, backgroundColor.m_colorIndex };
 	}
 
 	[[nodiscard]] constexpr
@@ -329,24 +329,24 @@ namespace Shell
 		inline constexpr AttributeBundle Italic   (A_ITALIC   );
 
 		// Foreground color.
-		inline constexpr AttributeBundle::ForegroundColor Black  {Normal, ColorMatrix::Key::kBlack  };
-		inline constexpr AttributeBundle::ForegroundColor Red    {Normal, ColorMatrix::Key::kRed    };
-		inline constexpr AttributeBundle::ForegroundColor Green  {Normal, ColorMatrix::Key::kGreen  };
-		inline constexpr AttributeBundle::ForegroundColor Yellow {Normal, ColorMatrix::Key::kYellow };
-		inline constexpr AttributeBundle::ForegroundColor Blue   {Normal, ColorMatrix::Key::kBlue   };
-		inline constexpr AttributeBundle::ForegroundColor Magenta{Normal, ColorMatrix::Key::kMagenta};
-		inline constexpr AttributeBundle::ForegroundColor Cyan   {Normal, ColorMatrix::Key::kCyan   };
-		inline constexpr AttributeBundle::ForegroundColor White  {Normal, ColorMatrix::Key::kWhite  };
+		inline constexpr AttributeBundle::ForegroundColor Black  {Normal, ColorMatrix::ColorID::kBlack  };
+		inline constexpr AttributeBundle::ForegroundColor Red    {Normal, ColorMatrix::ColorID::kRed    };
+		inline constexpr AttributeBundle::ForegroundColor Green  {Normal, ColorMatrix::ColorID::kGreen  };
+		inline constexpr AttributeBundle::ForegroundColor Yellow {Normal, ColorMatrix::ColorID::kYellow };
+		inline constexpr AttributeBundle::ForegroundColor Blue   {Normal, ColorMatrix::ColorID::kBlue   };
+		inline constexpr AttributeBundle::ForegroundColor Magenta{Normal, ColorMatrix::ColorID::kMagenta};
+		inline constexpr AttributeBundle::ForegroundColor Cyan   {Normal, ColorMatrix::ColorID::kCyan   };
+		inline constexpr AttributeBundle::ForegroundColor White  {Normal, ColorMatrix::ColorID::kWhite  };
 
 		// Background color.
-		inline constexpr AttributeBundle::BackgroundColor BackBlack  {Normal, ColorMatrix::Key::kBlack  };
-		inline constexpr AttributeBundle::BackgroundColor BackRed    {Normal, ColorMatrix::Key::kRed    };
-		inline constexpr AttributeBundle::BackgroundColor BackGreen  {Normal, ColorMatrix::Key::kGreen  };
-		inline constexpr AttributeBundle::BackgroundColor BackYellow {Normal, ColorMatrix::Key::kYellow };
-		inline constexpr AttributeBundle::BackgroundColor BackBlue   {Normal, ColorMatrix::Key::kBlue   };
-		inline constexpr AttributeBundle::BackgroundColor BackMagenta{Normal, ColorMatrix::Key::kMagenta};
-		inline constexpr AttributeBundle::BackgroundColor BackCyan   {Normal, ColorMatrix::Key::kCyan   };
-		inline constexpr AttributeBundle::BackgroundColor BackWhite  {Normal, ColorMatrix::Key::kWhite  };
+		inline constexpr AttributeBundle::BackgroundColor BackBlack  {Normal, ColorMatrix::ColorID::kBlack  };
+		inline constexpr AttributeBundle::BackgroundColor BackRed    {Normal, ColorMatrix::ColorID::kRed    };
+		inline constexpr AttributeBundle::BackgroundColor BackGreen  {Normal, ColorMatrix::ColorID::kGreen  };
+		inline constexpr AttributeBundle::BackgroundColor BackYellow {Normal, ColorMatrix::ColorID::kYellow };
+		inline constexpr AttributeBundle::BackgroundColor BackBlue   {Normal, ColorMatrix::ColorID::kBlue   };
+		inline constexpr AttributeBundle::BackgroundColor BackMagenta{Normal, ColorMatrix::ColorID::kMagenta};
+		inline constexpr AttributeBundle::BackgroundColor BackCyan   {Normal, ColorMatrix::ColorID::kCyan   };
+		inline constexpr AttributeBundle::BackgroundColor BackWhite  {Normal, ColorMatrix::ColorID::kWhite  };
 	}
 
 } // namespace Shell

@@ -25,27 +25,27 @@ class Config
 		
 		char const* GetInputDeviceName() const
 		{
-			return m_InputDeviceName;
+			return m_inputDeviceName;
 		}
 		
 		std::vector<InputBinding> const& GetInputBindings() const
 		{
-			return m_InputBindings;
+			return m_inputBindings;
 		}
 		
 		unsigned int GetControlMaxMovingDurationMS() const
 		{
-			return m_ControlMaxMovingDurationMS;
+			return m_controlMaxMovingDurationMS;
 		}
 	
 		unsigned int GetControlCoolDownDurationMS() const
 		{
-			return m_ControlCoolDownDurationMS;
+			return m_controlCoolDownDurationMS;
 		}
 		
 		std::vector<ControlConfig> const& GetControlConfigs() const
 		{
-			return m_ControlConfigs;
+			return m_controlConfigs;
 		}
 		
 	private:
@@ -70,18 +70,18 @@ class Config
 		static constexpr unsigned int kInputDeviceNameCapacity{ 64u };
 		
 		// The name of the input device.
-		char m_InputDeviceName[kInputDeviceNameCapacity];
+		char m_inputDeviceName[kInputDeviceNameCapacity];
 							
 		// The list of input bindings.
-		std::vector<InputBinding> m_InputBindings;
+		std::vector<InputBinding> m_inputBindings;
 		
 		// The maximum duration a control can move for (in milliseconds).
-		unsigned int m_ControlMaxMovingDurationMS = 100'000;
+		unsigned int m_controlMaxMovingDurationMS = 100'000;
 				
 		// The duration a control will be on cooldown (in milliseconds).
-		unsigned int m_ControlCoolDownDurationMS = 50'000;
+		unsigned int m_controlCoolDownDurationMS = 50'000;
 		
 		// The list of control configs.
-		std::vector<ControlConfig> m_ControlConfigs;
+		std::vector<ControlConfig> m_controlConfigs;
 };
 
