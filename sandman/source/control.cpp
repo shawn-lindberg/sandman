@@ -462,18 +462,17 @@ void Control::Process()
 //
 // desiredAction:		The desired action.
 // mode:					The mode of the action.
-// durationPercent:	(Optional) The percent of the normal duration to perform the action
-//								for.
+// durationPercent:	(Optional) The percent of the normal duration to perform the action for.
 //
 void Control::SetDesiredAction(Actions desiredAction, Modes mode, unsigned int durationPercent)
 {
-	static_assert(
-		std::is_same_v<decltype(durationPercent), decltype(CommandToken::m_parameter)>,
-		"Assert the type of `durationPercent` "
-		"is the same as the type of `CommandToken::m_parameter`. "
-		"Currently, the main purpose of `CommandToken::m_parameter` "
-		"is to be used as `durationPercent`, "
-		"so this assertion serves as a notification for if the types become unsynchronized.");
+	static_assert(std::is_same_v<decltype(durationPercent), decltype(CommandToken::m_parameter)>,
+					  "Assert the type of `durationPercent` "
+					  "is the same as the type of `CommandToken::m_parameter`. "
+					  "Currently, the main purpose of `CommandToken::m_parameter` "
+					  "is to be used as `durationPercent`, "
+					  "so this assertion serves as a notification for if "
+					  "the types become unsynchronized.");
 
 	m_desiredAction = desiredAction;
 	m_mode = mode;
