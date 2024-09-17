@@ -10,7 +10,6 @@
 
 #include "shell.h"
 #include "common/time_util.h"
-#include "common/implicitly.h"
 
 class Logger
 {
@@ -98,15 +97,21 @@ public:
 	template <typename... ParametersT>
 	Format(std::string_view const, ParametersT&&...) -> Format<ParametersT&&...>;
 
-	// This trait is `true` if `T` is a type that is a variant of the `Format` template class;
-	// it's `false` otherwise.
+	// This trait's value is `true` if `T` is a type that is a variant of the `Format`
+	// template class; it's `false` otherwise.
 	//
 	// This can be used for compile-time conditional branching.
 	template <typename>
-	struct IsFormatter : Common::Implicitly<false> {};
+	struct IsFormatter
+	{
+		static constexpr bool kBooleanValue{ false };
+	};
 
 	template <typename... ObjectsT>
-	struct IsFormatter<Format<ObjectsT...>> : Common::Implicitly<true> {};
+	struct IsFormatter<Format<ObjectsT...>>
+	{
+		static constexpr bool kBooleanValue{ true };
+	};
 
 	[[gnu::always_inline]] [[nodiscard]] inline static bool GetEchoToScreen()
 	{

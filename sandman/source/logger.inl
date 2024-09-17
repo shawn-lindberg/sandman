@@ -8,7 +8,7 @@ template <typename FirstT, typename... ParametersT>
 	static_assert(not std::is_same_v<std::decay_t<FirstT>, Shell::AttributeBundle>,
 					  "Do not pass in attributes directly; instead use an attribute object wrapper.");
 
-	if constexpr (Logger::IsFormatter<std::decay_t<FirstT>>{})
+	if constexpr (Logger::IsFormatter<std::decay_t<FirstT>>::kBooleanValue)
 	{
 		// If the first argument is a `Logger::Format` object,
 		// then forward the arguments to a call to `Logger::FormatWrite`.
