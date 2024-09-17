@@ -8,19 +8,7 @@ template <typename FirstT, typename... ParametersT>
 	static_assert(not std::is_same_v<std::decay_t<FirstT>, Shell::AttributeBundle>,
 					  "Do not pass in attributes directly; instead use an attribute object wrapper.");
 
-	if constexpr (Logger::IsFormatter<std::decay_t<FirstT>>::kBooleanValue)
-	{
-		// If the first argument is a `Logger::Format` object,
-		// then forward the arguments to a call to `Logger::FormatWrite`.
-		std::apply(
-			[this, formatString=first.m_formatString](auto&&... objects) -> void
-			{
-				return this->FormatWrite(formatString, std::forward<decltype(objects)>(objects)...);
-			},
-			first.m_objects
-		);
-	}
-	else if constexpr (Shell::IsObjectBundle<std::decay_t<FirstT>>)
+	if constexpr (Shell::IsObjectBundle<std::decay_t<FirstT>>)
 	{
 		// Callable to be passed into `std::apply`.
 		auto const writeArgs = [this](auto&&... objects) -> void
