@@ -174,11 +174,8 @@ namespace Shell
 			ConfigureWindowDefaults(s_window);
 
 			// Draw a border on the window.
-			box(s_window,
-				 // use default vertical character
-				 0,
-				 // use default horizontal character
-				 0);
+			box(s_window, /* Use default vertical   character. */ 0,
+							  /* Use default horizontal character. */ 0);
 
 			// Move the cursor to the corner.
 			wmove(s_window, kCursorStartY, kCursorStartX);
@@ -388,11 +385,8 @@ namespace Shell
 				wclrtoeol(s_window);
 
 				// Redraw the border.
-				box(s_window,
-					 // Use default vertical character.
-					 0,
-					 // Use default horizontal character.
-					 0);
+				box(s_window, /* Use default vertical   character. */ 0,
+								  /* Use default horizontal character. */ 0);
 			}},
 			BufferT::OnDecrementStringLengthListener{[](
 				BufferT::Data::size_type const newStringLength
