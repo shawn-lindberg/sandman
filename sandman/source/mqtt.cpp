@@ -72,8 +72,8 @@ static std::vector<CommandToken> s_commandTokensPendingConfirmation;
 //
 static bool MQTTSubscribeTopic(mosquitto* mosquittoClient, const char* topic)
 {
-	const int qoS = 0;
-	auto returnCode = mosquitto_subscribe(mosquittoClient, nullptr, topic, qoS);
+	const int qualityOfService = 0;
+	auto returnCode = mosquitto_subscribe(mosquittoClient, nullptr, topic, qualityOfService);
 
 	if (returnCode != MOSQ_ERR_SUCCESS)
 	{
@@ -312,10 +312,10 @@ static void MQTTPublishMessage(char const* topic, char const* message)
 	// Go figure.
 	auto const messageLength = std::strlen(message);
 
-	int const qoS = 0;
+	int const qualityOfService = 0;
 	bool const retain = false;
 	auto returnCode = mosquitto_publish(s_mosquittoClient, nullptr, topic, messageLength,
-		message, qoS, retain);
+		message, qualityOfService, retain);
 
 	if (returnCode != MOSQ_ERR_SUCCESS)
 	{
