@@ -93,9 +93,7 @@ TEST_CASE("`Shell, Input Window, Eventful Buffer`", "[.shell]")
 	using namespace std::string_view_literals;
 
 	static constexpr std::string_view kBackwardSentence(
-		".god yzal eht revo spmuj xof nworb kciuq ehT"sv
-		// ".god yzal eht revo depmuj xof nworb ehT"sv
-	);
+		".god yzal eht revo spmuj xof nworb kciuq ehT"sv);
 
 	// Initialize buffer with size of the sentence plus one for null character terminator.
 	static constexpr std::size_t kBufferCapacity{ kBackwardSentence.size() + 1u };
@@ -109,8 +107,10 @@ TEST_CASE("`Shell, Input Window, Eventful Buffer`", "[.shell]")
 
 		static_assert(
 			buffer.kMaxStringLength == kBufferCapacity - 1u,
-			"The maximum string length is the buffer capacity minus one because" " "
-			"the last character in the buffer is reserved for the null character" " "
+			"The maximum string length is the buffer capacity minus one because"
+			" "
+			"the last character in the buffer is reserved for the null character"
+			" "
 			"to remain compatible with functions that expect strings to be null terminated.");
 
 		static_assert(buffer.GetData().size() == kBufferCapacity,

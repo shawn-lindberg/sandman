@@ -348,7 +348,7 @@ void Control::Process()
 			
 			// Play the notification.
 			PlayNotification();
-			
+
 			// Record when the state transition timer began.
 			TimerGetCurrent(m_stateStartTime);
 
@@ -469,8 +469,10 @@ void Control::SetDesiredAction(Actions desiredAction, Modes mode, unsigned int d
 {
 	static_assert(
 		std::is_same_v<decltype(durationPercent), decltype(CommandToken::m_parameter)>,
-		"Assert the type of `durationPercent` is the same as the type of `CommandToken::m_parameter`. "
-		"Currently, the main purpose of `CommandToken::m_parameter` is to be used as `durationPercent`, "
+		"Assert the type of `durationPercent` "
+		"is the same as the type of `CommandToken::m_parameter`. "
+		"Currently, the main purpose of `CommandToken::m_parameter` "
+		"is to be used as `durationPercent`, "
 		"so this assertion serves as a notification for if the types become unsynchronized.");
 
 	m_desiredAction = desiredAction;

@@ -140,15 +140,10 @@ namespace Shell
 
 		static void Initialize()
 		{
-			s_window = newwin(
-				// height (line count)
-				LINES - InputWindow::kRowCount,
-				// width
-				COLS,
-				// upper corner y
-				0,
-				// left-hand corner x
-				0);
+			s_window = newwin(/* height (line   count) */ LINES - InputWindow::kRowCount,
+									/* width  (column count) */ COLS                          ,
+									/* upper  corner y       */ 0                             ,
+									/* left   corner x       */ 0                             );
 
 			ConfigureWindowDefaults(s_window);
 
@@ -171,15 +166,10 @@ namespace Shell
 
 		static void Initialize()
 		{
-			s_window = newwin(
-				// height (line count)
-				kRowCount,
-				// width
-				COLS,
-				// upper corner y
-				LINES - kRowCount,
-				// left-hand corner x
-				0);
+			s_window = newwin(/* height (line   count) */ kRowCount        ,
+									/* width  (column count) */ COLS             ,
+									/* upper  corner y       */ LINES - kRowCount,
+									/* left   corner x       */ 0                );
 
 			ConfigureWindowDefaults(s_window);
 
@@ -259,11 +249,8 @@ namespace Shell
 		{
 			for (ColorMatrix::ColorID const foregroundColor : kColorList)
 			{
-				static constexpr decltype(colorPairID) kExclusiveUpperLimit
-				{
-					std::min(
-						decltype(colorPairID){ 256 }, std::numeric_limits<decltype(colorPairID)>::max()
-					)
+				static constexpr CursesColorID kExclusiveUpperLimit{
+					std::min(CursesColorID{ 256 }, std::numeric_limits<CursesColorID>::max())
 				};
 
 				if (colorPairID >= maxColorPairCount or colorPairID >= kExclusiveUpperLimit)
@@ -386,8 +373,7 @@ namespace Shell
 		// User keyboard input is stored here.
 		static BufferT s_buffer(
 			BufferT::OnStringUpdateListener{[](
-				BufferT::Data::size_type const index,
-				BufferT::Data::value_type const character
+				BufferT::Data::size_type const index, BufferT::Data::value_type const character
 			) -> void
 			{
 				mvwaddch(s_window, kCursorStartY, kCursorStartX + index, character);
@@ -572,10 +558,8 @@ namespace Shell
 			case Key::Ctrl<'Z'>:
 			{
 				// (Most likely unreachable.)
-				LoggingWindow::PrintLine(Red(
-					"Unexpectedly got a `Ctrl` character '", static_cast<chtype>(inputKey),
-					"' from user input."
-				));
+				LoggingWindow::PrintLine(Red("Unexpectedly got a `Ctrl` character '",
+													  static_cast<chtype>(inputKey), "' from user input."));
 				return false;
 			}
 
@@ -593,8 +577,7 @@ namespace Shell
 				else
 				{
 					LoggingWindow::PrintLine(
-						Red("Can't write '", static_cast<chtype>(inputKey), "' into the input buffer.")
-					);
+						Red("Can't write '", static_cast<chtype>(inputKey), "' into the input buffer."));
 				}
 
 				return false;

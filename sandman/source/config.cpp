@@ -141,8 +141,7 @@ bool Config::ReadControlSettingsFromJSON(rapidjson::Value const& object)
 
 	if (controlsIterator->value.IsArray() == false)
 	{
-		Logger::WriteLine(
-			Shell::Red("Config control settings has controls but it is not an array."));
+		Logger::WriteLine(Shell::Red("Config control settings has controls but it is not an array."));
 		return false;
 	}
 
@@ -172,8 +171,7 @@ bool Config::ReadInputSettingsFromJSON(rapidjson::Value const& object)
 {
 	if (object.IsObject() == false)
 	{
-		Logger::WriteLine(
-			Shell::Red("Config has in input settings member, but it's not an object."));
+		Logger::WriteLine(Shell::Red("Config has in input settings member, but it's not an object."));
 		return false;
 	}
 
@@ -188,8 +186,7 @@ bool Config::ReadInputSettingsFromJSON(rapidjson::Value const& object)
 
 	if (inputDevicesIterator->value.IsArray() == false)
 	{
-		Logger::WriteLine(
-			Shell::Red("Config has an input devices member, but it is not an array."));
+		Logger::WriteLine(Shell::Red("Config has an input devices member, but it is not an array."));
 		return false;
 	}
 
@@ -242,8 +239,7 @@ bool Config::ReadInputSettingsFromJSON(rapidjson::Value const& object)
 
 	if (bindingsIterator->value.IsArray() == false)
 	{
-		Logger::WriteLine(
-			Shell::Red("Config input device bindings exists, but it is not an array."));
+		Logger::WriteLine(Shell::Red("Config input device bindings exists, but it is not an array."));
 		return false;
 	}
 

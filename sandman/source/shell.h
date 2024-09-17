@@ -138,8 +138,7 @@ namespace Shell
 					{
 						return Write(std::forward<decltype(objects)>(objects)...);
 					},
-					first.m_objects
-				);
+					first.m_objects);
 
 				if (didPushAttributes)
 				{
