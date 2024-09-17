@@ -65,7 +65,7 @@ class Shell::InputWindow::EventfulBuffer
 
 		// Insert a character at any valid index in the string.
 		// Can insert a character at the end by inserting at
-		// index string length; that is what `EventfulBuffer::Push` does.
+		// index string length; that is what `PushBack` does.
 		//
 		// Inserting a character pushes all characters after it one position to the right.
 		constexpr bool Insert(typename Data::size_type const index, CharT const character)
@@ -102,7 +102,7 @@ class Shell::InputWindow::EventfulBuffer
 		// Put a character at index string length while maintaining that the string
 		// is null terminated.
 		// Returns `true` on success and `false` otherwise.
-		constexpr bool Push(CharT const character)
+		constexpr bool PushBack(CharT const character)
 		{
 			// Can only push a character if the string is not at max capacity.
 			if (m_stringLength < kMaxStringLength)

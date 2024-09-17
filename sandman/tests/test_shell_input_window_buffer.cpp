@@ -128,10 +128,10 @@ TEST_CASE("`Shell, Input Window, Eventful Buffer`", "[.shell]")
 
 	SECTION("small string: pushing characters and remove one character")
 	{
-		REQUIRE(buffer.Push('a'));
-		REQUIRE(buffer.Push('b'));
-		REQUIRE(buffer.Push('c'));
-		REQUIRE(buffer.Push('d'));
+		REQUIRE(buffer.PushBack('a'));
+		REQUIRE(buffer.PushBack('b'));
+		REQUIRE(buffer.PushBack('c'));
+		REQUIRE(buffer.PushBack('d'));
 		REQUIRE(buffer.View() == "abcd"sv);
 		REQUIRE(buffer.Remove(1u));
 		REQUIRE(buffer.View() == "acd"sv);
@@ -198,7 +198,7 @@ TEST_CASE("`Shell, Input Window, Eventful Buffer`", "[.shell]")
 			Require::ReplaceString(buffer, 40u, "cat"sv);
 
 			REQUIRE(buffer.GetLength() == buffer.kMaxStringLength);
-			REQUIRE_FALSE(buffer.Push('Z'));
+			REQUIRE_FALSE(buffer.PushBack('Z'));
 
 			REQUIRE(buffer.Remove(22u));
 
