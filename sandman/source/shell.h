@@ -60,8 +60,6 @@ namespace Shell
 	{
 		// `Ctrl+CharT` key combination constant.
 		template <char kName, typename CharT = int>
-		// Function-like constant.
-		// NOLINTNEXTLINE(readability-identifier-naming)
 		inline constexpr std::enable_if_t<std::is_integral_v<CharT>, CharT> Ctrl{kName bitand 0x1F};
 	}
 

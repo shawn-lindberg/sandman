@@ -177,15 +177,11 @@ namespace Shell
 			: m_objects(std::forward<ParametersT>(args)...), m_attributes{ attributes } {}
 	};
 
-	// NOLINTBEGIN(readability-identifier-naming)
-
 	template <typename>
 	inline constexpr bool IsObjectBundle{ false };
 
 	template <typename... ObjectsT>
 	inline constexpr bool IsObjectBundle<AttributeBundle::ObjectBundle<ObjectsT...>>{ true };
-
-	// NOLINTEND(readability-identifier-naming)
 
 	class AttributeBundle::ForegroundColor
 	{
