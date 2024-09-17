@@ -13,9 +13,9 @@
 
 // Play a notification.
 // 
-// iD:	The ID of the notification to play.
+// notificationID:	The ID of the notification to play.
 // 
-void NotificationPlay(std::string const& iD);
+void NotificationPlay(std::string const& notificationID);
 
 // Get the time that the last notification finished.
 //

@@ -43,17 +43,18 @@ static const std::map<std::string, std::string>	s_notificationIDToSpeechTextMap 
 //
 
 // Play a notification.
-// 
-// iD:	The ID of the notification to play.
-// 
-void NotificationPlay(std::string const& iD)
+//
+// notificationID:	The ID of the notification to play.
+//
+void NotificationPlay(std::string const& notificationID)
 {
 	// Try to find it in the map.
-	auto const resultIterator = s_notificationIDToSpeechTextMap.find(iD);
+	auto const resultIterator = s_notificationIDToSpeechTextMap.find(notificationID);
 
-	if (resultIterator == s_notificationIDToSpeechTextMap.end()) 
+	if (resultIterator == s_notificationIDToSpeechTextMap.end())
 	{
-		Logger::WriteFormattedLine("Tried to play an invalid notification \"%s\".", iD.c_str());
+		Logger::WriteFormattedLine("Tried to play an invalid notification \"%s\".",
+											notificationID.c_str());
 		return;
 	}
 
