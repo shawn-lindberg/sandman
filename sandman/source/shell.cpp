@@ -209,8 +209,6 @@ namespace Shell
 
 	static void InitializeColorFunctionality()
 	{
-		using namespace ColorMatrix;
-
 		// Initialize Curses color functionality.
 		//
 		// `main 'color(3NCURSES)'`, FUNCTIONS, start_color:
@@ -225,7 +223,7 @@ namespace Shell
 		// "It is good practice to call this routine right after `initscr`."
 		start_color();
 
-		if (COLORS < decltype(COLORS){kColorList.size()})
+		if (COLORS < decltype(COLORS){ColorMatrix::kColorCount})
 		{
 			// Doesn't support the standard colors; do something.
 			return;
@@ -240,14 +238,14 @@ namespace Shell
 		//
 		// See further down in the nested for-loops in the comment
 		// above the call to `init_pair` for some sources.
-		CursesColorID colorPairID{ 1 };
+		ColorMatrix::CursesColorID colorPairID{ 1 };
 
-		for (ColorMatrix::ColorID const backgroundColor : kColorList)
+		for (ColorMatrix::Index backgroundColor{0u}; backgroundColor < ColorMatrix::kColorCount; ++backgroundColor)
 		{
-			for (ColorMatrix::ColorID const foregroundColor : kColorList)
+			for (ColorMatrix::Index foregroundColor{0u}; foregroundColor < ColorMatrix::kColorCount; ++foregroundColor)
 			{
-				static constexpr CursesColorID kExclusiveUpperLimit{
-					std::min(CursesColorID{ 256 }, std::numeric_limits<CursesColorID>::max())
+				static constexpr ColorMatrix::CursesColorID kExclusiveUpperLimit{
+					std::min(ColorMatrix::CursesColorID{256}, std::numeric_limits<ColorMatrix::CursesColorID>::max())
 				};
 
 				if (colorPairID >= maxColorPairCount or colorPairID >= kExclusiveUpperLimit)
@@ -286,7 +284,9 @@ namespace Shell
 				// to be set if the routine `assume_default_colors` is called. This implies
 				// that without the NCurses extension, it cannot be set.
 				//
-				init_pair(colorPairID, GetCursesColorID(foregroundColor), GetCursesColorID(backgroundColor));
+				init_pair(colorPairID,
+							 ColorMatrix::getRecord(foregroundColor).cursesColorID,
+							 ColorMatrix::getRecord(backgroundColor).cursesColorID);
 
 				// Don't put the increment in call to `init_pair` in case it is a macro.
 				// Sometimes Curses functions are macros.
