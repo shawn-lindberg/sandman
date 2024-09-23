@@ -471,7 +471,7 @@ namespace Shell
 				// Parse command tokens.
 				if (CommandParseTokens(commandTokens) == CommandParseTokensReturnTypes::kInvalid)
 				{
-					LoggingWindow::PrintLine(Red("Invalid command: \""), s_Buffer.GetData().data(), 
+					LoggingWindow::PrintLine(Red("Invalid command: \""), s_buffer.GetData().data(), 
 													 Red("\"."));
 				}
 			}

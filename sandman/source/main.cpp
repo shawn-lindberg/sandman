@@ -68,14 +68,14 @@ static bool InitializeDaemon()
 	// Legitimate failure.
 	if (processID < 0)
 	{
-		s_ExitCode = 1;
+		s_exitCode = 1;
 		return false;
 	}
 
 	// The parent gets the ID of the child and exits.
 	if (processID > 0)
 	{
-		s_ExitCode = 1;
+		s_exitCode = 1;
 		return false;
 	}
 
@@ -87,7 +87,7 @@ static bool InitializeDaemon()
 	// Initialize logging.
 	if (Logger::Initialize(SANDMAN_TEMP_DIR "sandman.log") == false)
 	{
-		s_ExitCode = 1;
+		s_exitCode = 1;
 		return false;
 	}
 
@@ -97,7 +97,7 @@ static bool InitializeDaemon()
 	if (sessionID < 0)
 	{
 		Logger::WriteLine(Shell::Red("Failed to get new session ID for daemon."));
-		s_ExitCode = 1;
+		s_exitCode = 1;
 		return false;
 	}
 
@@ -107,7 +107,7 @@ static bool InitializeDaemon()
 		Logger::WriteFormattedLine(Shell::Red,
 											"Failed to change working directory to \"%s\" ID for daemon.",
 											SANDMAN_TEMP_DIR);
-		s_ExitCode = 1;
+		s_exitCode = 1;
 		return false;
 	}
 
@@ -125,20 +125,20 @@ static bool InitializeDaemon()
 	// Now that we are a daemon, set up Unix domain sockets for communication.
 
 	// Create a listening socket.
-	s_ListeningSocket = socket(AF_UNIX, SOCK_STREAM, 0);
+	s_listeningSocket = socket(AF_UNIX, SOCK_STREAM, 0);
 
-	if (s_ListeningSocket < 0)
+	if (s_listeningSocket < 0)
 	{
 		Logger::WriteLine(Shell::Red("Failed to create listening socket."));
-		s_ExitCode = 1;
+		s_exitCode = 1;
 		return false;
 	}
 
 	// Set to non-blocking.
-	if (fcntl(s_ListeningSocket, F_SETFL, O_NONBLOCK) < 0)
+	if (fcntl(s_listeningSocket, F_SETFL, O_NONBLOCK) < 0)
 	{
 		Logger::WriteLine(Shell::Red("Failed to make listening socket non-blocking."));
-		s_ExitCode = 1;
+		s_exitCode = 1;
 		return false;
 	}
 
@@ -153,19 +153,19 @@ static bool InitializeDaemon()
 	unlink(listeningAddress.sun_path);
 
 	// Bind the socket to the file.
-	if (bind(s_ListeningSocket, reinterpret_cast<sockaddr*>(&listeningAddress),
+	if (bind(s_listeningSocket, reinterpret_cast<sockaddr*>(&listeningAddress),
 				sizeof(sockaddr_un)) < 0)
 	{
 		Logger::WriteLine(Shell::Red("Failed to bind listening socket."));
-		s_ExitCode = 1;
+		s_exitCode = 1;
 		return false;
 	}
 
 	// Mark the socket for listening.
-	if (listen(s_ListeningSocket, 5) < 0)
+	if (listen(s_listeningSocket, 5) < 0)
 	{
 		Logger::WriteLine(Shell::Red("Failed to mark listening socket to listen."));
-		s_ExitCode = 1;
+		s_exitCode = 1;
 		return false;
 	}
 
@@ -195,7 +195,7 @@ static bool Initialize()
 			// Initialize logging.
 			if (Logger::Initialize(SANDMAN_TEMP_DIR "sandman.log") == false)
 			{
-				s_ExitCode = 1;
+				s_exitCode = 1;
 				return false;
 			}
 		}
@@ -206,7 +206,7 @@ static bool Initialize()
 			// Initialize logging.
 			if (Logger::Initialize(SANDMAN_TEMP_DIR "sandman.log") == false)
 			{
-				s_ExitCode = 1;
+				s_exitCode = 1;
 				return false;
 			}
 
