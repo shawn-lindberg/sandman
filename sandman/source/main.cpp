@@ -238,7 +238,7 @@ static bool Initialize()
 	}
 
 	// Initialize controls.
-	static constexpr bool kEnableGPIO{ false };
+	static constexpr bool kEnableGPIO = true;
 	ControlsInitialize(config.GetControlConfigs(), kEnableGPIO);
 
 	// Set control durations.

@@ -26,10 +26,12 @@ namespace Shell
 {
 	using namespace std::string_view_literals;
 
+	// This lock is implemented using a recursive mutex,
+	// so multiple instances of this class can be created within the same thread.
 	class [[nodiscard]] Lock final
 	{
 		private:
-			std::lock_guard<std::mutex> m_Lock;
+			std::lock_guard<std::recursive_mutex> m_Lock;
 		public:
 			[[nodiscard]] explicit Lock();
 	};
