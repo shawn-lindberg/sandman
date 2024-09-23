@@ -80,9 +80,7 @@ namespace Shell
 		// This should be the same type that Curses `init_pair` takes as parameters.
 		using CursesColorID = short signed int;
 
-		/*
-			Careful, as this has a `std::string_view` which is a non-owning string type.
-		*/
+		// Careful, as this has a `std::string_view` which is a non-owning string type.
 		struct [[nodiscard]] Record {
 			CursesColorID cursesColorID;
 			std::string_view name;
