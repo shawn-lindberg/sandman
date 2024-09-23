@@ -285,8 +285,8 @@ namespace Shell
 				// that without the NCurses extension, it cannot be set.
 				//
 				init_pair(colorPairID,
-							 ColorMatrix::getRecord(foregroundColor).cursesColorID,
-							 ColorMatrix::getRecord(backgroundColor).cursesColorID);
+							 ColorMatrix::getCursesColorIDOrDefault(foregroundColor, COLOR_WHITE),
+							 ColorMatrix::getCursesColorIDOrDefault(backgroundColor, COLOR_BLACK));
 
 				// Don't put the increment in call to `init_pair` in case it is a macro.
 				// Sometimes Curses functions are macros.

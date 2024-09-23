@@ -80,10 +80,13 @@ namespace Shell
 		// This should be the same type that Curses `init_pair` takes as parameters.
 		using CursesColorID = short signed int;
 
+		/*
+			Careful, as this has a `std::string_view` which is a non-owning string type.
+		*/
 		struct [[nodiscard]] Record {
 			CursesColorID cursesColorID;
 			std::string_view name;
-		} inline constexpr invalidRecord{CursesColorID{COLOR_WHITE}, "invalid"};
+		};
 
 		// Even though the Curses color macros may simply be defined
 		// as integers zero though seven, not making assumptions
@@ -103,25 +106,26 @@ namespace Shell
 		};
 		static_assert(kColorDatabase.size() == kColorCount);
 
-		// Gets a record from the color database.
-		// If the color index is out-of-bounds, returns an record representing "invalid".
-		[[nodiscard]] constexpr inline Record const& getRecord(Index const colorIndex)
+		// Gets a Curses color ID from the color database.
+		// If the color index is out-of-bounds, returns the default Curses color ID argument.
+		[[nodiscard]] constexpr inline CursesColorID
+			getCursesColorIDOrDefault(Index const colorIndex, CursesColorID const defaultCursesColorID)
 		{
 			static_assert(std::is_unsigned_v<Index> and std::is_integral_v<Index>);
 
 			if (colorIndex >= kColorCount)
 			{
-				return invalidRecord;
+				return defaultCursesColorID;
 			}
 
-			return kColorDatabase[colorIndex];
+			return kColorDatabase[colorIndex].cursesColorID;
 		}
 
 		// Get an attribute value that has the foreground color and background color set.
 		constexpr AttributeBundle GetPair(Index const foregroundColor, Index const backgroundColor)
 		{
-			CursesColorID const column{ getRecord(foregroundColor).cursesColorID };
-			CursesColorID const row   { getRecord(backgroundColor).cursesColorID };
+			CursesColorID const column{ getCursesColorIDOrDefault(foregroundColor, COLOR_WHITE) };
+			CursesColorID const row   { getCursesColorIDOrDefault(backgroundColor, COLOR_BLACK) };
 
 			static_assert(kColorCount <= std::numeric_limits<int>::max(),
 							  "Check that it's okay to downcast the `std::size_t` from `size()` to `int`");
