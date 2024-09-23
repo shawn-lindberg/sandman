@@ -432,7 +432,7 @@ namespace Shell
 		static std::unordered_map<std::string_view, Result (*)()> const s_dispatchTable
 		{
 			{"quit"sv, []() constexpr -> Result {
-				// Return boolean `true` denoting that the program should stop running.
+				// Return a value denoting that the program should stop running.
 				return Result::kRequestToQuit;
 			}},
 			{""sv, []() -> Result {
