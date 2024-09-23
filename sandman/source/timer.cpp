@@ -29,7 +29,7 @@ void TimerGetCurrent(Time& time)
 	
 		// Convert to our form.
 		time.m_seconds = ticks.QuadPart / frequency.QuadPart;
-		time.m_nanoseconds = ((ticks.QuadPart % frequency.QuadPart) * 1000000000) / 
+		time.m_nanoseconds = ((ticks.QuadPart % frequency.QuadPart) * 1'000'000'000) / 
 			frequency.QuadPart;
 		
 	#elif defined (__linux__)
@@ -70,7 +70,7 @@ float TimerGetElapsedMilliseconds(Time const& startTime, Time const& endTime)
 		elapsedTime.m_seconds--;
 		
 		// Add a billion nanoseconds in exchange.
-		elapsedTime.m_nanoseconds = endTime.m_nanoseconds + (1000000000 - startTime.m_nanoseconds);
+		elapsedTime.m_nanoseconds = endTime.m_nanoseconds + (1'000'000'000 - startTime.m_nanoseconds);
 	}
 	else
 	{

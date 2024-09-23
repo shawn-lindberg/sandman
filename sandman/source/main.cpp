@@ -561,7 +561,7 @@ int main(int argc, char** argv)
 
 		// If the frame is shorter than the duration corresponding to the desired framerate, sleep the
 		// difference off.
-		unsigned long const targetFrameDurationNS = 1000000000 / 60;
+		unsigned long const targetFrameDurationNS = 1'000'000'000ul / 60ul;
 
 		if (frameDurationNS < targetFrameDurationNS)
 		{
