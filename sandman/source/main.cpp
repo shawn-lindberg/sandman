@@ -523,7 +523,8 @@ int main(int argc, char** argv)
 		if (s_programMode == kProgramModeInteractive)
 		{
 			Shell::Lock const lock;
-			done = Shell::InputWindow::ProcessSingleUserKey();
+			Shell::InputWindow::Result const result{ Shell::InputWindow::ProcessSingleUserKey() };
+			done = (result == Shell::InputWindow::Result::kRequestToQuit);
 			Shell::CheckResize();
 		}
 

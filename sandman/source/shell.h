@@ -194,11 +194,17 @@ namespace Shell
 		// Maximum length of a string that can be submitted as input in the input window.
 		inline constexpr std::size_t kMaxInputStringLength{ 1u << 7u };
 
+		enum struct Result : std::uint_least8_t {
+			kNone          = 0u,
+			kRequestToQuit = 1u,
+		};
+
 		/// @brief Process a single key input from the user, if any.
 		/// @warning Not thread safe.
-		/// @returns `true` if the "quit" command was processed, `false` otherwise.
+		/// @returns `kRequestToQuit` if the "quit" command was processed.
 		///
-		bool ProcessSingleUserKey();
+		[[nodiscard]]
+		Result ProcessSingleUserKey();
 	}
 
 	// Adjusts the windows to the new dimensions of

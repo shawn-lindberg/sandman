@@ -429,13 +429,13 @@ namespace Shell
 			SetCharHighlight<true>(s_cursor = kNext(s_cursor, static_cast<FastCursor>(1u)));
 		}
 
-		static std::unordered_map<std::string_view, bool (*)()> const s_dispatchTable
+		static std::unordered_map<std::string_view, Result (*)()> const s_dispatchTable
 		{
-			{"quit"sv, []() constexpr -> bool {
+			{"quit"sv, []() constexpr -> Result {
 				// Return boolean `true` denoting that the program should stop running.
-				return true;
+				return Result::kRequestToQuit;
 			}},
-			{""sv, []() -> bool {
+			{""sv, []() -> Result {
 				redrawwin(LoggingWindow::s_window);
 				redrawwin(InputWindow::s_window);
 
@@ -447,11 +447,11 @@ namespace Shell
 
 				LoggingWindow::PrintLine(Magenta("Refreshed the screen."));
 
-				return false;
+				return Result::kNone;
 			}}
 		};
 
-		static bool HandleSubmitString()
+		static Result HandleSubmitString()
 		{
 
 			std::string_view const bufferView(s_buffer.View());
@@ -485,29 +485,29 @@ namespace Shell
 
 				if (dispatchEntry == s_dispatchTable.end())
 				{
-					return false;
+					return Result::kNone;
 				}
 
 				auto const operation{ dispatchEntry->second };
 
-				bool const shouldQuit{ operation() };
+				Result const result{ operation() };
 
-				return shouldQuit;
+				return result;
 			}
 		}
 
 	} // namespace InputWindow
 
-	bool InputWindow::ProcessSingleUserKey()
+	auto InputWindow::ProcessSingleUserKey() -> Result
 	{
 		// Get one input key from the terminal, if any.
 		switch (int const inputKey{ wgetch(s_window) })
 		{
 			// No input.
-			case ERR: return false;
+			case ERR: return Result::kNone;
 
 			// "Ctrl+D", EOT (End of Transmission), should gracefully quit.
-			case Key::Ctrl<'D'>: return true;
+			case Key::Ctrl<'D'>: return Result::kRequestToQuit;
 
 			case KEY_LEFT:
 			{
@@ -516,7 +516,7 @@ namespace Shell
 				{
 					BumpCursor<Left>();
 				}
-				return false;
+				return Result::kNone;
 			}
 
 			case KEY_RIGHT:
@@ -527,7 +527,7 @@ namespace Shell
 				{
 					BumpCursor<Right>();
 				}
-				return false;
+				return Result::kNone;
 			}
 
 			case KEY_BACKSPACE:
@@ -538,7 +538,7 @@ namespace Shell
 				{
 					BumpCursor<Left>();
 				}
-				return false;
+				return Result::kNone;
 			}
 
 			// User is submitting the line.
@@ -547,7 +547,7 @@ namespace Shell
 			case '\n':
 			{
 				LoggingWindow::PrintLine(Red("Unexpectedly got a newline character from user input."));
-				return false;
+				return Result::kNone;
 			}
 
 			// These "Ctrl" characters are usually handled by the terminal,
@@ -558,7 +558,7 @@ namespace Shell
 				// (Most likely unreachable.)
 				LoggingWindow::PrintLine(Red("Unexpectedly got a `Ctrl` character '",
 													  static_cast<chtype>(inputKey), "' from user input."));
-				return false;
+				return Result::kNone;
 			}
 
 			default:
@@ -578,7 +578,7 @@ namespace Shell
 						Red("Can't write '", static_cast<chtype>(inputKey), "' into the input buffer."));
 				}
 
-				return false;
+				return Result::kNone;
 			}
 		}
 	}
