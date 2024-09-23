@@ -469,7 +469,11 @@ namespace Shell
 				CommandTokenizeString(commandTokens, s_buffer.GetData().data());
 
 				// Parse command tokens.
-				CommandParseTokens(commandTokens);
+				if (CommandParseTokens(commandTokens) == CommandParseTokensReturnTypes::kInvalid)
+				{
+					LoggingWindow::PrintLine(Red("Invalid command: \""), s_Buffer.GetData().data(), 
+													 Red("\"."));
+				}
 			}
 
 			// Handle dispatch.

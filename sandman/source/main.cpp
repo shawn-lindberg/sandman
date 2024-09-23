@@ -25,6 +25,14 @@
 // Types
 //
 
+enum ProgramMode
+{
+	kProgramModeInteractive = 0,
+	kProgramModeDaemon,
+	kProgramModeDocker,
+
+	kNumProgramModes
+};
 
 // Locals
 //
@@ -35,8 +43,8 @@ static bool s_controlsInitialized = false;
 // The input device.
 static Input s_input;
 
-// Whether to start as a daemon or terminal program.
-static bool s_daemonMode = false;
+// What mode the program is running in.
+static ProgramMode s_programMode = kProgramModeInteractive;
 
 // Used to listen for connections.
 static int s_listeningSocket = -1;
@@ -46,138 +54,173 @@ static int s_exitCode = 0;
 // Functions
 //
 
+// Do daemon specific initialization.
+// 
+// Returns: True on success, false on failure.
+// 
+static bool InitializeDaemon()
+{
+	std::printf("Initializing as a daemon.\n");
+
+	// Fork a child off of the parent process.
+	auto const processID = fork();
+
+	// Legitimate failure.
+	if (processID < 0)
+	{
+		s_ExitCode = 1;
+		return false;
+	}
+
+	// The parent gets the ID of the child and exits.
+	if (processID > 0)
+	{
+		s_ExitCode = 1;
+		return false;
+	}
+
+	// The child gets 0 and continues.
+
+	// Allow file access.
+	umask(0);
+
+	// Initialize logging.
+	if (Logger::Initialize(SANDMAN_TEMP_DIR "sandman.log") == false)
+	{
+		s_ExitCode = 1;
+		return false;
+	}
+
+	// Need a new session ID.
+	auto const sessionID = setsid();
+
+	if (sessionID < 0)
+	{
+		Logger::WriteLine(Shell::Red("Failed to get new session ID for daemon."));
+		s_ExitCode = 1;
+		return false;
+	}
+
+	// Change the current working directory.
+	if (chdir(SANDMAN_TEMP_DIR) < 0)
+	{
+		Logger::WriteFormattedLine(Shell::Red,
+											"Failed to change working directory to \"%s\" ID for daemon.",
+											SANDMAN_TEMP_DIR);
+		s_ExitCode = 1;
+		return false;
+	}
+
+	// Close stdin, stdout, stderr.
+	close(STDIN_FILENO);
+	close(STDOUT_FILENO);
+	close(STDERR_FILENO);
+
+	// Redirect stdin, stdout, stderr to /dev/null (this relies on them mapping to
+	// the lowest numbered file descriptors).
+	open("dev/null", O_RDWR);
+	open("dev/null", O_RDWR);
+	open("dev/null", O_RDWR);
+
+	// Now that we are a daemon, set up Unix domain sockets for communication.
+
+	// Create a listening socket.
+	s_ListeningSocket = socket(AF_UNIX, SOCK_STREAM, 0);
+
+	if (s_ListeningSocket < 0)
+	{
+		Logger::WriteLine(Shell::Red("Failed to create listening socket."));
+		s_ExitCode = 1;
+		return false;
+	}
+
+	// Set to non-blocking.
+	if (fcntl(s_ListeningSocket, F_SETFL, O_NONBLOCK) < 0)
+	{
+		Logger::WriteLine(Shell::Red("Failed to make listening socket non-blocking."));
+		s_ExitCode = 1;
+		return false;
+	}
+
+	sockaddr_un listeningAddress;
+	{
+		listeningAddress.sun_family = AF_UNIX;
+		std::strncpy(listeningAddress.sun_path, SANDMAN_TEMP_DIR "sandman.sock",
+							sizeof(listeningAddress.sun_path) - 1);
+	}
+
+	// Unlink the file if needed.
+	unlink(listeningAddress.sun_path);
+
+	// Bind the socket to the file.
+	if (bind(s_ListeningSocket, reinterpret_cast<sockaddr*>(&listeningAddress),
+				sizeof(sockaddr_un)) < 0)
+	{
+		Logger::WriteLine(Shell::Red("Failed to bind listening socket."));
+		s_ExitCode = 1;
+		return false;
+	}
+
+	// Mark the socket for listening.
+	if (listen(s_ListeningSocket, 5) < 0)
+	{
+		Logger::WriteLine(Shell::Red("Failed to mark listening socket to listen."));
+		s_ExitCode = 1;
+		return false;
+	}
+
+	// Sockets setup!
+	return true;
+}
+
 // Initialize program components.
 //
 // returns:		True for success, false otherwise.
 //
 static bool Initialize()
 {
-	if (s_daemonMode == true)
+	switch (s_programMode)
 	{
-		std::printf("Initializing as a daemon.\n");
-
-		// Fork a child off of the parent process.
-		auto const processID = fork();
-
-		// Legitimate failure.
-		if (processID < 0)
+		case kProgramModeDaemon:
 		{
-			s_exitCode = 1;
-			return false;
+			if (InitializeDaemon() == false)
+			{
+				return false;
+			}
 		}
+		break;
 
-		// The parent gets the ID of the child and exits.
-		if (processID > 0)
+		case kProgramModeDocker:
 		{
-			s_exitCode = 1;
-			return false;
+			// Initialize logging.
+			if (Logger::Initialize(SANDMAN_TEMP_DIR "sandman.log") == false)
+			{
+				s_ExitCode = 1;
+				return false;
+			}
 		}
+		break;
 
-		// The child gets 0 and continues.
-
-		// Allow file access.
-		umask(0);
-
-		// Initialize logging.
-		if (Logger::Initialize(SANDMAN_TEMP_DIR "sandman.log") == false)
+		case kProgramModeInteractive:
 		{
-			s_exitCode = 1;
-			return false;
+			// Initialize logging.
+			if (Logger::Initialize(SANDMAN_TEMP_DIR "sandman.log") == false)
+			{
+				s_ExitCode = 1;
+				return false;
+			}
+
+			Shell::Initialize();
+			Logger::SetEchoToScreen(true);
 		}
+		break;
 
-		// Need a new session ID.
-		auto const sessionID = setsid();
-
-		if (sessionID < 0)
+		default:
 		{
-			Logger::WriteLine(Shell::Red("Failed to get new session ID for daemon."));
-			s_exitCode = 1;
-			return false;
+			std::printf("Undefined program mode!");
 		}
-
-		// Change the current working directory.
-		if (chdir(SANDMAN_TEMP_DIR) < 0)
-		{
-			Logger::WriteFormattedLine(Shell::Red,
-												"Failed to change working directory to \"%s\" ID for daemon.",
-												SANDMAN_TEMP_DIR);
-			s_exitCode = 1;
-			return false;
-		}
-
-		// Close stdin, stdout, stderr.
-		close(STDIN_FILENO);
-		close(STDOUT_FILENO);
-		close(STDERR_FILENO);
-
-		// Redirect stdin, stdout, stderr to /dev/null (this relies on them mapping to
-		// the lowest numbered file descriptors).
-		open("dev/null", O_RDWR);
-		open("dev/null", O_RDWR);
-		open("dev/null", O_RDWR);
-
-		// Now that we are a daemon, set up Unix domain sockets for communication.
-
-		// Create a listening socket.
-		s_listeningSocket = socket(AF_UNIX, SOCK_STREAM, 0);
-
-		if (s_listeningSocket < 0)
-		{
-			Logger::WriteLine(Shell::Red("Failed to create listening socket."));
-			s_exitCode = 1;
-			return false;
-		}
-
-		// Set to non-blocking.
-		if (fcntl(s_listeningSocket, F_SETFL, O_NONBLOCK) < 0)
-		{
-			Logger::WriteLine(Shell::Red("Failed to make listening socket non-blocking."));
-			s_exitCode = 1;
-			return false;
-		}
-
-		sockaddr_un listeningAddress;
-		{
-			listeningAddress.sun_family = AF_UNIX;
-			std::strncpy(listeningAddress.sun_path, SANDMAN_TEMP_DIR "sandman.sock",
-							 sizeof(listeningAddress.sun_path) - 1);
-		}
-
-		// Unlink the file if needed.
-		unlink(listeningAddress.sun_path);
-
-		// Bind the socket to the file.
-		if (bind(s_listeningSocket, reinterpret_cast<sockaddr*>(&listeningAddress),
-					sizeof(sockaddr_un)) < 0)
-		{
-			Logger::WriteLine(Shell::Red("Failed to bind listening socket."));
-			s_exitCode = 1;
-			return false;
-		}
-
-		// Mark the socket for listening.
-		if (listen(s_listeningSocket, 5) < 0)
-		{
-			Logger::WriteLine(Shell::Red("Failed to mark listening socket to listen."));
-			s_exitCode = 1;
-			return false;
-		}
-
-		// Sockets setup!
-	}
-	else
-	{
-
-		// Initialize logging.
-		if (Logger::Initialize(SANDMAN_TEMP_DIR "sandman.log") == false)
-		{
-			s_exitCode = 1;
-			return false;
-		}
-
-		Shell::Initialize();
-		Logger::SetEchoToScreen(true);
-	}
+		return false;
+	};
 
 	// Read the config.
 	Config config;
@@ -195,7 +238,7 @@ static bool Initialize()
 	}
 
 	// Initialize controls.
-	static constexpr bool kEnableGPIO{ false };
+	static constexpr bool kEnableGPIO = true;
 	ControlsInitialize(config.GetControlConfigs(), kEnableGPIO);
 
 	// Set control durations.
@@ -262,7 +305,7 @@ static void Uninitialize()
 	// Uninitialize logging.
 	Logger::Uninitialize();
 
-	if (s_daemonMode == false)
+	if (s_programMode == kProgramModeInteractive)
 	{
 		Shell::Uninitialize();
 	}
@@ -397,7 +440,13 @@ static bool HandleCommandLine(char** arguments, unsigned int argumentCount)
 		// Start as a daemon?
 		if (std::strcmp(argument, "--daemon") == 0)
 		{
-			s_daemonMode = true;
+			s_programMode = kProgramModeDaemon;
+			break;
+		}
+		// Start as docker?
+		else if (std::strcmp(argument, "--docker") == 0)
+		{
+			s_programMode = kProgramModeDocker;
 			break;
 		}
 		else if (std::strcmp(argument, "--shutdown") == 0)
@@ -471,7 +520,7 @@ int main(int argc, char** argv)
 		Time frameStartTime;
 		TimerGetCurrent(frameStartTime);
 
-		if (s_daemonMode == false)
+		if (s_programMode == kProgramModeInteractive)
 		{
 			Shell::Lock const lock;
 			done = Shell::InputWindow::ProcessSingleUserKey();
@@ -496,7 +545,7 @@ int main(int argc, char** argv)
 		// Process the reports.
 		ReportsProcess();
 
-		if (s_daemonMode == true)
+		if (s_programMode == kProgramModeDaemon)
 		{
 			// Process socket communication.
 			done = ProcessSocketCommunication();
