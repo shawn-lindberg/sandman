@@ -16,7 +16,7 @@
 
 namespace Shell
 {
-	static std::mutex s_Mutex;
+	static std::recursive_mutex s_Mutex;
 
 	Lock::Lock(): m_Lock(s_Mutex) {};
 
