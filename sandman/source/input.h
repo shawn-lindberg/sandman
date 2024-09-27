@@ -80,7 +80,7 @@ class Input
 		// wasFailure:	Whether the device is being closed due to a failure or not.
 		// message: message that may be logged
 		//
-		void CloseDevice(bool wasFailure, std::string_view const message);
+		void CloseDevice(bool const wasFailure, std::string_view const message);
 
 		// The name of the device to get input from.
 		char m_deviceName[kDeviceNameCapacity];

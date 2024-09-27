@@ -296,7 +296,7 @@ bool Input::IsConnected() const
 // wasFailure:	Whether the device is being closed due to a failure or not.
 // message: message that may be logged
 //
-void Input::CloseDevice(bool wasFailure, std::string_view const message)
+void Input::CloseDevice(bool const wasFailure, std::string_view const message)
 {
 	// Close the device.
 	if (m_deviceFileHandle != kInvalidFileHandle)
