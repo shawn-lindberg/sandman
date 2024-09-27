@@ -76,12 +76,11 @@ class Input
 		static constexpr unsigned int kDeviceOpenRetryDelayMS{ 1'000u };
 
 		// Close the input device.
-		// 
-		// wasFailure:	Whether the device is being closed due to a failure or not.
-		// format:		Standard printf format string.
-		// ...:				Standard printf arguments.
 		//
-		[[gnu::format(printf, 1+2, 1+3)]] void CloseDevice(bool wasFailure, char const* format, ...);
+		// wasFailure:	Whether the device is being closed due to a failure or not.
+		// message: message that may be logged
+		//
+		void CloseDevice(bool wasFailure, std::string_view const message);
 
 		// The name of the device to get input from.
 		char m_deviceName[kDeviceNameCapacity];

@@ -49,7 +49,7 @@ bool ScheduleEvent::ReadFromJSON(rapidjson::Value const& object)
 {
 	if (object.IsObject() == false)
 	{
-		Logger::WriteFormattedLine("Schedule event could not be parsed because it is not an object.");
+		Logger::WriteLine("Schedule event could not be parsed because it is not an object.");
 		return false;
 	}
 
@@ -58,13 +58,13 @@ bool ScheduleEvent::ReadFromJSON(rapidjson::Value const& object)
 
 	if (delayIterator == object.MemberEnd())
 	{
-		Logger::WriteFormattedLine("Schedule event is missing the delay time.");
+		Logger::WriteLine("Schedule event is missing the delay time.");
 		return false;
 	}
 
 	if (delayIterator->value.IsInt() == false)
 	{
-		Logger::WriteFormattedLine("Schedule event has a delay time, but it's not an integer.");
+		Logger::WriteLine("Schedule event has a delay time, but it's not an integer.");
 		return false;
 	}
 
@@ -75,13 +75,13 @@ bool ScheduleEvent::ReadFromJSON(rapidjson::Value const& object)
 
 	if (controlActionIterator == object.MemberEnd())
 	{
-		Logger::WriteFormattedLine("Schedule event is missing a control action.");
+		Logger::WriteLine("Schedule event is missing a control action.");
 		return false;
 	}
 
 	if (m_controlAction.ReadFromJSON(controlActionIterator->value) == false) 
 	{
-		Logger::WriteFormattedLine("Schedule event control action could not be parsed.");
+		Logger::WriteLine("Schedule event control action could not be parsed.");
 		return false;
 	}
 
@@ -100,11 +100,11 @@ bool Schedule::ReadFromFile(char const* fileName)
 {
 	m_events.clear();
 
-	auto* scheduleFile = fopen(fileName, "r");
+	auto* scheduleFile = std::fopen(fileName, "r");
 
 	if (scheduleFile == nullptr)
 	{
-		Logger::WriteFormattedLine(Shell::Red, "Failed to open the schedule file %s.\n", fileName);
+		Logger::WriteLine(Shell::Red("Failed to open the schedule file ", fileName, ".\n"));
 		return false;
 	}
 
@@ -118,8 +118,8 @@ bool Schedule::ReadFromFile(char const* fileName)
 
 	if (scheduleDocument.HasParseError() == true)
 	{
-		Logger::WriteFormattedLine(Shell::Red, "Failed to parse the schedule file %s.\n", fileName);
-		fclose(scheduleFile);
+		Logger::WriteLine(Shell::Red("Failed to parse the schedule file ", fileName, ".\n"));
+		std::fclose(scheduleFile);
 		return false;
 	}
 
@@ -128,16 +128,16 @@ bool Schedule::ReadFromFile(char const* fileName)
 
 	if (eventsIterator == scheduleDocument.MemberEnd())
 	{
-		Logger::WriteFormattedLine("No schedule events in %s.\n", fileName);
-		fclose(scheduleFile);
+		Logger::WriteLine("No schedule events in ", fileName, ".\n");
+		std::fclose(scheduleFile);
 		return false;		
 	}
 
 	if (eventsIterator->value.IsArray() == false)
 	{
-		Logger::WriteFormattedLine("Schedule has events, but it is not an array.");
-		fclose(scheduleFile);
-		Logger::WriteFormattedLine("No event array in %s.\n", fileName);
+		Logger::WriteLine("Schedule has events, but it is not an array.");
+		std::fclose(scheduleFile);
+		Logger::WriteLine("No event array in ", fileName, ".\n");
 		return false;
 	}
 
@@ -154,8 +154,8 @@ bool Schedule::ReadFromFile(char const* fileName)
 		// If we successfully read the event, add it to the list.
 		m_events.push_back(event);
 	}
-							
-	fclose(scheduleFile);
+
+	std::fclose(scheduleFile);
 	return true;
 }
 
@@ -199,11 +199,11 @@ static bool ScheduleLoad()
 static void ScheduleLogLoaded()
 {
 	// Now write out the schedule.
-	Logger::WriteFormattedLine("The following schedule is loaded:");
+	Logger::WriteLine("The following schedule is loaded:");
 	
 	if (s_schedule.IsEmpty())
 	{
-		Logger::WriteFormattedLine("\t<empty>");
+		Logger::WriteLine("\t<empty>");
 		Logger::WriteLine();
 		return;
 	}
@@ -223,10 +223,23 @@ static void ScheduleLogLoaded()
 			"up" : "down";
 			
 		// Print the event.
-		Logger::WriteFormattedLine("\t+%01ih %02im %02is -> %s, %s", delayHours, delayMin, 
-			delaySec, event.m_controlAction.m_controlName, actionText);
+		Logger::WriteLine(/* Set fill to `0`. */
+								std::setfill('0'),
+
+								"\t+",
+
+								std::setw(1), delayHours, "h ",
+								std::setw(2), delayMin  , "m ",
+								std::setw(2), delaySec  , "s ",
+
+								"-> ", event.m_controlAction.m_controlName, ", ", actionText,
+
+								/* Restore fill to space. */
+								std::setfill(' ')
+
+								/* `std::setw` only applies once, so it doesn't need to be restored. */);
 	}
-	
+
 	Logger::WriteLine();
 }
 
@@ -236,7 +249,7 @@ void ScheduleInitialize()
 {	
 	s_scheduleIndex = UINT_MAX;
 	
-	Logger::WriteFormattedLine("Initializing the schedule...");
+	Logger::WriteLine("Initializing the schedule...");
 
 	// Parse the schedule.
 	if (ScheduleLoad() == false)
@@ -291,7 +304,7 @@ void ScheduleStart()
 	// Notify.
 	NotificationPlay("schedule_start");
 	
-	Logger::WriteFormattedLine("Schedule started.");
+	Logger::WriteLine("Schedule started.");
 }
 
 // Stop the schedule.
@@ -318,7 +331,7 @@ void ScheduleStop()
 	// Notify.
 	NotificationPlay("schedule_stop");
 	
-	Logger::WriteFormattedLine("Schedule stopped.");
+	Logger::WriteLine("Schedule stopped.");
 }
 
 // Determine whether the schedule is running.
@@ -375,7 +388,7 @@ void ScheduleProcess()
 	// Sanity check the event.
 	if (event.m_controlAction.m_action >= Control::kNumActions)
 	{
-		Logger::WriteFormattedLine("Schedule moving to event %i.", s_scheduleIndex);
+		Logger::WriteLine("Schedule moving to event ", s_scheduleIndex, ".");
 		return;
 	}
 
@@ -383,9 +396,8 @@ void ScheduleProcess()
 	auto* control = event.m_controlAction.GetControl();
 	
 	if (control == nullptr) {
-		
-		Logger::WriteFormattedLine("Schedule couldn't find control \"%s\". Moving to event %i.", 
-			event.m_controlAction.m_controlName, s_scheduleIndex);
+		Logger::WriteLine("Schedule couldn't find control \"", event.m_controlAction.m_controlName,
+								"\". Moving to event ", s_scheduleIndex, ".");
 		return;
 	}
 		
@@ -394,5 +406,5 @@ void ScheduleProcess()
 	
 	ReportsAddControlItem(control->GetName(), event.m_controlAction.m_action, "schedule");
 
-	Logger::WriteFormattedLine("Schedule moving to event %i.", s_scheduleIndex);
+	Logger::WriteLine("Schedule moving to event ", s_scheduleIndex, ".");
 }

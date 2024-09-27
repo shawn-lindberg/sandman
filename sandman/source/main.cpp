@@ -104,9 +104,8 @@ static bool InitializeDaemon()
 	// Change the current working directory.
 	if (chdir(SANDMAN_TEMP_DIR) < 0)
 	{
-		Logger::WriteFormattedLine(Shell::Red,
-											"Failed to change working directory to \"%s\" ID for daemon.",
-											SANDMAN_TEMP_DIR);
+		Logger::WriteLine(Shell::Red("Failed to change working directory to \"", SANDMAN_TEMP_DIR,
+											  "\" ID for daemon."));
 		s_exitCode = 1;
 		return false;
 	}
@@ -326,7 +325,7 @@ static bool ProcessSocketCommunication()
 	}
 
 	// Got a connection.
-	Logger::WriteFormattedLine("Got a new connection.");
+	Logger::WriteLine("Got a new connection.");
 
 	// Try to read data.
 	static constexpr std::size_t kMessageBufferCapacity{ 100u };
@@ -340,7 +339,7 @@ static bool ProcessSocketCommunication()
 
 	if (numReceivedBytes <= 0)
 	{
-		Logger::WriteFormattedLine("Connection closed, error receiving.");
+		Logger::WriteLine("Connection closed, error receiving.");
 
 		// Close the connection.
 		close(connectionSocket);
@@ -350,7 +349,7 @@ static bool ProcessSocketCommunication()
 	// Terminate.
 	messageBuffer[numReceivedBytes] = '\0';
 
-	Logger::WriteFormattedLine("Received \"%s\".", messageBuffer);
+	Logger::WriteLine("Received \"", messageBuffer, "\".");
 
 	// Handle the message, if necessary.
 	auto done = false;
@@ -371,7 +370,7 @@ static bool ProcessSocketCommunication()
 		CommandParseTokens(commandTokens);
 	}
 
-	Logger::WriteFormattedLine("Connection closed.");
+	Logger::WriteLine("Connection closed.");
 
 	// Close the connection.
 	close(connectionSocket);
@@ -574,7 +573,7 @@ int main(int argc, char** argv)
 		}
 	}
 
-	Logger::WriteFormattedLine("Uninitializing.");
+	Logger::WriteLine("Uninitializing.");
 
 	// Cleanup.
 	Uninitialize();

@@ -33,27 +33,3 @@ void Logger::Uninitialize()
 	// Closing the file stream also flushes any remaining data to the file.
 	ms_file.close();
 }
-
-void Logger::FormatWrite(std::string_view const formatString)
-{
-	bool escapingCharacter{ false };
-
-	for (char const character : formatString)
-	{
-		if (escapingCharacter and character == kFormatSubstitutionIndicator)
-		{
-			// Don't have any arguments to write, so write a placeholder.
-			Write(kMissingFormatValue);
-		}
-		else if (character == kFormatEscapeIndicator and not escapingCharacter)
-		{
-			escapingCharacter = true;
-			continue;
-		}
-		else
-		{
-			Write(character);
-		}
-		escapingCharacter = false;
-	}
-}

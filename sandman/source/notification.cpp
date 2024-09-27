@@ -53,8 +53,7 @@ void NotificationPlay(std::string const& notificationID)
 
 	if (resultIterator == s_notificationIDToSpeechTextMap.end())
 	{
-		Logger::WriteFormattedLine("Tried to play an invalid notification \"%s\".",
-											notificationID.c_str());
+		Logger::WriteLine("Tried to play an invalid notification \"", notificationID, "\".");
 		return;
 	}
 
