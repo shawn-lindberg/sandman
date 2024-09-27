@@ -540,8 +540,8 @@ static void CommandExtractSlotsFromJSONDocument(std::vector<SlotNameValue>& extr
 // 							command pending confirmation, the corresponding tokens will be passed in.
 // commandDocument:	The command document to tokenize.
 //
-void CommandTokenizeJSONDocument(std::vector<CommandToken>& commandTokens, 
-	rapidjson::Document const& commandDocument)
+void CommandTokenizeJSONDocument(std::vector<CommandToken>& commandTokens,
+											rapidjson::Document const& commandDocument)
 {
 	// First we need the intent, then the name of the intent.
 	auto const intentIterator = commandDocument.FindMember("intent");
@@ -721,4 +721,3 @@ void CommandTokenizeJSONDocument(std::vector<CommandToken>& commandTokens,
 
 	Logger::WriteLine("Unrecognized intent named ", intentName, ".");
 }
-
