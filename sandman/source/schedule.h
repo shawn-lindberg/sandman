@@ -20,10 +20,10 @@ struct ScheduleEvent
 	bool ReadFromJSON(rapidjson::Value const& object);
 	
 	// Delay in seconds before this entry occurs (since the last).
-	unsigned int	m_DelaySec;
+	unsigned int	m_delaySec;
 	
 	// The control action to perform at the scheduled time.
-	ControlAction	m_ControlAction;
+	ControlAction	m_controlAction;
 };
 
 // A schedule.
@@ -55,7 +55,7 @@ class Schedule
 
    private:
       // The list of events making up the schedule.
-      std::vector<ScheduleEvent> m_Events;
+      std::vector<ScheduleEvent> m_events;
 };
 
 

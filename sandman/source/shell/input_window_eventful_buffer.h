@@ -28,11 +28,11 @@ class Shell::InputWindow::EventfulBuffer
 
 	private:
 		// Internal data buffer.
-		Data m_Data{};
-		typename Data::size_type m_StringLength{0u};
-		Common::NonNull<OnStringUpdateListener> m_OnStringUpdate;
-		Common::NonNull<OnClearListener> m_OnClear;
-		Common::NonNull<OnDecrementStringLengthListener> m_OnDecrementStringLength;
+		Data m_data{};
+		typename Data::size_type m_stringLength{0u};
+		Common::NonNull<OnStringUpdateListener> m_onStringUpdate;
+		Common::NonNull<OnClearListener> m_onClear;
+		Common::NonNull<OnDecrementStringLengthListener> m_onDecrementStringLength;
 
 	public:
 		static_assert(std::tuple_size_v<Data> > 0u, "Assert can subtract from size without underflow.");
@@ -42,12 +42,12 @@ class Shell::InputWindow::EventfulBuffer
 
 		[[gnu::always_inline]] constexpr Data const& GetData() const
 		{
-			return m_Data;
+			return m_data;
 		}
 
 		[[gnu::always_inline]] constexpr typename Data::size_type GetLength() const
 		{
-			return m_StringLength;
+			return m_stringLength;
 		}
 
 		explicit constexpr EventfulBuffer() = default;
@@ -58,61 +58,60 @@ class Shell::InputWindow::EventfulBuffer
 			OnStringUpdateListener          const onStringUpdateListener          ,
 			OnClearListener                 const onClearListener                 ,
 			OnDecrementStringLengthListener const onDecrementStringLengthListener):
-			m_OnStringUpdate                     (onStringUpdateListener         ),
-			m_OnClear                            (onClearListener                ),
-			m_OnDecrementStringLength            (onDecrementStringLengthListener)
+			m_onStringUpdate                     (onStringUpdateListener         ),
+			m_onClear                            (onClearListener                ),
+			m_onDecrementStringLength            (onDecrementStringLengthListener)
 		{}
 
 		// Insert a character at any valid index in the string.
 		// Can insert a character at the end by inserting at
-		// index string length; that is what `EventfulBuffer::Push` does.
+		// index string length; that is what `PushBack` does.
 		//
 		// Inserting a character pushes all characters after it one position to the right.
-		constexpr bool Insert(typename Data::size_type const index, CharT const character)
+		constexpr bool Insert(typename Data::size_type const insertionIndex, CharT const character)
 		{
 			// Can insert at any index in the string or at the end if index is string length.
 			// Can only insert a character if the string is not at maximum capacity.
-			if (index <= m_StringLength and m_StringLength < kMaxStringLength)
+			if (not(insertionIndex <= m_stringLength and m_stringLength < kMaxStringLength))
 			{
-				// Starting from the index of the null terminator which is at
-				// index string length, will iterate leftward shifting each character
-				// to the right by one position until reached index to insert
-				// the the new character at.
-				for (typename Data::size_type i{ m_StringLength }; i > index; --i)
-				{
-					m_OnStringUpdate(i, m_Data[i] = m_Data[i - 1u]);
-				}
-
-				// Use assignment to insert the character at a position.
-				// Also call the event listener.
-				m_OnStringUpdate(index, m_Data[index] = character);
-
-				// Increment the string length and null terminate the string.
-				++m_StringLength;
-				m_Data[m_StringLength] = '\0';
-
-				// Success.
-				return true;
+				// Failure.
+				return false;
 			}
 
-			// Failure.
-			return false;
+			// Starting from the index of the null terminator which is at
+			// index string length, will iterate leftward shifting each character
+			// to the right by one position until reached index to insert the new character at.
+			for (typename Data::size_type index{ m_stringLength }; index > insertionIndex; --index)
+			{
+				m_onStringUpdate(index, m_data[index] = m_data[index - 1u]);
+			}
+
+			// Use assignment to insert the character at a position.
+			// Also call the event listener.
+			m_onStringUpdate(insertionIndex, m_data[insertionIndex] = character);
+
+			// Increment the string length and null terminate the string.
+			++m_stringLength;
+			m_data[m_stringLength] = '\0';
+
+			// Success.
+			return true;
 		}
 
 		// Put a character at index string length while maintaining that the string
 		// is null terminated.
 		// Returns `true` on success and `false` otherwise.
-		constexpr bool Push(CharT const character)
+		constexpr bool PushBack(CharT const character)
 		{
 			// Can only push a character if the string is not at max capacity.
-			if (m_StringLength < kMaxStringLength)
+			if (m_stringLength < kMaxStringLength)
 			{
 				// Insert the character at index string length and call the event listener.
-				m_OnStringUpdate(m_StringLength, m_Data[m_StringLength] = character);
+				m_onStringUpdate(m_stringLength, m_data[m_stringLength] = character);
 
 				// Update the string length and null terminate the string.
-				++m_StringLength;
-				m_Data[m_StringLength] = '\0';
+				++m_stringLength;
+				m_data[m_stringLength] = '\0';
 
 				// Success.
 				return true;
@@ -123,18 +122,18 @@ class Shell::InputWindow::EventfulBuffer
 		}
 
 		// Remove character at an index.
-		constexpr bool Remove(typename Data::size_type const index)
+		constexpr bool Remove(typename Data::size_type const removalIndex)
 		{
 			// Can only remove if the index is a valid position in the string; 
 			// the index must be strictly less than the string length.
 			// The index cannot be equal to the string length because the string length is the
 			// the position where the null character currently is,
 			// and the null character should not be removed.
-			if (index < m_StringLength)
+			if (removalIndex < m_stringLength)
 			{
 				// Starting from the index of the character to remove,
 				// will iterate rightward shifting each character to the left by one position,
-				// until but not including he null character string terminator at the index of
+				// until but not including the null character string terminator at the index of
 				// string length.
 				// 
 				// Since started from index of character to remove,
@@ -146,20 +145,20 @@ class Shell::InputWindow::EventfulBuffer
 				// and the smallest the removal index can be is zero, so
 				// string length must be at least one here.
 				// So it is okay to subtract one from the string length here.
-				for (typename Data::size_type i{ index }; i < m_StringLength - 1u; ++i)
+				for (typename Data::size_type index{ removalIndex }; index < m_stringLength - 1u; ++index)
 				{
 					// Replace the character at the current index with the
 					// character to the right;
-					m_OnStringUpdate(i, m_Data[i] = m_Data[i + 1u]);
+					m_onStringUpdate(index, m_data[index] = m_data[index + 1u]);
 				}
 
 				// One character was removed, so decrement the string length by one.
 				// Also, null terminate the string.
-				--m_StringLength;
-				m_Data[m_StringLength] = '\0';
+				--m_stringLength;
+				m_data[m_stringLength] = '\0';
 
 				// Call the event listener.
-				m_OnDecrementStringLength(m_StringLength);
+				m_onDecrementStringLength(m_stringLength);
 
 				// Success.
 				return true;
@@ -176,19 +175,16 @@ class Shell::InputWindow::EventfulBuffer
 		[[gnu::always_inline]] constexpr void Clear()
 		{
 			// Set the string length to zero and null terminate the string.
-			m_Data[m_StringLength = 0u] = '\0';
+			m_data[m_stringLength = 0u] = '\0';
 
 			// Call the event listener.
-			m_OnClear();
-
-			// Success.
-			return static_cast<void>(true);
+			m_onClear();
 		}
 
 		// Return a string view of the string data.
 		// (The returned string view does not get updated when the string object gets updated.)
 		[[gnu::always_inline]] constexpr std::basic_string_view<CharT> View() const
 		{
-			return std::basic_string_view<CharT>(m_Data.data(), m_StringLength);
+			return std::basic_string_view<CharT>(m_data.data(), m_stringLength);
 		}
 };

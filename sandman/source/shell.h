@@ -1,7 +1,6 @@
 #pragma once
 
 #include "common/enum.h"
-#include "common/box.h"
 #include "shell/attributes.h"
 
 #include <array>
@@ -31,7 +30,7 @@ namespace Shell
 	class [[nodiscard]] Lock final
 	{
 		private:
-			std::lock_guard<std::recursive_mutex> m_Lock;
+			std::lock_guard<std::recursive_mutex> m_lock;
 		public:
 			[[nodiscard]] explicit Lock();
 	};
@@ -61,8 +60,6 @@ namespace Shell
 	{
 		// `Ctrl+CharT` key combination constant.
 		template <char kName, typename CharT = int>
-		// Function-like constant.
-		// NOLINTNEXTLINE(readability-identifier-naming)
 		inline constexpr std::enable_if_t<std::is_integral_v<CharT>, CharT> Ctrl{kName bitand 0x1F};
 	}
 
@@ -134,15 +131,14 @@ namespace Shell
 			// Process the first argument.
 			if constexpr (IsObjectBundle<std::decay_t<FirstT>>)
 			{
-				bool const didPushAttributes{ PushAttributes(first.m_Attributes) };
+				bool const didPushAttributes{ PushAttributes(first.m_attributes) };
 
 				std::apply(
 					[](auto&&... objects) -> void
 					{
 						return Write(std::forward<decltype(objects)>(objects)...);
 					},
-					first.m_Objects
-				);
+					first.m_objects);
 
 				if (didPushAttributes)
 				{
@@ -198,11 +194,17 @@ namespace Shell
 		// Maximum length of a string that can be submitted as input in the input window.
 		inline constexpr std::size_t kMaxInputStringLength{ 1u << 7u };
 
+		enum struct Result : std::uint_least8_t {
+			kNone          = 0u,
+			kRequestToQuit = 1u,
+		};
+
 		/// @brief Process a single key input from the user, if any.
 		/// @warning Not thread safe.
-		/// @returns `true` if the "quit" command was processed, `false` otherwise.
+		/// @returns `kRequestToQuit` if the "quit" command was processed.
 		///
-		bool ProcessSingleUserKey();
+		[[nodiscard]]
+		Result ProcessSingleUserKey();
 	}
 
 	// Adjusts the windows to the new dimensions of

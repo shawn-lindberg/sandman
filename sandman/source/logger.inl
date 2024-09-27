@@ -8,19 +8,7 @@ template <typename FirstT, typename... ParametersT>
 	static_assert(not std::is_same_v<std::decay_t<FirstT>, Shell::AttributeBundle>,
 					  "Do not pass in attributes directly; instead use an attribute object wrapper.");
 
-	if constexpr (Logger::IsFormat<std::decay_t<FirstT>>)
-	{
-		// If the first argument is a `Logger::Format` object,
-		// then forward the arguments to a call to `Logger::FormatWrite`.
-		std::apply(
-			[this, formatString=first.m_FormatString](auto&&... objects) -> void
-			{
-				return this->FormatWrite(formatString, std::forward<decltype(objects)>(objects)...);
-			},
-			first.m_Objects
-		);
-	}
-	else if constexpr (Shell::IsObjectBundle<std::decay_t<FirstT>>)
+	if constexpr (Shell::IsObjectBundle<std::decay_t<FirstT>>)
 	{
 		// Callable to be passed into `std::apply`.
 		auto const writeArgs = [this](auto&&... objects) -> void
@@ -28,26 +16,26 @@ template <typename FirstT, typename... ParametersT>
 			return this->Write(std::forward<decltype(objects)>(objects)...);
 		};
 
-		if (m_ScreenEcho)
+		if (m_screenEcho)
 		{
 			// Get the current data from the buffer.
-			std::string const string(m_Buffer.str());
+			std::string const string(m_buffer.str());
 
 			// Dump the current data to the output destinations.
 			bool const didPushAttributes{
-				[attributes=first.m_Attributes, stringView=std::string_view(string)]() -> bool
+				[attributes=first.m_attributes, stringView=std::string_view(string)]() -> bool
 				{
 					Shell::LoggingWindow::Write(stringView);
 					return Shell::LoggingWindow::PushAttributes(attributes);
 				}()
 			};
-			m_OutputStream << string;
+			m_outputStream << string;
 
 			// Clear the buffer.
-			m_Buffer.str("");
+			m_buffer.str("");
 
 			// Recursively write the objects in the object wrapper.
-			std::apply(writeArgs, first.m_Objects);
+			std::apply(writeArgs, first.m_objects);
 
 			// Pop the attributes object to remove its effect.
 			if (didPushAttributes)
@@ -59,14 +47,14 @@ template <typename FirstT, typename... ParametersT>
 		{
 			// If screen echo is not enabled, simply recursively write the objects in the
 			// object wrapper.
-			std::apply(writeArgs, first.m_Objects);
+			std::apply(writeArgs, first.m_objects);
 		}
 	}
 	else
 	{
 		// If the first argument is not a special parameter,
 		// simply write it to the buffer.
-		m_Buffer << std::forward<FirstT>(first);
+		m_buffer << std::forward<FirstT>(first);
 	}
 
 	if constexpr (sizeof...(arguments) > 0u)
@@ -81,17 +69,17 @@ template <typename FirstT, typename... ParametersT>
 		// and clear the buffer.
 
 		// Get the current data from the buffer.
-		std::string const string(m_Buffer.str());
+		std::string const string(m_buffer.str());
 
 		// Dump current data to output destinations.
-		if (m_ScreenEcho)
+		if (m_screenEcho)
 		{
 			Shell::LoggingWindow::Write(std::string_view(string));
 		}
-		m_OutputStream << string;
+		m_outputStream << string;
 
 		// Clear buffer.
-		m_Buffer.str("");
+		m_buffer.str("");
 	}
 }
 
@@ -104,10 +92,10 @@ void Logger::FormatWrite(std::string_view formatString, FirstT&& first, Paramete
 	{
 		char const character{ formatString[index] };
 
-		if (escapingCharacter and character == kFormatInterpolationIndicator)
+		if (escapingCharacter and character == kFormatSubstitutionIndicator)
 		{
 			// Write the first argument, then
-			// interpolate the remaining arguments
+			// substitute the remaining arguments
 			// into the rest of the string recursively.
 
 			Write(std::forward<FirstT>(first));

@@ -64,7 +64,7 @@ bool InputBinding::ReadFromJSON(rapidjson::Value const& object)
 		return false;
 	}
 
-	m_KeyCode = keyCodeIterator->value.GetInt();
+	m_keyCode = keyCodeIterator->value.GetInt();
 
 	// We must also have a control action.
 	auto const controlActionIterator = object.FindMember("controlAction");
@@ -75,7 +75,7 @@ bool InputBinding::ReadFromJSON(rapidjson::Value const& object)
 		return false;
 	}
 	
-	if (m_ControlAction.ReadFromJSON(controlActionIterator->value) == false) 
+	if (m_controlAction.ReadFromJSON(controlActionIterator->value) == false) 
 	{
 		Logger::WriteFormattedLine("Input binding has a control action, but it could not be parsed.");
 		return false;
@@ -94,30 +94,30 @@ bool InputBinding::ReadFromJSON(rapidjson::Value const& object)
 void Input::Initialize(char const* deviceName, std::vector<InputBinding> const& bindings)
 {
 	// Copy the device name.
-	strncpy(m_DeviceName, deviceName, kDeviceNameCapacity - 1);
-	m_DeviceName[kDeviceNameCapacity - 1] = '\0';
+	strncpy(m_deviceName, deviceName, kDeviceNameCapacity - 1);
+	m_deviceName[kDeviceNameCapacity - 1] = '\0';
 	
 	// Populate the input bindings.
-	m_Bindings = bindings;
+	m_bindings = bindings;
 	
 	// Use the bindings to populate the input to action mapping.
-	for (const auto& binding : m_Bindings) 
+	for (const auto& binding : m_bindings) 
 	{
 		// Blindly insert. If the same key is bound more than once, the mapping will get overwritten 
 		// with the last occurrence.
-		m_InputToActionMap[binding.m_KeyCode] = binding.m_ControlAction;
+		m_inputToActionMap[binding.m_keyCode] = binding.m_controlAction;
 	}
 	
 	// Display what we initialized.
-	Logger::WriteFormattedLine("Initialized input device \'%s\' with input bindings:", m_DeviceName);
+	Logger::WriteFormattedLine("Initialized input device \'%s\' with input bindings:", m_deviceName);
 	
-	for (auto const& binding : m_Bindings) 
+	for (auto const& binding : m_bindings) 
 	{
 		auto* const actionText = 
-			(binding.m_ControlAction.m_Action == Control::Actions::kActionMovingUp) ? "up" : "down";
+			(binding.m_controlAction.m_action == Control::Actions::kActionMovingUp) ? "up" : "down";
 		
-		Logger::WriteFormattedLine("\tCode %i -> %s, %s", binding.m_KeyCode, 
-			binding.m_ControlAction.m_ControlName, actionText);
+		Logger::WriteFormattedLine("\tCode %i -> %s, %s", binding.m_keyCode, 
+			binding.m_controlAction.m_controlName, actionText);
 	}
 	
 	Logger::WriteLine();
@@ -136,17 +136,17 @@ void Input::Uninitialize()
 void Input::Process()
 {
 	// See if we need to open the device.
-	if (m_DeviceFileHandle == kInvalidFileHandle) {
+	if (m_deviceFileHandle == kInvalidFileHandle) {
 		
 		// If we have failed before, see whether we have waited long enough before trying to open 
 		// again.
-		if (m_DeviceOpenHasFailed == true)
+		if (m_deviceOpenHasFailed == true)
 		{		
 			// Get elapsed time since the last failure.
 			Time currentTime;
 			TimerGetCurrent(currentTime);
 
-			auto const elapsedTimeMS = TimerGetElapsedMilliseconds(m_LastDeviceOpenFailTime, 
+			auto const elapsedTimeMS = TimerGetElapsedMilliseconds(m_lastDeviceOpenFailTime, 
 				currentTime);
 			
 			if (elapsedTimeMS < kDeviceOpenRetryDelayMS)
@@ -156,31 +156,31 @@ void Input::Process()
 		}
 
 		// We open in nonblocking mode so that we don't hang waiting for input.
-		m_DeviceFileHandle = open(m_DeviceName, O_RDONLY | O_NONBLOCK);
+		m_deviceFileHandle = open(m_deviceName, O_RDONLY | O_NONBLOCK);
 		
-		if (m_DeviceFileHandle < 0) 
+		if (m_deviceFileHandle < 0) 
 		{
 			// Record the time of the last open failure.
-			TimerGetCurrent(m_LastDeviceOpenFailTime);
-			CloseDevice(true, "Failed to open input device \'%s\'", m_DeviceName);
+			TimerGetCurrent(m_lastDeviceOpenFailTime);
+			CloseDevice(true, "Failed to open input device \'%s\'", m_deviceName);
 			return;
 		}
 		
 		// Try to get the name.
 		char name[256];
-		if (ioctl(m_DeviceFileHandle, EVIOCGNAME(sizeof(name)), name) < 0)
+		if (ioctl(m_deviceFileHandle, EVIOCGNAME(sizeof(name)), name) < 0)
 		{	
 			// Record the time of the last open failure.
-			TimerGetCurrent(m_LastDeviceOpenFailTime);
+			TimerGetCurrent(m_lastDeviceOpenFailTime);
 					
-			CloseDevice(true, "Failed to get name for input device \'%s\'", m_DeviceName);
+			CloseDevice(true, "Failed to get name for input device \'%s\'", m_deviceName);
 		}
 		
-		Logger::WriteFormattedLine("Input device \'%s\' is a \'%s\'", m_DeviceName, name);
+		Logger::WriteFormattedLine("Input device \'%s\' is a \'%s\'", m_deviceName, name);
 		
 		// More device information.
 		unsigned short deviceID[4];
-		ioctl(m_DeviceFileHandle, EVIOCGID, deviceID);
+		ioctl(m_deviceFileHandle, EVIOCGID, deviceID);
 		
 		Logger::WriteFormattedLine("Input device bus 0x%x, vendor 0x%x, product 0x%x, version 0x%x.", 
 			deviceID[ID_BUS], deviceID[ID_VENDOR], deviceID[ID_PRODUCT], deviceID[ID_VERSION]);
@@ -188,7 +188,7 @@ void Input::Process()
 		// Play controller connected notification.
 		NotificationPlay("control_connected");
 			
-		m_DeviceOpenHasFailed = false;
+		m_deviceOpenHasFailed = false;
 	}
 
 	// Read up to 64 input events at a time.
@@ -201,7 +201,7 @@ void Input::Process()
 					  "In `man 'read(2)'`, DESCRIPTION: "
 					  "\"According to POSIX.1, if count is greater than SSIZE_MAX, "
 					  "the result is implementation-defined; see NOTES for the upper limit on Linux.\"");
-	auto const readCount = read(m_DeviceFileHandle, events, kEventBufferSize);
+	auto const readCount = read(m_deviceFileHandle, events, kEventBufferSize);
 
 	// I think maybe this would happen if the device got disconnected?
 	if (readCount < 0)
@@ -213,7 +213,7 @@ void Input::Process()
 			return;
 		}
 		
-		CloseDevice(true, "Failed to read from input device \'%s\'", m_DeviceName);
+		CloseDevice(true, "Failed to read from input device \'%s\'", m_deviceName);
 		return;
 	}
 	
@@ -233,9 +233,9 @@ void Input::Process()
 		//	event.value);
 			
 		// Try to find a control action corresponding to this input.
-		auto result = m_InputToActionMap.find(event.code);
+		auto result = m_inputToActionMap.find(event.code);
 		
-		if (result == m_InputToActionMap.end())
+		if (result == m_inputToActionMap.end())
 		{
 			continue;
 		}
@@ -249,12 +249,12 @@ void Input::Process()
 		if (control == nullptr) {
 			
 			Logger::WriteFormattedLine("Couldn't find control \'%s\' mapped to key code %i.", 
-				controlAction.m_ControlName, event.code);
+				controlAction.m_controlName, event.code);
 			continue;
 		}
 		
 		// Translate whether the key was pressed or not into the appropriate action.
-		auto const action = (event.value == 1) ? controlAction.m_Action : 
+		auto const action = (event.value == 1) ? controlAction.m_action : 
 			Control::Actions::kActionStopped;
 			
 		// Manipulate the control.
@@ -266,7 +266,7 @@ void Input::Process()
 //
 bool Input::IsConnected() const
 {
-	return (m_DeviceFileHandle != kInvalidFileHandle);
+	return (m_deviceFileHandle != kInvalidFileHandle);
 }
 		
 // Close the input device.
@@ -278,10 +278,10 @@ bool Input::IsConnected() const
 void Input::CloseDevice(bool wasFailure, char const* format, ...)
 {
 	// Close the device.
-	if (m_DeviceFileHandle != kInvalidFileHandle)
+	if (m_deviceFileHandle != kInvalidFileHandle)
 	{
-		close(m_DeviceFileHandle);
-		m_DeviceFileHandle = kInvalidFileHandle;
+		close(m_deviceFileHandle);
+		m_deviceFileHandle = kInvalidFileHandle;
 	}
 			
 	// Only log a message/play sound on failure.
@@ -290,12 +290,12 @@ void Input::CloseDevice(bool wasFailure, char const* format, ...)
 	}
 	
 	// And only if it was the first failure.
-	if (m_DeviceOpenHasFailed == true)
+	if (m_deviceOpenHasFailed == true)
 	{
 		return;
 	}
 	
-	m_DeviceOpenHasFailed = true;	
+	m_deviceOpenHasFailed = true;	
 	
 	// Log the message.
 	va_list arguments;

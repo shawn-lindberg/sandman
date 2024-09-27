@@ -21,7 +21,7 @@ class ControlHandle
 		//
 		bool IsValid() const
 		{
-			return (m_UID != kInvalidUID);
+			return (m_uID != kInvalidUID);
 		}
 				
 	private:
@@ -35,7 +35,7 @@ class ControlHandle
 		static constexpr unsigned short kInvalidUID{ 0xFFFF };
 		
 		// The unique identifier for the control.
-		unsigned short m_UID = kInvalidUID;
+		unsigned short m_uID = kInvalidUID;
 };
 
 // Configuration parameters to initialize a control.
@@ -53,14 +53,14 @@ struct ControlConfig
 	static constexpr unsigned int kControlNameCapacity{32u};
 
 	// The name of the control.
-	char m_Name[kControlNameCapacity];
+	char m_name[kControlNameCapacity];
 
 	// The GPIO pins to use.
-	int m_UpGPIOPin;
-	int m_DownGPIOPin;
+	int m_upGPIOPin;
+	int m_downGPIOPin;
 
 	// The duration of the moving state (in milliseconds) for this control.
-	unsigned int m_MovingDurationMS;
+	unsigned int m_movingDurationMS;
 };
 
 // An individual control.
@@ -121,14 +121,14 @@ class Control
 		//
 		char const* GetName() const
 		{
-			return m_Name;
+			return m_name;
 		}
 
 		// Get the state.
 		//
 		State GetState() const
 		{
-			return m_State;
+			return m_state;
 		}
 		
 		// Enable or disable all controls.
@@ -170,35 +170,35 @@ class Control
 		void PlayNotification();
 		
 		// The name of the control.
-		char m_Name[kNameCapacity];
+		char m_name[kNameCapacity];
 		
 		// The control state.
-		State m_State;
+		State m_state;
 
 		// A record of when the state transition timer began.
-		Time m_StateStartTime;
+		Time m_stateStartTime;
 
 		// The desired action.
-		Actions m_DesiredAction;
+		Actions m_desiredAction;
 
 		// The control movement mode.
-		Modes m_Mode;
+		Modes m_mode;
 		
 		// The GPIO pins to use.
-		int m_UpGPIOPin;
-		int m_DownGPIOPin;
+		int m_upGPIOPin;
+		int m_downGPIOPin;
 		
 		// The current duration of the moving state (in milliseconds) for this control.
-		unsigned int m_MovingDurationMS;
+		unsigned int m_movingDurationMS;
 		
 		// The standard duration of the moving state (in milliseconds) for this control.
-		unsigned int m_StandardMovingDurationMS;
+		unsigned int m_standardMovingDurationMS;
 
 		// Maximum duration of the moving state (in milliseconds).
-		static unsigned int ms_MaxMovingDurationMS;
+		static unsigned int ms_maxMovingDurationMS;
 		
 		// Maximum duration of the cool down state (in milliseconds).
-		static unsigned int ms_CoolDownDurationMS;	
+		static unsigned int ms_coolDownDurationMS;	
 };
 
 // Enough information to trigger a specific control action.
@@ -228,13 +228,13 @@ struct ControlAction
 	static constexpr unsigned int kControlNameCapacity{ 32u };
 	
 	// The name of the control to manipulate.
-	char m_ControlName[kControlNameCapacity];
+	char m_controlName[kControlNameCapacity];
 	
 	// The action for the control.
-	Control::Actions m_Action;
+	Control::Actions m_action;
 	
 	// A handle to the control for fast lookup.
-	ControlHandle m_ControlHandle;
+	ControlHandle m_controlHandle;
 };
 
 

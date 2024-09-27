@@ -20,8 +20,6 @@ Checks: >
 
 WarningsAsErrors: "*"
 
-HeaderFilterRegex: '.*sandman\/source\/[^\/]*\.h$'
-
 CheckOptions:
 
   - key: readability-identifier-naming.ClassCase
@@ -73,31 +71,31 @@ CheckOptions:
   - key: readability-identifier-naming.StaticVariablePrefix
     value: s_
   - key: readability-identifier-naming.StaticVariableCase
-    value: CamelCase
+    value: camelBack
 
   - key: readability-identifier-naming.GlobalVariablePrefix
     value: g_
   - key: readability-identifier-naming.GlobalVariableCase
-    value: CamelCase
+    value: camelBack
   - key: readability-identifier-naming.GlobalVariableIgnoredRegexp
     # Ignore variables prefixed with "s_".
     # 
     # "^": Anchors the pattern to the start of the string.
     # "s_": Matches the exact prefix "s_".
-    # "[A-Z]": Ensures that the first character after the prefix is an uppercase letter.
+    # "[a-z]": Ensures that the first character after the prefix is a lowercase letter.
     # "[a-zA-Z0-9]*": Matches zero or more alphanumeric characters.
     # "$": Anchors the pattern to the end of the string.
-    value: ^s_[A-Z][a-zA-Z0-9]*$
+    value: ^s_[a-z][a-zA-Z0-9]*$
 
   - key: readability-identifier-naming.MemberPrefix
     value: m_
   - key: readability-identifier-naming.MemberCase
-    value: CamelCase
+    value: camelBack
 
   - key: readability-identifier-naming.ClassMemberPrefix
     value: ms_
   - key: readability-identifier-naming.ClassMemberCase
-    value: CamelCase
+    value: camelBack
 
   - key: readability-identifier-naming.ParameterCase
     value: camelBack

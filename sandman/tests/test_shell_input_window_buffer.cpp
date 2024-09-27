@@ -93,9 +93,7 @@ TEST_CASE("`Shell, Input Window, Eventful Buffer`", "[.shell]")
 	using namespace std::string_view_literals;
 
 	static constexpr std::string_view kBackwardSentence(
-		".god yzal eht revo spmuj xof nworb kciuq ehT"sv
-		// ".god yzal eht revo depmuj xof nworb ehT"sv
-	);
+		".god yzal eht revo spmuj xof nworb kciuq ehT"sv);
 
 	// Initialize buffer with size of the sentence plus one for null character terminator.
 	static constexpr std::size_t kBufferCapacity{ kBackwardSentence.size() + 1u };
@@ -109,8 +107,10 @@ TEST_CASE("`Shell, Input Window, Eventful Buffer`", "[.shell]")
 
 		static_assert(
 			buffer.kMaxStringLength == kBufferCapacity - 1u,
-			"The maximum string length is the buffer capacity minus one because" " "
-			"the last character in the buffer is reserved for the null character" " "
+			"The maximum string length is the buffer capacity minus one because"
+			" "
+			"the last character in the buffer is reserved for the null character"
+			" "
 			"to remain compatible with functions that expect strings to be null terminated.");
 
 		static_assert(buffer.GetData().size() == kBufferCapacity,
@@ -128,10 +128,10 @@ TEST_CASE("`Shell, Input Window, Eventful Buffer`", "[.shell]")
 
 	SECTION("small string: pushing characters and remove one character")
 	{
-		REQUIRE(buffer.Push('a'));
-		REQUIRE(buffer.Push('b'));
-		REQUIRE(buffer.Push('c'));
-		REQUIRE(buffer.Push('d'));
+		REQUIRE(buffer.PushBack('a'));
+		REQUIRE(buffer.PushBack('b'));
+		REQUIRE(buffer.PushBack('c'));
+		REQUIRE(buffer.PushBack('d'));
 		REQUIRE(buffer.View() == "abcd"sv);
 		REQUIRE(buffer.Remove(1u));
 		REQUIRE(buffer.View() == "acd"sv);
@@ -198,7 +198,7 @@ TEST_CASE("`Shell, Input Window, Eventful Buffer`", "[.shell]")
 			Require::ReplaceString(buffer, 40u, "cat"sv);
 
 			REQUIRE(buffer.GetLength() == buffer.kMaxStringLength);
-			REQUIRE_FALSE(buffer.Push('Z'));
+			REQUIRE_FALSE(buffer.PushBack('Z'));
 
 			REQUIRE(buffer.Remove(22u));
 

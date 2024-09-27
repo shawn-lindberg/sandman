@@ -38,18 +38,18 @@ enum ProgramMode
 //
 
 // Whether controls have been initialized.
-static bool s_ControlsInitialized = false;
+static bool s_controlsInitialized = false;
 
 // The input device.
-static Input s_Input;
+static Input s_input;
 
 // What mode the program is running in.
 static ProgramMode s_programMode = kProgramModeInteractive;
 
 // Used to listen for connections.
-static int s_ListeningSocket = -1;
+static int s_listeningSocket = -1;
 
-static int s_ExitCode = 0;
+static int s_exitCode = 0;
 
 // Functions
 //
@@ -68,14 +68,14 @@ static bool InitializeDaemon()
 	// Legitimate failure.
 	if (processID < 0)
 	{
-		s_ExitCode = 1;
+		s_exitCode = 1;
 		return false;
 	}
 
 	// The parent gets the ID of the child and exits.
 	if (processID > 0)
 	{
-		s_ExitCode = 1;
+		s_exitCode = 1;
 		return false;
 	}
 
@@ -87,7 +87,7 @@ static bool InitializeDaemon()
 	// Initialize logging.
 	if (Logger::Initialize(SANDMAN_TEMP_DIR "sandman.log") == false)
 	{
-		s_ExitCode = 1;
+		s_exitCode = 1;
 		return false;
 	}
 
@@ -97,7 +97,7 @@ static bool InitializeDaemon()
 	if (sessionID < 0)
 	{
 		Logger::WriteLine(Shell::Red("Failed to get new session ID for daemon."));
-		s_ExitCode = 1;
+		s_exitCode = 1;
 		return false;
 	}
 
@@ -107,7 +107,7 @@ static bool InitializeDaemon()
 		Logger::WriteFormattedLine(Shell::Red,
 											"Failed to change working directory to \"%s\" ID for daemon.",
 											SANDMAN_TEMP_DIR);
-		s_ExitCode = 1;
+		s_exitCode = 1;
 		return false;
 	}
 
@@ -125,20 +125,20 @@ static bool InitializeDaemon()
 	// Now that we are a daemon, set up Unix domain sockets for communication.
 
 	// Create a listening socket.
-	s_ListeningSocket = socket(AF_UNIX, SOCK_STREAM, 0);
+	s_listeningSocket = socket(AF_UNIX, SOCK_STREAM, 0);
 
-	if (s_ListeningSocket < 0)
+	if (s_listeningSocket < 0)
 	{
 		Logger::WriteLine(Shell::Red("Failed to create listening socket."));
-		s_ExitCode = 1;
+		s_exitCode = 1;
 		return false;
 	}
 
 	// Set to non-blocking.
-	if (fcntl(s_ListeningSocket, F_SETFL, O_NONBLOCK) < 0)
+	if (fcntl(s_listeningSocket, F_SETFL, O_NONBLOCK) < 0)
 	{
 		Logger::WriteLine(Shell::Red("Failed to make listening socket non-blocking."));
-		s_ExitCode = 1;
+		s_exitCode = 1;
 		return false;
 	}
 
@@ -153,19 +153,19 @@ static bool InitializeDaemon()
 	unlink(listeningAddress.sun_path);
 
 	// Bind the socket to the file.
-	if (bind(s_ListeningSocket, reinterpret_cast<sockaddr*>(&listeningAddress),
+	if (bind(s_listeningSocket, reinterpret_cast<sockaddr*>(&listeningAddress),
 				sizeof(sockaddr_un)) < 0)
 	{
 		Logger::WriteLine(Shell::Red("Failed to bind listening socket."));
-		s_ExitCode = 1;
+		s_exitCode = 1;
 		return false;
 	}
 
 	// Mark the socket for listening.
-	if (listen(s_ListeningSocket, 5) < 0)
+	if (listen(s_listeningSocket, 5) < 0)
 	{
 		Logger::WriteLine(Shell::Red("Failed to mark listening socket to listen."));
-		s_ExitCode = 1;
+		s_exitCode = 1;
 		return false;
 	}
 
@@ -195,7 +195,7 @@ static bool Initialize()
 			// Initialize logging.
 			if (Logger::Initialize(SANDMAN_TEMP_DIR "sandman.log") == false)
 			{
-				s_ExitCode = 1;
+				s_exitCode = 1;
 				return false;
 			}
 		}
@@ -206,7 +206,7 @@ static bool Initialize()
 			// Initialize logging.
 			if (Logger::Initialize(SANDMAN_TEMP_DIR "sandman.log") == false)
 			{
-				s_ExitCode = 1;
+				s_exitCode = 1;
 				return false;
 			}
 
@@ -226,14 +226,14 @@ static bool Initialize()
 	Config config;
 	if (config.ReadFromFile(SANDMAN_CONFIG_DIR "sandman.conf") == false)
 	{
-		s_ExitCode = 1;
+		s_exitCode = 1;
 		return false;
 	}
 
 	// Initialize MQTT.
 	if (MQTTInitialize() == false)
 	{
-		s_ExitCode = 1;
+		s_exitCode = 1;
 		return false;
 	}
 
@@ -249,10 +249,10 @@ static bool Initialize()
 	Control::Enable(true);
 
 	// Controls have been initialized.
-	s_ControlsInitialized = true;
+	s_controlsInitialized = true;
 
 	// Initialize the input device.
-	s_Input.Initialize(config.GetInputDeviceName(), config.GetInputBindings());
+	s_input.Initialize(config.GetInputDeviceName(), config.GetInputBindings());
 
 	// Initialize the schedule.
 	ScheduleInitialize();
@@ -261,7 +261,7 @@ static bool Initialize()
 	ReportsInitialize();
 
 	// Initialize the commands.
-	CommandInitialize(s_Input);
+	CommandInitialize(s_input);
 
 	NotificationPlay("initialized");
 
@@ -273,9 +273,9 @@ static bool Initialize()
 static void Uninitialize()
 {
 	// Close the listening socket, if there was one.
-	if (s_ListeningSocket >= 0)
+	if (s_listeningSocket >= 0)
 	{
-		close(s_ListeningSocket);
+		close(s_listeningSocket);
 	}
 
 	// Uninitialize the commands.
@@ -290,7 +290,7 @@ static void Uninitialize()
 	// Uninitialize MQTT.
 	MQTTUninitialize();
 
-	if (s_ControlsInitialized == true)
+	if (s_controlsInitialized == true)
 	{
 		// Disable all controls.
 		Control::Enable(false);
@@ -300,7 +300,7 @@ static void Uninitialize()
 	}
 
 	// Uninitialize the input.
-	s_Input.Uninitialize();
+	s_input.Uninitialize();
 
 	// Uninitialize logging.
 	Logger::Uninitialize();
@@ -318,7 +318,7 @@ static void Uninitialize()
 static bool ProcessSocketCommunication()
 {
 	// Attempt to accept an incoming connection.
-	auto const connectionSocket = accept(s_ListeningSocket, nullptr, nullptr);
+	auto const connectionSocket = accept(s_listeningSocket, nullptr, nullptr);
 
 	if (connectionSocket < 0)
 	{
@@ -457,14 +457,14 @@ static bool HandleCommandLine(char** arguments, unsigned int argumentCount)
 		else
 		{
 			// We are going to see if there is a command to send to the daemon.
-			static char const* s_CommandPrefix = "--command=";
+			static constexpr char const* kCommandPrefix = "--command=";
 
-			auto const* commandStringStart = std::strstr(argument, s_CommandPrefix);
+			auto const* commandStringStart = std::strstr(argument, kCommandPrefix);
 
 			if (commandStringStart != nullptr)
 			{
 				// Skip the command prefix.
-				commandStringStart += std::strlen(s_CommandPrefix);
+				commandStringStart += std::strlen(kCommandPrefix);
 
 				static constexpr std::size_t kCommandBufferCapacity{ 100u };
 				char commandBuffer[kCommandBufferCapacity];
@@ -503,14 +503,14 @@ int main(int argc, char** argv)
 	// Deal with command line arguments.
 	if (HandleCommandLine(argv, argc) == true)
 	{
-		return s_ExitCode;
+		return s_exitCode;
 	}
 
 	// Initialization.
 	if (Initialize() == false)
 	{
 		Uninitialize();
-		return s_ExitCode;
+		return s_exitCode;
 	}
 
 	auto done = false;
@@ -523,7 +523,8 @@ int main(int argc, char** argv)
 		if (s_programMode == kProgramModeInteractive)
 		{
 			Shell::Lock const lock;
-			done = Shell::InputWindow::ProcessSingleUserKey();
+			Shell::InputWindow::Result const result{ Shell::InputWindow::ProcessSingleUserKey() };
+			done = (result == Shell::InputWindow::Result::kRequestToQuit);
 			Shell::CheckResize();
 		}
 
@@ -534,7 +535,7 @@ int main(int argc, char** argv)
 		ControlsProcess();
 
 		// Process the input.
-		s_Input.Process();
+		s_input.Process();
 
 		// Process MQTT.
 		MQTTProcess();
@@ -560,7 +561,7 @@ int main(int argc, char** argv)
 
 		// If the frame is shorter than the duration corresponding to the desired framerate, sleep the
 		// difference off.
-		unsigned long const targetFrameDurationNS = 1000000000 / 60;
+		unsigned long const targetFrameDurationNS = 1'000'000'000ul / 60ul;
 
 		if (frameDurationNS < targetFrameDurationNS)
 		{
@@ -577,5 +578,5 @@ int main(int argc, char** argv)
 
 	// Cleanup.
 	Uninitialize();
-	return s_ExitCode;
+	return s_exitCode;
 }

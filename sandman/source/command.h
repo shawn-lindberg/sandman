@@ -39,10 +39,10 @@ struct CommandToken
 	};
 
 	// The type of the token.
-	Types m_Type = kTypeInvalid;
+	Types m_type = kTypeInvalid;
 
 	// The value of the integer parameter, if relevant.
-	unsigned int m_Parameter = 0u;
+	unsigned int m_parameter = 0u;
 };
 
 // Potential return values from parsing tokens.

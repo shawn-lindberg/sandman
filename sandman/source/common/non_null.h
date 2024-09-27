@@ -18,21 +18,21 @@ public:
 	/// Does nothing with the parameters, and returns a default constructed value.
 	[[gnu::always_inline]] static constexpr ReturnT Simulacrum(ParametersT...)
 	{
-		return ReturnT();
+		return ReturnT{};
 	}
 
 private:
-	FunctionT m_Function;
+	FunctionT m_function;
 
 public:
-	[[nodiscard]] constexpr NonNull() : m_Function{ Simulacrum } {}
+	[[nodiscard]] constexpr NonNull() : m_function{ Simulacrum } {}
 
 	[[nodiscard]] constexpr NonNull(FunctionT const functionPointer)
-		: m_Function{ functionPointer != nullptr ? functionPointer : Simulacrum }
+		: m_function{ functionPointer != nullptr ? functionPointer : Simulacrum }
 	{}
 
 	[[gnu::always_inline]] [[nodiscard]] constexpr operator FunctionT() const
 	{
-		return m_Function;
+		return m_function;
 	}
 };

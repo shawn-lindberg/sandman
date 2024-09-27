@@ -17,8 +17,8 @@ struct InputBinding
 	// A constructor for emplacing.
 	//
 	InputBinding(unsigned short keyCode, ControlAction&& controlAction)
-		: m_KeyCode(keyCode), 
-		m_ControlAction(std::move(controlAction))
+		: m_keyCode(keyCode), 
+		m_controlAction(std::move(controlAction))
 	{
 	}
 	
@@ -31,10 +31,10 @@ struct InputBinding
 	bool ReadFromJSON(rapidjson::Value const& object);	
 
 	// The numeric code of the key that should trigger action.
-	unsigned short		m_KeyCode;
+	unsigned short		m_keyCode;
 	
 	// Action to perform when the input is given. 
-	ControlAction		m_ControlAction;
+	ControlAction		m_controlAction;
 };
 
 // Handles dealing with an input device.
@@ -84,20 +84,20 @@ class Input
 		[[gnu::format(printf, 1+2, 1+3)]] void CloseDevice(bool wasFailure, char const* format, ...);
 
 		// The name of the device to get input from.
-		char m_DeviceName[kDeviceNameCapacity];
+		char m_deviceName[kDeviceNameCapacity];
 		
 		// The device file handle (file descriptor).
-		int m_DeviceFileHandle = kInvalidFileHandle;	
+		int m_deviceFileHandle = kInvalidFileHandle;	
 		
 		// Indicates that the device open has failed before.
-		bool m_DeviceOpenHasFailed = false;
+		bool m_deviceOpenHasFailed = false;
 		
 		// A time, so we can tell how long to wait before trying to open the device again.
-		Time m_LastDeviceOpenFailTime;
+		Time m_lastDeviceOpenFailTime;
 				
 		// The list of input bindings.
-		std::vector<InputBinding> m_Bindings;
+		std::vector<InputBinding> m_bindings;
 		
 		// A mapping from input to action.
-		std::map<unsigned short, ControlAction> m_InputToActionMap;
+		std::map<unsigned short, ControlAction> m_inputToActionMap;
 };

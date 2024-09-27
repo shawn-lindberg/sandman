@@ -28,8 +28,8 @@ void TimerGetCurrent(Time& time)
 		QueryPerformanceFrequency(&frequency);
 	
 		// Convert to our form.
-		time.m_Seconds = ticks.QuadPart / frequency.QuadPart;
-		time.m_Nanoseconds = ((ticks.QuadPart % frequency.QuadPart) * 1000000000) / 
+		time.m_seconds = ticks.QuadPart / frequency.QuadPart;
+		time.m_nanoseconds = ((ticks.QuadPart % frequency.QuadPart) * 1'000'000'000) / 
 			frequency.QuadPart;
 		
 	#elif defined (__linux__)
@@ -38,8 +38,8 @@ void TimerGetCurrent(Time& time)
 		timespec timeValue;
 		clock_gettime(CLOCK_REALTIME, &timeValue);
 
-		time.m_Seconds = timeValue.tv_sec;
-		time.m_Nanoseconds = timeValue.tv_nsec;
+		time.m_seconds = timeValue.tv_sec;
+		time.m_nanoseconds = timeValue.tv_nsec;
 
 	#endif // defined (_WIN32)
 }
@@ -61,25 +61,25 @@ float TimerGetElapsedMilliseconds(Time const& startTime, Time const& endTime)
 	// Calculate the elapsed time.
 	Time elapsedTime;
 	
-	elapsedTime.m_Seconds = endTime.m_Seconds - startTime.m_Seconds;
+	elapsedTime.m_seconds = endTime.m_seconds - startTime.m_seconds;
 	
 	// Did the nanoseconds wrap into seconds?
-	if (endTime.m_Nanoseconds < startTime.m_Nanoseconds)
+	if (endTime.m_nanoseconds < startTime.m_nanoseconds)
 	{
 		// Borrow a second.
-		elapsedTime.m_Seconds--;
+		elapsedTime.m_seconds--;
 		
 		// Add a billion nanoseconds in exchange.
-		elapsedTime.m_Nanoseconds = endTime.m_Nanoseconds + (1000000000 - startTime.m_Nanoseconds);
+		elapsedTime.m_nanoseconds = endTime.m_nanoseconds + (1'000'000'000 - startTime.m_nanoseconds);
 	}
 	else
 	{
-		elapsedTime.m_Nanoseconds = endTime.m_Nanoseconds - startTime.m_Nanoseconds;
+		elapsedTime.m_nanoseconds = endTime.m_nanoseconds - startTime.m_nanoseconds;
 	}
 	
 	// Convert to milliseconds.
-	float const elapsedTimeMS = (1.0e3f * elapsedTime.m_Seconds) +
-										 (elapsedTime.m_Nanoseconds / 1.0e6f);
+	float const elapsedTimeMS = (1.0e3f * elapsedTime.m_seconds) +
+										 (elapsedTime.m_nanoseconds / 1.0e6f);
 
 	return elapsedTimeMS;
 }
