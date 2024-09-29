@@ -229,7 +229,7 @@ static void ScheduleLogLoaded()
 
 								std::setw(1), delayHours, "h ",
 								std::setw(2), delayMin  , "m ",
-								std::setw(2), delaySec  , "s ",
+								std::setw(2), delaySec  , "s "
 
 								"-> ", event.m_controlAction.m_controlName, ", ", actionText,
 
