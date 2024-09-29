@@ -223,8 +223,7 @@ static void ScheduleLogLoaded()
 			"up" : "down";
 			
 		// Print the event.
-		Logger::WriteLine(/* Set fill to `0`. */
-								std::setfill('0'),
+		Logger::WriteLine(std::setfill('0'),
 
 								"\t+",
 
