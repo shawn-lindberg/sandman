@@ -346,19 +346,19 @@ static void ReportsAddItem(std::string const& eventString)
 }
 
 // Add an item to the report corresponding to a control event.
-// 
+//
 // controlName:	The name of the control.
 // action:		The action performed on the control.
 // sourceName:	An identifier for where this item comes from.
-// 
+//
 void ReportsAddControlItem(std::string const& controlName, Control::Actions const action,
-	std::string const& sourceName)
+									std::string const& sourceName)
 {
 	if ((action < 0) || (action >= Control::kNumActions))
 	{
-		Logger::WriteLine(
-			"Could not add control item to the report because it contains an invalid action ", action,
-			"!");
+		Logger::WriteLine("Could not add control item to the report "
+								"because it contains an invalid action ",
+								action, "!");
 		return;
 	}
 
