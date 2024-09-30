@@ -3,8 +3,6 @@
 template <typename FirstT, typename... ParametersT>
 [[gnu::always_inline]] inline void Logger::Write(FirstT&& first, ParametersT&&... arguments)
 {
-	// Decayed type of the first argument.
-
 	static_assert(not std::is_same_v<std::decay_t<FirstT>, Shell::AttributeBundle>,
 					  "Do not pass in attributes directly; instead use an attribute object wrapper.");
 
@@ -80,40 +78,5 @@ template <typename FirstT, typename... ParametersT>
 
 		// Clear buffer.
 		m_buffer.str("");
-	}
-}
-
-template <typename FirstT, typename... ParametersT>
-void Logger::FormatWrite(std::string_view formatString, FirstT&& first, ParametersT&&... arguments)
-{
-	bool escapingCharacter{false};
-
-	for (std::string_view::size_type index{0u}; index < formatString.size(); ++index)
-	{
-		char const character{ formatString[index] };
-
-		if (escapingCharacter and character == kFormatSubstitutionIndicator)
-		{
-			// Write the first argument, then
-			// substitute the remaining arguments
-			// into the rest of the string recursively.
-
-			Write(std::forward<FirstT>(first));
-			++index;
-			formatString.remove_prefix(index);
-
-			// Recursion.
-			return FormatWrite(formatString, std::forward<ParametersT>(arguments)...);
-		}
-		else if (character == kFormatEscapeIndicator and not escapingCharacter)
-		{
-			escapingCharacter = true;
-			continue;
-		}
-		else
-		{
-			Write(character);
-		}
-		escapingCharacter = false;
 	}
 }

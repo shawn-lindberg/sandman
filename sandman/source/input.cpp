@@ -3,6 +3,7 @@
 #include <cstdarg>
 #include <cstdio>
 #include <cstring>
+#include <sstream>
 
 #include <cerrno>
 #include <fcntl.h>
@@ -54,13 +55,13 @@ bool InputBinding::ReadFromJSON(rapidjson::Value const& object)
 
 	if (keyCodeIterator == object.MemberEnd())
 	{
-		Logger::WriteFormattedLine("Input binding is missing a key code.");
+		Logger::WriteLine("Input binding is missing a key code.");
 		return false;
 	}
 
 	if (keyCodeIterator->value.IsInt() == false)
 	{
-		Logger::WriteFormattedLine("Input binding has a key code, but it is not an integer.");
+		Logger::WriteLine("Input binding has a key code, but it is not an integer.");
 		return false;
 	}
 
@@ -71,13 +72,13 @@ bool InputBinding::ReadFromJSON(rapidjson::Value const& object)
 
 	if (controlActionIterator == object.MemberEnd())
 	{
-		Logger::WriteFormattedLine("Input binding is missing a control action.");
+		Logger::WriteLine("Input binding is missing a control action.");
 		return false;
 	}
 	
 	if (m_controlAction.ReadFromJSON(controlActionIterator->value) == false) 
 	{
-		Logger::WriteFormattedLine("Input binding has a control action, but it could not be parsed.");
+		Logger::WriteLine("Input binding has a control action, but it could not be parsed.");
 		return false;
 	}
 
@@ -109,15 +110,15 @@ void Input::Initialize(char const* deviceName, std::vector<InputBinding> const& 
 	}
 	
 	// Display what we initialized.
-	Logger::WriteFormattedLine("Initialized input device \'%s\' with input bindings:", m_deviceName);
-	
+	Logger::WriteLine("Initialized input device \'", m_deviceName, "\' with input bindings:");
+
 	for (auto const& binding : m_bindings) 
 	{
 		auto* const actionText = 
 			(binding.m_controlAction.m_action == Control::Actions::kActionMovingUp) ? "up" : "down";
-		
-		Logger::WriteFormattedLine("\tCode %i -> %s, %s", binding.m_keyCode, 
-			binding.m_controlAction.m_controlName, actionText);
+
+		Logger::WriteLine("\tCode ", binding.m_keyCode, " -> ", binding.m_controlAction.m_controlName,
+								", ", actionText);
 	}
 	
 	Logger::WriteLine();
@@ -128,7 +129,7 @@ void Input::Initialize(char const* deviceName, std::vector<InputBinding> const& 
 void Input::Uninitialize()
 {
 	// Make sure the device file is closed.
-	CloseDevice(false, nullptr);
+	CloseDevice(false, "");
 }
 
 // Process a tick.
@@ -157,34 +158,53 @@ void Input::Process()
 
 		// We open in nonblocking mode so that we don't hang waiting for input.
 		m_deviceFileHandle = open(m_deviceName, O_RDONLY | O_NONBLOCK);
-		
-		if (m_deviceFileHandle < 0) 
+
+		if (m_deviceFileHandle < 0)
 		{
 			// Record the time of the last open failure.
 			TimerGetCurrent(m_lastDeviceOpenFailTime);
-			CloseDevice(true, "Failed to open input device \'%s\'", m_deviceName);
+
+			std::string const errorMessage(
+				(std::ostringstream() << "Failed to open input device \'" << m_deviceName << "\'")
+					.str());
+
+			CloseDevice(true, errorMessage);
+
 			return;
 		}
-		
+
 		// Try to get the name.
 		char name[256];
 		if (ioctl(m_deviceFileHandle, EVIOCGNAME(sizeof(name)), name) < 0)
 		{	
 			// Record the time of the last open failure.
 			TimerGetCurrent(m_lastDeviceOpenFailTime);
-					
-			CloseDevice(true, "Failed to get name for input device \'%s\'", m_deviceName);
+
+			std::string const errorMessage((std::ostringstream()
+													  << "Failed to get name for input device \'" << m_deviceName
+													  << "\'")
+														 .str());
+
+			CloseDevice(true, errorMessage);
 		}
-		
-		Logger::WriteFormattedLine("Input device \'%s\' is a \'%s\'", m_deviceName, name);
-		
+
+		Logger::WriteLine("Input device \'", m_deviceName, "\' is a \'", name, "\'");
+
 		// More device information.
 		unsigned short deviceID[4];
 		ioctl(m_deviceFileHandle, EVIOCGID, deviceID);
-		
-		Logger::WriteFormattedLine("Input device bus 0x%x, vendor 0x%x, product 0x%x, version 0x%x.", 
-			deviceID[ID_BUS], deviceID[ID_VENDOR], deviceID[ID_PRODUCT], deviceID[ID_VERSION]);
-			
+
+		Logger::WriteLine(/* Use hexadecimal and show base of number (`0x`). */
+								std::hex, std::showbase,
+								
+								"Input device bus ", deviceID[ID_BUS    ],
+								", vendor "        , deviceID[ID_VENDOR ],
+								", product "       , deviceID[ID_PRODUCT],
+								", version "       , deviceID[ID_VERSION], ".",
+
+								/* Restore to using decimal and not showing base of number. */
+								std::dec, std::noshowbase);
+
 		// Play controller connected notification.
 		NotificationPlay("control_connected");
 			
@@ -212,8 +232,13 @@ void Input::Process()
 		{
 			return;
 		}
-		
-		CloseDevice(true, "Failed to read from input device \'%s\'", m_deviceName);
+
+		std::string const errorMessage(
+			(std::ostringstream() << "Failed to read from input device \'" << m_deviceName << "\'")
+				.str());
+
+		CloseDevice(true, errorMessage);
+
 		return;
 	}
 	
@@ -228,10 +253,7 @@ void Input::Process()
 		{
 			continue;
 		}
-		
-		//Logger::WriteFormattedLine("Input event type %i, code %i, value %i", event.type, event.code, 
-		//	event.value);
-			
+
 		// Try to find a control action corresponding to this input.
 		auto result = m_inputToActionMap.find(event.code);
 		
@@ -245,18 +267,18 @@ void Input::Process()
 	
 		// Try to find the corresponding control.
 		auto* control = controlAction.GetControl();
-		
-		if (control == nullptr) {
-			
-			Logger::WriteFormattedLine("Couldn't find control \'%s\' mapped to key code %i.", 
-				controlAction.m_controlName, event.code);
+
+		if (control == nullptr)
+		{
+			Logger::WriteLine("Couldn't find control \'", controlAction.m_controlName,
+									"\' mapped to key code ", event.code, ".");
 			continue;
 		}
-		
+
 		// Translate whether the key was pressed or not into the appropriate action.
 		auto const action = (event.value == 1) ? controlAction.m_action : 
 			Control::Actions::kActionStopped;
-			
+
 		// Manipulate the control.
 		control->SetDesiredAction(action, Control::Modes::kModeManual);
 	}	
@@ -268,14 +290,13 @@ bool Input::IsConnected() const
 {
 	return (m_deviceFileHandle != kInvalidFileHandle);
 }
-		
+
 // Close the input device.
-// 
-// wasFailure:	Whether the device is being closed due to a failure or not.
-// format:		Standard printf format string.
-// ...:				Standard printf arguments.
 //
-void Input::CloseDevice(bool wasFailure, char const* format, ...)
+// wasFailure:	Whether the device is being closed due to a failure or not.
+// message: message that may be logged
+//
+void Input::CloseDevice(bool const wasFailure, std::string_view const message)
 {
 	// Close the device.
 	if (m_deviceFileHandle != kInvalidFileHandle)
@@ -298,13 +319,8 @@ void Input::CloseDevice(bool wasFailure, char const* format, ...)
 	m_deviceOpenHasFailed = true;	
 	
 	// Log the message.
-	va_list arguments;
-	va_start(arguments, format);
+	Logger::WriteLine(Shell::Red(message));
 
-	Logger::WriteFormattedVarArgsListLine(Shell::Red, format, arguments);
-
-	va_end(arguments);
-		
 	// Play controller disconnected notification.
 	NotificationPlay("control_disconnected");
 }

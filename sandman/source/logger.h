@@ -61,7 +61,7 @@ public:
 	}
 
 	/// @brief Initializes the global logger such that it can write
-	/// to the file denoted by the passed in file name. If the
+	/// to the file denoted by the passed-in file name. If the
 	/// file doesn't exist, then it is automatically created.
 	///
 	/// @warning This does not initialize the shell graphics system.
@@ -109,88 +109,6 @@ public:
 		}
 	}
 
-	static constexpr std::size_t kDefaultFormatBufferCapacity{ 1u << 11u };
-
-	// `std::vprintf` style write function.
-	//
-	// The function takes arguments that are interpreted exactly how
-	// `std::vprintf` would interpret them after the attributes parameter, and writes the data using
-	// the global logger with a trailing newline character `'\n'`.
-	//
-	// Pass `nullptr` as the attributes parameter to not use any attributes.
-	//
-	// Returns `true` on success, `false` otherwise.
-	template <std::size_t kCapacity = kDefaultFormatBufferCapacity, typename AttributesT>
-	[[gnu::format(printf, 2,
-					  0)]] static std::enable_if_t<std::is_null_pointer_v<std::decay_t<AttributesT>> or
-																 std::is_class_v<std::decay_t<AttributesT>>,
-															 bool>
-		WriteFormattedVarArgsListLine(AttributesT const attributes, char const* const format,
-												std::va_list argumentList)
-	{
-		char logStringBuffer[kCapacity];
-
-		// `std::vsnprintf` returns a negative value on error.
-		if (std::vsnprintf(logStringBuffer, kCapacity, format, argumentList) < 0)
-		{
-			return false;
-		}
-
-		if constexpr (std::is_null_pointer_v<std::decay_t<AttributesT>>)
-		{
-			WriteLine(logStringBuffer);
-		}
-		else
-		{
-			WriteLine(attributes(logStringBuffer));
-		}
-
-		return true;
-	}
-
-	// `std::printf` style write function.
-	//
-	// This function takes arguments that are interpreted exactly how
-	// `std::printf` would interpret them after the attributes parameter, and writes the data using
-	// the global logger with a trailing newline character `'\n'`.
-	//
-	// Returns `true` on success, `false` otherwise.
-	template <std::size_t kCapacity = kDefaultFormatBufferCapacity, typename AttributesT>
-	[[gnu::format(printf, 2, 3)]]
-	static std::enable_if_t<std::is_class_v<std::decay_t<AttributesT>>, bool>
-		WriteFormattedLine(AttributesT const attributes, char const* const format, ...)
-	{
-		std::va_list argumentList;
-		va_start(argumentList, format);
-		bool const result{ WriteFormattedVarArgsListLine<kCapacity>(attributes, format,
-																						argumentList) };
-		va_end(argumentList);
-		return result;
-	}
-
-	template <std::size_t = kDefaultFormatBufferCapacity, typename AttributesT>
-	static bool WriteFormattedLine(AttributesT, char const* const, std::va_list) = delete;
-
-	// `std::printf` style write function.
-	//
-	// This function takes arguments that are interpreted exactly how
-	// `std::printf` would interpret them, and writes the data using the global logger with a
-	// trailing newline character `'\n'`.
-	//
-	// Returns `true` on success, `false` otherwise.
-	template <std::size_t kCapacity = kDefaultFormatBufferCapacity>
-	[[gnu::format(printf, 1, 2)]] static bool WriteFormattedLine(char const* const format, ...)
-	{
-		std::va_list argumentList;
-		va_start(argumentList, format);
-		bool const result{ WriteFormattedVarArgsListLine<kCapacity>(nullptr, format, argumentList) };
-		va_end(argumentList);
-		return result;
-	}
-
-	template <std::size_t = kDefaultFormatBufferCapacity>
-	static bool WriteFormattedLine(char const* const, std::va_list) = delete;
-
 protected:
 
 	// "Lower-level" write function.
@@ -200,36 +118,6 @@ protected:
 	// The internal buffer should be empty after every call to this function.
 	template <typename FirstT, typename... ParametersT>
 	[[gnu::always_inline]] inline void Write(FirstT&& firstArg, ParametersT&&... args);
-
-	static constexpr char kFormatEscapeIndicator{ '%' };
-	static constexpr char kFormatSubstitutionIndicator{ '$' };
-
-	static constexpr std::string_view kMissingFormatValue = "`null`";
-
-	// "Lower-level" format write function.
-	//
-	// Base case for template recursion.
-	void FormatWrite(std::string_view const formatString);
-
-	// "Lower-level" format write function.
-	//
-	// Substitutes arguments into the format string
-	// as it writes all characters in the format string to
-	// the buffer.
-	//
-	// `%$` substitutes an argument into the format string.
-	// `%%` writes a literal percent sign `%` character.
-	//
-	// If substitution is denoted with `%$` but there are no more arguments left
-	// to substitute, `::Logger::kMissingFormatValue` is written instead.
-	//
-	// The arguments are substituted into the string in the order
-	// that they are passed into this function from left to right.
-	//
-	// If there are more arguments than there are substitution indicators `%$`
-	// in the format string, the extra arguments are ignored.
-	template <typename FirstT, typename... ParametersT>
-	void FormatWrite(std::string_view formatString, FirstT&& firstArg, ParametersT&&... args);
 
 private:
 

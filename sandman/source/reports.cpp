@@ -132,9 +132,9 @@ static void ReportsOpenFile()
 	// If necessary, close the previous file.
 	if (s_reportFile != nullptr)
 	{
-		Logger::WriteFormattedLine("Closing report file for %s.", s_reportDateString.c_str());
+		Logger::WriteLine("Closing report file for ", s_reportDateString, ".");
 
-		fclose(s_reportFile);
+		std::fclose(s_reportFile);
 		s_reportFile = nullptr;
 	}
 
@@ -148,7 +148,7 @@ static void ReportsOpenFile()
 	
 	// Note: There are other ways to check for file existence, but we don't care about optimal 
 	// performance here.
-	s_reportFile = fopen(reportFileName.c_str(), "r");
+	s_reportFile = std::fopen(reportFileName.c_str(), "r");
 	
 	if (s_reportFile != nullptr) {
 
@@ -156,16 +156,16 @@ static void ReportsOpenFile()
 		// it in the correct mode.
 		reportAlreadyExisted = true;
 
-		fclose(s_reportFile);
+		std::fclose(s_reportFile);
 		s_reportFile = nullptr;
 	}
 
 	// Open the file for appending.
-	Logger::WriteFormattedLine("%s report file %s...", (reportAlreadyExisted == true) ? "Opening" : 
-		"Creating", reportFileName.c_str());
+	Logger::WriteLine((reportAlreadyExisted == true) ? "Opening" : "Creating", " report file ",
+							reportFileName, "...");
 
 	// This mode works regardless of whether the file exists or not.
-	s_reportFile = fopen(reportFileName.c_str(), "a");
+	s_reportFile = std::fopen(reportFileName.c_str(), "a");
 
 	if (s_reportFile == nullptr)
 	{
@@ -218,7 +218,7 @@ void ReportsInitialize()
 	// Acquire a lock for the rest of the function.
 	const std::lock_guard<std::mutex> reportGuard(s_reportMutex);
 
-	Logger::WriteFormattedLine("Initializing reports...");
+	Logger::WriteLine("Initializing reports...");
 
 	// Initialize the file.
 	s_reportFile = nullptr;
@@ -240,7 +240,7 @@ void ReportsUninitialize()
 	// Close the file.
 	if (s_reportFile != nullptr)
 	{
-		fclose(s_reportFile);
+		std::fclose(s_reportFile);
 	}
 
 	s_reportFile = nullptr;
@@ -273,9 +273,8 @@ static void ReportsWriteItem(PendingItem const& item)
 
 	if (eventDocument.HasParseError() == true)
 	{
-		Logger::WriteFormattedLine(Shell::Red,
-											"Failed to convert report event string back into JSON \"%s\".",
-											item.m_eventString.c_str());
+		Logger::WriteLine(Shell::Red("Failed to convert report event string back into JSON \"",
+											  item.m_eventString, "\"."));
 		return;
 	}
 
@@ -347,18 +346,19 @@ static void ReportsAddItem(std::string const& eventString)
 }
 
 // Add an item to the report corresponding to a control event.
-// 
+//
 // controlName:	The name of the control.
 // action:		The action performed on the control.
 // sourceName:	An identifier for where this item comes from.
-// 
+//
 void ReportsAddControlItem(std::string const& controlName, Control::Actions const action,
-	std::string const& sourceName)
+									std::string const& sourceName)
 {
 	if ((action < 0) || (action >= Control::kNumActions))
 	{
-		Logger::WriteFormattedLine("Could not add control item to the report because it contains an invalid "
-			"action %d!", action);
+		Logger::WriteLine("Could not add control item to the report "
+								"because it contains an invalid action ",
+								action, "!");
 		return;
 	}
 
