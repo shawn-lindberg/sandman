@@ -10,8 +10,8 @@
 //
 
 // GPIO values for on and off respectively.
-#define CONTROL_ON_GPIO_VALUE					(0)
-#define CONTROL_OFF_GPIO_VALUE				(1)
+static constexpr int kPinOnValue = 0;
+static constexpr int kPinOffValue = 1;
 
 // Locals
 //
@@ -131,7 +131,7 @@ void GPIOSetPinOn(int pin)
 
 		if (s_enableGPIO == true)
 		{
-			gpioWrite(pin, CONTROL_ON_GPIO_VALUE);
+			gpioWrite(pin, kPinOnValue);
 		}
 		else
 		{
@@ -155,7 +155,7 @@ void GPIOSetPinOff(int pin)
 	
 		if (s_enableGPIO == true)
 		{
-			gpioWrite(pin, CONTROL_OFF_GPIO_VALUE);
+			gpioWrite(pin, kPinOffValue);
 		}
 		else
 		{
