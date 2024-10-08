@@ -1,6 +1,5 @@
 #pragma once
 
-#include "common/enum.h"
 #include "shell/attributes.h"
 
 #include <array>

@@ -1,7 +1,5 @@
 #pragma once
 
-#include "common/enum.h"
-
 #include <cstdint>
 #include <curses.h>
 #include <limits>
