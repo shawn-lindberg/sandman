@@ -16,7 +16,7 @@ template <typename ReturnT, typename... ParametersT>
 class Common::NonNull<ReturnT (*)(ParametersT...)>
 {
 public:
-	using FunctionT = ReturnT (*)(ParametersT...);
+	using FunctionPointerT = ReturnT (*)(ParametersT...);
 
 	/// Does nothing with the parameters, and returns a default constructed value.
 	[[gnu::always_inline]] static constexpr ReturnT Simulacrum(ParametersT...)
@@ -25,7 +25,7 @@ public:
 	}
 
 private:
-	FunctionT m_function;
+	FunctionPointerT m_function;
 
 public:
 	[[nodiscard]] constexpr NonNull() : m_function{ Simulacrum }
@@ -33,13 +33,13 @@ public:
 		assert(m_function != nullptr);
 	}
 
-	[[nodiscard]] constexpr NonNull(FunctionT const functionPointer)
+	[[nodiscard]] constexpr NonNull(FunctionPointerT const functionPointer)
 		: m_function{ functionPointer != nullptr ? functionPointer : Simulacrum }
 	{
 		assert(m_function != nullptr);
 	}
 
-	[[gnu::always_inline]] [[nodiscard]] constexpr operator FunctionT() const
+	[[gnu::always_inline]] [[nodiscard]] constexpr operator FunctionPointerT() const
 	{
 		assert(m_function != nullptr);
 		return m_function;
