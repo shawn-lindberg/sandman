@@ -9,8 +9,7 @@ inline void Logger::Write(FirstT&& first, ParametersT&&... arguments)
 						  std::is_same<std::decay_t<FirstT>, Shell::AttributeBundle::ForegroundColor>,
 						  std::is_same<std::decay_t<FirstT>, Shell::AttributeBundle::BackgroundColor>,
 						  std::is_same<std::decay_t<FirstT>, Shell::AttributeBundle::ColorPair>>,
-					  "Do not pass in attributes directly; "
-					  "instead use an attribute object wrapper.");
+					  "Do not pass in attributes directly; instead use an attribute object wrapper.");
 
 	if constexpr (Shell::IsObjectBundle<std::decay_t<FirstT>>)
 	{
