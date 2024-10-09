@@ -1,6 +1,7 @@
 #pragma once
 
-namespace Common {
+namespace Common
+{
 	/// Wrapper around a pointer that is not null.
 	template <typename> class NonNull;
 }
