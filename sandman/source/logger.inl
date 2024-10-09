@@ -3,8 +3,14 @@
 template <typename FirstT, typename... ParametersT>
 inline void Logger::Write(FirstT&& first, ParametersT&&... arguments)
 {
-	static_assert(not std::is_same_v<std::decay_t<FirstT>, Shell::AttributeBundle>,
-					  "Do not pass in attributes directly; instead use an attribute object wrapper.");
+	// Assert that something like `Shell::Red` on it's own is not passed in.
+	static_assert(not std::disjunction_v<
+						  std::is_same<std::decay_t<FirstT>, Shell::AttributeBundle>,
+						  std::is_same<std::decay_t<FirstT>, Shell::AttributeBundle::ForegroundColor>,
+						  std::is_same<std::decay_t<FirstT>, Shell::AttributeBundle::BackgroundColor>,
+						  std::is_same<std::decay_t<FirstT>, Shell::AttributeBundle::ColorPair>>,
+					  "Do not pass in attributes directly; "
+					  "instead use an attribute object wrapper.");
 
 	if constexpr (Shell::IsObjectBundle<std::decay_t<FirstT>>)
 	{
