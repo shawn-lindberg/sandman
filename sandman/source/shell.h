@@ -125,7 +125,7 @@ namespace Shell
 
 		// Variable-argument write function.
 		template <typename FirstT, typename... ParametersT>
-		inline void Write(FirstT&& first, ParametersT&& ... arguments)
+		inline void Write(FirstT&& first, ParametersT&&... arguments)
 		{
 			// Process the first argument.
 			if constexpr (IsObjectBundle<std::decay_t<FirstT>>)
