@@ -16,7 +16,7 @@ inline void Logger::Write(FirstT&& first, ParametersT&&... arguments)
 		1. Process the first argument.
 			a. If the first argument is a bundle of objects, process all those objects recursively.
 			b. Otherwise, if the first argument is a single object, just process that single object.
-		2. Process the remaining arguments recursively.
+		2. Process the remaining arguments recursively, if any.
 			a. If there are more arguments to process, recurse.
 			b. Otherwise, if there are no more arguments,
 				dump the contents and clear the buffer because we are done.
@@ -78,7 +78,7 @@ inline void Logger::Write(FirstT&& first, ParametersT&&... arguments)
 		m_buffer << std::forward<FirstT>(first);
 	}
 
-	// 2. Process the remaining arguments recursively.
+	// 2. Process the remaining arguments recursively, if any.
 	if constexpr (sizeof...(arguments) > 0u)
 	{
 		// 2a. Recursively write the remaining arguments.
