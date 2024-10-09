@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cassert>
+
 namespace Common
 {
 	/// Wrapper around a pointer that is not null.
@@ -26,14 +28,20 @@ private:
 	FunctionT m_function;
 
 public:
-	[[nodiscard]] constexpr NonNull() : m_function{ Simulacrum } {}
+	[[nodiscard]] constexpr NonNull() : m_function{ Simulacrum }
+	{
+		assert(m_function != nullptr);
+	}
 
 	[[nodiscard]] constexpr NonNull(FunctionT const functionPointer)
 		: m_function{ functionPointer != nullptr ? functionPointer : Simulacrum }
-	{}
+	{
+		assert(m_function != nullptr);
+	}
 
 	[[gnu::always_inline]] [[nodiscard]] constexpr operator FunctionT() const
 	{
+		assert(m_function != nullptr);
 		return m_function;
 	}
 };
