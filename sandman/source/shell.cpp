@@ -2,7 +2,6 @@
 
 #include "command.h"
 #include "logger.h"
-#include "common/ascii.h"
 #include "shell/input_window_eventful_buffer.h"
 
 #include <algorithm>
@@ -563,9 +562,7 @@ namespace Shell
 
 			default:
 			{
-				bool const inputKeyIsPrintable{
-					Common::IsASCII(inputKey) and std::isprint<char>(inputKey, std::locale::classic())
-				};
+				bool const inputKeyIsPrintable{ std::isprint<char>(inputKey, std::locale::classic()) };
 
 				// If successfully inserted into the buffer, move the cursor to the right.
 				if (inputKeyIsPrintable and s_buffer.Insert(s_cursor, inputKey))
