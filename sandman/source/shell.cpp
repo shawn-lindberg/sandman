@@ -562,6 +562,25 @@ namespace Shell
 
 			default:
 			{
+				/*
+					Here, whether the input key is printable is determined by the `"C"` locale.
+					The `"C"` locale is used as indicated by the argument `std::local::classic()`, in
+					the call to `std::isprint` defined in `<locale>`, so it behaves like
+					`std::isprint` defined in `<cctype>` as if the default `"C"` locale is being used.
+
+					The `"C"` locale classifies these characters as printable:
+					+ digits (`0123456789`)
+					+ uppercase letters (`ABCDEFGHIJKLMNOPQRSTUVWXYZ`)
+					+ lowercase letters (`abcdefghijklmnopqrstuvwxyz`)
+					+ punctuation characters (``!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~``)
+					+ space (` `)
+
+					Sources:
+					+ [`std::isprint` defined in `<cctype>`](
+						https://en.cppreference.com/w/cpp/string/byte/isprint)
+					+ [`std::isprint` defined in `<locale>`](
+						https://en.cppreference.com/w/cpp/locale/isprint)
+				*/
 				bool const inputKeyIsPrintable{ std::isprint<char>(inputKey, std::locale::classic()) };
 
 				if (not inputKeyIsPrintable)
