@@ -582,7 +582,7 @@ namespace Shell
 				{
 					LoggingWindow::PrintLine(Red("Failed to write '", static_cast<chtype>(inputKey),
 														  "' into the input buffer; "
-														  "it is probable that the input buffer is full"));
+														  "it is probable that the input buffer is full."));
 				}
 
 				return Result::kNone;
