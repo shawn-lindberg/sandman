@@ -19,7 +19,7 @@ public:
 	using FunctionPointerT = ReturnT (*)(ParametersT...);
 
 	/// Does nothing with the parameters, and returns a default constructed value.
-	[[gnu::always_inline]] static constexpr ReturnT Simulacrum(ParametersT...)
+	static constexpr ReturnT Simulacrum(ParametersT...)
 	{
 		return ReturnT{};
 	}
@@ -39,7 +39,7 @@ public:
 		assert(m_function != nullptr);
 	}
 
-	[[gnu::always_inline]] [[nodiscard]] constexpr operator FunctionPointerT() const
+	[[nodiscard]] constexpr operator FunctionPointerT() const
 	{
 		assert(m_function != nullptr);
 		return m_function;

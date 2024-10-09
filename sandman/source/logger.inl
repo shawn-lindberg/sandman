@@ -1,7 +1,7 @@
 #include "logger.h"
 
 template <typename FirstT, typename... ParametersT>
-[[gnu::always_inline]] inline void Logger::Write(FirstT&& first, ParametersT&&... arguments)
+inline void Logger::Write(FirstT&& first, ParametersT&&... arguments)
 {
 	static_assert(not std::is_same_v<std::decay_t<FirstT>, Shell::AttributeBundle>,
 					  "Do not pass in attributes directly; instead use an attribute object wrapper.");

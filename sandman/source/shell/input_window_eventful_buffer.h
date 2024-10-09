@@ -48,12 +48,12 @@ class Shell::InputWindow::EventfulBuffer
 			return kMaxStringLength;
 		}
 
-		[[gnu::always_inline]] constexpr Data const& GetData() const
+		constexpr Data const& GetData() const
 		{
 			return m_data;
 		}
 
-		[[gnu::always_inline]] constexpr typename Data::size_type GetLength() const
+		constexpr typename Data::size_type GetLength() const
 		{
 			return m_stringLength;
 		}
@@ -180,7 +180,7 @@ class Shell::InputWindow::EventfulBuffer
 		// In the "physical" internal string, no characters are set to zero,
 		// except for the first character at index zero which is set to the null character
 		// to terminate the "empty" string.
-		[[gnu::always_inline]] constexpr void Clear()
+		constexpr void Clear()
 		{
 			// Set the string length to zero and null terminate the string.
 			m_data[m_stringLength = 0u] = '\0';
@@ -191,7 +191,7 @@ class Shell::InputWindow::EventfulBuffer
 
 		// Return a string view of the string data.
 		// (The returned string view does not get updated when the string object gets updated.)
-		[[gnu::always_inline]] constexpr std::basic_string_view<CharT> View() const
+		constexpr std::basic_string_view<CharT> View() const
 		{
 			return std::basic_string_view<CharT>(m_data.data(), m_stringLength);
 		}

@@ -75,7 +75,7 @@ namespace Shell
 	//
 	// Note that the Y parameter is before the X parameter.
 	template <bool kFlag>
-	[[gnu::always_inline]] inline static void SetCharAttr(WINDOW* const window,
+	inline static void SetCharAttr(WINDOW* const window,
 																			int const y, int const x,
 																			AttributeBundle::Value const attributes)
 	{
@@ -157,7 +157,7 @@ namespace Shell
 		static WINDOW* s_window{nullptr};
 
 		template <bool kFlag>
-		[[gnu::always_inline]] inline static void SetCharHighlight(int const positionX)
+		inline static void SetCharHighlight(int const positionX)
 		{
 			int const offsetX{ positionX };
 			SetCharAttr<kFlag>(s_window, kCursorStartY, kCursorStartX + offsetX, A_STANDOUT);
@@ -419,7 +419,7 @@ namespace Shell
 		}
 
 		template <typename CursorMovementT>
-		[[gnu::always_inline]] inline static std::enable_if_t<
+		inline static std::enable_if_t<
 			std::is_same_v<CursorMovementT, Left> or std::is_same_v<CursorMovementT, Right>, void>
 			BumpCursor()
 		{
