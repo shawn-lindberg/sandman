@@ -10,14 +10,18 @@
 namespace Shell::InputWindow { template <typename, std::size_t> class EventfulBuffer; }
 
 /// Fixed sized eventful buffer.
-template <typename CharT, std::size_t kCapacity>
+template <typename CharT, std::size_t kMaxStringLength>
 class Shell::InputWindow::EventfulBuffer
 {
 	static_assert(std::is_integral_v<CharT>);
 
 	public:
+		static_assert(kMaxStringLength + 1u != 0u,
+						  "The maximum string length causes overflow "
+						  "because adding one to it results in zero.");
+
 		// Type of internal data buffer.
-		using Data = std::array<CharT, kCapacity>;
+		using Data = std::array<CharT, kMaxStringLength + 1u /* add one for the null terminator */>;
 
 		// Can certainly use `CharT` as an alias for `typename Data::value_type`.
 		static_assert(std::is_same_v<CharT, typename Data::value_type>);
@@ -37,15 +41,19 @@ class Shell::InputWindow::EventfulBuffer
 	public:
 		static_assert(std::tuple_size_v<Data> > 0u, "Assert can subtract from size without underflow.");
 
-		// The last position is reserved for the null character.
-		static constexpr typename Data::size_type kMaxStringLength{ std::tuple_size_v<Data> - 1u };
+		static constexpr typename Data::size_type GetMaxStringLength()
+		{
+			// The last position is reserved for the null character.
+			static_assert(kMaxStringLength == std::tuple_size_v<Data> - 1u);
+			return kMaxStringLength;
+		}
 
-		[[gnu::always_inline]] constexpr Data const& GetData() const
+		constexpr Data const& GetData() const
 		{
 			return m_data;
 		}
 
-		[[gnu::always_inline]] constexpr typename Data::size_type GetLength() const
+		constexpr typename Data::size_type GetLength() const
 		{
 			return m_stringLength;
 		}
@@ -172,7 +180,7 @@ class Shell::InputWindow::EventfulBuffer
 		// In the "physical" internal string, no characters are set to zero,
 		// except for the first character at index zero which is set to the null character
 		// to terminate the "empty" string.
-		[[gnu::always_inline]] constexpr void Clear()
+		constexpr void Clear()
 		{
 			// Set the string length to zero and null terminate the string.
 			m_data[m_stringLength = 0u] = '\0';
@@ -183,7 +191,7 @@ class Shell::InputWindow::EventfulBuffer
 
 		// Return a string view of the string data.
 		// (The returned string view does not get updated when the string object gets updated.)
-		[[gnu::always_inline]] constexpr std::basic_string_view<CharT> View() const
+		constexpr std::basic_string_view<CharT> View() const
 		{
 			return std::basic_string_view<CharT>(m_data.data(), m_stringLength);
 		}

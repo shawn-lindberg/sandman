@@ -2,7 +2,6 @@
 
 #include "command.h"
 #include "logger.h"
-#include "common/ascii.h"
 #include "shell/input_window_eventful_buffer.h"
 
 #include <algorithm>
@@ -76,7 +75,7 @@ namespace Shell
 	//
 	// Note that the Y parameter is before the X parameter.
 	template <bool kFlag>
-	[[gnu::always_inline]] inline static void SetCharAttr(WINDOW* const window,
+	inline static void SetCharAttr(WINDOW* const window,
 																			int const y, int const x,
 																			AttributeBundle::Value const attributes)
 	{
@@ -158,7 +157,7 @@ namespace Shell
 		static WINDOW* s_window{nullptr};
 
 		template <bool kFlag>
-		[[gnu::always_inline]] inline static void SetCharHighlight(int const positionX)
+		inline static void SetCharHighlight(int const positionX)
 		{
 			int const offsetX{ positionX };
 			SetCharAttr<kFlag>(s_window, kCursorStartY, kCursorStartX + offsetX, A_STANDOUT);
@@ -404,7 +403,7 @@ namespace Shell
 		static FastCursor s_cursor{ 0u };
 
 		static_assert(std::is_unsigned_v<FastCursor> and
-						  std::numeric_limits<FastCursor>::max() >= s_buffer.kMaxStringLength,
+						  std::numeric_limits<FastCursor>::max() >= s_buffer.GetMaxStringLength(),
 						  "The input buffer cursor must be able to represent "
 						  "all valid positions in the input buffer string for insertion, "
 						  "including the exclusive end position where the current null character is.");
@@ -420,7 +419,7 @@ namespace Shell
 		}
 
 		template <typename CursorMovementT>
-		[[gnu::always_inline]] inline static std::enable_if_t<
+		inline static std::enable_if_t<
 			std::is_same_v<CursorMovementT, Left> or std::is_same_v<CursorMovementT, Right>, void>
 			BumpCursor()
 		{
@@ -563,19 +562,46 @@ namespace Shell
 
 			default:
 			{
-				bool const inputKeyIsPrintable{
-					Common::IsASCII(inputKey) and std::isprint<char>(inputKey, std::locale::classic())
-				};
+				/*
+					Here, whether the input key is printable is determined by the `"C"` locale.
+					The `"C"` locale is used as indicated by the argument `std::local::classic()`, in
+					the call to `std::isprint` defined in `<locale>`, so it behaves like
+					`std::isprint` defined in `<cctype>` as if the default `"C"` locale is being used.
+
+					The `"C"` locale classifies these characters as printable:
+					+ digits (`0123456789`)
+					+ uppercase letters (`ABCDEFGHIJKLMNOPQRSTUVWXYZ`)
+					+ lowercase letters (`abcdefghijklmnopqrstuvwxyz`)
+					+ punctuation characters (``!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~``)
+					+ space (` `)
+
+					Sources:
+					+ [`std::isprint` defined in `<cctype>`](
+						https://en.cppreference.com/w/cpp/string/byte/isprint)
+					+ [`std::isprint` defined in `<locale>`](
+						https://en.cppreference.com/w/cpp/locale/isprint)
+				*/
+				bool const inputKeyIsPrintable{ std::isprint<char>(inputKey, std::locale::classic()) };
+
+				if (not inputKeyIsPrintable)
+				{
+					LoggingWindow::PrintLine(Red("Cannot write '", static_cast<chtype>(inputKey),
+														  "' into the input buffer because '",
+														  static_cast<chtype>(inputKey),
+														  "' is not considered a printable character."));
+					return Result::kNone;
+				}
 
 				// If successfully inserted into the buffer, move the cursor to the right.
-				if (inputKeyIsPrintable and s_buffer.Insert(s_cursor, inputKey))
+				if (s_buffer.Insert(s_cursor, inputKey))
 				{
 					BumpCursor<Right>();
 				}
 				else
 				{
-					LoggingWindow::PrintLine(
-						Red("Can't write '", static_cast<chtype>(inputKey), "' into the input buffer."));
+					LoggingWindow::PrintLine(Red("Failed to write '", static_cast<chtype>(inputKey),
+														  "' into the input buffer; "
+														  "it is probable that the input buffer is full."));
 				}
 
 				return Result::kNone;
