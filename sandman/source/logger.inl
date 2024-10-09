@@ -11,9 +11,23 @@ inline void Logger::Write(FirstT&& first, ParametersT&&... arguments)
 						  std::is_same<std::decay_t<FirstT>, Shell::AttributeBundle::ColorPair>>,
 					  "Do not pass in attributes directly; instead use an attribute object wrapper.");
 
+	/*
+		How this algorithm works:
+		1. Process the first argument.
+			a. If the first argument is a bundle of objects, process all those objects recursively.
+			b. Otherwise, if the first argument is a single object, just process that single object.
+		2. Process the remaining arguments recursively.
+			a. If there are more arguments to process, recurse.
+			b. Otherwise, if there are no more arguments,
+				dump the contents and clear the buffer because we are done.
+	*/
+
+	// 1. Process the first argument.
 	if constexpr (Shell::IsObjectBundle<std::decay_t<FirstT>>)
 	{
-		// Callable to be passed into `std::apply`.
+		// 1a. Need to process all the objects in the object bundle.
+
+		// Callable to be passed into `std::apply`. This is just a wrapper around this function.
 		auto const writeArgs = [this](auto&&... objects) -> void
 		{
 			return this->Write(std::forward<decltype(objects)>(objects)...);
@@ -21,6 +35,12 @@ inline void Logger::Write(FirstT&& first, ParametersT&&... arguments)
 
 		if (m_screenEcho)
 		{
+			/*
+				If screen echo is enabled, will take care to process the shell attributes
+				correctly. The shell's attributes should be pushed and then popped once
+				all the objects in the bundle have been processed.
+			*/
+
 			// Get the current data from the buffer.
 			std::string const string(m_buffer.str());
 
@@ -48,28 +68,33 @@ inline void Logger::Write(FirstT&& first, ParametersT&&... arguments)
 		}
 		else
 		{
-			// If screen echo is not enabled, simply recursively write the objects in the
-			// object wrapper.
+			/*
+				If screen echo is not enabled,
+				simply recursively write the objects in the object wrapper.
+				We don't need to worry about shell attributes here.
+			*/
 			std::apply(writeArgs, first.m_objects);
 		}
 	}
 	else
 	{
-		// If the first argument is not a special parameter,
-		// simply write it to the buffer.
+		// 1b. If the first argument is not a special parameter, simply write it to the buffer.
 		m_buffer << std::forward<FirstT>(first);
 	}
 
+	// 2. Process the remaining arguments recursively.
 	if constexpr (sizeof...(arguments) > 0u)
 	{
-		// Recursively write the remaining arguments.
+		// 2a. Recursively write the remaining arguments.
 		return Write(std::forward<ParametersT>(arguments)...);
 	}
 	else
 	{
-		// When there are no more arguments to write,
-		// flush the current data to the output destinations,
-		// and clear the buffer.
+		/*
+			2b. When there are no more arguments to write,
+			flush the current data to the output destinations,
+			and clear the buffer.
+		*/
 
 		// Get the current data from the buffer.
 		std::string const string(m_buffer.str());
