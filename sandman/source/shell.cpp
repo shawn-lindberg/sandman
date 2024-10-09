@@ -403,7 +403,7 @@ namespace Shell
 		static FastCursor s_cursor{ 0u };
 
 		static_assert(std::is_unsigned_v<FastCursor> and
-						  std::numeric_limits<FastCursor>::max() >= s_buffer.kMaxStringLength,
+						  std::numeric_limits<FastCursor>::max() >= s_buffer.GetMaxStringLength(),
 						  "The input buffer cursor must be able to represent "
 						  "all valid positions in the input buffer string for insertion, "
 						  "including the exclusive end position where the current null character is.");
@@ -564,15 +564,25 @@ namespace Shell
 			{
 				bool const inputKeyIsPrintable{ std::isprint<char>(inputKey, std::locale::classic()) };
 
+				if (not inputKeyIsPrintable)
+				{
+					LoggingWindow::PrintLine(Red("Cannot write '", static_cast<chtype>(inputKey),
+														  "' into the input buffer because '",
+														  static_cast<chtype>(inputKey),
+														  "' is not considered a printable character."));
+					return Result::kNone;
+				}
+
 				// If successfully inserted into the buffer, move the cursor to the right.
-				if (inputKeyIsPrintable and s_buffer.Insert(s_cursor, inputKey))
+				if (s_buffer.Insert(s_cursor, inputKey))
 				{
 					BumpCursor<Right>();
 				}
 				else
 				{
-					LoggingWindow::PrintLine(
-						Red("Can't write '", static_cast<chtype>(inputKey), "' into the input buffer."));
+					LoggingWindow::PrintLine(Red("Failed to write '", static_cast<chtype>(inputKey),
+														  "' into the input buffer; "
+														  "it is probable that the input buffer is full"));
 				}
 
 				return Result::kNone;

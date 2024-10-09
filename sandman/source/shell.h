@@ -191,7 +191,7 @@ namespace Shell
 		inline constexpr int kRowCount{ 3 };
 
 		// Maximum length of a string that can be submitted as input in the input window.
-		inline constexpr std::size_t kMaxInputStringLength{ 1u << 7u };
+		inline constexpr std::size_t kMaxInputStringLength{ 128u - 1u };
 
 		enum struct Result : std::uint_least8_t {
 			kNone          = 0u,
