@@ -45,17 +45,13 @@ inline void Logger::Write(FirstT&& first, ParametersT&&... arguments)
 			std::string const string(m_buffer.str());
 
 			// Dump the current data to the output destinations.
-			bool const didPushAttributes{
-				[attributes=first.m_attributes, stringView=std::string_view(string)]() -> bool
-				{
-					Shell::LoggingWindow::Write(stringView);
-					return Shell::LoggingWindow::PushAttributes(attributes);
-				}()
-			};
+			Shell::LoggingWindow::Write(std::string_view(string));
 			m_outputStream << string;
 
 			// Clear the buffer.
 			m_buffer.str("");
+
+			bool const didPushAttributes{ Shell::LoggingWindow::PushAttributes(first.m_attributes) };
 
 			// Recursively write the objects in the object wrapper.
 			std::apply(writeArgs, first.m_objects);
