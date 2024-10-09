@@ -146,6 +146,8 @@ namespace Shell
 			}
 			else
 			{
+				static_assert(sizeof...(arguments) > 0u,
+								  "There is not a matching function for the type of the first argument.");
 				Write(std::forward<FirstT>(first));
 			}
 
