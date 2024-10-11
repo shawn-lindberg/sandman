@@ -39,18 +39,13 @@ class Shell::InputWindow::EventfulBuffer
 		};
 
 		/*
-			If the event listener is not `nullptr`, simply return it,
-			otherwise return a non-null pointer to an event listener that does nothing.
+			An event listener that does nothing.
 		*/
 		template <typename EventListenerT>
-		constexpr std::enable_if_t<kIsEventListener<EventListenerT>, EventListenerT>
-			GetNonNullEventListener(EventListenerT const eventListener)
+		static constexpr std::enable_if_t<kIsEventListener<EventListenerT>, EventListenerT>
+			kEmptyEventListener{[]() constexpr -> EventListenerT
 		{
-			if (eventListener != nullptr)
-			{
-				return eventListener;
-			}
-			else if constexpr (std::is_same_v<EventListenerT, OnStringUpdateListener>)
+			if constexpr (std::is_same_v<EventListenerT, OnStringUpdateListener>)
 			{
 				return +[](typename Data::size_type const, CharT const) constexpr -> void {};
 			}
@@ -62,10 +57,22 @@ class Shell::InputWindow::EventfulBuffer
 			{
 				return +[](typename Data::size_type const) constexpr -> void {};
 			}
-			else
+		}()};
+
+		/*
+			If the event listener is not `nullptr`, simply return it,
+			otherwise return a non-null pointer to an event listener that does nothing.
+		*/
+		template <typename EventListenerT>
+		constexpr std::enable_if_t<kIsEventListener<EventListenerT>, EventListenerT>
+			GetNonNullEventListener(EventListenerT const eventListener)
+		{
+			if (eventListener == nullptr)
 			{
-				// (Control flow can never reach here.)
+				return kEmptyEventListener<EventListenerT>;
 			}
+
+			return eventListener;
 		}
 
 	private:
@@ -78,13 +85,14 @@ class Shell::InputWindow::EventfulBuffer
 
 		typename Data::size_type m_stringLength{0u};
 
-		OnStringUpdateListener          m_onStringUpdate         ;
-		OnClearListener                 m_onClear                ;
-		OnDecrementStringLengthListener m_onDecrementStringLength;
+		OnStringUpdateListener m_onStringUpdate{ kEmptyEventListener<OnStringUpdateListener> };
+		OnClearListener m_onClear{ kEmptyEventListener<OnClearListener> };
+		OnDecrementStringLengthListener m_onDecrementStringLength{
+			kEmptyEventListener<OnDecrementStringLengthListener>
+		};
 
 	public:
-		static_assert(std::tuple_size_v<Data> > 0u,
-						  "Assert can subtract from size without underflow.");
+		static_assert(std::tuple_size_v<Data> > 0u, "Can subtract from size without underflow.");
 
 		constexpr Data const& GetData() const
 		{
