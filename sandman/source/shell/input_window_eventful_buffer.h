@@ -100,9 +100,9 @@ class Shell::InputWindow::EventfulBuffer
 		// Construct a string with events.
 		// Pass a null pointer to ignore an event.
 		explicit constexpr EventfulBuffer(
-			OnStringUpdateListener          const            onStringUpdateListener           ,
-			OnClearListener                 const            onClearListener                  ,
-			OnDecrementStringLengthListener const            onDecrementStringLengthListener ):
+			OnStringUpdateListener          const                  onStringUpdateListener           ,
+			OnClearListener                 const                  onClearListener                  ,
+			OnDecrementStringLengthListener const                  onDecrementStringLengthListener ):
 			m_onStringUpdate                     (GetEventListener(onStringUpdateListener         )),
 			m_onClear                            (GetEventListener(onClearListener                )),
 			m_onDecrementStringLength            (GetEventListener(onDecrementStringLengthListener))
