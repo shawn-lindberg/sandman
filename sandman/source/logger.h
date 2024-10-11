@@ -45,7 +45,7 @@ public:
 		return m_screenEcho;
 	}
 
-	[[gnu::always_inline]] [[nodiscard]] inline static bool GetEchoToScreen()
+	[[nodiscard]] inline static bool GetEchoToScreen()
 	{
 		std::lock_guard const lock(ms_mutex);
 		return ms_logger.m_screenEcho;
@@ -54,7 +54,7 @@ public:
 	/// @brief Toggle whether the logger, in addition to writting to the log file,
 	/// also prints to the screen.
 	/// @warning This does not initialize or uninitialize the shell graphics system.
-	[[gnu::always_inline]] inline static void SetEchoToScreen(bool const value)
+	inline static void SetEchoToScreen(bool const value)
 	{
 		std::lock_guard const lock(ms_mutex);
 		ms_logger.m_screenEcho = value;
@@ -78,7 +78,7 @@ public:
 	// writes a string composed of a timestamp followed by
 	// the arguments of this function followed by a newline character `'\n'`.
 	template <typename... ParametersT>
-	[[gnu::always_inline]] inline static void WriteLine(ParametersT&&... args)
+	inline static void WriteLine(ParametersT&&... args)
 	{
 		std::lock_guard const loggerLock(ms_mutex);
 
@@ -117,7 +117,7 @@ protected:
 	//
 	// The internal buffer should be empty after every call to this function.
 	template <typename FirstT, typename... ParametersT>
-	[[gnu::always_inline]] inline void Write(FirstT&& firstArg, ParametersT&&... args);
+	inline void Write(FirstT&& firstArg, ParametersT&&... args);
 
 private:
 

@@ -1,7 +1,5 @@
 #pragma once
 
-#include "common/enum.h"
-
 #include <cstdint>
 #include <curses.h>
 #include <limits>
@@ -287,9 +285,9 @@ namespace Shell
 					foregroundColor.m_colorIndex, backgroundColor.m_colorIndex };
 	}
 
-	[[nodiscard]] constexpr
-	AttributeBundle::ColorPair operator|(AttributeBundle::BackgroundColor const backgroundColor,
-									  AttributeBundle::ForegroundColor const foregroundColor)
+	[[nodiscard]] constexpr AttributeBundle::ColorPair
+		operator|(AttributeBundle::BackgroundColor const backgroundColor,
+					 AttributeBundle::ForegroundColor const foregroundColor)
 	{
 		return foregroundColor | backgroundColor;
 	}

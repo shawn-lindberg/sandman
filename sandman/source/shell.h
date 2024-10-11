@@ -1,6 +1,5 @@
 #pragma once
 
-#include "common/enum.h"
 #include "shell/attributes.h"
 
 #include <array>
@@ -90,7 +89,7 @@ namespace Shell
 		}
 
 		// Write "true" if `true` and write "false" if `false`.
-		[[gnu::always_inline]] inline void Write(bool const booleanValue)
+		inline void Write(bool const booleanValue)
 		{
 			if (booleanValue == true)
 			{
@@ -126,7 +125,7 @@ namespace Shell
 
 		// Variable-argument write function.
 		template <typename FirstT, typename... ParametersT>
-		[[gnu::always_inline]] inline void Write(FirstT&& first, ParametersT&& ... arguments)
+		inline void Write(FirstT&& first, ParametersT&&... arguments)
 		{
 			// Process the first argument.
 			if constexpr (IsObjectBundle<std::decay_t<FirstT>>)
@@ -147,6 +146,8 @@ namespace Shell
 			}
 			else
 			{
+				static_assert(sizeof...(arguments) > 0u,
+								  "There is not a matching function for the type of the first argument.");
 				Write(std::forward<FirstT>(first));
 			}
 
@@ -165,7 +166,7 @@ namespace Shell
 		// Print one or more objects to the logging window,
 		// then clear all attributes and refresh.
 		template <typename... ParametersT>
-		[[gnu::always_inline]] inline void Print(ParametersT&&... arguments)
+		inline void Print(ParametersT&&... arguments)
 		{
 			Write(std::forward<ParametersT>(arguments)...);
 			ClearAllAttributes();
@@ -174,7 +175,7 @@ namespace Shell
 
 		// Same as `Print`, but also print a newline character.
 		template <typename... ParametersT>
-		[[gnu::always_inline]] inline void PrintLine(ParametersT&&... arguments)
+		inline void PrintLine(ParametersT&&... arguments)
 		{
 			Print(std::forward<ParametersT>(arguments)..., chtype{'\n'});
 		}
@@ -192,7 +193,7 @@ namespace Shell
 		inline constexpr int kRowCount{ 3 };
 
 		// Maximum length of a string that can be submitted as input in the input window.
-		inline constexpr std::size_t kMaxInputStringLength{ 1u << 7u };
+		inline constexpr std::size_t kMaxInputStringLength{ 128u - 1u };
 
 		enum struct Result : std::uint_least8_t {
 			kNone          = 0u,
