@@ -95,8 +95,8 @@ TEST_CASE("`Shell, Input Window, Eventful Buffer`", "[.shell]")
 	static constexpr std::string_view kBackwardSentence(
 		".god yzal eht revo spmuj xof nworb kciuq ehT"sv);
 
-	// Initialize buffer with size of the sentence plus one for null character terminator.
-	static constexpr std::size_t kBufferCapacity{ kBackwardSentence.size() + 1u };
+	// Initialize buffer with size of the sentence; the null character is not included in the size.
+	static constexpr std::size_t kBufferCapacity{ kBackwardSentence.size() };
 	Shell::InputWindow::EventfulBuffer<char, kBufferCapacity> buffer;
 
 	SECTION("properly initialized")
@@ -105,19 +105,17 @@ TEST_CASE("`Shell, Input Window, Eventful Buffer`", "[.shell]")
 		REQUIRE(buffer.GetLength() == 0u);
 		REQUIRE(buffer.View().size() == 0u);
 
-		static_assert(
-			buffer.kMaxStringLength == kBufferCapacity - 1u,
-			"The maximum string length is the buffer capacity minus one because"
-			" "
-			"the last character in the buffer is reserved for the null character"
-			" "
-			"to remain compatible with functions that expect strings to be null terminated.");
+		static_assert(buffer.kMaxStringLength == kBufferCapacity,
+						  "The maximum string length is equal to the buffer capacity."
+						  "The null character is not included in the maximum string length constant.");
 
-		static_assert(buffer.GetData().size() == kBufferCapacity,
-						  "The size of the internal array is the buffer capacity.");
+		static_assert(buffer.GetData().size() == kBufferCapacity + 1u,
+						  "The size of the internal array is equal to "
+						  "the buffer capacity plus one for the null terminator.");
 
-		static_assert(buffer.GetData().max_size() == kBufferCapacity,
-						  "The maximum size of the internal array is the buffer capacity.");
+		static_assert(buffer.GetData().max_size() == kBufferCapacity + 1u,
+						  "The maximum size of the internal array is equal to "
+						  "the buffer capacity plus one for the null terminator.");
 
 		// All characters are initialized to the null character.
 		for (char const character : buffer.GetData())
