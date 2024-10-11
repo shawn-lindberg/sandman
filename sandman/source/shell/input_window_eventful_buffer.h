@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <type_traits>
 #include <string_view>
+#include <cassert>
 
 namespace Shell::InputWindow { template <typename, std::size_t> class EventfulBuffer; }
 
