@@ -106,8 +106,11 @@ class Shell::InputWindow::EventfulBuffer
 
 		explicit constexpr EventfulBuffer() = default;
 
-		// Construct a string with events.
-		// Pass a null pointer to ignore an event.
+		/*
+			Constructs a buffer with events.
+
+			Pass a null pointer as an argument to ignore an event.
+		*/
 		explicit constexpr EventfulBuffer(
 			OnStringUpdateListener          const                   onStringUpdateListener           ,
 			OnClearListener                 const                   onClearListener                  ,
