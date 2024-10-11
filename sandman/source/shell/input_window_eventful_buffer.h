@@ -43,7 +43,7 @@ class Shell::InputWindow::EventfulBuffer
 		*/
 		template <typename EventListenerT>
 		constexpr std::enable_if_t<kIsEventListener<EventListenerT>, EventListenerT>
-			GetEventListener(EventListenerT const eventListener)
+			GetNonNullEventListener(EventListenerT const eventListener)
 		{
 			if (eventListener != nullptr)
 			{
@@ -100,12 +100,12 @@ class Shell::InputWindow::EventfulBuffer
 		// Construct a string with events.
 		// Pass a null pointer to ignore an event.
 		explicit constexpr EventfulBuffer(
-			OnStringUpdateListener          const                  onStringUpdateListener           ,
-			OnClearListener                 const                  onClearListener                  ,
-			OnDecrementStringLengthListener const                  onDecrementStringLengthListener ):
-			m_onStringUpdate                     (GetEventListener(onStringUpdateListener         )),
-			m_onClear                            (GetEventListener(onClearListener                )),
-			m_onDecrementStringLength            (GetEventListener(onDecrementStringLengthListener))
+			OnStringUpdateListener          const                   onStringUpdateListener           ,
+			OnClearListener                 const                   onClearListener                  ,
+			OnDecrementStringLengthListener const                   onDecrementStringLengthListener ):
+			m_onStringUpdate               (GetNonNullEventListener(onStringUpdateListener         )),
+			m_onClear                      (GetNonNullEventListener(onClearListener                )),
+			m_onDecrementStringLength      (GetNonNullEventListener(onDecrementStringLengthListener))
 		{
 			assert(m_onStringUpdate          != nullptr);
 			assert(m_onClear                 != nullptr);
