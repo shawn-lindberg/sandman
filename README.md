@@ -134,43 +134,19 @@ Currently, building Sandman from source requires the following libraries:
 sudo apt install libncurses-dev libmosquitto-dev -y
 ```
 
-#### Autotools
-
-To build with autotools requires the following additional packages:
-
-```bash
-sudo apt install bison autoconf automake libtool -y
-```
-
-Sandman can be built and installed with autotools using the following commands:
-
-```bash
-cd sandman/sandman
-```
-```bash
-autoreconf --install
-``````
-```bash
-./configure
-``````
-```bash
-make
-sudo make install
-```
-
 #### CMake
 
 Sandman can be built and installed with CMake using the following commands:
 
 ```bash
-cd sandman/sandman
+cd sandman
 ```
 ```bash
 mkdir build
 cd build
 ``````
 ```bash
-cmake ..
+cmake ../sandman
 ``````
 ```bash
 cmake --build .
@@ -282,7 +258,6 @@ sudo update-rc.d sandman.sh defaults
 * Implement a web interface for modifying the configuration.
 * Add control over whether notifications are played.
 * Simplify setup - Docker?
-* Switch to systemd?
 
 ## Contributing
 
