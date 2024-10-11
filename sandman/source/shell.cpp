@@ -403,7 +403,7 @@ namespace Shell
 		static FastCursor s_cursor{ 0u };
 
 		static_assert(std::is_unsigned_v<FastCursor> and
-						  std::numeric_limits<FastCursor>::max() >= s_buffer.GetMaxStringLength(),
+						  std::numeric_limits<FastCursor>::max() >= s_buffer.kMaxStringLength,
 						  "The input buffer cursor must be able to represent "
 						  "all valid positions in the input buffer string for insertion, "
 						  "including the exclusive end position where the current null character is.");

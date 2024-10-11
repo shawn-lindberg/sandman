@@ -10,12 +10,14 @@
 namespace Shell::InputWindow { template <typename, std::size_t> class EventfulBuffer; }
 
 /// Fixed sized eventful buffer.
-template <typename CharT, std::size_t kMaxStringLength>
+template <typename CharT, std::size_t kMaxStringLengthValue>
 class Shell::InputWindow::EventfulBuffer
 {
 	static_assert(std::is_integral_v<CharT>);
 
 	public:
+		static constexpr std::size_t kMaxStringLength{ kMaxStringLengthValue };
+
 		static_assert(kMaxStringLength + 1u != 0u,
 						  "The maximum string length causes overflow "
 						  "because adding one to it results in zero.");
@@ -38,15 +40,14 @@ class Shell::InputWindow::EventfulBuffer
 		Common::NonNull<OnClearListener> m_onClear;
 		Common::NonNull<OnDecrementStringLengthListener> m_onDecrementStringLength;
 
-	public:
-		static_assert(std::tuple_size_v<Data> > 0u, "Assert can subtract from size without underflow.");
+		// The last position is reserved for the null character.
+		static_assert(kMaxStringLengthValue == std::tuple_size_v<Data> - 1u,
+						  "The last position is reserved for the null character.");
 
-		static constexpr typename Data::size_type GetMaxStringLength()
-		{
-			// The last position is reserved for the null character.
-			static_assert(kMaxStringLength == std::tuple_size_v<Data> - 1u);
-			return kMaxStringLength;
-		}
+
+	public:
+		static_assert(std::tuple_size_v<Data> > 0u,
+						  "Assert can subtract from size without underflow.");
 
 		constexpr Data const& GetData() const
 		{
