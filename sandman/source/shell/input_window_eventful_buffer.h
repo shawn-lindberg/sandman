@@ -5,8 +5,6 @@
 #include <type_traits>
 #include <string_view>
 
-#include "common/non_null.h"
-
 namespace Shell::InputWindow { template <typename, std::size_t> class EventfulBuffer; }
 
 /// Fixed sized eventful buffer.
@@ -35,15 +33,16 @@ class Shell::InputWindow::EventfulBuffer
 	private:
 		// Internal data buffer.
 		Data m_data{};
-		typename Data::size_type m_stringLength{0u};
-		Common::NonNull<OnStringUpdateListener> m_onStringUpdate;
-		Common::NonNull<OnClearListener> m_onClear;
-		Common::NonNull<OnDecrementStringLengthListener> m_onDecrementStringLength;
 
 		// The last position is reserved for the null character.
 		static_assert(kMaxStringLengthValue == std::tuple_size_v<Data> - 1u,
 						  "The last position is reserved for the null character.");
 
+		typename Data::size_type m_stringLength{0u};
+
+		OnStringUpdateListener          m_onStringUpdate         ;
+		OnClearListener                 m_onClear                ;
+		OnDecrementStringLengthListener m_onDecrementStringLength;
 
 	public:
 		static_assert(std::tuple_size_v<Data> > 0u,
