@@ -4,18 +4,19 @@
 #include <cstdint>
 #include <type_traits>
 #include <string_view>
-
-#include "common/non_null.h"
+#include <cassert>
 
 namespace Shell::InputWindow { template <typename, std::size_t> class EventfulBuffer; }
 
 /// Fixed sized eventful buffer.
-template <typename CharT, std::size_t kMaxStringLength>
+template <typename CharT, std::size_t kMaxStringLengthValue>
 class Shell::InputWindow::EventfulBuffer
 {
 	static_assert(std::is_integral_v<CharT>);
 
 	public:
+		static constexpr std::size_t kMaxStringLength{ kMaxStringLengthValue };
+
 		static_assert(kMaxStringLength + 1u != 0u,
 						  "The maximum string length causes overflow "
 						  "because adding one to it results in zero.");
@@ -30,23 +31,68 @@ class Shell::InputWindow::EventfulBuffer
 		using OnClearListener = void (*)();
 		using OnDecrementStringLengthListener = void (*)(typename Data::size_type const newStringLength);
 
+		template <typename EventListenerT>
+		static constexpr bool kIsEventListener{
+			std::is_same_v<EventListenerT, OnStringUpdateListener         > or
+			std::is_same_v<EventListenerT, OnClearListener                > or
+			std::is_same_v<EventListenerT, OnDecrementStringLengthListener>
+		};
+
+		/*
+			An event listener that does nothing.
+		*/
+		template <typename EventListenerT>
+		static constexpr std::enable_if_t<kIsEventListener<EventListenerT>, EventListenerT>
+			kEmptyEventListener{[]() constexpr -> EventListenerT
+		{
+			if constexpr (std::is_same_v<EventListenerT, OnStringUpdateListener>)
+			{
+				return +[](typename Data::size_type const, CharT const) constexpr -> void {};
+			}
+			else if constexpr (std::is_same_v<EventListenerT, OnClearListener>)
+			{
+				return +[]() constexpr -> void {};
+			}
+			else if constexpr (std::is_same_v<EventListenerT, OnDecrementStringLengthListener>)
+			{
+				return +[](typename Data::size_type const) constexpr -> void {};
+			}
+		}()};
+
+		/*
+			If the event listener is not `nullptr`, simply return it,
+			otherwise return a non-null pointer to an event listener that does nothing.
+		*/
+		template <typename EventListenerT>
+		constexpr std::enable_if_t<kIsEventListener<EventListenerT>, EventListenerT>
+			GetNonNullEventListener(EventListenerT const eventListener)
+		{
+			if (eventListener == nullptr)
+			{
+				return kEmptyEventListener<EventListenerT>;
+			}
+
+			return eventListener;
+		}
+
 	private:
 		// Internal data buffer.
 		Data m_data{};
+
+		// The last position is reserved for the null character.
+		static_assert(kMaxStringLengthValue == std::tuple_size_v<Data> - 1u,
+						  "The last position is reserved for the null character.");
+
 		typename Data::size_type m_stringLength{0u};
-		Common::NonNull<OnStringUpdateListener> m_onStringUpdate;
-		Common::NonNull<OnClearListener> m_onClear;
-		Common::NonNull<OnDecrementStringLengthListener> m_onDecrementStringLength;
+
+		OnStringUpdateListener m_onStringUpdate{ kEmptyEventListener<OnStringUpdateListener> };
+		OnClearListener m_onClear{ kEmptyEventListener<OnClearListener> };
+		OnDecrementStringLengthListener m_onDecrementStringLength{
+			kEmptyEventListener<OnDecrementStringLengthListener>
+		};
 
 	public:
-		static_assert(std::tuple_size_v<Data> > 0u, "Assert can subtract from size without underflow.");
-
-		static constexpr typename Data::size_type GetMaxStringLength()
-		{
-			// The last position is reserved for the null character.
-			static_assert(kMaxStringLength == std::tuple_size_v<Data> - 1u);
-			return kMaxStringLength;
-		}
+		static_assert(std::tuple_size_v<Data> > 0u, "Can subtract from size without underflow.");
 
 		constexpr Data const& GetData() const
 		{
@@ -60,16 +106,23 @@ class Shell::InputWindow::EventfulBuffer
 
 		explicit constexpr EventfulBuffer() = default;
 
-		// Construct a string with events.
-		// Pass a null pointer to ignore an event.
+		/*
+			Constructs a buffer with events.
+
+			Pass a null pointer as an argument to ignore an event.
+		*/
 		explicit constexpr EventfulBuffer(
-			OnStringUpdateListener          const onStringUpdateListener          ,
-			OnClearListener                 const onClearListener                 ,
-			OnDecrementStringLengthListener const onDecrementStringLengthListener):
-			m_onStringUpdate                     (onStringUpdateListener         ),
-			m_onClear                            (onClearListener                ),
-			m_onDecrementStringLength            (onDecrementStringLengthListener)
-		{}
+			OnStringUpdateListener          const                   onStringUpdateListener           ,
+			OnClearListener                 const                   onClearListener                  ,
+			OnDecrementStringLengthListener const                   onDecrementStringLengthListener ):
+			m_onStringUpdate               (GetNonNullEventListener(onStringUpdateListener         )),
+			m_onClear                      (GetNonNullEventListener(onClearListener                )),
+			m_onDecrementStringLength      (GetNonNullEventListener(onDecrementStringLengthListener))
+		{
+			assert(m_onStringUpdate          != nullptr);
+			assert(m_onClear                 != nullptr);
+			assert(m_onDecrementStringLength != nullptr);
+		}
 
 		// Insert a character at any valid index in the string.
 		// Can insert a character at the end by inserting at

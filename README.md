@@ -138,20 +138,22 @@ sudo apt install libncurses-dev libmosquitto-dev -y
 
 Sandman can be built and installed with CMake using the following commands:
 
-```bash
-cd sandman
-```
-```bash
-mkdir build
-cd build
-``````
-```bash
-cmake ../sandman
-``````
-```bash
-cmake --build .
-sudo cmake --install .
-```
+1. Change the directory to the root of the repository.
+	```Shell
+	cd sandman
+	```
+2. Configure the CMake project.
+	```Shell
+	cmake -B build -S sandman
+	```
+3. Build the Sandman executable.
+	```Shell
+	cmake --build build --target=sandman
+	```
+4. Install Sandman.
+	```Shell
+	sudo cmake --install build
+	```
 
 ### Web interface with Flask
 

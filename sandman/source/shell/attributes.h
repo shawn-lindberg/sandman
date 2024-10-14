@@ -159,10 +159,10 @@ namespace Shell
 	};
 
 	template <typename>
-	inline constexpr bool IsObjectBundle{ false };
+	inline constexpr bool kIsObjectBundle{ false };
 
 	template <typename... ObjectsT>
-	inline constexpr bool IsObjectBundle<AttributeBundle::ObjectBundle<ObjectsT...>>{ true };
+	inline constexpr bool kIsObjectBundle<AttributeBundle::ObjectBundle<ObjectsT...>>{ true };
 
 	class AttributeBundle::ForegroundColor
 	{

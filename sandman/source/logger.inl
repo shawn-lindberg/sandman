@@ -23,7 +23,7 @@ inline void Logger::Write(FirstT&& first, ParametersT&&... arguments)
 	*/
 
 	// 1. Process the first argument.
-	if constexpr (Shell::IsObjectBundle<std::decay_t<FirstT>>)
+	if constexpr (Shell::kIsObjectBundle<std::decay_t<FirstT>>)
 	{
 		// 1a. Need to process all the objects in the object bundle.
 

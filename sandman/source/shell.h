@@ -128,7 +128,7 @@ namespace Shell
 		inline void Write(FirstT&& first, ParametersT&&... arguments)
 		{
 			// Process the first argument.
-			if constexpr (IsObjectBundle<std::decay_t<FirstT>>)
+			if constexpr (kIsObjectBundle<std::decay_t<FirstT>>)
 			{
 				bool const didPushAttributes{ PushAttributes(first.m_attributes) };
 
