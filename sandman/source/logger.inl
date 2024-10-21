@@ -101,6 +101,7 @@ inline void Logger::Write(FirstT&& first, ParametersT&&... arguments)
 			Shell::LoggingWindow::Write(std::string_view(string));
 		}
 		m_outputStream << string;
+		m_outputStream.flush();
 
 		// Clear buffer.
 		m_buffer.str("");
