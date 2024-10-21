@@ -14,17 +14,17 @@ void GPIOInitialize(bool const enableGPIO);
 // 
 void GPIOUninitialize();
 
-// Set the given GPIO pin mode to input.
+// Acquire a GPIO pin as output.
 //
-// pin:	The GPIO pin to set the mode of.
+// pin:	The GPIO pin to acquire as output.
 //
-void GPIOSetPinModeInput(int pin);
+void GPIOAcquireOutputPin(int pin);
 
-// Set the given GPIO pin mode to output.
+// Release a GPIO pin.
 //
-// pin:	The GPIO pin to set the mode of.
+// pin:  The GPIO pin to release.
 //
-void GPIOSetPinModeOutput(int pin);
+void GPIOReleasePin(int pin);
 
 // Set the given GPIO pin to the "on" value.
 //

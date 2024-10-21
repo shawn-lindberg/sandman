@@ -178,8 +178,8 @@ void Control::Initialize(ControlConfig const& config)
 	m_upGPIOPin = config.m_upGPIOPin;
 	m_downGPIOPin = config.m_downGPIOPin;
 	
-	GPIOSetPinModeOutput(m_upGPIOPin);
-	GPIOSetPinModeOutput(m_downGPIOPin);
+	GPIOAcquireOutputPin(m_upGPIOPin);
+	GPIOAcquireOutputPin(m_downGPIOPin);
 	
 	GPIOSetPinOff(m_upGPIOPin);
 	GPIOSetPinOff(m_downGPIOPin);
@@ -196,9 +196,9 @@ void Control::Initialize(ControlConfig const& config)
 //
 void Control::Uninitialize()
 {
-	// Revert to input.
-	GPIOSetPinModeInput(m_upGPIOPin);
-	GPIOSetPinModeInput(m_downGPIOPin);
+	// Release pins.
+	GPIOReleasePin(m_upGPIOPin);
+	GPIOReleasePin(m_downGPIOPin);
 }
 
 // Process a tick.

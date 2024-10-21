@@ -1,7 +1,9 @@
 #include "gpio.h"
 
+#include <map>
+
 #if defined ENABLE_GPIO
-	#include <pigpio.h>
+	#include <gpiod.h>
 #endif // defined ENABLE_GPIO
 
 #include "logger.h"
@@ -20,6 +22,12 @@ static constexpr int kPinOffValue = 1;
 
 	// Whether controls can use GPIO or not.
 	static bool s_enableGPIO = true;
+
+	// The interface with the pins through the chip they are controlled by.
+	static gpiod_chip* s_chip = nullptr;
+
+	// A mapping of all of the pins that we have acquired.
+	static std::map<int, gpiod_line*> s_pinToLineMap;
 
 #endif // defined ENABLE_GPIO
 
@@ -40,7 +48,15 @@ void GPIOInitialize(bool const enableGPIO)
 		{
 			Logger::WriteLine("Initializing GPIO support...");
 	
-			if (gpioInitialise() < 0)
+			// RPI5 attempt.
+			s_chip = gpiod_chip_open_by_name("gpiochip4");
+
+			if (s_chip == nullptr)
+			{
+				s_chip = gpiod_chip_open_by_name("gpiochip0");
+			}
+
+			if (s_chip == nullptr)
 			{
 				Logger::WriteLine('\t', Shell::Red("failed"));
 				return;
@@ -64,59 +80,120 @@ void GPIOUninitialize()
 {
 	#if defined ENABLE_GPIO
 	
-		// Uninitialize GPIO support.
-		if (s_enableGPIO == true)
+		if (s_enableGPIO == false)
 		{
-			gpioTerminate();
+			return;
 		}
+
+		if (s_chip == nullptr)
+		{
+			return;
+		}
+
+		// Release all of the pins.
+
+
+		gpiod_chip_close(s_chip);
 	
 	#endif // defined ENABLE_GPIO
 }
 
-// Set the given GPIO pin mode to input.
+// Acquire a GPIO pin as output.
 //
-// pin:	The GPIO pin to set the mode of.
-//
-void GPIOSetPinModeInput(int pin)
+// pin:	The GPIO pin to acquire as output.
+// 
+void GPIOAcquireOutputPin(int pin)
 {
 	#if defined ENABLE_GPIO
 
-		if (s_enableGPIO == true)
+		if (s_enableGPIO == false)
 		{
-			gpioSetMode(pin, PI_INPUT);
+			Logger::WriteLine("Would have acquired GPIO ", pin, 
+									" pin for output, but it's not enabled.");
+			return;
 		}
-		else
+
+		if (s_chip == nullptr)
 		{
-			Logger::WriteLine("Would have set GPIO ", pin, " mode to input, but it's not enabled.");
+			Logger::WriteLine(Shell::Red("No chip when attempting to acquire GPIO "), pin, 
+									Shell::Red(" pin for output."));
+			return;
 		}
+
+		if (s_pinToLineMap.find(pin) != s_pinToLineMap.end())
+		{
+			Logger::WriteLine(Shell::Yellow("Attempted to acquire GPIO "), pin, 
+									Shell::Yellow(" pin for output, but it's already been acquired."));
+			return;
+		}
+
+		auto* line = gpiod_chip_get_line(s_chip, pin);
+
+		if (line == nullptr)
+		{
+			Logger::WriteLine(Shell::Red("Failed to get line when attempting to acquire GPIO "), pin,
+									Shell::Red(" pin for output."));
+			return;
+		}
+
+		if (gpiod_line_request_output(line, "sandman", 0) < 0)
+		{
+			Logger::WriteLine(Shell::Red("Failed to set pin to output when trying to acquire GPIO "),
+									pin, Shell::Red(" pin for output."));
+			gpiod_line_release(line);
+			return;
+		}
+
+		// Add a record.
+		s_pinToLineMap.insert({pin, line});
 
 	#else
 
-		Logger::WriteLine("A Raspberry Pi would have set GPIO ", pin, " mode to input.");
+		Logger::WriteLine("A Raspberry Pi would have tried to acquire GPIO ", pin, 
+								" pin for output.");
 
 	#endif // defined ENABLE_GPIO
 }
 
-// Set the given GPIO pin mode to output.
+// Release a GPIO pin.
 //
-// pin:	The GPIO pin to set the mode of.
+// pin:  The GPIO pin to release.
 //
-void GPIOSetPinModeOutput(int pin)
+void GPIOReleasePin(int pin)
 {
 	#if defined ENABLE_GPIO
 
-		if (s_enableGPIO == true)
+		if (s_enableGPIO == false)
 		{
-			gpioSetMode(pin, PI_OUTPUT);
+			Logger::WriteLine("Would have released GPIO ", pin, " pin, but it's not enabled.");
+			return;
 		}
-		else
+
+		if (s_chip == nullptr)
 		{
-			Logger::WriteLine("Would have set GPIO ", pin, " mode to output, but it's not enabled.");
+			Logger::WriteLine(Shell::Red("No chip when attempting to release GPIO "), pin, 
+									Shell::Red(" pin."));
+			return;
 		}
+
+		// See if we have acquired the pin.
+		auto pinIterator = s_pinToLineMap.find(pin);
+		if (pinIterator == s_pinToLineMap.end())
+		{
+			Logger::WriteLine(Shell::Yellow("Attempted to release GPIO "), pin, 
+									Shell::Yellow(" pin, but hasn't been acquired."));
+			return;
+		}
+
+		auto* line = pinIterator->second;
+		gpiod_line_release(line);
+
+		// Erase our record.
+		s_pinToLineMap.erase(pinIterator);
 
 	#else
 
-		Logger::WriteLine("A Raspberry Pi would have set GPIO ", pin, " mode to output.");
+		Logger::WriteLine("A Raspberry Pi would have tried to release GPIO ", pin, " pin.");
 
 	#endif // defined ENABLE_GPIO
 }
@@ -131,7 +208,7 @@ void GPIOSetPinOn(int pin)
 
 		if (s_enableGPIO == true)
 		{
-			gpioWrite(pin, kPinOnValue);
+			//gpioWrite(pin, kPinOnValue);
 		}
 		else
 		{
@@ -155,7 +232,7 @@ void GPIOSetPinOff(int pin)
 	
 		if (s_enableGPIO == true)
 		{
-			gpioWrite(pin, kPinOffValue);
+			//gpioWrite(pin, kPinOffValue);
 		}
 		else
 		{
