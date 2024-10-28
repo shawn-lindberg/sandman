@@ -91,9 +91,14 @@ void GPIOUninitialize()
 		}
 
 		// Release all of the pins.
-
+		for (auto& pair : s_pinToLineMap)
+		{
+			gpiod_line_release(pair.second);
+		}
+		s_pinToLineMap.clear();
 
 		gpiod_chip_close(s_chip);
+		s_chip = nullptr;
 	
 	#endif // defined ENABLE_GPIO
 }
@@ -105,7 +110,7 @@ void GPIOUninitialize()
 void GPIOAcquireOutputPin(int pin)
 {
 	#if defined ENABLE_GPIO
-
+	
 		if (s_enableGPIO == false)
 		{
 			Logger::WriteLine("Would have acquired GPIO ", pin, 
@@ -198,28 +203,63 @@ void GPIOReleasePin(int pin)
 	#endif // defined ENABLE_GPIO
 }
 
+// Set the given GPIO pin to a specific value.
+//
+// pin:		The GPIO pin to set the value of.
+// value:	The value to set the pin to.
+//
+static void GPIOSetPinValue(int pin, int value)
+{
+	const char* valueString = (value == kPinOffValue) ? "off" : "on";
+
+	#if defined ENABLE_GPIO
+
+		if (s_enableGPIO == false)
+		{
+			Logger::WriteLine("Would have set GPIO ", pin, " to ", valueString, 
+									", but it's not enabled.");
+			return;
+		}
+
+		if (s_chip == nullptr)
+		{
+			Logger::WriteLine(Shell::Red("No chip when attempting to set GPIO "), pin, 
+									Shell::Red(" pin to "), valueString, Shell::Red("."));
+			return;
+		}
+
+		// See if we have acquired the pin.
+		auto pinIterator = s_pinToLineMap.find(pin);
+		if (pinIterator == s_pinToLineMap.end())
+		{
+			Logger::WriteLine(Shell::Yellow("Attempted to set GPIO "), pin, 
+									Shell::Yellow(" pin to "), valueString, 
+									Shell::Yellow(", but hasn't been acquired."));
+			return;
+		}
+
+		auto* line = pinIterator->second;
+		if (gpiod_line_set_value(line, value) < 0)
+		{
+			Logger::WriteLine(Shell::Red("Attempted to set GPIO "), pin, 
+									Shell::Red(" pin to "), valueString, 
+									Shell::Red(", but there was an error."));
+		}
+
+	#else
+
+		Logger::WriteLine("A Raspberry Pi would have set GPIO ", pin, " to ", valueString, ".");
+
+	#endif // defined ENABLE_GPIO
+}
+
 // Set the given GPIO pin to the "on" value.
 //
 // pin:	The GPIO pin to set the value of.
 //
 void GPIOSetPinOn(int pin)
 {
-	#if defined ENABLE_GPIO
-
-		if (s_enableGPIO == true)
-		{
-			//gpioWrite(pin, kPinOnValue);
-		}
-		else
-		{
-			Logger::WriteLine("Would have set GPIO ", pin, " to on, but it's not enabled.");
-		}
-
-	#else
-
-		Logger::WriteLine("A Raspberry Pi would have set GPIO ", pin, " to on.");
-
-	#endif // defined ENABLE_GPIO
+	GPIOSetPinValue(pin, kPinOnValue);
 }
 
 // Set the given GPIO pin to the "off" value.
@@ -228,21 +268,6 @@ void GPIOSetPinOn(int pin)
 //
 void GPIOSetPinOff(int pin)
 {
-	#if defined ENABLE_GPIO
-	
-		if (s_enableGPIO == true)
-		{
-			//gpioWrite(pin, kPinOffValue);
-		}
-		else
-		{
-			Logger::WriteLine("Would have set GPIO ", pin, " to off, but it's not enabled.");
-		}
-
-	#else
-
-		Logger::WriteLine("A Raspberry Pi would have set GPIO ", pin, " to off.");
-
-	#endif // defined ENABLE_GPIO
+	GPIOSetPinValue(pin, kPinOffValue);
 }
 
