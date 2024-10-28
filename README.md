@@ -131,7 +131,7 @@ Click Save Settings and it should start using the new sounds.
 Currently, building Sandman from source requires the following libraries:
 
 ```bash
-sudo apt install libncurses-dev libmosquitto-dev -y
+sudo apt install libncurses-dev libmosquitto-dev libgpiod-dev -y
 ```
 
 #### CMake
@@ -152,7 +152,7 @@ Sandman can be built and installed with CMake using the following commands:
 	```
 4. Install Sandman.
 	```Shell
-	sudo cmake --install build
+	cmake --install build
 	```
 
 ### Web interface with Flask
@@ -210,7 +210,7 @@ You can test the devices from the device page, and once you have set them all up
 Once you have built and installed Sandman, you can execute it from the command line like this, which will start it in interactive mode:
 
 ```bash
-sudo /usr/local/bin/sandman
+/usr/local/bin/sandman
 ```
 
 To exit this mode, simply type quit followed by pressing the enter key. This is primarily used for testing/debugging.
@@ -218,24 +218,24 @@ To exit this mode, simply type quit followed by pressing the enter key. This is 
 To run it as a daemon instead, use the following command:
 
 ```bash
-sudo /usr/local/bin/sandman --daemon
+/usr/local/bin/sandman --daemon
 ```
 
 The following commands are examples of how you can send commands to Sandman running as a daemon:
 
 ```bash
-sudo /usr/local/bin/sandman --command=back_raise
-sudo /usr/local/bin/sandman --command=back_lower
-sudo /usr/local/bin/sandman --command=legs_raise
-sudo /usr/local/bin/sandman --command=legs_lower
-sudo /usr/local/bin/sandman --command=elevation_raise
-sudo /usr/local/bin/sandman --command=elevation_lower
+/usr/local/bin/sandman --command=back_raise
+/usr/local/bin/sandman --command=back_lower
+/usr/local/bin/sandman --command=legs_raise
+/usr/local/bin/sandman --command=legs_lower
+/usr/local/bin/sandman --command=elevation_raise
+/usr/local/bin/sandman --command=elevation_lower
 ```
 
 You can stop Sandman running as a daemon with:
 
 ```bash
-sudo /usr/local/bin/sandman --shutdown
+/usr/local/bin/sandman --shutdown
 ```
 
 ### Running on boot
