@@ -13,6 +13,7 @@
 #include "command.h"
 #include "config.h"
 #include "control.h"
+#include "gpio.h"
 #include "input.h"
 #include "logger.h"
 #include "mqtt.h"
@@ -236,9 +237,12 @@ static bool Initialize()
 		return false;
 	}
 
-	// Initialize controls.
+	// Initialize GPIO.
 	static constexpr bool kEnableGPIO = true;
-	ControlsInitialize(config.GetControlConfigs(), kEnableGPIO);
+	GPIOInitialize(kEnableGPIO);
+
+	// Initialize controls.
+	ControlsInitialize(config.GetControlConfigs());
 
 	// Set control durations.
 	Control::SetDurations(config.GetControlMaxMovingDurationMS(),
@@ -297,6 +301,9 @@ static void Uninitialize()
 		// Uninitialize controls.
 		ControlsUninitialize();
 	}
+
+	// Uninitialize GPIO.
+	GPIOUninitialize();
 
 	// Uninitialize the input.
 	s_input.Uninitialize();

@@ -4,10 +4,7 @@
 #include <cstring>
 #include <vector>
 
-#if defined ENABLE_GPIO
-	#include <pigpio.h>
-#endif // defined ENABLE_GPIO
-
+#include "gpio.h"
 #include "logger.h"
 #include "notification.h"
 #include "timer.h"
@@ -25,13 +22,6 @@
 
 // Time between commands.
 //#define COMMAND_INTERVAL_MS				(2 * 1000) // 2 sec.
-
-// The pin to use for enabling controls.
-#define ENABLE_GPIO_PIN							(7)
-
-// GPIO values for on and off respectively.
-#define CONTROL_ON_GPIO_VALUE					(0)
-#define CONTROL_OFF_GPIO_VALUE				(1)
 
 // Locals
 //
@@ -72,13 +62,6 @@ static constexpr char const* const kControlStateNotificationNames[] =
 // A list of registered controls.
 static std::vector<Control> s_controls;
 
-#if defined ENABLE_GPIO
-
-	// Whether controls can use GPIO or not.
-	static bool s_enableGPIO = true;
-
-#endif // defined ENABLE_GPIO
-
 // Control members
 
 unsigned int Control::ms_maxMovingDurationMS = MAX_MOVING_STATE_DURATION_MS;
@@ -86,102 +69,6 @@ unsigned int Control::ms_coolDownDurationMS = MAX_COOL_DOWN_STATE_DURATION_MS;
 
 // Functions
 //
-
-// Set the given GPIO pin mode to input.
-//
-// pin:	The GPIO pin to set the mode of.
-//
-void SetGPIOPinModeInput(int pin)
-{
-	#if defined ENABLE_GPIO
-
-		if (s_enableGPIO == true)
-		{
-			gpioSetMode(pin, PI_INPUT);
-		}
-		else
-		{
-			Logger::WriteLine("Would have set GPIO ", pin, " mode to input, but it's not enabled.");
-		}
-
-	#else
-
-		Logger::WriteLine("A Raspberry Pi would have set GPIO ", pin, " mode to input.");
-
-	#endif // defined ENABLE_GPIO
-}
-
-// Set the given GPIO pin mode to output.
-//
-// pin:	The GPIO pin to set the mode of.
-//
-void SetGPIOPinModeOutput(int pin)
-{
-	#if defined ENABLE_GPIO
-
-		if (s_enableGPIO == true)
-		{
-			gpioSetMode(pin, PI_OUTPUT);
-		}
-		else
-		{
-			Logger::WriteLine("Would have set GPIO ", pin, " mode to output, but it's not enabled.");
-		}
-
-	#else
-
-		Logger::WriteLine("A Raspberry Pi would have set GPIO ", pin, " mode to output.");
-
-	#endif // defined ENABLE_GPIO
-}
-
-// Set the given GPIO pin to the "on" value.
-//
-// pin:	The GPIO pin to set the value of.
-//
-void SetGPIOPinOn(int pin)
-{
-	#if defined ENABLE_GPIO
-
-		if (s_enableGPIO == true)
-		{
-			gpioWrite(pin, CONTROL_ON_GPIO_VALUE);
-		}
-		else
-		{
-			Logger::WriteLine("Would have set GPIO ", pin, " to on, but it's not enabled.");
-		}
-
-	#else
-
-		Logger::WriteLine("A Raspberry Pi would have set GPIO ", pin, " to on.");
-
-	#endif // defined ENABLE_GPIO
-}
-
-// Set the given GPIO pin to the "off" value.
-//
-// pin:	The GPIO pin to set the value of.
-//
-void SetGPIOPinOff(int pin)
-{
-	#if defined ENABLE_GPIO
-	
-		if (s_enableGPIO == true)
-		{
-			gpioWrite(pin, CONTROL_OFF_GPIO_VALUE);
-		}
-		else
-		{
-			Logger::WriteLine("Would have set GPIO ", pin, " to off, but it's not enabled.");
-		}
-
-	#else
-
-		Logger::WriteLine("A Raspberry Pi would have set GPIO ", pin, " to off.");
-
-	#endif // defined ENABLE_GPIO
-}
 
 // ControlHandle members
 
@@ -291,11 +178,11 @@ void Control::Initialize(ControlConfig const& config)
 	m_upGPIOPin = config.m_upGPIOPin;
 	m_downGPIOPin = config.m_downGPIOPin;
 	
-	SetGPIOPinModeOutput(m_upGPIOPin);
-	SetGPIOPinModeOutput(m_downGPIOPin);
+	GPIOAcquireOutputPin(m_upGPIOPin);
+	GPIOAcquireOutputPin(m_downGPIOPin);
 	
-	SetGPIOPinOff(m_upGPIOPin);
-	SetGPIOPinOff(m_downGPIOPin);
+	GPIOSetPinOff(m_upGPIOPin);
+	GPIOSetPinOff(m_downGPIOPin);
 	
 	// Set the individual control moving duration.
 	m_standardMovingDurationMS = config.m_movingDurationMS;
@@ -309,9 +196,9 @@ void Control::Initialize(ControlConfig const& config)
 //
 void Control::Uninitialize()
 {
-	// Revert to input.
-	SetGPIOPinModeInput(m_upGPIOPin);
-	SetGPIOPinModeInput(m_downGPIOPin);
+	// Release pins.
+	GPIOReleasePin(m_upGPIOPin);
+	GPIOReleasePin(m_downGPIOPin);
 }
 
 // Process a tick.
@@ -334,14 +221,14 @@ void Control::Process()
 				m_state = kStateMovingUp;
 
 				// Set the pin to on.
-				SetGPIOPinOn(m_upGPIOPin);
+				GPIOSetPinOn(m_upGPIOPin);
 			}
 			else
 			{
 				m_state = kStateMovingDown;
 
 				// Set the pin to on.
-				SetGPIOPinOn(m_downGPIOPin);
+				GPIOSetPinOn(m_downGPIOPin);
 			}
 			
 			// Play the notification.
@@ -392,8 +279,8 @@ void Control::Process()
 					m_downGPIOPin;
 				auto const newStatePin = (m_state == kStateMovingDown) ? m_downGPIOPin : 
 					m_upGPIOPin;
-				SetGPIOPinOff(oldStatePin);
-				SetGPIOPinOn(newStatePin);
+				GPIOSetPinOff(oldStatePin);
+				GPIOSetPinOn(newStatePin);
 			}
 			else
 			{
@@ -401,8 +288,8 @@ void Control::Process()
 				m_state = kStateCoolDown;
 
 				// Set the pins to off.
-				SetGPIOPinOff(m_upGPIOPin);
-				SetGPIOPinOff(m_downGPIOPin);
+				GPIOSetPinOff(m_upGPIOPin);
+				GPIOSetPinOff(m_downGPIOPin);
 			}
 			
 			// Play the notification.
@@ -438,8 +325,8 @@ void Control::Process()
 			m_state = kStateIdle;
 
 			// Set the pins to off.
-			SetGPIOPinOff(m_upGPIOPin);
-			SetGPIOPinOff(m_downGPIOPin);
+			GPIOSetPinOff(m_upGPIOPin);
+			GPIOSetPinOff(m_downGPIOPin);
 
 			Logger::WriteLine("Control \"", m_name, "\": State transition from \"",
 									kControlStateNames[kStateCoolDown], "\" to \"",
@@ -500,17 +387,10 @@ void Control::Enable(bool enable)
 {
 	if (enable == false)
 	{
-		// Revert to input.
-		//pinMode(ENABLE_GPIO_PIN, INPUT);
-
 		Logger::WriteLine("Controls disabled.");
 	}
 	else
 	{
-		// Setup the pin and set it to off.
-		//pinMode(ENABLE_GPIO_PIN, OUTPUT);
-		//SetGPIOPinOff(ENABLE_GPIO_PIN);
-
 		Logger::WriteLine("Controls enabled.");
 	}
 }
@@ -729,36 +609,10 @@ Control* ControlAction::GetControl()
 
 // Initialize all of the controls.
 //
-// configs:    Configuration parameters for the controls to add.
-// enableGPIO: Whether to turn on GPIO or not.
+// configs: Configuration parameters for the controls to add.
 //
-void ControlsInitialize(std::vector<ControlConfig> const& configs, bool const enableGPIO)
+void ControlsInitialize(std::vector<ControlConfig> const& configs)
 {
-	#if defined ENABLE_GPIO
-	
-		s_enableGPIO = enableGPIO;
-
-		if (s_enableGPIO == true)
-		{
-			Logger::WriteLine("Initializing GPIO support...");
-	
-			if (gpioInitialise() < 0)
-			{
-				Logger::WriteLine('\t', Shell::Red("failed"));
-				return;
-			}
-
-			Logger::WriteLine('\t', Shell::Green("succeeded"));
-		}
-		else
-		{
-			Logger::WriteLine("GPIO support not enabled, initialization skipped.");
-		}
-		
-		Logger::WriteLine();
-
-	#endif // defined ENABLE_GPIO
-
 	for (auto const& config : configs)
 	{
 		ControlsCreateControl(config);
@@ -776,16 +630,6 @@ void ControlsUninitialize()
 	
 	// Get rid of all of the controls.
 	s_controls.clear();
-
-	#if defined ENABLE_GPIO
-	
-		// Uninitialize GPIO support.
-		if (s_enableGPIO == true)
-		{
-			gpioTerminate();
-		}
-	
-	#endif // defined ENABLE_GPIO
 }
 
 // Process all of the controls.

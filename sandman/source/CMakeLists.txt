@@ -1,7 +1,7 @@
 include(GNUInstallDirs)
 
-set(SOURCE_FILES command.cpp config.cpp control.cpp input.cpp logger.cpp mqtt.cpp notification.cpp
-	 reports.cpp schedule.cpp shell.cpp timer.cpp)
+set(SOURCE_FILES command.cpp config.cpp control.cpp gpio.cpp input.cpp logger.cpp mqtt.cpp 
+    notification.cpp reports.cpp schedule.cpp shell.cpp timer.cpp)
 add_library(sandman_lib STATIC ${SOURCE_FILES})
 add_executable(sandman main.cpp)
 
@@ -52,7 +52,7 @@ target_include_directories(sandman_lib PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 target_link_libraries(sandman_lib PUBLIC sandman_compiler_flags ${CURSES_LIBRARIES} 
                       PkgConfig::Mosquitto)
 if (ENABLE_GPIO)
-    target_link_libraries(sandman_lib PUBLIC pigpio)
+    target_link_libraries(sandman_lib PUBLIC gpiod)
 endif()
 
 target_link_libraries(sandman PUBLIC sandman_compiler_flags sandman_lib ${CURSES_LIBRARIES})

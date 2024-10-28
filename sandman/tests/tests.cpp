@@ -1,6 +1,7 @@
 #include "catch_amalgamated.hpp"
 
 #include "config.h"
+#include "gpio.h"
 #include "logger.h"
 #include "schedule.h"
 
@@ -11,7 +12,7 @@ public:
 
    void testRunStarting(Catch::TestRunInfo const&) override
 	{
-		if (not Logger::Initialize(SANDMAN_TEST_BUILD_DIR "tests.log"))
+		if (Logger::Initialize(SANDMAN_TEST_BUILD_DIR "tests.log") == false)
 		{
 			Catch::cerr() << "The logger failed to initialize.\n";
 			std::exit(EXIT_FAILURE);
@@ -158,8 +159,10 @@ TEST_CASE("Test controls", "[control]")
 	if (controlConfigs.size() > 2)
 	{
 		// Set up the controls.
-		static constexpr bool kEnableGPIO{ false };
-		ControlsInitialize(controlConfigs, kEnableGPIO);
+		static constexpr bool kEnableGPIO = false;
+		GPIOInitialize(kEnableGPIO);
+
+		ControlsInitialize(controlConfigs);
 
 		Control::SetDurations(config.GetControlMaxMovingDurationMS(), 
 									 config.GetControlCoolDownDurationMS());
