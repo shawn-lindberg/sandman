@@ -9,35 +9,6 @@
 // Types
 //
 
-// A handle to a control.
-class ControlHandle
-{
-	public:
-		
-		// Only allow non-friends to construct invalid handles.
-		ControlHandle() = default;
-		
-		// Determine whether the handle is valid.
-		//
-		bool IsValid() const
-		{
-			return (m_uID != kInvalidUID);
-		}
-				
-	private:
-	
-		// Make this constructor private so that non-friends can only construct invalid handles.
-		ControlHandle(unsigned short uID);
-		
-		friend class Control;
-		
-		// The invalid unique identifier for a control.
-		static constexpr unsigned short kInvalidUID{ 0xFFFF };
-		
-		// The unique identifier for the control.
-		unsigned short m_uID = kInvalidUID;
-};
-
 // Configuration parameters to initialize a control.
 struct ControlConfig
 {
@@ -144,26 +115,18 @@ class Control
 		//
 		static void SetDurations(unsigned int movingDurationMS, unsigned int coolDownDurationMS);
 		
-		// Attempt to get the handle of a control based on its name.
+		// Look up a control by its name.
 		//
-		// name:	The unique name of the control.
+		// name:	The name of the control.
 		//
-		// Returns:	A handle to the control, or an invalid handle if one with the given name could not be found.
+		// Returns:		The control, or null if one with the name could not be found.
 		//
-		static ControlHandle GetHandle(char const* name);
-
-		// Look up a control from its handle.
-		//
-		// handle:	A handle to the control.
-		//
-		// Returns:		The control, or null if the handle is not valid.
-		//
-		static Control* GetFromHandle(ControlHandle const& handle);
+		static Control* GetByName(std::string const& name);
 		
 	private:
 
 		// Constants.
-		static constexpr unsigned int kNameCapacity{ 32u };
+		static constexpr unsigned int kNameCapacity = 32u;
 
 		// Play a notification for the state.
 		//
@@ -222,19 +185,16 @@ struct ControlAction
 	//
 	// Returns:	The control if successful, null otherwise.
 	//
-	Control* GetControl();
+	Control* GetControl() const;
 	
 	// Constants.
-	static constexpr unsigned int kControlNameCapacity{ 32u };
+	static constexpr unsigned int kControlNameCapacity = 32u;
 	
 	// The name of the control to manipulate.
 	char m_controlName[kControlNameCapacity];
 	
 	// The action for the control.
 	Control::Actions m_action;
-	
-	// A handle to the control for fast lookup.
-	ControlHandle m_controlHandle;
 };
 
 

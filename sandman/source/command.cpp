@@ -58,11 +58,6 @@ static std::map<std::string, CommandToken::Types> const s_commandTokenNameToType
 	// "integer", 	kTypeInteger
 };
 
-// Keep handles to the controls.
-static ControlHandle s_backControlHandle;
-static ControlHandle s_legsControlHandle;
-static ControlHandle s_elevationControlHandle;
-
 // Keep a handle to the input.
 static Input const* s_input = nullptr;
 
@@ -182,37 +177,19 @@ CommandParseTokensReturnTypes CommandParseTokens(char const*& confirmationText,
 				{
 					case CommandToken::kTypeBack:
 					{
-						// Try to find the control.
-						if (s_backControlHandle.IsValid() == false)
-						{
-							s_backControlHandle = Control::GetHandle("back");
-						}
-						
-						control = Control::GetFromHandle(s_backControlHandle);
+						control = Control::GetByName("back");
 					}
 					break;
 					
 					case CommandToken::kTypeLegs:
-					{
-						// Try to find the control.
-						if (s_legsControlHandle.IsValid() == false)
-						{
-							s_legsControlHandle = Control::GetHandle("legs");
-						}
-						
-						control = Control::GetFromHandle(s_legsControlHandle);
+					{						
+						control = Control::GetByName("legs");
 					}
 					break;
 					
 					case CommandToken::kTypeElevation:
 					{
-						// Try to find the control.
-						if (s_elevationControlHandle.IsValid() == false)
-						{
-							s_elevationControlHandle = Control::GetHandle("elev");
-						}
-			
-						control = Control::GetFromHandle(s_elevationControlHandle);
+						control = Control::GetByName("elev");
 					}
 					break;
 					

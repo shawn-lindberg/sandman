@@ -169,33 +169,25 @@ TEST_CASE("Test controls", "[control]")
 
 		// Test an invalid control.
 		{
-			ControlHandle handle = Control::GetHandle("chicken");
-			REQUIRE(handle.IsValid() == false);
-			Control* control = Control::GetFromHandle(handle);
+			Control* control = Control::GetByName("chicken");
 			REQUIRE(control == nullptr);
 		}
 
-		ControlHandle legHandle = Control::GetHandle("legs");
-		REQUIRE(legHandle.IsValid() == true);
-		Control* legControl = Control::GetFromHandle(legHandle);
+		Control* legControl = Control::GetByName("legs");
 		REQUIRE(legControl != nullptr);
 		if (legControl != nullptr)
 		{
 			REQUIRE(legControl->GetState() == Control::kStateIdle);
 		}
 
-		ControlHandle backHandle = Control::GetHandle("back");
-		REQUIRE(backHandle.IsValid() == true);
-		Control* backControl = Control::GetFromHandle(backHandle);
+		Control* backControl = Control::GetByName("back");
 		REQUIRE(backControl != nullptr);
 		if (backControl != nullptr)
 		{
 			REQUIRE(backControl->GetState() == Control::kStateIdle);
 		}
 
-		ControlHandle elevationHandle = Control::GetHandle("elev");
-		REQUIRE(elevationHandle.IsValid() == true);
-		Control* elevationControl = Control::GetFromHandle(elevationHandle);
+		Control* elevationControl = Control::GetByName("elev");
 		REQUIRE(elevationControl != nullptr);
 		if (elevationControl != nullptr)
 		{
