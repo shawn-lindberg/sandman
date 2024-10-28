@@ -54,6 +54,14 @@ However, if a define is used not as a constant value but, for example, for condi
 #define ENABLE_DEBUG_CODE
 ```
 
+Template parameters use the same style as classes for types, and the same style as constants for values as illustrated below. In most cases type parameters should have the suffix Type.
+
+```cpp
+template <typename ObjectType, int kMaxSize>
+class MyContainer
+{
+};
+```
 
 Variables generally use camel case, but sometimes have a prefix:
 
@@ -123,12 +131,12 @@ char const* const string = "Yep";
 bool const doCoolThings = true;
 ```
 
-Inside of a switch, cases should use braces if they contain more than a control flow statement. Indicate fall through cases.
+Inside of a switch, cases should use braces if they contain more than a control flow statement. Indicate fall through cases as below.
 
 ```cpp
 switch (myValue)
 {
-   case 0: // Fall through.
+   case 0: [[fallthrough]];
    case 1:
       {
          MyFunction1();

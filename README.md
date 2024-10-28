@@ -134,48 +134,26 @@ Currently, building Sandman from source requires the following libraries:
 sudo apt install libncurses-dev libmosquitto-dev -y
 ```
 
-#### Autotools
-
-To build with autotools requires the following additional packages:
-
-```bash
-sudo apt install bison autoconf automake libtool -y
-```
-
-Sandman can be built and installed with autotools using the following commands:
-
-```bash
-cd sandman/sandman
-```
-```bash
-autoreconf --install
-``````
-```bash
-./configure
-``````
-```bash
-make
-sudo make install
-```
-
 #### CMake
 
 Sandman can be built and installed with CMake using the following commands:
 
-```bash
-cd sandman/sandman
-```
-```bash
-mkdir build
-cd build
-``````
-```bash
-cmake ..
-``````
-```bash
-cmake --build .
-sudo cmake --install .
-```
+1. Change the directory to the root of the repository.
+	```Shell
+	cd sandman
+	```
+2. Configure the CMake project.
+	```Shell
+	cmake -B build -S sandman
+	```
+3. Build the Sandman executable.
+	```Shell
+	cmake --build build --target=sandman
+	```
+4. Install Sandman.
+	```Shell
+	sudo cmake --install build
+	```
 
 ### Web interface with Flask
 
@@ -282,7 +260,6 @@ sudo update-rc.d sandman.sh defaults
 * Implement a web interface for modifying the configuration.
 * Add control over whether notifications are played.
 * Simplify setup - Docker?
-* Switch to systemd?
 
 ## Contributing
 
