@@ -580,6 +580,8 @@ void ControlsInitialize(std::vector<ControlConfig> const& configs)
 //
 void ControlsUninitialize()
 {
+	s_controlNameToIndexMap.clear();
+	
 	for (auto& control : s_controls)
 	{
 		control.Uninitialize();
