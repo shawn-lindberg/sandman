@@ -2,6 +2,7 @@
 
 #include <cstdio>
 #include <cstring>
+#include <map>
 #include <vector>
 
 #include "gpio.h"
@@ -23,11 +24,8 @@
 // Time between commands.
 //#define COMMAND_INTERVAL_MS				(2 * 1000) // 2 sec.
 
-// Locals
-//
-
 // The names of the actions.
-static char const* const s_controlActionNames[] =
+static constexpr char const* const kControlActionNames[] =
 {
 	"stopped",		// kActionStopped
 	"moving up",	// kActionMovingUp
@@ -37,7 +35,7 @@ static char const* const s_controlActionNames[] =
 // The names of the modes.
 static constexpr char const* const kControlModeNames[] =
 {
-	"manual",		// kModeManual
+	"manual",	// kModeManual
 	"timed",		// kModeTimed
 };
 
@@ -59,8 +57,14 @@ static constexpr char const* const kControlStateNotificationNames[] =
 	"stop",			// kStateCoolDown
 };
 
+// Locals
+//
+
 // A list of registered controls.
 static std::vector<Control> s_controls;
+
+// A mapping of control name to control index.
+static std::map<std::string, unsigned int> s_controlNameToIndexMap;
 
 // Control members
 
@@ -70,12 +74,7 @@ unsigned int Control::ms_coolDownDurationMS = MAX_COOL_DOWN_STATE_DURATION_MS;
 // Functions
 //
 
-// ControlHandle members
-
-// A private constructor.
-ControlHandle::ControlHandle(unsigned short uID) : m_uID(uID)
-{
-}
+// ControlConfig members
 
 // Read a control config from JSON. 
 //
@@ -375,7 +374,7 @@ void Control::SetDesiredAction(Actions desiredAction, Modes mode, unsigned int d
 	}
 
 	Logger::WriteLine("Control \"", m_name, "\": Setting desired action to \"",
-							s_controlActionNames[desiredAction], "\" with mode \"",
+							kControlActionNames[desiredAction], "\" with mode \"",
 							kControlModeNames[mode], "\" and duration ", m_movingDurationMS, " ms.");
 }
 
@@ -409,58 +408,22 @@ void Control::SetDurations(unsigned int movingDurationMS, unsigned int coolDownD
 							coolDownDurationMS, " ms.");
 }
 
-// Attempt to get the handle of a control based on its name.
+// Look up a control by its name.
 //
-// name:	The unique name of the control.
+// name:	The name of the control.
 //
-// Returns:	A handle to the control, or an invalid handle if one with the given name could not be found.
+// Returns:		The control, or null if one with the name could not be found.
 //
-ControlHandle Control::GetHandle(char const* name)
+Control* Control::GetByName(std::string const& name)
 {
-	ControlHandle handle;
-	
-	auto const controlCount = static_cast<unsigned short>(s_controls.size());
-	for (unsigned short controlIndex = 0; controlIndex < controlCount; controlIndex++)
-	{
-		auto const& control = s_controls[controlIndex];
-		
-		// Look for a control with the matching name.
-		if (strcmp(control.GetName(), name) != 0)
-		{
-			continue;
-		}
-		
-		// Found it, return the handle.
-		handle.m_uID = controlIndex;
-		break;
-	}
-	
-	// Return the handle we found, or didn't.
-	return handle;
-}
-
-// Look up a control from its handle.
-//
-// handle:	A handle to the control.
-//
-// Returns:		The control, or null if the handle is not valid.
-//
-Control* Control::GetFromHandle(ControlHandle const& handle)
-{
-	// Sanity checking.
-	if (handle.IsValid() == false)
+	auto controlIterator = s_controlNameToIndexMap.find(name);
+	if (controlIterator == s_controlNameToIndexMap.end())
 	{
 		return nullptr;
 	}
 	
-	auto const controlCount = static_cast<unsigned short>(s_controls.size());
-	if (handle.m_uID >= controlCount)
-	{
-		return nullptr;
-	}
-	
-	// Seems we have a valid handle, return the control.
-	return &(s_controls[handle.m_uID]);
+	auto const controlIndex = controlIterator->second;
+	return &s_controls[controlIndex];
 }
 		
 // Play a notification for the state.
@@ -593,15 +556,9 @@ bool ControlAction::ReadFromJSON(rapidjson::Value const& object)
 //
 // Returns:	The control if successful, null otherwise.
 //
-Control* ControlAction::GetControl()
+Control* ControlAction::GetControl() const
 {
-	// Look up the handle, if we haven't done that yet.
-	if (m_controlHandle.IsValid() == false) {
-		m_controlHandle = Control::GetHandle(m_controlName);
-	}
-	
-	// Try to find the control.
-	return Control::GetFromHandle(m_controlHandle);
+	return Control::GetByName(m_controlName);
 }
 	
 // Functions
@@ -623,6 +580,8 @@ void ControlsInitialize(std::vector<ControlConfig> const& configs)
 //
 void ControlsUninitialize()
 {
+	s_controlNameToIndexMap.clear();
+	
 	for (auto& control : s_controls)
 	{
 		control.Uninitialize();
@@ -651,7 +610,7 @@ void ControlsProcess()
 bool ControlsCreateControl(ControlConfig const& config)
 {
 	// Check to see whether a control with this name already exists.
-	if (Control::GetHandle(config.m_name).IsValid() == true)
+	if (s_controlNameToIndexMap.find(config.m_name) != s_controlNameToIndexMap.end())
 	{
 		Logger::WriteLine("Control with name \"", config.m_name, "\" already exists.");
 		return false;
@@ -661,9 +620,12 @@ bool ControlsCreateControl(ControlConfig const& config)
 	s_controls.emplace_back(Control());
 	
 	// Then, initialize it.
-	auto& control = s_controls.back();
-	control.Initialize(config);
+	unsigned int const controlIndex = s_controls.size() - 1;
+	s_controls[controlIndex].Initialize(config);
 	
+	// And add it to the map.
+	s_controlNameToIndexMap.insert({config.m_name, controlIndex});
+
 	return true;
 }
 
