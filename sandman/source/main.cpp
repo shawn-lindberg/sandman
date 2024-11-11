@@ -2,8 +2,10 @@
 #include <cctype>
 #include <cstdio>
 #include <ctime>
+#include <filesystem>
 
 #include <fcntl.h>
+#include <pwd.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -52,6 +54,9 @@ static int s_listeningSocket = -1;
 
 static int s_exitCode = 0;
 
+// The base directory for files we will be using.
+static std::string s_baseDirectory;
+
 // Functions
 //
 
@@ -86,7 +91,7 @@ static bool InitializeDaemon()
 	umask(0);
 
 	// Initialize logging.
-	if (Logger::Initialize(SANDMAN_TEMP_DIR "sandman.log") == false)
+	if (Logger::Initialize(s_baseDirectory + "sandman.log") == false)
 	{
 		s_exitCode = 1;
 		return false;
@@ -173,12 +178,53 @@ static bool InitializeDaemon()
 	return true;
 }
 
+// Create directories and potentially files needed.
+//
+static bool SetupEnvironment()
+{
+	// Get the home directory.
+	auto* homeDirectory = getenv("HOME");
+
+	if (homeDirectory == nullptr)
+	{
+		homeDirectory = getpwuid(getuid())->pw_dir;
+
+		if (homeDirectory == nullptr)
+		{
+			return false;
+		}
+	}
+
+	// Create the base directory if needed.
+	std::string baseDirectory = std::string(homeDirectory) + "/.sandman/";
+	
+	if (std::filesystem::exists(baseDirectory) == false)
+	{
+		if (std::filesystem::create_directory(baseDirectory) == false)
+		{
+			printf("Directory \"%s\" doesn't exist and failed to create it!", baseDirectory.c_str());
+			return false;
+		}
+	}
+
+	s_baseDirectory = baseDirectory;
+
+	// Need to set up some other stuff.
+
+	return true;
+}
+
 // Initialize program components.
 //
 // returns:		True for success, false otherwise.
 //
 static bool Initialize()
 {
+	if (SetupEnvironment() == false)
+	{
+		return false;
+	}
+
 	switch (s_programMode)
 	{
 		case kProgramModeDaemon:
@@ -193,7 +239,7 @@ static bool Initialize()
 		case kProgramModeDocker:
 		{
 			// Initialize logging.
-			if (Logger::Initialize(SANDMAN_TEMP_DIR "sandman.log") == false)
+			if (Logger::Initialize(s_baseDirectory + "sandman.log") == false)
 			{
 				s_exitCode = 1;
 				return false;
@@ -204,7 +250,7 @@ static bool Initialize()
 		case kProgramModeInteractive:
 		{
 			// Initialize logging.
-			if (Logger::Initialize(SANDMAN_TEMP_DIR "sandman.log") == false)
+			if (Logger::Initialize(s_baseDirectory + "sandman.log") == false)
 			{
 				s_exitCode = 1;
 				return false;
