@@ -304,7 +304,7 @@ static bool Initialize()
 	s_input.Initialize(config.GetInputDeviceName(), config.GetInputBindings());
 
 	// Initialize the schedule.
-	ScheduleInitialize();
+	ScheduleInitialize(s_baseDirectory);
 
 	// Initialize reports.
 	ReportsInitialize(s_baseDirectory);

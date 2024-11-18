@@ -4,4 +4,4 @@ include(GNUInstallDirs)
 file(COPY sandman.conf sandman.sched invalidJson.sched example.sched DESTINATION 
 	  ${CMAKE_CURRENT_BINARY_DIR})
 
-install(FILES sandman.conf sandman.sched DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/sandman)
+install(FILES sandman.conf DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/sandman)

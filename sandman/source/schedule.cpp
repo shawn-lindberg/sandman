@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <filesystem>
 
 #include "rapidjson/filereadstream.h"
 #include "logger.h"
@@ -16,7 +17,6 @@
 // Constants
 //
 
-
 // Types
 //
 
@@ -25,6 +25,9 @@
 
 // Whether the system is initialized.
 static bool s_scheduleInitialized = false;
+
+// The directory where routine files are stored.
+static std::string s_routinesDirectory;
 
 // The current spot in the schedule.
 static unsigned int s_scheduleIndex = UINT_MAX;
@@ -188,10 +191,8 @@ std::vector<ScheduleEvent>& Schedule::GetEvents()
 //
 static bool ScheduleLoad()
 {
-	// Open the schedule file.
-	static constexpr auto const* kScheduleFileName = SANDMAN_CONFIG_DIR "sandman.sched";
-
-	return s_schedule.ReadFromFile(kScheduleFileName);
+	auto const routineFile = s_routinesDirectory + "sandman.rtn";
+	return s_schedule.ReadFromFile(routineFile.c_str());
 }
 
 // Write the loaded schedule to the logger.
@@ -244,11 +245,26 @@ static void ScheduleLogLoaded()
 
 // Initialize the schedule.
 //
-void ScheduleInitialize()
+// baseDirectory: The base directory for data files.
+//
+void ScheduleInitialize(std::string const& baseDirectory)
 {	
 	s_scheduleIndex = UINT_MAX;
 	
 	Logger::WriteLine("Initializing the schedule...");
+
+	// Create the routines directory, if necessary.
+	s_routinesDirectory = baseDirectory + "routines/";
+
+	if (std::filesystem::exists(s_routinesDirectory) == false)
+	{
+		if (std::filesystem::create_directory(s_routinesDirectory) == false)
+		{
+			Logger::WriteLine(Shell::Red("Routines directory \""), s_routinesDirectory, 
+									Shell::Red("\" does not exist and failed to be created."));
+			return;
+		}
+	}
 
 	// Parse the schedule.
 	if (ScheduleLoad() == false)
