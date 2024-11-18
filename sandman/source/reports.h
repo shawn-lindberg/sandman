@@ -12,7 +12,9 @@
 
 // Initialize the report system.
 //
-void ReportsInitialize();
+// baseDirectory:	The base directory for files.
+//
+void ReportsInitialize(std::string const& baseDirectory);
 
 // Uninitialize the report system.
 //

@@ -3,6 +3,7 @@
 #include <mutex>
 #include <cstdio>
 #include <ctime>
+#include <filesystem>
 #include <vector>
 
 #include "rapidjson/document.h"
@@ -38,6 +39,9 @@ struct PendingItem
 
 // Used to enforce serialization of messages.
 std::mutex s_reportMutex;
+
+// The directory where report files are stored.
+static std::string s_reportsDirectory;
 
 // The file to report to.
 static FILE* s_reportFile = nullptr;
@@ -140,8 +144,8 @@ static void ReportsOpenFile()
 
 	s_reportDateString = "";
 
-	std::string const reportFileName = SANDMAN_TEMP_DIR "reports/sandman" + 
-		currentReportDateString + ".rpt";
+	std::string const reportFileName = 
+		s_reportsDirectory + "sandman" + currentReportDateString + ".rpt";
 
 	// First, see if the file already exists.
 	bool reportAlreadyExisted = false;
@@ -213,7 +217,9 @@ static void ReportsOpenFile()
 
 // Initialize the reports.
 //
-void ReportsInitialize()
+// baseDirectory:	The base directory for files.
+//
+void ReportsInitialize(std::string const& baseDirectory)
 {
 	// Acquire a lock for the rest of the function.
 	const std::lock_guard<std::mutex> reportGuard(s_reportMutex);
@@ -225,6 +231,19 @@ void ReportsInitialize()
 
 	// An empty string indicates that we don't have a report file open.
 	s_reportDateString = "";
+
+	// Create the reports directory, if necessary.
+	s_reportsDirectory = baseDirectory + "reports/";
+
+	if (std::filesystem::exists(s_reportsDirectory) == false)
+	{
+		if (std::filesystem::create_directory(s_reportsDirectory) == false)
+		{
+			Logger::WriteLine(Shell::Red("Reports directory \""), s_reportsDirectory, 
+									Shell::Red("\" does not exist and failed to be created."));
+			return;
+		}
+	}
 
 	// Open the correct file for now.
 	ReportsOpenFile();

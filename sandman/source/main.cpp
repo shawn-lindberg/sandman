@@ -108,10 +108,10 @@ static bool InitializeDaemon()
 	}
 
 	// Change the current working directory.
-	if (chdir(SANDMAN_TEMP_DIR) < 0)
+	if (chdir(s_baseDirectory.c_str()) < 0)
 	{
-		Logger::WriteLine(Shell::Red("Failed to change working directory to \"", SANDMAN_TEMP_DIR,
-											  "\" ID for daemon."));
+		Logger::WriteLine(Shell::Red("Failed to change working directory to \"", 
+											  s_baseDirectory.c_str(), "\" ID for daemon."));
 		s_exitCode = 1;
 		return false;
 	}
@@ -149,8 +149,10 @@ static bool InitializeDaemon()
 
 	sockaddr_un listeningAddress;
 	{
+		std::string const socketFilename = s_baseDirectory + "sandman.sock";
+
 		listeningAddress.sun_family = AF_UNIX;
-		std::strncpy(listeningAddress.sun_path, SANDMAN_TEMP_DIR "sandman.sock",
+		std::strncpy(listeningAddress.sun_path, socketFilename.c_str(),
 							sizeof(listeningAddress.sun_path) - 1);
 	}
 
@@ -208,8 +210,6 @@ static bool SetupEnvironment()
 	}
 
 	s_baseDirectory = baseDirectory;
-
-	// Need to set up some other stuff.
 
 	return true;
 }
@@ -307,7 +307,7 @@ static bool Initialize()
 	ScheduleInitialize();
 
 	// Initialize reports.
-	ReportsInitialize();
+	ReportsInitialize(s_baseDirectory);
 
 	// Initialize the commands.
 	CommandInitialize(s_input);
@@ -448,8 +448,10 @@ static void SendMessageToDaemon(char const* message)
 
 	sockaddr_un sendingAddress;
 	{
+		std::string const socketFilename = s_baseDirectory + "sandman.sock";
+
 		sendingAddress.sun_family = AF_UNIX;
-		std::strncpy(sendingAddress.sun_path, SANDMAN_TEMP_DIR "sandman.sock",
+		std::strncpy(sendingAddress.sun_path, socketFilename.c_str(),
 						 sizeof(sendingAddress.sun_path) - 1);
 	}
 
