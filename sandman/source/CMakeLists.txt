@@ -14,9 +14,8 @@ if (ENABLE_GPIO)
     target_compile_definitions(sandman_lib PUBLIC ENABLE_GPIO)
 endif()
 
-target_compile_definitions(sandman_lib 
-                           PUBLIC SANDMAN_CONFIG_DIR="${CMAKE_INSTALL_FULL_SYSCONFDIR}/sandman/"
-                           PUBLIC SANDMAN_TEMP_DIR="${CMAKE_INSTALL_FULL_LOCALSTATEDIR}/sandman/")
+#target_compile_definitions(sandman_lib 
+#                           PUBLIC SANDMAN_CONFIG_DIR="${CMAKE_INSTALL_FULL_SYSCONFDIR}/sandman/")
 
 #configure_file(sandman_config.h.in sandman_config.h)
 

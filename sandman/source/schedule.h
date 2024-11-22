@@ -64,7 +64,9 @@ class Schedule
 
 // Initialize the schedule.
 //
-void ScheduleInitialize();
+// baseDirectory: The base directory for data files.
+//
+void ScheduleInitialize(std::string const& baseDirectory);
 
 // Uninitialize the schedule.
 // 

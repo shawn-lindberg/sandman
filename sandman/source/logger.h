@@ -69,6 +69,11 @@ public:
 	/// @returns `true` on success, `false` otherwise.
 	[[nodiscard]] static bool Initialize(char const* const logFileName);
 
+	[[nodiscard]] static bool Initialize(std::string const& logFileName)
+	{
+		return Initialize(logFileName.c_str());
+	}
+
 	/// Close the file associated with the global logger.
 	static void Uninitialize();
 

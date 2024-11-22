@@ -2,8 +2,10 @@
 #include <cctype>
 #include <cstdio>
 #include <ctime>
+#include <filesystem>
 
 #include <fcntl.h>
+#include <pwd.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -52,6 +54,9 @@ static int s_listeningSocket = -1;
 
 static int s_exitCode = 0;
 
+// The base directory for files we will be using.
+static std::string s_baseDirectory;
+
 // Functions
 //
 
@@ -86,7 +91,7 @@ static bool InitializeDaemon()
 	umask(0);
 
 	// Initialize logging.
-	if (Logger::Initialize(SANDMAN_TEMP_DIR "sandman.log") == false)
+	if (Logger::Initialize(s_baseDirectory + "sandman.log") == false)
 	{
 		s_exitCode = 1;
 		return false;
@@ -103,10 +108,10 @@ static bool InitializeDaemon()
 	}
 
 	// Change the current working directory.
-	if (chdir(SANDMAN_TEMP_DIR) < 0)
+	if (chdir(s_baseDirectory.c_str()) < 0)
 	{
-		Logger::WriteLine(Shell::Red("Failed to change working directory to \"", SANDMAN_TEMP_DIR,
-											  "\" ID for daemon."));
+		Logger::WriteLine(Shell::Red("Failed to change working directory to \"", 
+											  s_baseDirectory.c_str(), "\" ID for daemon."));
 		s_exitCode = 1;
 		return false;
 	}
@@ -144,8 +149,10 @@ static bool InitializeDaemon()
 
 	sockaddr_un listeningAddress;
 	{
+		std::string const socketFilename = s_baseDirectory + "sandman.sock";
+
 		listeningAddress.sun_family = AF_UNIX;
-		std::strncpy(listeningAddress.sun_path, SANDMAN_TEMP_DIR "sandman.sock",
+		std::strncpy(listeningAddress.sun_path, socketFilename.c_str(),
 							sizeof(listeningAddress.sun_path) - 1);
 	}
 
@@ -173,12 +180,51 @@ static bool InitializeDaemon()
 	return true;
 }
 
+// Create directories and potentially files needed.
+//
+static bool SetupEnvironment()
+{
+	// Get the home directory.
+	auto* homeDirectory = getenv("HOME");
+
+	if (homeDirectory == nullptr)
+	{
+		homeDirectory = getpwuid(getuid())->pw_dir;
+
+		if (homeDirectory == nullptr)
+		{
+			return false;
+		}
+	}
+
+	// Create the base directory if needed.
+	std::string baseDirectory = std::string(homeDirectory) + "/.sandman/";
+	
+	if (std::filesystem::exists(baseDirectory) == false)
+	{
+		if (std::filesystem::create_directory(baseDirectory) == false)
+		{
+			printf("Directory \"%s\" doesn't exist and failed to create it!", baseDirectory.c_str());
+			return false;
+		}
+	}
+
+	s_baseDirectory = baseDirectory;
+
+	return true;
+}
+
 // Initialize program components.
 //
 // returns:		True for success, false otherwise.
 //
 static bool Initialize()
 {
+	if (SetupEnvironment() == false)
+	{
+		return false;
+	}
+
 	switch (s_programMode)
 	{
 		case kProgramModeDaemon:
@@ -193,7 +239,7 @@ static bool Initialize()
 		case kProgramModeDocker:
 		{
 			// Initialize logging.
-			if (Logger::Initialize(SANDMAN_TEMP_DIR "sandman.log") == false)
+			if (Logger::Initialize(s_baseDirectory + "sandman.log") == false)
 			{
 				s_exitCode = 1;
 				return false;
@@ -204,7 +250,7 @@ static bool Initialize()
 		case kProgramModeInteractive:
 		{
 			// Initialize logging.
-			if (Logger::Initialize(SANDMAN_TEMP_DIR "sandman.log") == false)
+			if (Logger::Initialize(s_baseDirectory + "sandman.log") == false)
 			{
 				s_exitCode = 1;
 				return false;
@@ -222,12 +268,13 @@ static bool Initialize()
 		return false;
 	};
 
-	// Read the config.
 	Config config;
-	if (config.ReadFromFile(SANDMAN_CONFIG_DIR "sandman.conf") == false)
+
+	// Read the config.
+	std::string configFilename = s_baseDirectory + "sandman.conf";
+	if (config.ReadFromFile(configFilename.c_str()) == false)
 	{
-		s_exitCode = 1;
-		return false;
+		Logger::WriteLine(Shell::Yellow("Using default configuration."));
 	}
 
 	// Initialize MQTT.
@@ -258,10 +305,10 @@ static bool Initialize()
 	s_input.Initialize(config.GetInputDeviceName(), config.GetInputBindings());
 
 	// Initialize the schedule.
-	ScheduleInitialize();
+	ScheduleInitialize(s_baseDirectory);
 
 	// Initialize reports.
-	ReportsInitialize();
+	ReportsInitialize(s_baseDirectory);
 
 	// Initialize the commands.
 	CommandInitialize(s_input);
@@ -402,8 +449,10 @@ static void SendMessageToDaemon(char const* message)
 
 	sockaddr_un sendingAddress;
 	{
+		std::string const socketFilename = s_baseDirectory + "sandman.sock";
+
 		sendingAddress.sun_family = AF_UNIX;
-		std::strncpy(sendingAddress.sun_path, SANDMAN_TEMP_DIR "sandman.sock",
+		std::strncpy(sendingAddress.sun_path, socketFilename.c_str(),
 						 sizeof(sendingAddress.sun_path) - 1);
 	}
 
