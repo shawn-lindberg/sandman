@@ -41,7 +41,8 @@ bool Config::ReadFromFile(char const* configFileName)
 
 	if (configFile == nullptr)
 	{
-		Logger::WriteLine(Shell::Red("Failed to open the config file."));
+		Logger::WriteLine(Shell::Yellow("Failed to open the config file \""), configFileName, 
+								Shell::Yellow("\"."));
 		return false;
 	}
 

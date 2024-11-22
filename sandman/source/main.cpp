@@ -268,12 +268,13 @@ static bool Initialize()
 		return false;
 	};
 
-	// Read the config.
 	Config config;
-	if (config.ReadFromFile(SANDMAN_CONFIG_DIR "sandman.conf") == false)
+
+	// Read the config.
+	std::string configFilename = s_baseDirectory + "sandman.conf";
+	if (config.ReadFromFile(configFilename.c_str()) == false)
 	{
-		s_exitCode = 1;
-		return false;
+		Logger::WriteLine(Shell::Yellow("Using default configuration."));
 	}
 
 	// Initialize MQTT.
