@@ -24,7 +24,7 @@
 //
 
 // Whether the system is initialized.
-static bool s_scheduleInitialized = false;
+static bool s_routinesInitialized = false;
 
 // The directory where routine files are stored.
 static std::string s_routinesDirectory;
@@ -35,24 +35,24 @@ static unsigned int s_scheduleIndex = UINT_MAX;
 // The time the delay for the next event began.
 static Time s_scheduleDelayStartTime;
 
-static Schedule s_schedule;
+static Routine s_routine;
 
 // Functions
 //
 
-// ScheduleEvent members
+// RoutineStep members
 
-// Read a schedule event from JSON. 
+// Read a routine step from JSON. 
 //	
-// object:	The JSON object representing the event.
+// object:	The JSON object representing the step.
 //
-// Returns:		True if the event was read successfully, false otherwise.
+// Returns:		True if the step was read successfully, false otherwise.
 //
-bool ScheduleEvent::ReadFromJSON(rapidjson::Value const& object)
+bool RoutineStep::ReadFromJSON(rapidjson::Value const& object)
 {
 	if (object.IsObject() == false)
 	{
-		Logger::WriteLine("Schedule event could not be parsed because it is not an object.");
+		Logger::WriteLine("Routine step could not be parsed because it is not an object.");
 		return false;
 	}
 
@@ -61,13 +61,13 @@ bool ScheduleEvent::ReadFromJSON(rapidjson::Value const& object)
 
 	if (delayIterator == object.MemberEnd())
 	{
-		Logger::WriteLine("Schedule event is missing the delay time.");
+		Logger::WriteLine("Routine step is missing the delay time.");
 		return false;
 	}
 
 	if (delayIterator->value.IsInt() == false)
 	{
-		Logger::WriteLine("Schedule event has a delay time, but it's not an integer.");
+		Logger::WriteLine("Routine step has a delay time, but it's not an integer.");
 		return false;
 	}
 
@@ -78,141 +78,138 @@ bool ScheduleEvent::ReadFromJSON(rapidjson::Value const& object)
 
 	if (controlActionIterator == object.MemberEnd())
 	{
-		Logger::WriteLine("Schedule event is missing a control action.");
+		Logger::WriteLine("Routine step is missing a control action.");
 		return false;
 	}
 
 	if (m_controlAction.ReadFromJSON(controlActionIterator->value) == false) 
 	{
-		Logger::WriteLine("Schedule event control action could not be parsed.");
+		Logger::WriteLine("Between step control action could not be parsed.");
 		return false;
 	}
 
 	return true;
 }
 
-// Schedule members
+// Routine members
 
-// Load a schedule from a file.
+// Load a routine from a file.
 //
-// fileName: The name of a file describing the schedule.
+// fileName: The name of a file describing the routine.
 //
-// Returns:    True if the schedule was loaded successfully, false otherwise.
+// Returns:    True if the routine was loaded successfully, false otherwise.
 //
-bool Schedule::ReadFromFile(char const* fileName)
+bool Routine::ReadFromFile(char const* fileName)
 {
-	m_events.clear();
+	m_steps.clear();
 
-	auto* scheduleFile = std::fopen(fileName, "r");
+	auto* routineFile = std::fopen(fileName, "r");
 
-	if (scheduleFile == nullptr)
+	if (routineFile == nullptr)
 	{
-		Logger::WriteLine(Shell::Red("Failed to open the schedule file ", fileName, ".\n"));
+		Logger::WriteLine(Shell::Red("Failed to open the routine file ", fileName, ".\n"));
 		return false;
 	}
 
-	static constexpr std::size_t kReadBufferCapacity{ 65536u };
+	static constexpr std::size_t kReadBufferCapacity = 65536u;
 	char readBuffer[kReadBufferCapacity];
-	rapidjson::FileReadStream scheduleFileStream(scheduleFile, readBuffer, 
-		sizeof(readBuffer));
+	rapidjson::FileReadStream routineFileStream(routineFile, readBuffer, sizeof(readBuffer));
 
-	rapidjson::Document scheduleDocument;
-	scheduleDocument.ParseStream(scheduleFileStream);
+	rapidjson::Document routineDocument;
+	routineDocument.ParseStream(routineFileStream);
 
-	if (scheduleDocument.HasParseError() == true)
+	if (routineDocument.HasParseError() == true)
 	{
-		Logger::WriteLine(Shell::Red("Failed to parse the schedule file ", fileName, ".\n"));
-		std::fclose(scheduleFile);
+		Logger::WriteLine(Shell::Red("Failed to parse the routine file ", fileName, ".\n"));
+		std::fclose(routineFile);
 		return false;
 	}
 
-	// Find the list of events.
-	auto const eventsIterator = scheduleDocument.FindMember("events");
+	// Find the list of steps.
+	auto const stepsIterator = routineDocument.FindMember("steps");
 
-	if (eventsIterator == scheduleDocument.MemberEnd())
+	if (stepsIterator == routineDocument.MemberEnd())
 	{
-		Logger::WriteLine("No schedule events in ", fileName, ".\n");
-		std::fclose(scheduleFile);
+		Logger::WriteLine("No routine steps in ", fileName, ".\n");
+		std::fclose(routineFile);
 		return false;		
 	}
 
-	if (eventsIterator->value.IsArray() == false)
+	if (stepsIterator->value.IsArray() == false)
 	{
-		Logger::WriteLine("Schedule has events, but it is not an array.");
-		std::fclose(scheduleFile);
-		Logger::WriteLine("No event array in ", fileName, ".\n");
+		std::fclose(routineFile);
+		Logger::WriteLine("No steps array in ", fileName, ".\n");
 		return false;
 	}
 
-	// Try to load each event in turn.
-	for (auto const& eventObject : eventsIterator->value.GetArray())
+	// Try to load each step in turn.
+	for (auto const& stepObject : stepsIterator->value.GetArray())
 	{
-		// Try to read the event.
-		ScheduleEvent event;
-		if (event.ReadFromJSON(eventObject) == false)
+		// Try to read the step.
+		RoutineStep step;
+		if (step.ReadFromJSON(stepObject) == false)
 		{
 			continue;
 		}
 					
-		// If we successfully read the event, add it to the list.
-		m_events.push_back(event);
+		// If we successfully read the step, add it to the list.
+		m_steps.push_back(step);
 	}
 
-	std::fclose(scheduleFile);
+	std::fclose(routineFile);
 	return true;
 }
 
-// Determines whether the schedule is empty.
+// Determines whether the routine is empty.
 //
-bool Schedule::IsEmpty() const
+bool Routine::IsEmpty() const
 {
-	return (m_events.size() == 0);
+	return (m_steps.size() == 0);
 }
 
-// Gets the number of events in the schedule.
+// Gets the number of steps in the routine.
 //
-size_t Schedule::GetNumEvents() const
+unsigned int Routine::GetNumSteps() const
 {
-	return m_events.size();
+	return m_steps.size();
 }
 
-// Get the events in the schedule.
-// NOTE: This is intended to be const, however current ControlActions prevent that.
+// Get the steps in the routine.
 //
-std::vector<ScheduleEvent>& Schedule::GetEvents()
+std::vector<RoutineStep> const& Routine::GetSteps() const
 {
-	return m_events;
+	return m_steps;
 }
 
 // Functions
 //
 
-// Load the schedule from a file.
+// Load the routine from a file.
 //
-static bool ScheduleLoad()
+static bool RoutineLoad()
 {
 	auto const routineFile = s_routinesDirectory + "sandman.rtn";
-	return s_schedule.ReadFromFile(routineFile.c_str());
+	return s_routine.ReadFromFile(routineFile.c_str());
 }
 
-// Write the loaded schedule to the logger.
+// Write the loaded routine to the logger.
 //
-static void ScheduleLogLoaded()
+static void RoutineLogLoaded()
 {
-	// Now write out the schedule.
-	Logger::WriteLine("The following schedule is loaded:");
+	// Now write out the routine.
+	Logger::WriteLine("The following routine is loaded:");
 	
-	if (s_schedule.IsEmpty())
+	if (s_routine.IsEmpty() == true)
 	{
 		Logger::WriteLine("\t<empty>");
 		Logger::WriteLine();
 		return;
 	}
 
-	for (auto const& event : s_schedule.GetEvents())
+	for (auto const& step : s_routine.GetSteps())
 	{
 		// Split the delay into multiple units.
-		auto delaySec = event.m_delaySec;
+		auto delaySec = step.m_delaySec;
 		
 		auto const delayHours = delaySec / 3600;
 		delaySec %= 3600;
@@ -220,7 +217,7 @@ static void ScheduleLogLoaded()
 		auto const delayMin = delaySec / 60;
 		delaySec %= 60;
 		
-		auto const* actionText = (event.m_controlAction.m_action == Control::kActionMovingUp) ? 
+		auto const* actionText = (step.m_controlAction.m_action == Control::kActionMovingUp) ? 
 			"up" : "down";
 			
 		// Print the event.
@@ -232,9 +229,9 @@ static void ScheduleLogLoaded()
 								std::setw(2), delayMin  , "m ",
 								std::setw(2), delaySec  , "s "
 
-								"-> ", event.m_controlAction.m_controlName, ", ", actionText,
+								"-> ", step.m_controlAction.m_controlName, ", ", actionText,
 
-								/* Restore fill to space. */
+								// Restore fill to space.
 								std::setfill(' ')
 
 								/* `std::setw` only applies once, so it doesn't need to be restored. */);
@@ -243,15 +240,15 @@ static void ScheduleLogLoaded()
 	Logger::WriteLine();
 }
 
-// Initialize the schedule.
+// Initialize the routines.
 //
 // baseDirectory: The base directory for data files.
 //
-void ScheduleInitialize(std::string const& baseDirectory)
+void RoutinesInitialize(std::string const& baseDirectory)
 {	
 	s_scheduleIndex = UINT_MAX;
 	
-	Logger::WriteLine("Initializing the schedule...");
+	Logger::WriteLine("Initializing the routines...");
 
 	// Create the routines directory, if necessary.
 	s_routinesDirectory = baseDirectory + "routines/";
@@ -266,8 +263,8 @@ void ScheduleInitialize(std::string const& baseDirectory)
 		}
 	}
 
-	// Parse the schedule.
-	if (ScheduleLoad() == false)
+	// Parse the routine.
+	if (RoutineLoad() == false)
 	{
 		Logger::WriteLine('\t', Shell::Red("failed"));
 		return;
@@ -276,39 +273,39 @@ void ScheduleInitialize(std::string const& baseDirectory)
 	Logger::WriteLine('\t', Shell::Green("succeeded"));
 	Logger::WriteLine();
 	
-	// Log the schedule that just got loaded.
-	ScheduleLogLoaded();
+	// Log the routine that just got loaded.
+	RoutineLogLoaded();
 	
-	s_scheduleInitialized = true;
+	s_routinesInitialized = true;
 }
 
-// Uninitialize the schedule.
+// Uninitialize the routines.
 // 
-void ScheduleUninitialize()
+void RoutinesUninitialize()
 {
-	if (s_scheduleInitialized == false)
+	if (s_routinesInitialized == false)
 	{
 		return;
 	}
 	
-	s_scheduleInitialized = false;
+	s_routinesInitialized = false;
 }
 
-// Start the schedule.
+// Start the routine.
 //
-void ScheduleStart()
+void RoutineStart()
 {
 	// Add the report item prior to checks, because we want to record the intent.
 	ReportsAddScheduleItem("start");
 
 	// Make sure it's initialized.
-	if (s_scheduleInitialized == false)
+	if (s_routinesInitialized == false)
 	{
 		return;
 	}
 	
 	// Make sure it's not running.
-	if (ScheduleIsRunning() == true)
+	if (RoutineIsRunning() == true)
 	{
 		return;
 	}
@@ -319,24 +316,24 @@ void ScheduleStart()
 	// Notify.
 	NotificationPlay("schedule_start");
 	
-	Logger::WriteLine("Schedule started.");
+	Logger::WriteLine("Routine started.");
 }
 
-// Stop the schedule.
+// Stop the routine.
 //
-void ScheduleStop()
+void RoutineStop()
 {
 	// Add the report item prior to checks, because we want to record the intent.
 	ReportsAddScheduleItem("stop");
 
 	// Make sure it's initialized.
-	if (s_scheduleInitialized == false)
+	if (s_routinesInitialized == false)
 	{
 		return;
 	}
 	
 	// Make sure it's running.
-	if (ScheduleIsRunning() == false)
+	if (RoutineIsRunning() == false)
 	{
 		return;
 	}
@@ -346,35 +343,35 @@ void ScheduleStop()
 	// Notify.
 	NotificationPlay("schedule_stop");
 	
-	Logger::WriteLine("Schedule stopped.");
+	Logger::WriteLine("Routine stopped.");
 }
 
-// Determine whether the schedule is running.
+// Determine whether the routine is running.
 //
-bool ScheduleIsRunning()
+bool RoutineIsRunning()
 {
 	return (s_scheduleIndex != UINT_MAX);
 }
 
-// Process the schedule.
+// Process the routines.
 //
-void ScheduleProcess()
+void RoutinesProcess()
 {
 	// Make sure it's initialized.
-	if (s_scheduleInitialized == false)
+	if (s_routinesInitialized == false)
 	{
 		return;
 	}
 	
 	// Running?
-	if (ScheduleIsRunning() == false)
+	if (RoutineIsRunning() == false)
 	{
 		return;
 	}
 
-	// No need to do anything for schedules with zero events.
-	auto const scheduleEventCount = static_cast<unsigned int>(s_schedule.GetNumEvents());
-	if (scheduleEventCount == 0)
+	// No need to do anything for routines with zero steps.
+	auto const numSteps = s_routine.GetNumSteps();
+	if (numSteps == 0u)
 	{
 		return;
 	}
@@ -387,39 +384,40 @@ void ScheduleProcess()
 		TimerGetElapsedMilliseconds(s_scheduleDelayStartTime, currentTime) / 1000.0f;
 
 	// Time up?
-	auto& event = s_schedule.GetEvents()[s_scheduleIndex];
+	auto& step = s_routine.GetSteps()[s_scheduleIndex];
 	
-	if (elapsedTimeSec < event.m_delaySec)
+	if (elapsedTimeSec < step.m_delaySec)
 	{
 		return;
 	}
 	
-	// Move to the next event.
-	s_scheduleIndex = (s_scheduleIndex + 1) % scheduleEventCount;
+	// Move to the next step.
+	s_scheduleIndex = (s_scheduleIndex + 1) % numSteps;
 	
 	// Set the new delay start time.
 	TimerGetCurrent(s_scheduleDelayStartTime);
 	
-	// Sanity check the event.
-	if (event.m_controlAction.m_action >= Control::kNumActions)
+	// Sanity check the step.
+	if (step.m_controlAction.m_action >= Control::kNumActions)
 	{
-		Logger::WriteLine("Schedule moving to event ", s_scheduleIndex, ".");
+		Logger::WriteLine("Routine moving to step ", s_scheduleIndex, ".");
 		return;
 	}
 
 	// Try to find the control to perform the action.
-	auto* control = event.m_controlAction.GetControl();
+	auto* control = step.m_controlAction.GetControl();
 	
-	if (control == nullptr) {
-		Logger::WriteLine("Schedule couldn't find control \"", event.m_controlAction.m_controlName,
-								"\". Moving to event ", s_scheduleIndex, ".");
+	if (control == nullptr)
+	{
+		Logger::WriteLine("Routine couldn't find control \"", step.m_controlAction.m_controlName,
+								"\". Moving to step ", s_scheduleIndex, ".");
 		return;
 	}
 		
 	// Perform the action.
-	control->SetDesiredAction(event.m_controlAction.m_action, Control::kModeTimed);
+	control->SetDesiredAction(step.m_controlAction.m_action, Control::kModeTimed);
 	
-	ReportsAddControlItem(control->GetName(), event.m_controlAction.m_action, "schedule");
+	ReportsAddControlItem(control->GetName(), step.m_controlAction.m_action, "routine");
 
-	Logger::WriteLine("Schedule moving to event ", s_scheduleIndex, ".");
+	Logger::WriteLine("Routine moving to step ", s_scheduleIndex, ".");
 }

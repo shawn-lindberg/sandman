@@ -280,12 +280,12 @@ CommandParseTokensReturnTypes CommandParseTokens(char const*& confirmationText,
 			
 				if (token.m_type == CommandToken::kTypeStart)
 				{
-					ScheduleStart();
+					RoutineStart();
 					return CommandParseTokensReturnTypes::kSuccess;
 				}
 				else if (token.m_type == CommandToken::kTypeStop)
 				{
-					ScheduleStop();
+					RoutineStop();
 					return CommandParseTokensReturnTypes::kSuccess;
 				}			
 			}
@@ -296,7 +296,7 @@ CommandParseTokensReturnTypes CommandParseTokens(char const*& confirmationText,
 				// Play status notification.
 				NotificationPlay("running");
 				
-				if (ScheduleIsRunning() == true)
+				if (RoutineIsRunning() == true)
 				{
 					NotificationPlay("schedule_running");
 				}

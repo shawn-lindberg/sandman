@@ -8,83 +8,82 @@
 // Types
 //
 
-// A schedule event.
-struct ScheduleEvent
+// A routine step.
+struct RoutineStep
 {
-	// Read a schedule event from JSON. 
+	// Read a routine step from JSON. 
 	//
-	// object:	The JSON object representing the event.
+	// object:	The JSON object representing the step.
 	//	
-	// Returns:		True if the event was read successfully, false otherwise.
+	// Returns:		True if the step was read successfully, false otherwise.
 	//
 	bool ReadFromJSON(rapidjson::Value const& object);
 	
-	// Delay in seconds before this entry occurs (since the last).
+	// Delay in seconds before this step occurs (since the last).
 	unsigned int	m_delaySec;
 	
-	// The control action to perform at the scheduled time.
+	// The control action to perform for this step.
 	ControlAction	m_controlAction;
 };
 
-// A schedule.
-class Schedule 
+// A routine.
+class Routine 
 {
    public:
-      Schedule() = default;
+      Routine() = default;
 
-      // Load a schedule from a file.
+      // Load a routine from a file.
       //
-      // fileName: The name of a file describing the schedule.
+      // fileName:	The name of a file describing the routine.
       //
-      // Returns:    True if the schedule was loaded successfully, false otherwise.
+      // Returns:		True if the routine was loaded successfully, false otherwise.
       //
       bool ReadFromFile(const char* fileName);
 
-      // Determines whether the schedule is empty.
+      // Determines whether the routine is empty.
       //
       bool IsEmpty() const;
 
-      // Gets the number of events in the schedule.
+      // Gets the number of steps in the routine.
       //
-      size_t GetNumEvents() const;
+      unsigned int GetNumSteps() const;
       
-      // Get the events in the schedule.
-      // NOTE: This is intended to be const, however current ControlActions prevent that.
+      // Get the steps in the routine.
       //
-      std::vector<ScheduleEvent>& GetEvents();
+      std::vector<RoutineStep> const& GetSteps() const;
 
    private:
-      // The list of events making up the schedule.
-      std::vector<ScheduleEvent> m_events;
+      // The list of steps making up the routine.
+      std::vector<RoutineStep> m_steps;
 };
 
 
 // Functions
 //
 
-// Initialize the schedule.
+// Initialize the routines.
 //
 // baseDirectory: The base directory for data files.
 //
-void ScheduleInitialize(std::string const& baseDirectory);
+void RoutinesInitialize(std::string const& baseDirectory);
 
-// Uninitialize the schedule.
+// Uninitialize the routines.
 // 
-void ScheduleUninitialize();
+void RoutinesUninitialize();
 
-// Start the schedule.
+// Start the routine.
 //
-void ScheduleStart();
+void RoutineStart();
 
-// Stop the schedule.
+// Stop the routine.
 //
-void ScheduleStop();
+void RoutineStop();
 
-// Determine whether the schedule is running.
+// Determine whether the routine is running.
 //
-bool ScheduleIsRunning();
+bool RoutineIsRunning();
 
-// Process the schedule.
+// Process the routines.
 //
-void ScheduleProcess();
+void RoutinesProcess();
 

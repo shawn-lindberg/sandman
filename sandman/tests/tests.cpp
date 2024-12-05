@@ -105,46 +105,46 @@ TEST_CASE("Test default config", "[config]")
 	}
 }
 
-TEST_CASE("Test missing schedule", "[schedules]")
+TEST_CASE("Test missing routine", "[routines]")
 {
-	Schedule schedule;
-	bool const loaded = schedule.ReadFromFile("");
+	Routine routine;
+	bool const loaded = routine.ReadFromFile("");
 	REQUIRE(loaded == false);
 }
 
-TEST_CASE("Test default (empty) schedule", "[schedules]")
+TEST_CASE("Test default (empty) routine", "[routines]")
 {
-	Schedule schedule;
-	bool const loaded = schedule.ReadFromFile(SANDMAN_TEST_DATA_DIR "sandman.sched");
+	Routine routine;
+	bool const loaded = routine.ReadFromFile(SANDMAN_TEST_DATA_DIR "sandman.rtn");
 	REQUIRE(loaded == true);
-	REQUIRE(schedule.IsEmpty() == true);
+	REQUIRE(routine.IsEmpty() == true);
 }
 
-TEST_CASE("Test invalid schedule", "[schedules]")
+TEST_CASE("Test invalid routine", "[routines]")
 {
-	Schedule schedule;
-	bool const loaded = schedule.ReadFromFile(SANDMAN_TEST_DATA_DIR "invalidJson.sched");
+	Routine routine;
+	bool const loaded = routine.ReadFromFile(SANDMAN_TEST_DATA_DIR "invalid_json.rtn");
 	REQUIRE(loaded == false);
 }
 
-TEST_CASE("Test example schedule", "[schedules]")
+TEST_CASE("Test example routine", "[routines]")
 {
-	Schedule schedule;
-	bool const loaded = schedule.ReadFromFile(SANDMAN_TEST_DATA_DIR "example.sched");
+	Routine routine;
+	bool const loaded = routine.ReadFromFile(SANDMAN_TEST_DATA_DIR "example.rtn");
 	REQUIRE(loaded == true);
-	REQUIRE(schedule.IsEmpty() == false);
-	REQUIRE(schedule.GetNumEvents() == 2);
+	REQUIRE(routine.IsEmpty() == false);
+	REQUIRE(routine.GetNumSteps() == 2u);
 
-	std::vector<ScheduleEvent>& events = schedule.GetEvents();
-	if (events.size() > 1)
+	auto const& steps = routine.GetSteps();
+	if (steps.size() > 1)
 	{
-		REQUIRE(events[0].m_delaySec == 20);
-		REQUIRE(events[1].m_delaySec == 25);
+		REQUIRE(steps[0].m_delaySec == 20);
+		REQUIRE(steps[1].m_delaySec == 25);
 
-		REQUIRE(std::string(events[0].m_controlAction.m_controlName) == "legs");
-		REQUIRE(events[0].m_controlAction.m_action == Control::kActionMovingUp);
-		REQUIRE(std::string(events[1].m_controlAction.m_controlName) == "legs");
-		REQUIRE(events[1].m_controlAction.m_action == Control::kActionMovingDown);
+		REQUIRE(std::string(steps[0].m_controlAction.m_controlName) == "legs");
+		REQUIRE(steps[0].m_controlAction.m_action == Control::kActionMovingUp);
+		REQUIRE(std::string(steps[1].m_controlAction.m_controlName) == "legs");
+		REQUIRE(steps[1].m_controlAction.m_action == Control::kActionMovingDown);
 	}
 }
 

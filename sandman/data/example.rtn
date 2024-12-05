@@ -1,6 +1,6 @@
 {
 	"version" : 1,
-	"events" : [
+	"steps" : [
 		{
 			"delaySec" : 20, 
 			"controlAction" : {
