@@ -29,11 +29,11 @@ static bool s_routinesInitialized = false;
 // The directory where routine files are stored.
 static std::string s_routinesDirectory;
 
-// The current spot in the schedule.
-static unsigned int s_scheduleIndex = UINT_MAX;
+// The current spot in the routine.
+static unsigned int s_routineIndex = UINT_MAX;
 
-// The time the delay for the next event began.
-static Time s_scheduleDelayStartTime;
+// The time the delay for the next step began.
+static Time s_routineDelayStartTime;
 
 static Routine s_routine;
 
@@ -246,7 +246,7 @@ static void RoutineLogLoaded()
 //
 void RoutinesInitialize(std::string const& baseDirectory)
 {	
-	s_scheduleIndex = UINT_MAX;
+	s_routineIndex = UINT_MAX;
 	
 	Logger::WriteLine("Initializing the routines...");
 
@@ -296,7 +296,7 @@ void RoutinesUninitialize()
 void RoutineStart()
 {
 	// Add the report item prior to checks, because we want to record the intent.
-	ReportsAddScheduleItem("start");
+	ReportsAddRoutineItem("start");
 
 	// Make sure it's initialized.
 	if (s_routinesInitialized == false)
@@ -310,11 +310,11 @@ void RoutineStart()
 		return;
 	}
 	
-	s_scheduleIndex = 0;
-	TimerGetCurrent(s_scheduleDelayStartTime);
+	s_routineIndex = 0u;
+	TimerGetCurrent(s_routineDelayStartTime);
 	
 	// Notify.
-	NotificationPlay("schedule_start");
+	NotificationPlay("routine_start");
 	
 	Logger::WriteLine("Routine started.");
 }
@@ -324,7 +324,7 @@ void RoutineStart()
 void RoutineStop()
 {
 	// Add the report item prior to checks, because we want to record the intent.
-	ReportsAddScheduleItem("stop");
+	ReportsAddRoutineItem("stop");
 
 	// Make sure it's initialized.
 	if (s_routinesInitialized == false)
@@ -338,10 +338,10 @@ void RoutineStop()
 		return;
 	}
 	
-	s_scheduleIndex = UINT_MAX;
+	s_routineIndex = UINT_MAX;
 	
 	// Notify.
-	NotificationPlay("schedule_stop");
+	NotificationPlay("routine_stop");
 	
 	Logger::WriteLine("Routine stopped.");
 }
@@ -350,7 +350,7 @@ void RoutineStop()
 //
 bool RoutineIsRunning()
 {
-	return (s_scheduleIndex != UINT_MAX);
+	return (s_routineIndex != UINT_MAX);
 }
 
 // Process the routines.
@@ -381,10 +381,10 @@ void RoutinesProcess()
 	TimerGetCurrent(currentTime);
 
 	auto const elapsedTimeSec = 
-		TimerGetElapsedMilliseconds(s_scheduleDelayStartTime, currentTime) / 1000.0f;
+		TimerGetElapsedMilliseconds(s_routineDelayStartTime, currentTime) / 1000.0f;
 
 	// Time up?
-	auto& step = s_routine.GetSteps()[s_scheduleIndex];
+	auto& step = s_routine.GetSteps()[s_routineIndex];
 	
 	if (elapsedTimeSec < step.m_delaySec)
 	{
@@ -392,15 +392,15 @@ void RoutinesProcess()
 	}
 	
 	// Move to the next step.
-	s_scheduleIndex = (s_scheduleIndex + 1) % numSteps;
+	s_routineIndex = (s_routineIndex + 1u) % numSteps;
 	
 	// Set the new delay start time.
-	TimerGetCurrent(s_scheduleDelayStartTime);
+	TimerGetCurrent(s_routineDelayStartTime);
 	
 	// Sanity check the step.
 	if (step.m_controlAction.m_action >= Control::kNumActions)
 	{
-		Logger::WriteLine("Routine moving to step ", s_scheduleIndex, ".");
+		Logger::WriteLine("Routine moving to step ", s_routineIndex, ".");
 		return;
 	}
 
@@ -410,7 +410,7 @@ void RoutinesProcess()
 	if (control == nullptr)
 	{
 		Logger::WriteLine("Routine couldn't find control \"", step.m_controlAction.m_controlName,
-								"\". Moving to step ", s_scheduleIndex, ".");
+								"\". Moving to step ", s_routineIndex, ".");
 		return;
 	}
 		
@@ -419,5 +419,5 @@ void RoutinesProcess()
 	
 	ReportsAddControlItem(control->GetName(), step.m_controlAction.m_action, "routine");
 
-	Logger::WriteLine("Routine moving to step ", s_scheduleIndex, ".");
+	Logger::WriteLine("Routine moving to step ", s_routineIndex, ".");
 }

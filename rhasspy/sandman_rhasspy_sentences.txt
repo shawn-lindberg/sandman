@@ -12,9 +12,9 @@ put [the] <part_name> <part_direction>
 raise {direction:up} [the] <part_name>
 lower {direction:down} [the] <part_name>
 
-[SetSchedule]
-start {action:start} [the] schedule
-stop {action:stop} [the] schedule 
+[SetRoutine]
+start {action:start} [the] routine
+stop {action:stop} [the] routine 
 
 [Reboot]
 reboot

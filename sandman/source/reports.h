@@ -33,11 +33,11 @@ void ReportsProcess();
 void ReportsAddControlItem(std::string const& controlName, Control::Actions const action, 
 									std::string const& sourceName);
 
-// Add an item to the report corresponding to a schedule event.
+// Add an item to the report corresponding to a routine event.
 // 
-// actionName:	The name of the schedule action.
+// actionName:	The name of the routine action.
 // 
-void ReportsAddScheduleItem(std::string const& actionName);
+void ReportsAddRoutineItem(std::string const& actionName);
 
 // Add an item to the report corresponding to a status event.
 // 

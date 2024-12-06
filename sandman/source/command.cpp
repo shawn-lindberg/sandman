@@ -27,7 +27,7 @@ static constexpr char const* const kCommandTokenNames[] =
 	"raise",			// kTypeRaise
 	"lower",			// kTypeLower
 	"stop",			// kTypeStop
-	"schedule",		// kTypeSchedule
+	"routine",		// kTypeRoutine
 	"start",			// kTypeStart
 	"status",		// kTypeStatus
 	"reboot", 		// kTypeReboot
@@ -48,7 +48,7 @@ static std::map<std::string, CommandToken::Types> const s_commandTokenNameToType
 	{ "lower",		CommandToken::kTypeLower },
 	{ "down",		CommandToken::kTypeLower },	// Alternative.
 	{ "stop",		CommandToken::kTypeStop },
-	{ "schedule",	CommandToken::kTypeSchedule },
+	{ "routine",	CommandToken::kTypeRoutine },
 	{ "start",		CommandToken::kTypeStart },
 	{ "status",		CommandToken::kTypeStatus },
 	{ "reboot", 	CommandToken::kTypeReboot }, 
@@ -267,7 +267,7 @@ CommandParseTokensReturnTypes CommandParseTokens(char const*& confirmationText,
 				return CommandParseTokensReturnTypes::kSuccess;
 			}
 			
-			case CommandToken::kTypeSchedule:
+			case CommandToken::kTypeRoutine:
 			{
 				// Next token.
 				tokenIndex++;
@@ -298,7 +298,7 @@ CommandParseTokensReturnTypes CommandParseTokens(char const*& confirmationText,
 				
 				if (RoutineIsRunning() == true)
 				{
-					NotificationPlay("schedule_running");
+					NotificationPlay("routine_running");
 				}
 				
 				if ((s_input != nullptr) && (s_input->IsConnected() == true))
@@ -647,15 +647,15 @@ void CommandTokenizeJSONDocument(std::vector<CommandToken>& commandTokens,
 		return;
 	}
 
-	if (strcmp(intentName, "SetSchedule") == 0)
+	if (strcmp(intentName, "SetRoutine") == 0)
 	{
 		// We need to get the slots so that we can get the necessary parameters.
 		std::vector<SlotNameValue> slots;
 		CommandExtractSlotsFromJSONDocument(slots, commandDocument);
 
-		// We are looking to fill out one token, what to do to the schedule.
-		CommandToken scheduleToken;
-		scheduleToken.m_type = CommandToken::kTypeSchedule;
+		// We are looking to fill out one token, what to do to the routine.
+		CommandToken routineToken;
+		routineToken.m_type = CommandToken::kTypeRoutine;
 
 		CommandToken actionToken;
 
@@ -679,7 +679,7 @@ void CommandTokenizeJSONDocument(std::vector<CommandToken>& commandTokens,
 		Logger::WriteLine("Recognized a ", intentName, " intent.");
 
 		// Now that we theoretically have a set of valid tokens, add them to the output.
-		commandTokens.push_back(scheduleToken);
+		commandTokens.push_back(routineToken);
 		commandTokens.push_back(actionToken);
 		return;
 	}

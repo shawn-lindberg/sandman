@@ -410,11 +410,11 @@ void ReportsAddControlItem(std::string const& controlName, Control::Actions cons
 	ReportsAddItem(itemBuffer.GetString());
 }
 
-// Add an item to the report corresponding to a schedule event.
+// Add an item to the report corresponding to a routine event.
 // 
-// actionName:	The name of the schedule action.
+// actionName:	The name of the routine action.
 // 
-void ReportsAddScheduleItem(std::string const& actionName)
+void ReportsAddRoutineItem(std::string const& actionName)
 {
 	// Make a JSON representation of this item.
 	rapidjson::Document itemDocument;
@@ -423,7 +423,7 @@ void ReportsAddScheduleItem(std::string const& actionName)
 	auto itemAllocator = itemDocument.GetAllocator();
 
 	itemDocument.AddMember("type", 
-		rapidjson::Value(rapidjson::StringRef("schedule")), itemAllocator);	
+		rapidjson::Value(rapidjson::StringRef("routine")), itemAllocator);	
 
 	// It is safe to use a string reference here because this document will not live outside of this 
 	// scope.
