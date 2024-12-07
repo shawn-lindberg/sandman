@@ -23,7 +23,7 @@ struct CommandToken
 		kTypeRaise,
 		kTypeLower,
 		kTypeStop,
-		kTypeSchedule,
+		kTypeRoutine,
 		kTypeStart,
 		kTypeStatus,
 		kTypeReboot, 

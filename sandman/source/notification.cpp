@@ -21,9 +21,9 @@ static const std::map<std::string, std::string>	s_notificationIDToSpeechTextMap 
 {
 	{ "initialized", 				"Sandman initialized" },
 	{ "running",					"Sandman is running" },
-	{ "schedule_running",		"Schedule is running" },
-	{ "schedule_start",			"Schedule started" },
-	{ "schedule_stop",			"Schedule stopped" },
+	{ "routine_running",			"Routine is running" },
+	{ "routine_start",			"Routine started" },
+	{ "routine_stop",				"Routine stopped" },
 	{ "control_connected",		"Controller connected" },
 	{ "control_disconnected",	"Controller disconnected" },
 	{ "back_moving_up",			"Raising the back" },

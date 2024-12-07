@@ -22,7 +22,7 @@
 #include "shell.h"
 #include "notification.h"
 #include "reports.h"
-#include "schedule.h"
+#include "routines.h"
 #include "timer.h"
 
 // Types
@@ -304,8 +304,8 @@ static bool Initialize()
 	// Initialize the input device.
 	s_input.Initialize(config.GetInputDeviceName(), config.GetInputBindings());
 
-	// Initialize the schedule.
-	ScheduleInitialize(s_baseDirectory);
+	// Initialize the routines.
+	RoutinesInitialize(s_baseDirectory);
 
 	// Initialize reports.
 	ReportsInitialize(s_baseDirectory);
@@ -334,8 +334,8 @@ static void Uninitialize()
 	// Uninitialize reports.
 	ReportsUninitialize();
 
-	// Uninitialize the schedule.
-	ScheduleUninitialize();
+	// Uninitialize the routines.
+	RoutinesUninitialize();
 
 	// Uninitialize MQTT.
 	MQTTUninitialize();
@@ -595,8 +595,8 @@ int main(int argc, char** argv)
 		// Process MQTT.
 		MQTTProcess();
 
-		// Process the schedule.
-		ScheduleProcess();
+		// Process the routines.
+		RoutinesProcess();
 
 		// Process the reports.
 		ReportsProcess();
