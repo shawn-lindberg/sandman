@@ -3,7 +3,7 @@
 #include "config.h"
 #include "gpio.h"
 #include "logger.h"
-#include "schedule.h"
+#include "routines.h"
 
 class TestRunListener : public Catch::EventListenerBase
 {
