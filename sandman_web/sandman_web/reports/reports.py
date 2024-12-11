@@ -2,6 +2,7 @@ import datetime
 import json
 import os
 
+from pathlib import Path
 from operator import itemgetter
 
 from flask import (
@@ -10,17 +11,24 @@ from flask import (
 from werkzeug.exceptions import abort
 
 # We need to know where to find the reports.
-reports_path = '/usr/local/var/sandman/reports'
+reports_path = ''
 report_prefix = 'sandman'
 report_extension = '.rpt'
 
 # The date and time format for report events.
 report_date_time_format = '%Y/%m/%d %H:%M:%S %Z'
 
+def get_reports_path():
+    global reports_path
+    if reports_path == '':
+        reports_path = str(Path.home()) + '/.sandman/reports'
+
 blueprint = Blueprint('reports', __name__, url_prefix = '/reports', template_folder='templates', static_folder='static')
 
 @blueprint.route('/')
 def index():
+
+    get_reports_path()
 
     # Build a list of all the reports.
     reports = []
@@ -58,6 +66,8 @@ def index():
 
 @blueprint.route('/<int:year>/<int:month>/<int:day>/report')
 def report(year, month, day):
+
+    get_reports_path()
 
     report_name = '{year:04d}-{month:02d}-{day:02d}'.format(**vars())
     report_filename = reports_path + '/' + report_prefix + report_name + report_extension
@@ -119,7 +129,15 @@ def report(year, month, day):
                 if line_event is None:
                     line_event = 'None'
 
-                if report_version == 2:
+                if report_version == 3:
+                    # Handle the schedule -> routine rename on on old data.
+                    if line_event['type'] == 'schedule':
+                        line_event['type'] = 'routine'
+                    
+                    if line_event['type'] == 'control' and line_event['source'] == 'schedule':
+                        line_event['source'] = 'routine'
+
+                elif report_version == 2:
                     # Convert the event into the most likely sort of control event.
                     control_action_parts = line_event.split(': ')
                     control_name = control_action_parts[0]
