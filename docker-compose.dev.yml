@@ -1,0 +1,10 @@
+services:
+  sandman_web:
+    build: ./sandman_web
+    command: python manage.py run -h 0.0.0.0
+    volumes:
+      - $HOME/.sandman:/root/.sandman
+    ports:
+      - 5001:5000
+    env_file:
+      - ./.env.dev
