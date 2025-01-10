@@ -185,7 +185,12 @@ static bool InitializeDaemon()
 static bool SetupEnvironment()
 {
 	// Get the home directory.
-	auto* homeDirectory = getenv("HOME");
+	auto* homeDirectory = getenv("SANDMAN_ROOT");
+
+	if (homeDirectory == nullptr)
+	{
+		homeDirectory = getenv("HOME");
+	}
 
 	if (homeDirectory == nullptr)
 	{
