@@ -6,7 +6,7 @@ from pathlib import Path
 from operator import itemgetter
 
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, session, url_for
+    Blueprint, flash, g, redirect, render_template, request, session, url_for, current_app
 )
 from werkzeug.exceptions import abort
 
@@ -83,7 +83,7 @@ def report(year, month, day):
 
     # The start date is one day before.
     report_start_date_time = report_end_date + datetime.timedelta(days = -1, hours = 17)
- 
+
     # Attempt to open the file so that we can get the data out of it.
     report_version = None
     report_infos = []
@@ -121,7 +121,8 @@ def report(year, month, day):
                     info_date_time = datetime.datetime.strptime(line_date_time, 
                         report_date_time_format)
 
-                except ValueError:
+                except ValueError as value_error:
+                    current_app.logger.info(value_error)
                     continue
 
                 line_event = line_json.get('event')
@@ -157,7 +158,7 @@ def report(year, month, day):
                 report_infos.append((info_date_time, line_event))
 
         report_file.close()
-    
+        
     except OSError:
         abort(404, 'Oops!')
 

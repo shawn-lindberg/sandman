@@ -4,6 +4,7 @@ services:
     command: python manage.py run -h 0.0.0.0
     volumes:
       - $HOME/.sandman:/root/.sandman
+      - "/etc/localtime:/etc/localtime:ro"
     ports:
       - 5001:5000
     env_file:
