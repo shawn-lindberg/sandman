@@ -24,7 +24,7 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(Mosquitto IMPORTED_TARGET libmosquitto REQUIRED)
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-   target_compile_options(sandman_lib PUBLIC 
+   target_compile_options(sandman_lib PUBLIC
       -Wall                    # Enable most common warnings
       -Wextra                  # Enable additional warnings
       -Werror                  # Treat warnings as errors
