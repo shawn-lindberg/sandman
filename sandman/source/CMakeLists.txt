@@ -38,6 +38,8 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
       -Wformat=1               # Warn about format string issues
       -Wfloat-equal            # Warn if floating-point values are compared for equality
 		-Wimplicit-fallthrough   # Warn if switch case fallthrough not marked with `[[fallthrough]]`
+		-Wdeprecated-declarations # Warn on usage of constructs that are declared with `[[deprecated]]`.
+		-Wno-error=deprecated-declarations
    )
 
 	target_link_options(sandman_lib PUBLIC
