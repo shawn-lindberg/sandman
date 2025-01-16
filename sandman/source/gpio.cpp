@@ -38,7 +38,7 @@ static constexpr int kPinOffValue = 1;
 //
 // enableGPIO: Whether to turn on GPIO or not.
 //
-void GPIOInitialize(bool const enableGPIO)
+void GPIOInitialize([[maybe_unused]] bool const enableGPIO)
 {
 	#if defined ENABLE_GPIO
 	
