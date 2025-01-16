@@ -25,6 +25,7 @@ pkg_check_modules(Mosquitto IMPORTED_TARGET libmosquitto REQUIRED)
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
    target_compile_options(sandman_lib PUBLIC
+		$<$<CONFIG:Debug>:-fsanitize=address,undefined>
       -Wall                    # Enable most common warnings
       -Wextra                  # Enable additional warnings
       -Werror                  # Treat warnings as errors
@@ -39,7 +40,9 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
 		-Wimplicit-fallthrough   # Warn if switch case fallthrough not marked with `[[fallthrough]]`
    )
 
-   # `-Wformat=2` would warn about non literal format strings.
+	target_link_options(sandman_lib PUBLIC
+		$<$<CONFIG:Debug>:-fsanitize=address,undefined>
+	)
 
 else()
    message(WARNING "Not using GNU compiler or Clang compiler.")
