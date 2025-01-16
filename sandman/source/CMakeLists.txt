@@ -21,21 +21,25 @@ pkg_check_modules(Mosquitto IMPORTED_TARGET libmosquitto REQUIRED)
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
 	target_compile_options(sandman_lib PUBLIC
+		# Use sanitizers in debug build.
 		$<$<CONFIG:Debug>:-fsanitize=address,undefined>
-		-Wall                    # Enable most common warnings
-		-Wextra                  # Enable additional warnings
-		$<$<CONFIG:Debug>:-Werror> # In debug mode, treat warnings as errors.
-		-Wpedantic               # Enforce strict ISO C++ compliance
-		-Wshadow                 # Warn when a variable shadows another
-		-Wnon-virtual-dtor       # Warn if a class with virtual functions has a non-virtual destructor
-		-Wold-style-cast         # Warn about old-style casts
-		-Woverloaded-virtual     # Warn if a virtual function is overloaded
-		# -Wsign-conversion        # Warn on implicit conversions that change sign
-		-Wdiv-by-zero            # Warn on divide by zero.
-		-Wformat=2               # Warn about format string issues
-		-Wfloat-equal            # Warn if floating-point values are compared for equality
-		-Wimplicit-fallthrough   # Warn if switch case fallthrough not marked with `[[fallthrough]]`
-		-Wdeprecated-declarations # Warn on usage of constructs that are declared with `[[deprecated]]`.
+
+		-Wall                      # Enable most common warnings.
+		-Wextra                    # Enable additional warnings.
+		$<$<CONFIG:Debug>:-Werror> # In debug build, treat warnings as errors.
+		-Wpedantic                 # Enforce strict ISO C++ compliance.
+		-Wshadow                   # Warn when a variable shadows another.
+		-Wnon-virtual-dtor         # Warn if class with virtual functions has non-virtual destructor.
+		-Wold-style-cast           # Warn about old-style casts (from C).
+		-Woverloaded-virtual       # Warn if a virtual function is overloaded.
+		# -Wsign-conversion        # Warn on implicit conversions that change sign.
+		-Wdiv-by-zero              # Warn on divide by zero.
+		-Wformat=2                 # Warn about format string issues.
+		-Wfloat-equal              # Warn if floating-point values are compared for equality.
+		-Wimplicit-fallthrough     # Warn if a switch case fallthrough is missing `[[fallthrough]]`.
+		-Wdeprecated-declarations  # Warn on usage of constructs marked with `[[deprecated]]`.
+
+		# Don't treat usage of constructs marked with `[[deprecated]]` as errors.
 		-Wno-error=deprecated-declarations
 	)
 
