@@ -9,7 +9,7 @@ namespace Common
 	/// @return Pointer to a static internal `std::tm` object on success, or null pointer otherwise.
 	/// The structure may be shared between `std::gmtime`, `std::localtime`, and `std::ctime`, and
 	/// may be overwritten on each invocation.
-	[[nodiscard]] inline std::tm* GetLocalTime()
+	[[nodiscard]] inline std::tm const* GetLocalTime()
 	{
 		auto const timePoint(std::chrono::system_clock::now());
 
