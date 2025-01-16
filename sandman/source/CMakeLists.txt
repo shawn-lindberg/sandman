@@ -28,7 +28,7 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
 		$<$<CONFIG:Debug>:-fsanitize=address,undefined>
       -Wall                    # Enable most common warnings
       -Wextra                  # Enable additional warnings
-      -Werror                  # Treat warnings as errors
+		$<$<CONFIG:Debug>:-Werror> # In debug mode, treat warnings as errors.
       -Wpedantic               # Enforce strict ISO C++ compliance
       -Wshadow                 # Warn when a variable shadows another
       -Wnon-virtual-dtor       # Warn if a class with virtual functions has a non-virtual destructor
