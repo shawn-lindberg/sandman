@@ -50,6 +50,7 @@ target_include_directories(sandman_lib PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 
 target_link_libraries(sandman_lib PUBLIC sandman_compiler_flags ${CURSES_LIBRARIES}
 							 PkgConfig::Mosquitto)
+
 if (ENABLE_GPIO)
 	target_link_libraries(sandman_lib PUBLIC gpiod)
 endif()
