@@ -1,10 +1,6 @@
 {
-	"files.readonlyInclude": {
-		"build/**": true
-	},
-	"editor.rulers": [
-		100
-	],
+	"files.readonlyInclude": {"build/**": true},
+	"editor.rulers": [100],
 	"cmake.sourceDirectory": "${workspaceFolder}/sandman",
 	"cmake.allowCommentsInPresetsFile": false,
 	"cmake.automaticReconfigure": false,
