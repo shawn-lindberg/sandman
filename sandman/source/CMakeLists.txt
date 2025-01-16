@@ -1,8 +1,9 @@
 include(GNUInstallDirs)
 
-set(SOURCE_FILES command.cpp config.cpp control.cpp gpio.cpp input.cpp logger.cpp mqtt.cpp 
+set(SANDMAN_LIB_SOURCE_FILES command.cpp config.cpp control.cpp gpio.cpp input.cpp logger.cpp mqtt.cpp 
 	notification.cpp reports.cpp routines.cpp shell.cpp timer.cpp)
-add_library(sandman_lib STATIC ${SOURCE_FILES})
+add_library(sandman_lib STATIC ${SANDMAN_LIB_SOURCE_FILES})
+
 add_executable(sandman main.cpp)
 
 add_library(sandman_compiler_flags INTERFACE)
