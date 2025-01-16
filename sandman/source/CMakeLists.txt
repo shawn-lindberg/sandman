@@ -14,11 +14,6 @@ if (ENABLE_GPIO)
 	target_compile_definitions(sandman_lib PUBLIC ENABLE_GPIO)
 endif()
 
-#target_compile_definitions(sandman_lib 
-#                           PUBLIC SANDMAN_CONFIG_DIR="${CMAKE_INSTALL_FULL_SYSCONFDIR}/sandman/")
-
-#configure_file(sandman_config.h.in sandman_config.h)
-
 find_package(Curses REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(Mosquitto IMPORTED_TARGET libmosquitto REQUIRED)
@@ -52,7 +47,6 @@ else()
 endif()
 
 target_include_directories(sandman_lib PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
-#target_include_directories(sandman_lib PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
 
 target_link_libraries(sandman_lib PUBLIC sandman_compiler_flags ${CURSES_LIBRARIES}
 							 PkgConfig::Mosquitto)
