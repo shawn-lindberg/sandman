@@ -22,16 +22,16 @@
 			"displayName": "Raspberry Pi | Debug"
 		},
 		{
-			"name": "linux-no_gpio", "hidden": true, "inherits": "common",
+			"name": "linux_without_gpio", "hidden": true, "inherits": "common",
 			"cacheVariables": { "ENABLE_GPIO": "OFF" }
 		},
 		{
-			"name": "linux-no_gpio-release", "inherits": ["linux-no_gpio", "release"],
-			"displayName": "Linux with No GPIO | Release"
+			"name": "linux_without_gpio-release", "inherits": ["linux_without_gpio", "release"],
+			"displayName": "Linux without GPIO | Release"
 		},
 		{
-			"name": "linux-no_gpio-debug", "inherits": ["linux-no_gpio", "debug"],
-			"displayName": "Linux with No GPIO | Debug",
+			"name": "linux_without_gpio-debug", "inherits": ["linux_without_gpio", "debug"],
+			"displayName": "Linux without GPIO | Debug",
 			"cacheVariables": { "ENABLE_GPIO": "OFF" }
 		}
 	],
