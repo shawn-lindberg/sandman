@@ -6,5 +6,17 @@
 	"cmake.automaticReconfigure": false,
 	"cmake.configureOnEdit": false,
 	"cmake.useCMakePresets": "always",
-	"cmake.ignoreKitEnv": true
+	"cmake.ignoreKitEnv": true,
+	"cmake.debugConfig": {
+		"environment": [
+			/*
+				Don't use leak sanitizer while debugging with GDB.
+				Only one program can use `ptrace` at a time,
+				and both leak sanitizer and GDB want to use `ptrace`.
+			*/
+			{
+				"name": "LSAN_OPTIONS", "value": "detect_leaks=false"
+			}
+		]
+	}
 }
