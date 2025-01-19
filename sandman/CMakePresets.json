@@ -1,0 +1,39 @@
+{
+	"version": 6,
+	"configurePresets": [
+		{
+			"name": "common", "hidden": true,
+			"binaryDir": "${sourceDir}/../build/${presetName}",
+			"cacheVariables": { "CMAKE_EXPORT_COMPILE_COMMANDS": "ON" },
+			"condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Linux" }
+		},
+		{ "name": "release", "hidden": true, "cacheVariables": { "CMAKE_BUILD_TYPE": "Release" } },
+		{ "name": "debug"  , "hidden": true, "cacheVariables": { "CMAKE_BUILD_TYPE": "Debug"   } },
+		{
+			"name": "raspberry_pi", "hidden": true, "inherits": "common",
+			"cacheVariables": { "ENABLE_GPIO": "ON" }
+		},
+		{
+			"name": "raspberry_pi-release", "inherits": ["raspberry_pi", "release"],
+			"displayName": "Raspberry Pi | Release"
+		},
+		{
+			"name": "raspberry_pi-debug", "inherits": ["raspberry_pi", "debug"],
+			"displayName": "Raspberry Pi | Debug"
+		},
+		{
+			"name": "linux_without_gpio", "hidden": true, "inherits": "common",
+			"cacheVariables": { "ENABLE_GPIO": "OFF" }
+		},
+		{
+			"name": "linux_without_gpio-release", "inherits": ["linux_without_gpio", "release"],
+			"displayName": "Linux without GPIO | Release"
+		},
+		{
+			"name": "linux_without_gpio-debug", "inherits": ["linux_without_gpio", "debug"],
+			"displayName": "Linux without GPIO | Debug",
+			"cacheVariables": { "ENABLE_GPIO": "OFF" }
+		}
+	],
+	"buildPresets": []
+}

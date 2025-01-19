@@ -491,7 +491,7 @@ static void SendMessageToDaemon(char const* message)
 //
 // Returns:	True if the program should exit, false if it should continue.
 //
-static bool HandleCommandLine(char** arguments, unsigned int argumentCount)
+static bool HandleCommandLine(char const* const* const arguments, unsigned int const argumentCount)
 {
 	for (unsigned int argumentIndex = 0; argumentIndex < argumentCount; argumentIndex++)
 	{
@@ -558,7 +558,7 @@ static bool HandleCommandLine(char** arguments, unsigned int argumentCount)
 	return false;
 }
 
-int main(int argc, char** argv)
+int main(int const argc, char const* const* const argv)
 {
 	// Deal with command line arguments.
 	if (HandleCommandLine(argv, argc) == true)
