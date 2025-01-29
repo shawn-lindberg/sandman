@@ -29,3 +29,12 @@ line-length = 79
 indent-width = 4
 
 [tool.ruff.lint]
+select = [
+  "A",    # Prevent shadowing builtins.
+  "ANN",  # Type annotations.
+  "B",    # bugbear
+  "E",    # pycodestyle
+  "F",    # pyflakes
+  "I",    # isort
+  "N",    # PEP 8 naming.
+]
