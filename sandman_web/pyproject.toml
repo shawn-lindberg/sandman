@@ -33,8 +33,24 @@ select = [
   "A",    # Prevent shadowing builtins.
   "ANN",  # Type annotations.
   "B",    # bugbear
-  "E",    # pycodestyle
+  "D",    # pydocstyle
+  "E",    # pycodestyle (errors)
   "F",    # pyflakes
   "I",    # isort
   "N",    # PEP 8 naming.
+  "UP",   # pyupgrade
+  "W",    # pycodestyle (warnings)
+]
+
+ignore = [
+  # May conflict with the formatter, https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
+  "W191",
+  "E111",
+  "E114",
+  "E117",
+  "D206",
+  "D300",
+  "Q",
+  "COM812",
+  "COM819",
 ]
