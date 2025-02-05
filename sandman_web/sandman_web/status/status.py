@@ -1,63 +1,68 @@
+import enum
+
 import docker
 import psutil
 import requests
 from flask import Blueprint, render_template
 
 
-# Check whether a Linux process is running based on process name
-def is_process_running(process_name: str) -> bool:
-    """Returns bool based on whether named process is running."""
+class _HealthType(enum.Enum):
+    RUNNING = 1
+    NOT_RUNNING = 2
+    NOT_FOUND = 3
+
+
+def _is_process_running(process_name: str) -> bool:
+    """Check whether a Linux process is running based on process name."""
     for process in psutil.process_iter(["pid", "name"]):
         if process.info["name"] == process_name:
             return True
     return False
 
 
-# Check that Sandman is running
-def check_sandman_health() -> int:
-    """Returns a status code based on whether process is running."""
+def check_sandman_health() -> _HealthType:
+    """Check that Sandman is running.
+
+    Returns a status code based on whether process is running.
+    """
     process_name = "sandman"
-    if is_process_running(process_name):
-        return 0
+    if _is_process_running(process_name):
+        return _HealthType.RUNNING
     else:
-        return 1
+        return _HealthType.NOT_RUNNING
 
 
-# Check that Rhasspy is running and responding
-def check_rhasspy_health() -> int | str:
-    """Returns a status code or string based on container status and http request response."""
+def check_rhasspy_health() -> _HealthType:
+    """Check that Rhasspy is running and responding.
+
+    Returns a status code based on container status and http request response.
+    """
     # Get the Rhasspy contatiner status
     client = docker.DockerClient(base_url="unix://var/run/docker.sock")
     try:
-        rhasspy_container = client.containers.get("rhasspy")
-        rhasspy_container_status = rhasspy_container.attrs["State"]
-    except:
-        rhasspy_container_status = False
+        container = client.containers.get("rhasspy")
+    except Exception:
+        return _HealthType.NOT_FOUND
+    else:
+        container_status = container.attrs["State"]["Status"]
 
     # Get the Rhasspy web response
     try:
-        rhasspy_web_response = requests.get("http://localhost:12101")
-        rhasspy_web_status = rhasspy_web_response.status_code
-    except:
-        rhasspy_web_status = 404
+        web_response = requests.get("http://localhost:12101")
+    except Exception:
+        web_status = 404
+    else:
+        web_status = web_response.status_code
 
     # Check that the Rhasspy container is running and the web response is OK
-    try:
-        if (
-            rhasspy_container_status["Status"] == "running"
-            and rhasspy_web_status == 200
-        ):
-            return 0
-        else:
-            return 1
-    except:
-        # The container may not exist
-        return "Failed check"
+    if container_status == "running" and web_status == 200:
+        return _HealthType.RUNNING
+    else:
+        return _HealthType.NOT_RUNNING
 
 
-# Check that ha-bridge is running and responding
-def check_ha_bridge_health() -> int:
-    """Check the health of HA bridge.
+def check_ha_bridge_health() -> _HealthType:
+    """Check that ha-bridge is running and responding.
 
     Returns a status code based on container status and http request response.
     """
@@ -67,7 +72,7 @@ def check_ha_bridge_health() -> int:
         container = client.containers.get("ha-bridge")
     except Exception:
         # ha-bridge may not be installed on host
-        return 2
+        return _HealthType.NOT_FOUND
     else:
         container_status = container.attrs["State"]["Status"]
 
@@ -81,9 +86,9 @@ def check_ha_bridge_health() -> int:
 
     # Check that the ha-bridge container is running or the web response is OK
     if container_status == "running" or web_status == 200:
-        return 0
+        return _HealthType.RUNNING
     else:
-        return 1
+        return _HealthType.NOT_RUNNING
 
 
 status_bp = Blueprint("status", __name__, template_folder="templates")
@@ -98,31 +103,29 @@ def status_home() -> str:
     ha_bridge_status_check = check_ha_bridge_health()
 
     # Check that Sandman is in good health
-    if sandman_status_check == 0:
+    if sandman_status_check == _HealthType.RUNNING:
         sandman_status = "Sandman process is running. ✔️"
     else:
         sandman_status = "Sandman process is not running. ❌"
 
     # Check that Rhasspy is in good health
-    if rhasspy_status_check == 0:
+    if rhasspy_status_check == _HealthType.RUNNING:
         rhasspy_status = "Rhasspy is running. ✔️"
-    elif rhasspy_status_check == "Failed check":
-        rhasspy_status = "Rhasspy is not running. ❌"
-        rhasspy_status += "The Rhasspy container may not exist."
     else:
         rhasspy_status = "Rhasspy is not running. ❌"
+        if rhasspy_status_check == _HealthType.NOT_FOUND:
+            rhasspy_status += "The Rhasspy container may not exist."
 
     # Check that ha-bridge is in good health
-    if ha_bridge_status_check == 0:
+    if ha_bridge_status_check == _HealthType.RUNNING:
         ha_bridge_status = "ha-bridge is running. ✔️"
-    elif ha_bridge_status_check == 2:
-        ha_bridge_status = "ha-bridge is not running. ❌"
-        ha_bridge_status += (
-            "ha-bridge may not be installed on the host as a container and or "
-            "is otherwise unresponsive."
-        )
     else:
         ha_bridge_status = "ha-bridge is not running. ❌"
+        if ha_bridge_status_check == _HealthType.NOT_FOUND:
+            ha_bridge_status += (
+                "ha-bridge may not be installed on the host as a container "
+                "or is otherwise unresponsive."
+            )
 
     return render_template(
         "status.html",
