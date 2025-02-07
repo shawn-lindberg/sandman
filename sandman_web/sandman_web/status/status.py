@@ -1,3 +1,5 @@
+"""Implements the status webpage."""
+
 import enum
 
 import docker
@@ -17,6 +19,7 @@ def _is_process_running(process_name: str) -> bool:
     for process in psutil.process_iter(["pid", "name"]):
         if process.info["name"] == process_name:
             return True
+
     return False
 
 
