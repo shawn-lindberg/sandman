@@ -43,6 +43,8 @@ select = [
 ]
 
 ignore = [
+  "E712", # Avoid equality comparisons to False.
+
   # May conflict with the formatter, https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
   "W191",
   "E111",
