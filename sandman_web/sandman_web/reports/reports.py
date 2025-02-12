@@ -1,8 +1,10 @@
+"""Implements the reports list and individual reports webpages."""
+
 import datetime
 import json
 import os
+import pathlib
 from operator import itemgetter
-from pathlib import Path
 
 from flask import (
     Blueprint,
@@ -10,15 +12,15 @@ from flask import (
 )
 from werkzeug.exceptions import abort
 
-report_prefix = "sandman"
-report_extension = ".rpt"
+_report_prefix = "sandman"
+_report_extension = ".rpt"
 
 # The date and time format for report events.
-report_date_time_format = "%Y/%m/%d %H:%M:%S %Z"
+_report_date_time_format = "%Y/%m/%d %H:%M:%S %Z"
 
 
 def _get_reports_path() -> str:
-    return str(Path.home()) + "/.sandman/reports"
+    return str(pathlib.Path.home()) + "/.sandman/reports"
 
 
 blueprint = Blueprint(
@@ -41,15 +43,15 @@ def index() -> str:
     for path in os.listdir(reports_path):
         base_name, extension = os.path.splitext(path)
 
-        if extension != report_extension:
+        if extension != _report_extension:
             continue
 
         # We expect all of the reports to start with the same prefix, so
         # ignore any that don't have it.
-        if base_name.startswith(report_prefix) == False:
+        if base_name.startswith(_report_prefix) == False:
             continue
 
-        date_string = base_name[len(report_prefix) :]
+        date_string = base_name[len(_report_prefix) :]
 
         # Try to convert the name to a date.
         date_format = "%Y-%m-%d"
@@ -141,7 +143,7 @@ def _parse_report_file(filename: str) -> tuple[int, list[any]]:
 
                     try:
                         info_date_time = datetime.datetime.strptime(
-                            line_date_time, report_date_time_format
+                            line_date_time, _report_date_time_format
                         )
 
                     except ValueError:
@@ -175,7 +177,7 @@ def report(year: int, month: int, day: int) -> str:
 
     report_name = f"{year:04d}-{month:02d}-{day:02d}"
     report_filename = (
-        reports_path + "/" + report_prefix + report_name + report_extension
+        reports_path + "/" + _report_prefix + report_name + _report_extension
     )
 
     # Try to generate a report start time to fall back on if we don't get one
