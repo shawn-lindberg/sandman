@@ -4,7 +4,7 @@ What follows is intended to document as clearly as possible the coding standards
 
 ## Python
 
-Sandman's Python coding standards are based on [PEP 8](https://peps.python.org/pep-0008/). However, there some points that differ.
+Sandman's Python coding standards are based on [PEP 8](https://peps.python.org/pep-0008/). However, there some points that differ. Sandman uses pre-commit to perform linting and formatting using Ruff.
 
 Use f-strings and type hints/annotations whenever possible.
 
@@ -23,22 +23,14 @@ PEP 8 suggests altering spacing around binary operators according to precedence 
 
 ```python
 # Right:
-score = multiplier * (points + bonus);
+score = multiplier * (points + bonus)
 result = (factor1 * value1) + (factor2 * value2)
 ```
 
 ```python
 # Wrong:
-score = multiplier*(points+bonus);
+score = multiplier*(points+bonus)
 result = (factor1 *value1)+(factor2* value2)
-```
-
-And, unlike PEP 8, the use of spaces around equal signs used in default values or keyword arguments is always recommended.
-
-```python
-# Right:
-def complex(real, imaginary = 0.0):
-    return magic(r = real, i = imaginary)
 ```
 
 Comparing against True and False is acceptable.
