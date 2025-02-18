@@ -23,7 +23,7 @@ def _is_process_running(process_name: str) -> bool:
     return False
 
 
-def check_sandman_health() -> _HealthType:
+def _check_sandman_health() -> _HealthType:
     """Check that Sandman is running.
 
     Returns a status code based on whether process is running.
@@ -35,7 +35,7 @@ def check_sandman_health() -> _HealthType:
         return _HealthType.NOT_RUNNING
 
 
-def check_rhasspy_health() -> _HealthType:
+def _check_rhasspy_health() -> _HealthType:
     """Check that Rhasspy is running and responding.
 
     Returns a status code based on container status and http request response.
@@ -64,7 +64,7 @@ def check_rhasspy_health() -> _HealthType:
         return _HealthType.NOT_RUNNING
 
 
-def check_ha_bridge_health() -> _HealthType:
+def _check_ha_bridge_health() -> _HealthType:
     """Check that ha-bridge is running and responding.
 
     Returns a status code based on container status and http request response.
@@ -94,37 +94,51 @@ def check_ha_bridge_health() -> _HealthType:
         return _HealthType.NOT_RUNNING
 
 
+def is_healthy() -> bool:
+    """Return whether the status is healthy overall."""
+    sandman_health = _check_sandman_health()
+    rhasspy_health = _check_rhasspy_health()
+
+    if (
+        sandman_health == _HealthType.RUNNING
+        and rhasspy_health == _HealthType.RUNNING
+    ):
+        return True
+
+    return False
+
+
 status_bp = Blueprint("status", __name__, template_folder="templates")
 
 
 @status_bp.route("/status")
 def status_home() -> str:
     """Implement the route for the status page."""
-    # Perform the Sandman related health checks
-    sandman_status_check = check_sandman_health()
-    rhasspy_status_check = check_rhasspy_health()
-    ha_bridge_status_check = check_ha_bridge_health()
+    # Perform the Sandman related health checks.
+    sandman_health = _check_sandman_health()
+    rhasspy_health = _check_rhasspy_health()
+    ha_bridge_health = _check_ha_bridge_health()
 
-    # Check that Sandman is in good health
-    if sandman_status_check == _HealthType.RUNNING:
+    # Check that Sandman is in good health.
+    if sandman_health == _HealthType.RUNNING:
         sandman_status = "Sandman process is running. ✔️"
     else:
         sandman_status = "Sandman process is not running. ❌"
 
-    # Check that Rhasspy is in good health
-    if rhasspy_status_check == _HealthType.RUNNING:
+    # Check that Rhasspy is in good health.
+    if rhasspy_health == _HealthType.RUNNING:
         rhasspy_status = "Rhasspy is running. ✔️"
     else:
         rhasspy_status = "Rhasspy is not running. ❌"
-        if rhasspy_status_check == _HealthType.NOT_FOUND:
+        if rhasspy_health == _HealthType.NOT_FOUND:
             rhasspy_status += "The Rhasspy container may not exist."
 
     # Check that ha-bridge is in good health
-    if ha_bridge_status_check == _HealthType.RUNNING:
+    if ha_bridge_health == _HealthType.RUNNING:
         ha_bridge_status = "ha-bridge is running. ✔️"
     else:
         ha_bridge_status = "ha-bridge is not running. ❌"
-        if ha_bridge_status_check == _HealthType.NOT_FOUND:
+        if ha_bridge_health == _HealthType.NOT_FOUND:
             ha_bridge_status += (
                 "ha-bridge may not be installed on the host as a container "
                 "or is otherwise unresponsive."
