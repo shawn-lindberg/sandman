@@ -5,9 +5,12 @@ description = "The web interface for the Sandman bed controller."
 authors = [
   { name="Shawn Lindberg", email="shawn.lindberg@gmail.com" },
 ]
-requires-python = ">=3.8"
+requires-python = ">=3.11"
 dependencies = [
+    "docker>=7.1.0",
     "flask",
+    "psutil>=6.1.1",
+    "requests>=2.32.3",
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -20,3 +23,36 @@ Homepage = "https://github.com/shawn-lindberg/sandman"
 [build-system]
 requires = ["flit_core<4"]
 build-backend = "flit_core.buildapi"
+
+[tool.ruff]
+line-length = 79
+indent-width = 4
+
+[tool.ruff.lint]
+select = [
+  "A",    # Prevent shadowing builtins.
+  "ANN",  # Type annotations.
+  "B",    # bugbear
+  "D",    # pydocstyle
+  "E",    # pycodestyle (errors)
+  "F",    # pyflakes
+  "I",    # isort
+  "N",    # PEP 8 naming.
+  "UP",   # pyupgrade
+  "W",    # pycodestyle (warnings)
+]
+
+ignore = [
+  "E712", # Avoid equality comparisons to False.
+
+  # May conflict with the formatter, https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
+  "W191",
+  "E111",
+  "E114",
+  "E117",
+  "D206",
+  "D300",
+  "Q",
+  "COM812",
+  "COM819",
+]
