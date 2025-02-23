@@ -1,11 +1,15 @@
 # Sandman
 
+## Update
+
+Sandman is in the process of moving to a new home: [Sandman Project](https://github.com/sandman-project). This process is being combined with an effort to rewrite Sandman in Python, which will take some time. In the meantime, active development on this repository will be stopped. However, there are no plans to remove this repository in the future. The current plan is that it will remain for historical purposes.
+
+## Intro
 Sandman is a device that is intended to assist people, particularly those with disabilities, in using hospital style beds. Therefore, it is not just software, but a combination of both software and hardware. The software is primarily designed to enable controlling a bed by voice. However, work is also underway on providing analytics of usage through a web interface. The current method of controlling the bed will work with any motorized bed that uses a hand control.
 
 Sandman has a Discord server to support our community. You can join it here: [Sandman Discord](https://discord.gg/XBYtSAXK2B)
 
-Sandman also has a YouTube channel: [Sandman YouTube](https://www.youtube.com/@project-sandman).  Check out the channel to see a video demo of a 
-bed being controlled by voice.
+Sandman also has a YouTube channel: [Sandman YouTube](https://www.youtube.com/@project-sandman).  Check out the channel to see a video demo of a bed being controlled by voice.
 
 ## Disclaimer
 
@@ -251,15 +255,6 @@ sudo chmod +x /etc/init.d/sandman.sh
 ```bash
 sudo update-rc.d sandman.sh defaults
 ```
-
-## Roadmap
-
-### Software
-
-* Implement a web interface for modifying the schedule.
-* Implement a web interface for modifying the configuration.
-* Add control over whether notifications are played.
-* Simplify setup - Docker?
 
 ## Contributing
 
